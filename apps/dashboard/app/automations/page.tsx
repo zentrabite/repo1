@@ -27,10 +27,30 @@ export default function AutomationsPage() {
     getCampaigns(businessId).then(data => { setCamps(data); setLoading(false); });
   }, [businessId]);
 
+  const [running, setRunning] = useState(false);
+
   const totalActive = camps.filter(c => c.active).length;
   const totalSent   = camps.reduce((a,c) => a + 0, 0); // populated from sms_logs
   const totalConv   = 0;
   const totalRev    = 0;
+
+  const runNow = async () => {
+    if (!businessId) return;
+    setRunning(true);
+    try {
+      const res  = await fetch("/api/automations/run", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ businessId }),
+      });
+      const data = await res.json();
+      show(data.sent > 0 ? `✅ Sent ${data.sent} messages` : "No customers due right now");
+    } catch {
+      show("❌ Failed to run automations");
+    } finally {
+      setRunning(false);
+    }
+  };
 
   const openEdit = (c: Campaign) => {
     setEditing(c);
@@ -71,7 +91,12 @@ export default function AutomationsPage() {
           <h2 style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:20, color:"#fff" }}>Automations</h2>
           <p style={{ color:C.st, fontSize:12 }}>SMS & email with triggers & attribution</p>
         </div>
-        <button className="bp" onClick={openNew}>+ New</button>
+        <div style={{ display:"flex", gap:8 }}>
+          <button className="bg-btn" onClick={runNow} disabled={running}>
+            {running ? "Running…" : "▶ Run Now"}
+          </button>
+          <button className="bp" onClick={openNew}>+ New</button>
+        </div>
       </div>
 
       <div style={{ display:"flex", gap:10, flexWrap:"wrap", marginBottom:12 }}>
