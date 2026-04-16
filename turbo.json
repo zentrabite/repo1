@@ -5,7 +5,20 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**"]
+      "outputs": [".next/**", "!.next/cache/**"],
+      "env": [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+        "STRIPE_SECRET_KEY",
+        "STRIPE_WEBHOOK_SECRET",
+        "STRIPE_PRICE_MERCHANT_MONTHLY",
+        "TWILIO_ACCOUNT_SID",
+        "TWILIO_AUTH_TOKEN",
+        "TWILIO_PHONE_NUMBER",
+        "NEXT_PUBLIC_APP_URL"
+      ]
     },
     "lint": {
       "dependsOn": ["^lint"]
