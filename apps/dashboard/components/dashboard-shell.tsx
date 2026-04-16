@@ -18,7 +18,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   useEffect(() => {
     if (isAuthPage) return;
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data }: { data: { session: unknown } }) => {
+      const session = data.session;
       if (!session) {
         router.replace(`/login?redirect=${pathname}`);
       } else {
