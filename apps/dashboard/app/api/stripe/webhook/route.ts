@@ -63,7 +63,8 @@ async function handlePaymentSucceeded(pi: Stripe.PaymentIntent) {
   const { business_id, customer_phone, customer_name, customer_email, items } = pi.metadata;
   if (!business_id) return;
 
-  const db = createServerClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = createServerClient() as any;
 
   // ── Upsert customer ────────────────────────────────────────────────────
   let customerId: string | null = null;
@@ -124,7 +125,8 @@ async function handleMerchantOnboarded(account: Stripe.Account) {
   const businessId = account.metadata?.zentrabite_business_id;
   if (!businessId) return;
 
-  await createServerClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (createServerClient() as any)
     .from("businesses")
     .update({ stripe_account_id: account.id })
     .eq("id", businessId);
@@ -136,7 +138,8 @@ async function handleSubscriptionChange(sub: Stripe.Subscription) {
   const businessId = sub.metadata?.zentrabite_business_id;
   if (!businessId) return;
 
-  await createServerClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (createServerClient() as any)
     .from("businesses")
     .update({
       settings: {
@@ -152,7 +155,8 @@ async function handleSubscriptionCancelled(sub: Stripe.Subscription) {
   const businessId = sub.metadata?.zentrabite_business_id;
   if (!businessId) return;
 
-  await createServerClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (createServerClient() as any)
     .from("businesses")
     .update({ settings: { subscription_status: "cancelled" } })
     .eq("id", businessId);
