@@ -1,8 +1,8 @@
 // ─── POST /api/sms/send ───────────────────────────────────────────────────────
-// Sends a single SMS via Twilio.
-// Used by: Customer profile SMS button, manual campaign sends.
+// Sends a single SMS via Twilio and logs it to Supabase.
 
 import { NextResponse } from "next/server";
+import { createServerClient } from "@/lib/supabase-server";
 
 export async function POST(req: Request) {
   try {
@@ -18,17 +18,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "to, message, and businessId are required" }, { status: 400 });
     }
 
-    const accountSid  = process.env.TWILIO_ACCOUNT_SID;
-    const authToken   = process.env.TWILIO_AUTH_TOKEN;
-    const fromNumber  = process.env.TWILIO_PHONE_NUMBER;
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const authToken  = process.env.TWILIO_AUTH_TOKEN;
+    const fromNumber = process.env.TWILIO_PHONE_NUMBER;
 
     if (!accountSid || !authToken || !fromNumber) {
       return NextResponse.json({
-        error: "Twilio not configured. Add TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER to .env.local"
+        error: "Twilio not configured — add keys to .env.local"
       }, { status: 500 });
     }
 
-    // Send via Twilio REST API
+    // Send via Twilio
     const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
     const res  = await fetch(url, {
       method:  "POST",
@@ -42,15 +42,15 @@ export async function POST(req: Request) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message ?? "Twilio error");
 
-    // Log to Supabase
-    const { createServerClient } = await import("@/lib/supabase-server");
-    await createServerClient().from("sms_logs").insert({
+    // Log to Supabase — cast as any to bypass strict type check on sms_logs insert
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (createServerClient().from("sms_logs") as any).insert({
       business_id: businessId,
       customer_id: customerId ?? null,
       campaign_id: campaignId ?? null,
       message,
-      status:     "sent",
-      twilio_sid: data.sid,
+      status:      "sent",
+      twilio_sid:  data.sid,
     });
 
     return NextResponse.json({ success: true, sid: data.sid });
