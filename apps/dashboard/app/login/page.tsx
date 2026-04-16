@@ -27,16 +27,25 @@ function LoginForm() {
     setLoading(true);
     setError("");
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-    if (error) {
-      setError(error.message);
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+        return;
+      }
+
+      if (data.session) {
+        window.location.replace(redirect);
+      } else {
+        setError("Login succeeded but no session was created. Please try again.");
+        setLoading(false);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unexpected error occurred");
       setLoading(false);
-      return;
     }
-
-    // Hard redirect — ensures the session cookie is picked up properly
-    window.location.href = redirect;
   };
 
   return (
