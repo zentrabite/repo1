@@ -18,14 +18,23 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   useEffect(() => {
     if (isAuthPage) return;
 
+    // Check current session
     supabase.auth.getSession().then(({ data }: { data: { session: unknown } }) => {
-      const session = data.session;
-      if (!session) {
-        router.replace(`/login?redirect=${pathname}`);
-      } else {
+      if (data.session) {
         setChecking(false);
       }
     });
+
+    // Listen for auth state changes — catches session set just before redirect
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session: unknown) => {
+      if (session) {
+        setChecking(false);
+      } else {
+        router.replace(`/login?redirect=${pathname}`);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, [pathname, isAuthPage, router]);
 
   // Auth pages — no sidebar/topbar

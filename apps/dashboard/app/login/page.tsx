@@ -39,8 +39,8 @@ function LoginForm() {
       }
 
       if (data.session) {
-        console.log("Session found, redirecting to:", redirect);
-        router.push(redirect);
+        console.log("Session found, redirecting to /dashboard");
+        window.location.href = "/dashboard";
       } else {
         console.log("No session returned");
         setError("Login succeeded but no session was created. Please try again.");
