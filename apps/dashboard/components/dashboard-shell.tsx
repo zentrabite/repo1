@@ -20,6 +20,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
     // getSession does the initial auth check
     supabase.auth.getSession().then(({ data }: { data: { session: unknown } }) => {
+      console.log("Shell getSession result:", data.session ? "HAS SESSION" : "NO SESSION");
       if (data.session) {
         setChecking(false);
       } else {
