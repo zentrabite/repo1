@@ -18,20 +18,17 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   useEffect(() => {
     if (isAuthPage) return;
 
-    // getSession does the initial auth check
-    supabase.auth.getSession().then(({ data }: { data: { session: unknown } }) => {
-      console.log("Shell getSession result:", data.session ? "HAS SESSION" : "NO SESSION");
-      if (data.session) {
-        setChecking(false);
-      } else {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: { subscription } } = (supabase.auth as any).onAuthStateChange((event: string, session: unknown) => {
+      console.log("Auth event:", event, session ? "HAS SESSION" : "NO SESSION");
+      if (event === "INITIAL_SESSION" || event === "SIGNED_IN") {
+        if (session) {
+          setChecking(false);
+        } else {
+          router.replace(`/login?redirect=${pathname}`);
+        }
+      } else if (event === "SIGNED_OUT") {
         router.replace(`/login?redirect=${pathname}`);
-      }
-    });
-
-    // onAuthStateChange catches a session arriving just after page load (post-login redirect)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session: unknown) => {
-      if (session) {
-        setChecking(false);
       }
     });
 
