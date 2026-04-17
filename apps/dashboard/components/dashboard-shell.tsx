@@ -13,12 +13,26 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const router    = useRouter();
   const isAuthPage = AUTH_ROUTES.some(r => pathname.startsWith(r));
 
-  const [checking, setChecking] = useState(!isAuthPage);
+  const [checking, setChecking] = useState(() => {
+    if (isAuthPage) return false;
+    if (typeof window === "undefined") return true;
+    const hasToken = Object.keys(window.localStorage).some(
+      k => k.startsWith("sb-") && k.endsWith("-auth-token")
+    );
+    return !hasToken;
+  });
 
   useEffect(() => {
     if (isAuthPage) return;
-    setChecking(false);
-  }, [isAuthPage]);
+    const hasToken = Object.keys(window.localStorage).some(
+      k => k.startsWith("sb-") && k.endsWith("-auth-token")
+    );
+    if (hasToken) {
+      setChecking(false);
+    } else {
+      router.replace(`/login?redirect=${pathname}`);
+    }
+  }, [isAuthPage, pathname, router]);
 
   // Auth pages — no sidebar/topbar
   if (isAuthPage) return <>{children}</>;
