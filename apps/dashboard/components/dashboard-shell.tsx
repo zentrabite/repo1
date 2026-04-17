@@ -18,21 +18,15 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   useEffect(() => {
     if (isAuthPage) return;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: { subscription } } = (supabase.auth as any).onAuthStateChange((event: string, session: unknown) => {
-      console.log("Auth event:", event, session ? "HAS SESSION" : "NO SESSION");
-      if (event === "INITIAL_SESSION" || event === "SIGNED_IN") {
-        if (session) {
-          setChecking(false);
-        } else {
-          router.replace(`/login?redirect=${pathname}`);
-        }
-      } else if (event === "SIGNED_OUT") {
-        router.replace(`/login?redirect=${pathname}`);
-      }
-    });
+    // Check localStorage directly for a Supabase session token
+    const hasToken = typeof window !== "undefined" &&
+      Object.keys(window.localStorage).some(k => k.startsWith("sb-") && k.endsWith("-auth-token"));
 
-    return () => subscription.unsubscribe();
+    if (hasToken) {
+      setChecking(false);
+    } else {
+      router.replace(`/login?redirect=${pathname}`);
+    }
   }, [pathname, isAuthPage, router]);
 
   // Auth pages — no sidebar/topbar
