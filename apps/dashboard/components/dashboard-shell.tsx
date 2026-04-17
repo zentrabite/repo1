@@ -17,17 +17,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
   useEffect(() => {
     if (isAuthPage) return;
-
-    // Check localStorage directly for a Supabase session token
-    const hasToken = typeof window !== "undefined" &&
-      Object.keys(window.localStorage).some(k => k.startsWith("sb-") && k.endsWith("-auth-token"));
-
-    if (hasToken) {
-      setChecking(false);
-    } else {
-      router.replace(`/login?redirect=${pathname}`);
-    }
-  }, [pathname, isAuthPage, router]);
+    setChecking(false);
+  }, [isAuthPage]);
 
   // Auth pages — no sidebar/topbar
   if (isAuthPage) return <>{children}</>;
