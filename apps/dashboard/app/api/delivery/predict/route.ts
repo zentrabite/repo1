@@ -17,30 +17,14 @@
 
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
+import type { DeliveryPrediction, DeliveryRecommendation } from "@/lib/delivery-types";
+
+export type { DeliveryPrediction, DeliveryRecommendation };
 
 const UBER_PER_DELIVERY = 6.5;
 const TASKER_DAY_RATE   = 180;
 const TASKER_CAPACITY   = 25; // deliveries per Tasker per day
 const WEEKS_LOOKBACK    = 8;
-
-export interface DeliveryPrediction {
-  date: string;
-  dayOfWeek: string;
-  predictedVolume: number;        // orders
-  historicalAverage: number;
-  historicalData: { date: string; count: number }[];
-  recommendation: DeliveryRecommendation;
-}
-
-export interface DeliveryRecommendation {
-  provider: "uber_direct" | "tasker" | "tasker_and_uber" | "none";
-  taskersNeeded: number;
-  uberOrders: number;             // orders handled by Uber Direct
-  estimatedCost: number;          // AUD
-  uberOnlyCost: number;           // cost if all Uber Direct
-  saving: number;                 // vs pure Uber Direct
-  rationale: string;
-}
 
 const DAY_NAMES = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 

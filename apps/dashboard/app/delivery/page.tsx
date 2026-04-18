@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useBusiness } from "@/hooks/use-business";
-import type { DeliveryPrediction } from "@/app/api/delivery/predict/route";
+import type { DeliveryPrediction } from "@/lib/delivery-types";
 
 const C = { g:"#00B67A", o:"#FF6B35", b:"#3B82F6", st:"#6B7C93", cl:"#F8FAFB", navy:"#1C2D48", mist:"rgba(255,255,255,.07)", r:"#FF4757" };
 
