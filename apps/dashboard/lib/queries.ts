@@ -123,6 +123,25 @@ export async function getCustomerOrders(customerId: string) {
   return data as Order[];
 }
 
+export async function createCustomer(businessId: string, data: {
+  name: string; phone: string; email: string;
+}) {
+  const { data: customer, error } = await supabase
+    .from("customers")
+    .insert({
+      business_id: businessId,
+      name: data.name,
+      phone: data.phone || null,
+      email: data.email || null,
+      source: "manual",
+      segment: "New",
+    })
+    .select("*")
+    .single();
+  if (error) throw error;
+  return customer as Customer;
+}
+
 // ─── Campaigns ───────────────────────────────────────────────────────────────
 
 export async function getCampaigns(businessId: string) {
@@ -195,6 +214,36 @@ export async function updateMenuItem(itemId: string, updates: Partial<MenuItem>)
     .from("menu_items")
     .update(updates)
     .eq("id", itemId);
+  if (error) throw error;
+}
+
+export async function createMenuCategory(businessId: string, name: string) {
+  const { data, error } = await supabase
+    .from("menu_categories")
+    .insert({ business_id: businessId, name, sort_order: 0 })
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data as MenuCategory;
+}
+
+export async function createMenuItem(businessId: string, data: {
+  category_id: string | null;
+  name: string;
+  price: number;
+  description: string;
+}) {
+  const { data: item, error } = await supabase
+    .from("menu_items")
+    .insert({ business_id: businessId, ...data, available: true, sort_order: 0 })
+    .select("*")
+    .single();
+  if (error) throw error;
+  return item as MenuItem;
+}
+
+export async function deleteMenuItem(itemId: string) {
+  const { error } = await supabase.from("menu_items").delete().eq("id", itemId);
   if (error) throw error;
 }
 

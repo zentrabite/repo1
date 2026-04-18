@@ -74,7 +74,7 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
 function SettingsContent() {
   const { toast, show } = useToast();
   const searchParams = useSearchParams();
-  const { businessId, business } = useBusiness();
+  const { businessId, business, email } = useBusiness();
 
   // ── Local state ──────────────────────────────────────────────────────────
   const [profile, setProfile] = useState({
@@ -117,7 +117,7 @@ function SettingsContent() {
       const res = await fetch("/api/stripe/connect", {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ business_id:"demo-business-id" }),
+        body: JSON.stringify({ business_id: businessId }),
       });
       const data = await res.json();
       if (data.url) {
@@ -139,7 +139,7 @@ function SettingsContent() {
       const res = await fetch("/api/stripe/checkout", {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ business_id:"demo-business-id", email: team[0]?.email ?? "owner@email.com" }),
+        body: JSON.stringify({ business_id: businessId, email: email ?? team[0]?.email ?? "" }),
       });
       const data = await res.json();
       if (data.url) {

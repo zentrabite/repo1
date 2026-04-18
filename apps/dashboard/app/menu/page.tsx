@@ -7,10 +7,10 @@ import EmptyState from "@/components/empty-state";
 import { UtensilsCrossed } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
-import { getMenu, toggleMenuItemAvailability, updateMenuItem } from "@/lib/queries";
+import { getMenu, toggleMenuItemAvailability, updateMenuItem, createMenuItem, createMenuCategory, deleteMenuItem } from "@/lib/queries";
 import type { MenuCategory, MenuItem } from "@/lib/database.types";
 
-const C = { g:"#00B67A", st:"#6B7C93" };
+const C = { g:"#00B67A", st:"#6B7C93", r:"#FF4757" };
 
 type MenuSection = MenuCategory & { items: MenuItem[] };
 
@@ -20,13 +20,62 @@ export default function MenuPage() {
 
   const [menu,        setMenu]        = useState<MenuSection[]>([]);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
-  const [form,        setForm]        = useState({ name:"", price:"", description:"" });
+  const [addingItem,  setAddingItem]  = useState(false);
+  const [addingCat,   setAddingCat]   = useState(false);
+  const [form,        setForm]        = useState({ name:"", price:"", description:"", category_id:"" });
+  const [newCatName,  setNewCatName]  = useState("");
+  const [saving,      setSaving]      = useState(false);
   const [loading,     setLoading]     = useState(true);
 
   useEffect(() => {
     if (!businessId) return;
     getMenu(businessId).then(data => { setMenu(data as MenuSection[]); setLoading(false); });
   }, [businessId]);
+
+  const openAddItem = () => {
+    setForm({ name:"", price:"", description:"", category_id: menu[0]?.id ?? "" });
+    setAddingItem(true);
+  };
+
+  const saveNewItem = async () => {
+    if (!businessId || !form.name || !form.price) return show("Name and price are required");
+    setSaving(true);
+    try {
+      const newItem = await createMenuItem(businessId, {
+        category_id: form.category_id || null,
+        name: form.name,
+        price: parseFloat(form.price),
+        description: form.description,
+      });
+      setMenu(prev => prev.map(s =>
+        s.id === form.category_id ? { ...s, items: [...s.items, newItem] } : s
+      ));
+      setAddingItem(false);
+      show("Item added ✓");
+    } catch { show("Failed to add item"); }
+    finally { setSaving(false); }
+  };
+
+  const saveNewCategory = async () => {
+    if (!businessId || !newCatName.trim()) return show("Enter a category name");
+    setSaving(true);
+    try {
+      const cat = await createMenuCategory(businessId, newCatName.trim());
+      setMenu(prev => [...prev, { ...cat, items: [] }]);
+      setNewCatName("");
+      setAddingCat(false);
+      show("Category added ✓");
+    } catch { show("Failed to add category"); }
+    finally { setSaving(false); }
+  };
+
+  const handleDelete = async (item: MenuItem) => {
+    if (!confirm(`Delete "${item.name}"?`)) return;
+    await deleteMenuItem(item.id);
+    setMenu(prev => prev.map(s => ({ ...s, items: s.items.filter(it => it.id !== item.id) })));
+    setEditingItem(null);
+    show("Deleted");
+  };
 
   const toggle = async (item: MenuItem) => {
     await toggleMenuItemAvailability(item.id, !item.available);
@@ -56,7 +105,10 @@ export default function MenuPage() {
           <h2 style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:20, color:"#fff" }}>Menu Builder</h2>
           <p style={{ color:C.st, fontSize:12 }}>Categories, items, modifiers, bundles</p>
         </div>
-        <button className="bp" onClick={() => show("Add item — coming soon")}>+ Add Item</button>
+        <div style={{ display:"flex", gap:8 }}>
+          <button className="bg-btn" onClick={() => setAddingCat(true)}>+ Category</button>
+          <button className="bp" onClick={openAddItem}>+ Add Item</button>
+        </div>
       </div>
 
       {loading ? (
@@ -94,13 +146,44 @@ export default function MenuPage() {
         </div>
       ))}
 
+      {/* Edit existing item */}
       <Modal open={!!editingItem} onClose={() => setEditingItem(null)} title="Edit Item">
         <div style={{ marginBottom:12 }}><label>Name</label><input value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} /></div>
         <div style={{ marginBottom:12 }}><label>Price ($)</label><input type="number" step="0.5" value={form.price} onChange={e=>setForm(f=>({...f,price:e.target.value}))} /></div>
         <div style={{ marginBottom:18 }}><label>Description</label><input value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))} placeholder="Optional" /></div>
+        <div style={{ display:"flex", gap:6, justifyContent:"space-between" }}>
+          <button className="bg-btn" style={{ color:C.r }} onClick={() => editingItem && handleDelete(editingItem)}>Delete</button>
+          <div style={{ display:"flex", gap:6 }}>
+            <button className="bg-btn" onClick={() => setEditingItem(null)}>Cancel</button>
+            <button className="bp" onClick={saveEdit}>Save Changes</button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Add new item */}
+      <Modal open={addingItem} onClose={() => setAddingItem(false)} title="Add Menu Item">
+        <div style={{ marginBottom:12 }}>
+          <label>Category</label>
+          <select value={form.category_id} onChange={e=>setForm(f=>({...f,category_id:e.target.value}))}>
+            <option value="">No category</option>
+            {menu.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+        </div>
+        <div style={{ marginBottom:12 }}><label>Item Name</label><input value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="e.g. Margherita Pizza" /></div>
+        <div style={{ marginBottom:12 }}><label>Price ($)</label><input type="number" step="0.5" min="0" value={form.price} onChange={e=>setForm(f=>({...f,price:e.target.value}))} placeholder="0.00" /></div>
+        <div style={{ marginBottom:18 }}><label>Description</label><input value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))} placeholder="Optional short description" /></div>
         <div style={{ display:"flex", gap:6, justifyContent:"flex-end" }}>
-          <button className="bg-btn" onClick={() => setEditingItem(null)}>Cancel</button>
-          <button className="bp" onClick={saveEdit}>Save Changes</button>
+          <button className="bg-btn" onClick={() => setAddingItem(false)}>Cancel</button>
+          <button className="bp" onClick={saveNewItem} disabled={saving}>{saving ? "Saving…" : "Add Item"}</button>
+        </div>
+      </Modal>
+
+      {/* Add new category */}
+      <Modal open={addingCat} onClose={() => setAddingCat(false)} title="Add Category">
+        <div style={{ marginBottom:18 }}><label>Category Name</label><input value={newCatName} onChange={e=>setNewCatName(e.target.value)} placeholder="e.g. Mains, Desserts, Drinks" autoFocus /></div>
+        <div style={{ display:"flex", gap:6, justifyContent:"flex-end" }}>
+          <button className="bg-btn" onClick={() => setAddingCat(false)}>Cancel</button>
+          <button className="bp" onClick={saveNewCategory} disabled={saving}>{saving ? "Saving…" : "Add Category"}</button>
         </div>
       </Modal>
 
