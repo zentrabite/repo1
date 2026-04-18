@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, ClipboardList, Users, Zap, Bot,
-  UtensilsCrossed, DollarSign, Star, Ticket, Settings,
+  UtensilsCrossed, DollarSign, Star, Ticket, Settings, MonitorCheck, Truck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -22,5 +22,7 @@ export const navigation: NavItem[] = [
   { label: "Financials",  href: "/financials",  icon: DollarSign,       emoji: "💰", description: "Revenue, margins & ROI" },
   { label: "Rewards",     href: "/rewards",     icon: Star,             emoji: "⭐", description: "Points, tiers, pay-with-points" },
   { label: "BiteBack",    href: "/biteback",    icon: Ticket,           emoji: "🎫", description: "Manage offers on the BiteBack network" },
+  { label: "POS",         href: "/pos",         icon: MonitorCheck,     emoji: "🖥️", description: "Point of sale · take orders at the counter" },
+  { label: "Delivery",    href: "/delivery",    icon: Truck,            emoji: "🚚", description: "Smart routing · Uber Direct vs Tasker" },
   { label: "Settings",    href: "/settings",    icon: Settings,         emoji: "⚙️", description: "Business profile & configuration" },
 ];

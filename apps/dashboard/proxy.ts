@@ -6,7 +6,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 
-const PUBLIC_PATHS = ["/login", "/signup", "/auth"];
+const PUBLIC_PATHS = ["/login", "/signup", "/auth", "/forgot-password", "/reset-password", "/store"];
 
 export async function proxy(req: NextRequest) {
   // Start with a pass-through response so cookie mutations are forwarded.

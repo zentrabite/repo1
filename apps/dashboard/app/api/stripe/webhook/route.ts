@@ -37,6 +37,9 @@ export async function POST(req: Request) {
       case "payment_intent.succeeded":
         await handlePaymentSucceeded(event.data.object as Stripe.PaymentIntent);
         break;
+      case "checkout.session.completed":
+        await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
+        break;
       case "account.updated":
         await handleMerchantOnboarded(event.data.object as Stripe.Account);
         break;
@@ -118,6 +121,50 @@ async function handlePaymentSucceeded(pi: Stripe.PaymentIntent) {
   });
 
   console.log(`[webhook] Order created — business: ${business_id}, $${pi.amount / 100}`);
+}
+
+async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+  const { business_id, customer_name, customer_phone, customer_email, items, source } = session.metadata ?? {};
+  if (!business_id || source !== "storefront") return;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = createServerClient() as any;
+  const amount = (session.amount_total ?? 0) / 100;
+  const parsedItems = items ? JSON.parse(items) : [];
+
+  // Upsert customer
+  let customerId: string | null = null;
+  if (customer_phone || customer_email) {
+    const matchField = customer_phone ? "phone" : "email";
+    const matchValue = customer_phone || customer_email;
+    const { data: existing } = await db.from("customers").select("id, total_orders, total_spent, points_balance").eq("business_id", business_id).eq(matchField, matchValue).maybeSingle();
+
+    if (existing) {
+      await db.from("customers").update({
+        last_order_date: new Date().toISOString(),
+        total_orders:    existing.total_orders + 1,
+        total_spent:     Number(existing.total_spent) + amount,
+        points_balance:  existing.points_balance + Math.round(amount * 10),
+      }).eq("id", existing.id);
+      customerId = existing.id;
+    } else {
+      const { data: newCust } = await db.from("customers").insert({
+        business_id, name: customer_name ?? "Customer",
+        phone: customer_phone || null, email: customer_email || null,
+        source: "direct", segment: "New",
+        first_order: new Date().toISOString(), last_order_date: new Date().toISOString(),
+        total_orders: 1, total_spent: amount, points_balance: Math.round(amount * 10),
+      }).select("id").single();
+      customerId = newCust?.id ?? null;
+    }
+  }
+
+  await db.from("orders").insert({
+    business_id, customer_id: customerId,
+    items: parsedItems, total: amount,
+    status: "paid", source: "direct",
+    stripe_payment_id: session.payment_intent as string,
+  });
 }
 
 async function handleMerchantOnboarded(account: Stripe.Account) {

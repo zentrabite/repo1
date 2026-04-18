@@ -246,6 +246,7 @@ export async function createMenuItem(businessId: string, data: {
   name: string;
   price: number;
   description: string;
+  image_url?: string | null;
 }) {
   const { data: item, error } = await supabase
     .from("menu_items")
@@ -275,6 +276,36 @@ export async function getAnalytics(businessId: string, days = 30) {
     .order("date");
   if (error) throw error;
   return data as AnalyticsDaily[];
+}
+
+// ─── Super Admin ─────────────────────────────────────────────────────────────
+// Uses the admin client (service role) to bypass RLS and see all businesses.
+
+export async function getAllBusinessesStats() {
+  // Import admin client inline to avoid using it in browser contexts
+  const { createAdminClient } = await import("./supabase-server");
+  const db = createAdminClient();
+
+  const [bizsRes, custsRes, ordersRes, smsRes] = await Promise.all([
+    db.from("businesses").select("id, name, type, suburb, plan, stripe_account_id, stripe_customer_id, created_at"),
+    db.from("customers").select("id, business_id"),
+    db.from("orders").select("id, business_id, total, created_at"),
+    db.from("sms_logs").select("id, business_id, status"),
+  ]);
+
+  const bizs    = bizsRes.data    ?? [];
+  const custs   = custsRes.data   ?? [];
+  const orders  = ordersRes.data  ?? [];
+  const smsLogs = smsRes.data     ?? [];
+
+  return bizs.map(b => ({
+    ...b,
+    customerCount: custs.filter(c => c.business_id === b.id).length,
+    orderCount:    orders.filter(o => o.business_id === b.id).length,
+    totalRevenue:  orders.filter(o => o.business_id === b.id).reduce((s, o) => s + Number(o.total), 0),
+    smsSent:       smsLogs.filter(l => l.business_id === b.id).length,
+    lastOrder:     orders.filter(o => o.business_id === b.id).sort((a, b) => b.created_at > a.created_at ? 1 : -1)[0]?.created_at ?? null,
+  }));
 }
 
 // ─── SMS Stats ───────────────────────────────────────────────────────────────
