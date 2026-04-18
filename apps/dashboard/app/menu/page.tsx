@@ -27,13 +27,17 @@ export default function MenuPage() {
   const [saving,      setSaving]      = useState(false);
   const [loading,     setLoading]     = useState(true);
 
+  const reloadMenu = (id: string) =>
+    getMenu(id).then(data => { setMenu(data as MenuSection[]); setLoading(false); }).catch(() => setLoading(false));
+
   useEffect(() => {
     if (!businessId) return;
-    getMenu(businessId).then(data => { setMenu(data as MenuSection[]); setLoading(false); });
-  }, [businessId]);
+    reloadMenu(businessId);
+  }, [businessId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const openAddItem = () => {
-    setForm({ name:"", price:"", description:"", category_id: menu[0]?.id ?? "" });
+    const realCats = menu.filter(s => s.id !== "__uncategorised__");
+    setForm({ name:"", price:"", description:"", category_id: realCats[0]?.id ?? "" });
     setAddingItem(true);
   };
 
@@ -41,18 +45,16 @@ export default function MenuPage() {
     if (!businessId || !form.name || !form.price) return show("Name and price are required");
     setSaving(true);
     try {
-      const newItem = await createMenuItem(businessId, {
+      await createMenuItem(businessId, {
         category_id: form.category_id || null,
         name: form.name,
         price: parseFloat(form.price),
         description: form.description,
       });
-      setMenu(prev => prev.map(s =>
-        s.id === form.category_id ? { ...s, items: [...s.items, newItem] } : s
-      ));
       setAddingItem(false);
       show("Item added ✓");
-    } catch { show("Failed to add item"); }
+      await reloadMenu(businessId); // always re-fetch so state matches DB
+    } catch (e: any) { show(e?.message ?? "Failed to add item"); }
     finally { setSaving(false); }
   };
 
@@ -60,12 +62,12 @@ export default function MenuPage() {
     if (!businessId || !newCatName.trim()) return show("Enter a category name");
     setSaving(true);
     try {
-      const cat = await createMenuCategory(businessId, newCatName.trim());
-      setMenu(prev => [...prev, { ...cat, items: [] }]);
+      await createMenuCategory(businessId, newCatName.trim());
       setNewCatName("");
       setAddingCat(false);
       show("Category added ✓");
-    } catch { show("Failed to add category"); }
+      await reloadMenu(businessId);
+    } catch (e: any) { show(e?.message ?? "Failed to add category"); }
     finally { setSaving(false); }
   };
 

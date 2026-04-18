@@ -195,10 +195,24 @@ export async function getMenu(businessId: string) {
   const items = (itemsRes.data ?? []) as MenuItem[];
 
   // Nest items under their categories
-  return cats.map(cat => ({
+  const categorised = cats.map(cat => ({
     ...cat,
     items: items.filter(item => item.category_id === cat.id),
   }));
+
+  // Items with no category go into a virtual "General" section so they're never lost
+  const uncategorised = items.filter(item => !item.category_id || !cats.find(c => c.id === item.category_id));
+  if (uncategorised.length > 0) {
+    categorised.push({
+      id: "__uncategorised__",
+      business_id: businessId,
+      name: "General",
+      sort_order: 9999,
+      items: uncategorised,
+    } as any);
+  }
+
+  return categorised;
 }
 
 export async function toggleMenuItemAvailability(itemId: string, available: boolean) {
