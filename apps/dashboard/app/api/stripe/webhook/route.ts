@@ -84,7 +84,7 @@ async function handlePaymentSucceeded(pi: Stripe.PaymentIntent) {
         last_order_date: new Date().toISOString(),
         total_orders:    existing.total_orders + 1,
         total_spent:     existing.total_spent + (pi.amount / 100),
-        points_balance:  existing.total_spent + Math.round(pi.amount / 10), // 10 pts per $1
+        points_balance:  existing.points_balance + Math.round(pi.amount / 10), // 10 pts per $1
       }).eq("id", existing.id);
       customerId = existing.id;
     } else {

@@ -30,8 +30,6 @@ function LoginForm() {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-      console.log("Auth result:", { data, error });
-
       if (error) {
         setError(error.message);
         setLoading(false);
@@ -39,10 +37,8 @@ function LoginForm() {
       }
 
       if (data.session) {
-        console.log("Session found, redirecting to /dashboard");
         window.location.href = "/dashboard";
       } else {
-        console.log("No session returned");
         setError("Login succeeded but no session was created. Please try again.");
         setLoading(false);
       }

@@ -99,8 +99,8 @@ export default function RewardsPage() {
         <div className="gc" style={{ padding:16 }}>
           <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:8 }}>💳 Pay With Points — Checkout Preview</div>
           <div style={{ background:"rgba(0,182,122,.04)", border:"1px solid rgba(0,182,122,.08)", borderRadius:10, padding:12 }}>
-            <div style={{ fontSize:10, color:C.g, fontWeight:600, marginBottom:4 }}>CUSTOMER: Emma Jones · Silver Tier</div>
-            {[["Order total","$44.90"],["Her balance","405 pts ($4.05)"]].map(([l,v],i) => (
+            <div style={{ fontSize:10, color:C.g, fontWeight:600, marginBottom:4 }}>EXAMPLE · Silver Tier Customer</div>
+            {[["Order total","$44.90"],["Points balance","405 pts ($4.05)"]].map(([l,v],i) => (
               <div key={i} style={{ display:"flex", justifyContent:"space-between", fontSize:11.5, marginBottom:3 }}>
                 <span style={{ color:C.st }}>{l}</span><span style={{ color:"#fff", fontWeight:500 }}>{v}</span>
               </div>

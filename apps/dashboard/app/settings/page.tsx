@@ -88,12 +88,17 @@ function SettingsContent() {
       setProfile({ name: business.name, type: business.type, location: business.suburb ?? "", subdomain: business.subdomain ?? "" });
     }
   }, [business]);
+
+  // Populate team from real auth user
+  useEffect(() => {
+    if (email) {
+      setTeam([{ email, role: "Owner" }]);
+    }
+  }, [email]);
   const [winback, setWinback] = useState({
     enabled:true, trigger:"14", discount:"10", cooldown:"30",
   });
-  const [team, setTeam] = useState([
-    { email:"owner@email.com", role:"Owner" },
-  ]);
+  const [team, setTeam] = useState<{ email:string; role:string }[]>([]);
   const [invite, setInvite] = useState("");
   const [stripeConnected, setStripeConnected] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState<"inactive"|"trialing"|"active">("inactive");

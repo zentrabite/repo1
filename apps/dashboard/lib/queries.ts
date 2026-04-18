@@ -277,6 +277,20 @@ export async function getAnalytics(businessId: string, days = 30) {
   return data as AnalyticsDaily[];
 }
 
+// ─── SMS Stats ───────────────────────────────────────────────────────────────
+
+export async function getSmsStats(businessId: string) {
+  const { data, error } = await supabase
+    .from("sms_logs")
+    .select("status, converted")
+    .eq("business_id", businessId);
+  if (error) throw error;
+  const logs = data ?? [];
+  const sent      = logs.length;
+  const converted = logs.filter(l => l.converted).length;
+  return { sent, converted };
+}
+
 // ─── Rewards ─────────────────────────────────────────────────────────────────
 
 export async function getCustomersByPoints(businessId: string) {
