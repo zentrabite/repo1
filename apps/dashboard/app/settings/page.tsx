@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Toast from "@/components/toast";
 import { useToast } from "@/hooks/use-toast";
@@ -71,7 +71,7 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
   );
 }
 
-export default function SettingsPage() {
+function SettingsContent() {
   const { toast, show } = useToast();
   const searchParams = useSearchParams();
   const { businessId, business } = useBusiness();
@@ -357,5 +357,13 @@ export default function SettingsPage() {
 
       <Toast message={toast.message} visible={toast.visible} />
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={null}>
+      <SettingsContent />
+    </Suspense>
   );
 }
