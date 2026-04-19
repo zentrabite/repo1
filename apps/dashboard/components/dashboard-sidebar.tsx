@@ -15,7 +15,7 @@ const MIST  = "rgba(226,232,240,.09)";
 export default function DashboardSidebar() {
   const pathname  = usePathname();
   const router    = useRouter();
-  const { business, email } = useBusiness();
+  const { business, email, isSuperAdmin } = useBusiness();
 
   // Use real business data, fall back to placeholder while loading
   const bizName  = business?.name     ?? "Your Business";
