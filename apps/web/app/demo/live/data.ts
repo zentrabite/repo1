@@ -251,3 +251,346 @@ export function timeAgo(iso: string, nowISO = "2026-04-18T13:20:00"): string {
   const d = Math.round(h / 24);
   return `${d}d ago`;
 }
+
+// ---- AI Calls ----
+export type CallOutcome = "order_placed" | "booking" | "question" | "missed" | "transferred";
+
+export type DemoCall = {
+  id: string;
+  caller: string;
+  phone: string;
+  startedAt: string;
+  durationSec: number;
+  outcome: CallOutcome;
+  orderId?: string;
+  orderTotal?: number;
+  costCents: number;
+  transcript: { who: "caller" | "ai"; text: string }[];
+  summary: string;
+};
+
+export const calls: DemoCall[] = [
+  {
+    id: "call-118",
+    caller: "Olivia Martin",
+    phone: "+61 412 558 901",
+    startedAt: "2026-04-18T13:02:00",
+    durationSec: 84,
+    outcome: "order_placed",
+    orderId: "o1290",
+    orderTotal: 33.86,
+    costCents: 12,
+    summary: "Repeat customer ordered her usual margherita + garlic bread. AI recognised her by phone and pre-filled the order.",
+    transcript: [
+      { who: "ai",     text: "Hi! Thanks for calling Nonna's Kitchen. Is this Olivia?" },
+      { who: "caller", text: "Yeah hi, can I get my usual?" },
+      { who: "ai",     text: "Of course — that's a margherita and a garlic bread, delivered to 12 King William Street. Sound right?" },
+      { who: "caller", text: "Yes please. And add a sparkling water." },
+      { who: "ai",     text: "Done. Total comes to $33.86 on the card ending 4421. Should be with you in about 35 minutes." },
+      { who: "caller", text: "Perfect, thanks." },
+    ],
+  },
+  {
+    id: "call-117",
+    caller: "Unknown",
+    phone: "+61 401 552 008",
+    startedAt: "2026-04-18T12:48:00",
+    durationSec: 42,
+    outcome: "question",
+    costCents: 6,
+    summary: "Caller asked about gluten-free options. AI confirmed GF base available + listed three GF pizzas.",
+    transcript: [
+      { who: "ai",     text: "Hi, Nonna's Kitchen — how can I help?" },
+      { who: "caller", text: "Do you do gluten-free?" },
+      { who: "ai",     text: "Yes! We have a gluten-free base for $4 extra. Most pizzas can be made GF — margherita, pepperoni, and quattro formaggi are the most popular." },
+      { who: "caller", text: "Cool, I'll order online then." },
+      { who: "ai",     text: "Sounds good. Have a great day!" },
+    ],
+  },
+  {
+    id: "call-116",
+    caller: "James Kim",
+    phone: "+61 424 712 030",
+    startedAt: "2026-04-18T12:31:00",
+    durationSec: 96,
+    outcome: "booking",
+    costCents: 14,
+    summary: "Booked a table for 4 on Saturday 7pm. Calendar synced.",
+    transcript: [
+      { who: "ai",     text: "Welcome back James! What can I do for you today?" },
+      { who: "caller", text: "I want to book a table for 4 on Saturday around 7." },
+      { who: "ai",     text: "We have 7:00pm available for a table of 4 — would you like the booth or the window seat?" },
+      { who: "caller", text: "Booth thanks." },
+      { who: "ai",     text: "Booked. You'll get a text confirmation in a moment." },
+    ],
+  },
+  {
+    id: "call-115",
+    caller: "Daniel O'Brien",
+    phone: "+61 411 223 450",
+    startedAt: "2026-04-18T12:14:00",
+    durationSec: 28,
+    outcome: "transferred",
+    costCents: 4,
+    summary: "Caller asked to speak to a person about a previous order issue — transferred to manager.",
+    transcript: [
+      { who: "ai",     text: "Hi, Nonna's Kitchen, how can I help?" },
+      { who: "caller", text: "I had an issue with my order last night, can I speak to someone?" },
+      { who: "ai",     text: "No worries, transferring you to Marco now. One moment." },
+    ],
+  },
+  {
+    id: "call-114",
+    caller: "Unknown",
+    phone: "+61 433 778 220",
+    startedAt: "2026-04-18T11:52:00",
+    durationSec: 0,
+    outcome: "missed",
+    costCents: 0,
+    summary: "Caller hung up before AI could answer (rang for 1.2s).",
+    transcript: [
+      { who: "ai", text: "(no answer — caller hung up before pickup)" },
+    ],
+  },
+  {
+    id: "call-113",
+    caller: "Sofia De Luca",
+    phone: "+61 429 002 447",
+    startedAt: "2026-04-18T11:34:00",
+    durationSec: 72,
+    outcome: "order_placed",
+    orderId: "o1293",
+    orderTotal: 33.88,
+    costCents: 10,
+    summary: "VIP customer ordered pepperoni + tiramisu. Tier upgrade to Platinum mentioned by AI (next bracket).",
+    transcript: [
+      { who: "ai",     text: "Hi Sofia, thanks for calling — pepperoni and tiramisu again?" },
+      { who: "caller", text: "Haha you know me too well. Yes please, plus a Coke." },
+      { who: "ai",     text: "On it. By the way — you're 60 points away from our top tier. One more order this month and you unlock free delivery for life." },
+      { who: "caller", text: "Sweet! Okay, see you soon." },
+    ],
+  },
+  {
+    id: "call-112",
+    caller: "Hana Tanaka",
+    phone: "+61 439 651 208",
+    startedAt: "2026-04-18T11:08:00",
+    durationSec: 38,
+    outcome: "question",
+    costCents: 5,
+    summary: "Asked about today's specials. AI quoted the lunch combo.",
+    transcript: [
+      { who: "ai",     text: "Hi Hana! What can I get you?" },
+      { who: "caller", text: "Just calling to see what your lunch special is today?" },
+      { who: "ai",     text: "It's the margherita + Caesar salad combo for $24 — saves you $7. Available till 3pm." },
+      { who: "caller", text: "Lovely thanks, I'll order online." },
+    ],
+  },
+];
+
+export const callsTodayStats = {
+  total: 47,
+  answeredByAi: 44,
+  ordersFromCalls: 19,
+  revenueFromCalls: 612.40,
+  avgDurationSec: 58,
+  totalCostAud: 4.32,
+  staffHoursSaved: 3.8,
+};
+
+export const callOutcomeLabel: Record<CallOutcome, { label: string; color: string; bg: string }> = {
+  order_placed: { label: "Order placed", color: "#00B67A", bg: "rgba(0,182,122,0.14)" },
+  booking:      { label: "Booking",      color: "#6BB1FF", bg: "rgba(107,177,255,0.14)" },
+  question:     { label: "Question",     color: "#C9A6FF", bg: "rgba(201,166,255,0.14)" },
+  transferred:  { label: "Transferred",  color: "#FFC14B", bg: "rgba(255,193,75,0.14)" },
+  missed:       { label: "Missed",       color: "#FF5A5A", bg: "rgba(255,90,90,0.14)" },
+};
+
+// ---- Menu ----
+export type MenuItem = {
+  id: string;
+  name: string;
+  price: number;
+  available: boolean;
+  emoji: string;
+  desc?: string;
+  popular?: boolean;
+};
+
+export type MenuCategory = {
+  id: string;
+  name: string;
+  items: MenuItem[];
+};
+
+export const menu: MenuCategory[] = [
+  {
+    id: "pizzas",
+    name: "Pizzas",
+    items: [
+      { id: "p1", name: "Margherita",       price: 18.5, available: true,  emoji: "🍕", desc: "San Marzano tomato, fior di latte, basil",     popular: true },
+      { id: "p2", name: "Pepperoni",        price: 22.0, available: true,  emoji: "🍕", desc: "Cured pork pepperoni, mozzarella",              popular: true },
+      { id: "p3", name: "Quattro formaggi", price: 24.0, available: true,  emoji: "🍕", desc: "Mozzarella, gorgonzola, parmesan, taleggio" },
+      { id: "p4", name: "Veggie supreme",   price: 21.0, available: true,  emoji: "🍕", desc: "Capsicum, mushroom, olives, onion, rocket" },
+      { id: "p5", name: "Hawaiian",         price: 20.5, available: true,  emoji: "🍕", desc: "Ham, pineapple, mozzarella" },
+      { id: "p6", name: "Quattro stagioni", price: 23.5, available: false, emoji: "🍕", desc: "Out of artichoke — back tomorrow" },
+    ],
+  },
+  {
+    id: "burgers",
+    name: "Burgers",
+    items: [
+      { id: "b1", name: "Wagyu burger", price: 26.5, available: true, emoji: "🍔", desc: "180g wagyu, smoked cheddar, brioche", popular: true },
+      { id: "b2", name: "Chicken burger", price: 22.0, available: true, emoji: "🍔", desc: "Buttermilk fried chicken, slaw" },
+    ],
+  },
+  {
+    id: "sides",
+    name: "Sides",
+    items: [
+      { id: "s1", name: "Garlic bread",   price: 7.5, available: true, emoji: "🥖" },
+      { id: "s2", name: "Caesar salad",   price: 13.5, available: true, emoji: "🥗" },
+      { id: "s3", name: "Wings (8pc)",    price: 14.0, available: true, emoji: "🍗" },
+      { id: "s4", name: "Fries",          price: 7.0,  available: true, emoji: "🍟" },
+    ],
+  },
+  {
+    id: "drinks",
+    name: "Drinks",
+    items: [
+      { id: "d1", name: "Coke",            price: 4.0, available: true,  emoji: "🥤" },
+      { id: "d2", name: "Sparkling water", price: 4.0, available: true,  emoji: "💧" },
+      { id: "d3", name: "Peroni",          price: 8.5, available: true,  emoji: "🍺" },
+    ],
+  },
+  {
+    id: "desserts",
+    name: "Desserts",
+    items: [
+      { id: "ds1", name: "Tiramisu",       price: 8.5, available: true,  emoji: "🍰", desc: "Made fresh in-house" },
+      { id: "ds2", name: "Cannoli",        price: 6.5, available: true,  emoji: "🥐" },
+    ],
+  },
+];
+
+// ---- Drivers / Delivery ----
+export type DriverStatus = "idle" | "picking_up" | "delivering" | "returning";
+
+export type DemoDriver = {
+  id: string;
+  name: string;
+  initials: string;
+  type: "in_house" | "uber_direct" | "tasker";
+  status: DriverStatus;
+  currentOrderId?: string;
+  etaMin?: number;
+  todayDeliveries: number;
+  todayDistanceKm: number;
+  rating: number;
+};
+
+export const drivers: DemoDriver[] = [
+  { id: "drv1", name: "Marco Rossi",    initials: "MR", type: "in_house",    status: "delivering", currentOrderId: "o1291", etaMin: 8,  todayDeliveries: 7, todayDistanceKm: 32.4, rating: 4.9 },
+  { id: "drv2", name: "Aisha Khan",     initials: "AK", type: "in_house",    status: "returning",  currentOrderId: "o1290", etaMin: 4,  todayDeliveries: 6, todayDistanceKm: 28.1, rating: 4.8 },
+  { id: "drv3", name: "Tom Whitfield",  initials: "TW", type: "in_house",    status: "idle",                                              todayDeliveries: 5, todayDistanceKm: 24.7, rating: 4.7 },
+  { id: "drv4", name: "Uber Direct #14",initials: "UD", type: "uber_direct", status: "picking_up", currentOrderId: "o1294", etaMin: 12, todayDeliveries: 3, todayDistanceKm: 0,    rating: 4.6 },
+  { id: "drv5", name: "Tasker · Sam B.",initials: "SB", type: "tasker",      status: "idle",                                              todayDeliveries: 2, todayDistanceKm: 9.8,  rating: 4.5 },
+];
+
+export const driverStatusLabel: Record<DriverStatus, { label: string; color: string; bg: string }> = {
+  idle:        { label: "Idle",          color: "#9CA8BD", bg: "rgba(156,168,189,0.14)" },
+  picking_up:  { label: "Picking up",    color: "#FFC14B", bg: "rgba(255,193,75,0.14)" },
+  delivering:  { label: "Delivering",    color: "#6BB1FF", bg: "rgba(107,177,255,0.14)" },
+  returning:   { label: "Returning",     color: "#00B67A", bg: "rgba(0,182,122,0.14)" },
+};
+
+export const driverTypeLabel: Record<DemoDriver["type"], { label: string; color: string }> = {
+  in_house:    { label: "In-house",   color: "var(--green)" },
+  uber_direct: { label: "Uber Direct", color: "#000" },
+  tasker:      { label: "Tasker",     color: "#FF6B35" },
+};
+
+export const deliveryToday = {
+  totalDeliveries: 28,
+  inHouseShare: 0.71,
+  uberDirectShare: 0.21,
+  taskerShare: 0.08,
+  avgDeliveryMin: 27,
+  onTimeRate: 0.94,
+  costSavedAud: 142.20, // vs all aggregator
+};
+
+// ---- Rewards / Loyalty ----
+export type RewardTier = {
+  name: "Bronze" | "Silver" | "Gold" | "VIP";
+  min: number;
+  multiplier: number;
+  perks: string[];
+  color: string;
+};
+
+export const rewardTiers: RewardTier[] = [
+  { name: "Bronze", min: 0,    multiplier: 1.0, perks: ["1 point per $1 spent"],                                  color: "#C28D5C" },
+  { name: "Silver", min: 200,  multiplier: 1.25, perks: ["1.25× points", "Free side every 5th order"],            color: "#B6C4D6" },
+  { name: "Gold",   min: 500,  multiplier: 1.5,  perks: ["1.5× points", "Free delivery under $30", "Birthday bonus"], color: "#FFC14B" },
+  { name: "VIP",    min: 1000, multiplier: 2.0,  perks: ["2× points", "Free delivery", "Priority support", "Off-menu items"], color: "#C9A24A" },
+];
+
+export const earnRules = [
+  { rule: "Order spend",          earn: "1 point per $1" },
+  { rule: "Refer a friend",       earn: "+250 points (after their first order)" },
+  { rule: "Birthday week",        earn: "+200 bonus points" },
+  { rule: "Leave a 5★ review",    earn: "+50 points" },
+  { rule: "Order direct (not Uber/DoorDash)", earn: "Bonus 0.5× points" },
+];
+
+// ---- Automations ----
+export type DemoAutomation = {
+  id: string;
+  name: string;
+  trigger: string;
+  action: string;
+  status: "live" | "paused";
+  runs30d: number;
+  category: "order" | "review" | "stock" | "staff";
+};
+
+export const automations: DemoAutomation[] = [
+  { id: "a01", name: "Auto-print kitchen ticket",       trigger: "Order paid",                       action: "Send to kitchen printer + KDS",          status: "live",   runs30d: 1238, category: "order" },
+  { id: "a02", name: "Refund + apologise on bad review", trigger: "Review submitted ≤ 3★",            action: "Manager Slack + auto-credit $10",       status: "live",   runs30d: 6,   category: "review" },
+  { id: "a03", name: "Low-stock SMS alert",              trigger: "Inventory item < threshold",       action: "SMS owner + auto-86 menu item",         status: "live",   runs30d: 14,  category: "stock" },
+  { id: "a04", name: "VIP arrival ping",                 trigger: "VIP places order",                 action: "Notify floor manager",                  status: "live",   runs30d: 38,  category: "staff" },
+  { id: "a05", name: "Late-order recovery",              trigger: "Order > 35 min in cooking",        action: "Apology SMS + 15% credit",              status: "live",   runs30d: 4,   category: "order" },
+  { id: "a06", name: "Closing stock check",              trigger: "10:00pm daily",                    action: "Prompt staff to count + log",           status: "paused", runs30d: 0,   category: "stock" },
+];
+
+// ---- Analytics extras ----
+export const analytics = {
+  // Hourly orders today (24-hour)
+  ordersByHour: [
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4,
+    18, 22, 14, 6, 4, 9, 24, 32, 28, 14, 5, 1,
+  ],
+  topItems30d: [
+    { name: "Margherita",       sold: 412, revenue: 7_622.00 },
+    { name: "Pepperoni",        sold: 318, revenue: 6_996.00 },
+    { name: "Quattro formaggi", sold: 184, revenue: 4_416.00 },
+    { name: "Garlic bread",     sold: 502, revenue: 3_765.00 },
+    { name: "Wagyu burger",     sold: 96,  revenue: 2_544.00 },
+    { name: "Tiramisu",         sold: 144, revenue: 1_224.00 },
+  ],
+  segments: {
+    vips:    { count: 28,  pct: 0.06 },
+    regular: { count: 184, pct: 0.41 },
+    new:     { count: 96,  pct: 0.21 },
+    lapsing: { count: 64,  pct: 0.14 },
+    lapsed:  { count: 80,  pct: 0.18 },
+  },
+  postcodes: [
+    { postcode: "5000", orders: 312, revenue: 14_822.40 },
+    { postcode: "5006", orders: 188, revenue: 8_932.20 },
+    { postcode: "5067", orders: 142, revenue: 6_812.80 },
+    { postcode: "5031", orders: 118, revenue: 5_492.40 },
+    { postcode: "5045", orders: 98,  revenue: 4_578.20 },
+  ],
+};

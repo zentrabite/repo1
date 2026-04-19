@@ -7,9 +7,17 @@ import { business } from "./data";
 const NAV = [
   { href: "/demo/live",             label: "Dashboard",  emoji: "📊" },
   { href: "/demo/live/orders",      label: "Orders",     emoji: "📋" },
+  { href: "/demo/live/pos",         label: "POS",        emoji: "🧾" },
+  { href: "/demo/live/menu",        label: "Menu",       emoji: "🍕" },
+  { href: "/demo/live/ai-calls",    label: "AI calls",   emoji: "📞" },
+  { href: "/demo/live/drivers",     label: "Drivers",    emoji: "🛵" },
   { href: "/demo/live/customers",   label: "Customers",  emoji: "👥" },
+  { href: "/demo/live/rewards",     label: "Rewards",    emoji: "🏆" },
   { href: "/demo/live/winback",     label: "Winback",    emoji: "🔁" },
+  { href: "/demo/live/automations", label: "Automations",emoji: "⚙️" },
+  { href: "/demo/live/analytics",   label: "Analytics",  emoji: "📈" },
   { href: "/demo/live/financials",  label: "Financials", emoji: "💰" },
+  { href: "/demo/live/settings",    label: "Settings",   emoji: "🔧" },
 ];
 
 export function DemoShell({ children }: { children: React.ReactNode }) {
