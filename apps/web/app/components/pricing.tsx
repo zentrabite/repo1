@@ -6,6 +6,7 @@ const tiers = [
     price: "$49",
     period: "per month",
     tag: "For single-location cafés & takeaways",
+    credits: "500 AI credits / month included",
     features: [
       "Up to 500 orders / month",
       "Storefront with custom subdomain",
@@ -21,11 +22,12 @@ const tiers = [
     price: "$99",
     period: "per month",
     tag: "Busy restaurants ready to scale",
+    credits: "2,500 AI credits / month included",
     features: [
       "Unlimited orders",
       "Winback engine & CRM",
-      "SMS automations (500 / mo incl.)",
       "Smart delivery routing (Uber + DoorDash)",
+      "AI campaign drafting & menu suggestions",
       "Custom domain support",
       "Priority chat support",
     ],
@@ -37,6 +39,7 @@ const tiers = [
     price: "Custom",
     period: "let's talk",
     tag: "Multi-location groups & franchises",
+    credits: "Volume credit pricing + rollover",
     features: [
       "Everything in Growth",
       "Multi-location dashboard",
@@ -50,18 +53,32 @@ const tiers = [
   },
 ];
 
+const creditExamples = [
+  { label: "AI campaign draft (SMS or email copy)", cost: "1 credit" },
+  { label: "AI menu optimisation suggestion", cost: "5 credits" },
+  { label: "AI voice call (per minute, inbound order-taking)", cost: "10 credits" },
+  { label: "AI review reply draft", cost: "1 credit" },
+];
+
+const topUpPacks = [
+  { size: "1,000 credits", price: "$19", per: "1.9¢ / credit" },
+  { size: "5,000 credits", price: "$79", per: "1.6¢ / credit" },
+  { size: "25,000 credits", price: "$299", per: "1.2¢ / credit" },
+];
+
 export function Pricing() {
   return (
     <section id="pricing" className="section">
       <div className="container">
-        <div style={{ textAlign: "center", maxWidth: 680, margin: "0 auto 56px" }}>
-          <div className="eyebrow" style={{ marginBottom: 18 }}>Simple pricing</div>
+        <div style={{ textAlign: "center", maxWidth: 720, margin: "0 auto 56px" }}>
+          <div className="eyebrow" style={{ marginBottom: 18 }}>Simple pricing · AI-powered</div>
           <h2 style={{ fontSize: "clamp(30px, 4vw, 44px)", marginBottom: 18 }}>
-            Priced to pay for itself in a week.
+            One subscription. AI credits when you need them.
           </h2>
           <p style={{ fontSize: 17, color: "var(--steel)", lineHeight: 1.6 }}>
-            No per-order commissions. No take rate. One predictable monthly fee and
-            you keep the rest.
+            Your monthly plan covers the full platform — POS, ordering, CRM, delivery,
+            reporting. AI features run on credits so you only pay for the AI you actually
+            use. Every plan ships with a generous monthly credit allowance.
           </p>
         </div>
 
@@ -116,7 +133,27 @@ export function Pricing() {
                   {t.price}
                 </span>
               </div>
-              <div style={{ color: "var(--steel)", fontSize: 13, marginBottom: 28 }}>{t.period}</div>
+              <div style={{ color: "var(--steel)", fontSize: 13, marginBottom: 14 }}>{t.period}</div>
+
+              {/* AI credit pill */}
+              <div
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: 10,
+                  background: "rgba(0,182,122,0.10)",
+                  border: "1px solid rgba(0,182,122,0.28)",
+                  color: "var(--green)",
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  marginBottom: 22,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                <span aria-hidden>⚡</span> {t.credits}
+              </div>
+
               <ul style={{ listStyle: "none", display: "grid", gap: 12, marginBottom: 28 }}>
                 {t.features.map((f) => (
                   <li key={f} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 14, color: "var(--cloud)" }}>
@@ -152,10 +189,113 @@ export function Pricing() {
           ))}
         </div>
 
+        {/* What an AI credit buys */}
+        <div
+          style={{
+            maxWidth: 1100,
+            margin: "56px auto 0",
+            display: "grid",
+            gridTemplateColumns: "1.2fr 1fr",
+            gap: 28,
+          }}
+          className="credit-grid"
+        >
+          <div
+            className="glass"
+            style={{ padding: 28 }}
+          >
+            <div className="eyebrow" style={{ marginBottom: 14 }}>What 1 AI credit buys</div>
+            <ul style={{ listStyle: "none", display: "grid", gap: 12 }}>
+              {creditExamples.map((c) => (
+                <li
+                  key={c.label}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: 16,
+                    padding: "10px 0",
+                    borderBottom: "1px solid var(--mist-9)",
+                    fontSize: 14.5,
+                    color: "var(--cloud)",
+                  }}
+                >
+                  <span>{c.label}</span>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 13,
+                      color: "var(--green)",
+                      fontWeight: 700,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {c.cost}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <div style={{ fontSize: 12.5, color: "var(--steel)", marginTop: 14 }}>
+              Unused credits roll over for 30 days. Buy top-up packs anytime — never expire on Scale.
+            </div>
+          </div>
+
+          <div
+            className="glass"
+            style={{
+              padding: 28,
+              background:
+                "linear-gradient(135deg, rgba(0,182,122,0.10), rgba(28,45,72,0.55))",
+            }}
+          >
+            <div className="eyebrow" style={{ marginBottom: 14 }}>Top-up credit packs</div>
+            <ul style={{ listStyle: "none", display: "grid", gap: 14 }}>
+              {topUpPacks.map((p) => (
+                <li
+                  key={p.size}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr auto",
+                    alignItems: "center",
+                    padding: 14,
+                    borderRadius: 12,
+                    background: "var(--navy-40)",
+                    border: "1px solid var(--mist-6)",
+                  }}
+                >
+                  <div>
+                    <div style={{ color: "var(--cloud)", fontWeight: 700, fontSize: 15 }}>{p.size}</div>
+                    <div style={{ color: "var(--steel)", fontSize: 12, marginTop: 2 }}>{p.per}</div>
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "var(--font-outfit)",
+                      fontWeight: 800,
+                      fontSize: 22,
+                      color: "var(--green)",
+                    }}
+                  >
+                    {p.price}
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <div style={{ fontSize: 12.5, color: "var(--steel)", marginTop: 14 }}>
+              Buy top-ups in-app from the Billing page. Transparent invoicing — every credit shows exactly what it powered.
+            </div>
+          </div>
+        </div>
+
         <div style={{ textAlign: "center", marginTop: 32, fontSize: 14, color: "var(--steel)" }}>
-          All plans include: unlimited staff logins · free onboarding · Australian GST-ready reporting
+          All plans include: unlimited staff logins · free onboarding · Australian GST-ready reporting · 0% commission on storefront orders
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 820px) {
+          .credit-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </section>
   );
 }

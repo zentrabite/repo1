@@ -61,8 +61,8 @@ export function Hero() {
               Start free 14-day trial
               <span aria-hidden>→</span>
             </a>
-            <a href="#showcase" className="btn-secondary" style={{ padding: "14px 28px", fontSize: 16 }}>
-              See it in action
+            <a href="/demo" className="btn-secondary" style={{ padding: "14px 28px", fontSize: 16 }}>
+              ▶ Watch the 90-second demo
             </a>
           </div>
           <div style={{ marginTop: 18, fontSize: 13, color: "var(--steel)" }}>
