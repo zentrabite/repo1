@@ -1,17 +1,31 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import StatCard from "@/components/stat-card";
 import Badge from "@/components/badge";
 import Toast from "@/components/toast";
 import { useToast } from "@/hooks/use-toast";
-import { REWARDS_TABLE } from "@/lib/data";
+import { useBusiness } from "@/hooks/use-business";
+import { getCustomersByPoints } from "@/lib/queries";
 
 const C = { g:"#00B67A", am:"#F59E0B", st:"#6B7C93" };
 
-const goldCount   = REWARDS_TABLE.filter(c => c.tier==="Gold").length;
-const silverCount = REWARDS_TABLE.filter(c => c.tier==="Silver").length;
-const bronzeCount = REWARDS_TABLE.filter(c => c.tier==="Bronze").length;
-const totalPts    = REWARDS_TABLE.reduce((a,c) => a+c.pts, 0);
+// ─── Tier thresholds ──────────────────────────────────────────────────────────
+//  Bronze:   0–299 pts
+//  Silver: 300–999 pts
+//  Gold:   1000+  pts
+function tierOf(pts: number): "Gold" | "Silver" | "Bronze" {
+  if (pts >= 1000) return "Gold";
+  if (pts >= 300)  return "Silver";
+  return "Bronze";
+}
+
+type RewardRow = {
+  id:    string;
+  name:  string;
+  email: string | null;
+  pts:   number;
+  tier:  "Gold" | "Silver" | "Bronze";
+};
 
 function Av({ n }: { n:string }) {
   return (
@@ -23,7 +37,34 @@ function Av({ n }: { n:string }) {
 
 export default function RewardsPage() {
   const { toast, show } = useToast();
-  const [payPts, setPayPts] = useState(false);
+  const { businessId } = useBusiness();
+
+  const [rows, setRows]       = useState<RewardRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [payPts, setPayPts]   = useState(false);
+
+  useEffect(() => {
+    if (!businessId) return;
+    let cancelled = false;
+    getCustomersByPoints(businessId).then(data => {
+      if (cancelled) return;
+      const mapped: RewardRow[] = (data ?? []).map((c) => ({
+        id:    c.id as string,
+        name:  (c.name as string) ?? "Customer",
+        email: (c.email as string | null) ?? null,
+        pts:   Number(c.points_balance ?? 0),
+        tier:  tierOf(Number(c.points_balance ?? 0)),
+      }));
+      setRows(mapped);
+      setLoading(false);
+    }).catch(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [businessId]);
+
+  const goldCount   = useMemo(() => rows.filter(r => r.tier === "Gold").length,   [rows]);
+  const silverCount = useMemo(() => rows.filter(r => r.tier === "Silver").length, [rows]);
+  const bronzeCount = useMemo(() => rows.filter(r => r.tier === "Bronze").length, [rows]);
+  const totalPts    = useMemo(() => rows.reduce((a, c) => a + c.pts, 0), [rows]);
 
   return (
     <div>
@@ -34,9 +75,9 @@ export default function RewardsPage() {
 
       {/* Tier stat cards */}
       <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:12 }}>
-        <StatCard label="Gold Members"    value={String(goldCount)}   accent icon="🥇" />
-        <StatCard label="Silver Members"  value={String(silverCount)} icon="🥈" delay={50} />
-        <StatCard label="Bronze Members"  value={String(bronzeCount)} icon="🥉" delay={100} />
+        <StatCard label="Gold Members"      value={String(goldCount)}   accent icon="🥇" />
+        <StatCard label="Silver Members"    value={String(silverCount)} icon="🥈" delay={50} />
+        <StatCard label="Bronze Members"    value={String(bronzeCount)} icon="🥉" delay={100} />
         <StatCard label="Total Points Held" value={totalPts.toLocaleString()} accent icon="⭐" delay={150} />
       </div>
 
@@ -66,17 +107,23 @@ export default function RewardsPage() {
         </div>
         <table>
           <thead>
-            <tr>{["","Client","Points","Cash Value","Tier","Last Redemption","Status"].map(h => <th key={h}>{h}</th>)}</tr>
+            <tr>{["","Client","Points","Cash Value","Tier","Status"].map(h => <th key={h}>{h}</th>)}</tr>
           </thead>
           <tbody>
-            {REWARDS_TABLE.map((c, i) => (
-              <tr key={i}>
+            {rows.length === 0 ? (
+              <tr className="empty-row">
+                <td colSpan={6}>{loading ? "Loading…" : "No customers have earned points yet"}</td>
+              </tr>
+            ) : rows.map((c) => (
+              <tr key={c.id}>
                 <td><Av n={c.name} /></td>
-                <td><div style={{ fontWeight:600, color:"#fff", fontSize:11.5 }}>{c.name}</div><div style={{ fontSize:9, color:C.st }}>{c.email}</div></td>
-                <td style={{ fontWeight:700, color:C.am, fontSize:12 }}>{c.pts}</td>
+                <td>
+                  <div style={{ fontWeight:600, color:"#fff", fontSize:11.5 }}>{c.name}</div>
+                  {c.email && <div style={{ fontSize:9, color:C.st }}>{c.email}</div>}
+                </td>
+                <td style={{ fontWeight:700, color:C.am, fontSize:12 }}>{c.pts.toLocaleString()}</td>
                 <td style={{ color:C.g, fontWeight:600, fontSize:11 }}>${(c.pts/100).toFixed(2)}</td>
                 <td><Badge type={c.tier}>{c.tier}</Badge></td>
-                <td style={{ fontSize:10.5, color:C.st }}>{c.last}</td>
                 <td><Badge type="active">Active</Badge></td>
               </tr>
             ))}

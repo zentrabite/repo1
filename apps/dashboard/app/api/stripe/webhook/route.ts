@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { createServerClient } from "@/lib/supabase-server";
+import { notifyOwnerOfOrder } from "@/lib/notify";
 
 export const dynamic = "force-dynamic";
 
@@ -110,17 +111,29 @@ async function handlePaymentSucceeded(pi: Stripe.PaymentIntent) {
   }
 
   // ── Create order ───────────────────────────────────────────────────────
-  await db.from("orders").insert({
+  const parsedItems = items ? JSON.parse(items) : [];
+  const { data: newOrder } = await db.from("orders").insert({
     business_id,
     customer_id:       customerId,
-    items:             items ? JSON.parse(items) : [],
+    items:             parsedItems,
     total:             pi.amount / 100,
     status:            "New",
     source:            "direct",
     stripe_payment_id: pi.id,
-  });
+  }).select("id").single();
 
   console.log(`[webhook] Order created — business: ${business_id}, $${pi.amount / 100}`);
+
+  // ── Notify the business owner (email + SMS) ────────────────────────────
+  if (newOrder?.id) {
+    await notifyOwnerOfOrder({
+      businessId:   business_id,
+      orderId:      newOrder.id,
+      amount:       pi.amount / 100,
+      customerName: customer_name ?? null,
+      itemCount:    Array.isArray(parsedItems) ? parsedItems.length : undefined,
+    });
+  }
 }
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
@@ -159,12 +172,23 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     }
   }
 
-  await db.from("orders").insert({
+  const { data: newOrder } = await db.from("orders").insert({
     business_id, customer_id: customerId,
     items: parsedItems, total: amount,
     status: "paid", source: "direct",
     stripe_payment_id: session.payment_intent as string,
-  });
+  }).select("id").single();
+
+  // ── Notify the business owner (email + SMS) ────────────────────────────
+  if (newOrder?.id) {
+    await notifyOwnerOfOrder({
+      businessId:   business_id,
+      orderId:      newOrder.id,
+      amount,
+      customerName: customer_name ?? null,
+      itemCount:    Array.isArray(parsedItems) ? parsedItems.length : undefined,
+    });
+  }
 }
 
 async function handleMerchantOnboarded(account: Stripe.Account) {
