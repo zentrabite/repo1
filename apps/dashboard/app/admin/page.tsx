@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import Toast from "@/components/toast";
 import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
-import { getAllBusinessesStats } from "@/lib/queries";
+// getAllBusinessesStats is server-only — fetched via API route instead
 
 const C = { g:"#00B67A", o:"#FF6B35", r:"#FF4757", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(226,232,240,.08)" };
 
@@ -32,8 +32,9 @@ export default function AdminPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!isSuperAdmin) { router.replace("/dashboard"); return; }
-    getAllBusinessesStats()
-      .then(data => { setBusinesses(data); setLoading(false); })
+    fetch("/api/admin/stats")
+      .then(r => r.json())
+      .then(data => { setBusinesses(Array.isArray(data) ? data : []); setLoading(false); })
       .catch(() => setLoading(false));
   }, [isSuperAdmin, authLoading, router]);
 
