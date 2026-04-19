@@ -8,7 +8,7 @@ export function Footer() {
       title: "Product",
       links: [
         { label: "Features", href: "#features" },
-        { label: "Pricing", href: "#pricing" },
+        { label: "Demo", href: "/demo" },
         { label: "Storefronts", href: "#showcase" },
         { label: "Winback engine", href: "/features/winback" },
         { label: "Delivery routing", href: "#features" },

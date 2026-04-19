@@ -20,7 +20,6 @@ export function Nav() {
     { href: "#features", label: "Features" },
     { href: "#showcase", label: "Product" },
     { href: "/demo", label: "Demo" },
-    { href: "#pricing", label: "Pricing" },
     { href: "#faq", label: "FAQ" },
   ];
 
