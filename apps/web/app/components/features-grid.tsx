@@ -1,64 +1,5 @@
-const features = [
-  {
-    icon: "🖥️",
-    title: "Integrated POS system",
-    body: "Dine-in, takeaway, and online orders on one screen. Split bills, apply discounts, print kitchen tickets, run end-of-day reports — no separate terminal or fees.",
-  },
-  {
-    icon: "📱",
-    title: "Custom mobile app — built for you",
-    body: "We design, build, and launch your own branded iOS and Android app. Push notifications, saved cards, loyalty built in. You keep the app, the customers, and the data.",
-    tag: "Done-for-you",
-  },
-  {
-    icon: "🌐",
-    title: "Custom website — built for you",
-    body: "Beautiful, fast, SEO-ready restaurant website with your menu, photos, and online ordering wired up on day one. You approve a design, we ship it in under two weeks.",
-    tag: "Done-for-you",
-  },
-  {
-    icon: "🧾",
-    title: "Live order management",
-    body: "Every incoming order beeps, toasts, and auto-refreshes — realtime across POS, kitchen, and dashboard. No more missed tickets.",
-  },
-  {
-    icon: "🛍️",
-    title: "Commission-free storefronts",
-    body: "Your own branded ordering page. Keep 100% of the revenue Uber and DoorDash would have skimmed — pay only Stripe's standard fees.",
-  },
-  {
-    icon: "🎁",
-    title: "BiteBack loyalty",
-    body: "Built-in rewards and tiers. Points accrue automatically on every order, redemptions apply at checkout — zero extra plugins.",
-  },
-  {
-    icon: "🚚",
-    title: "Smart delivery routing",
-    body: "Auto-assign to your own driver, nearest rider, or fall through to Uber Direct / DoorDash Drive — whichever is cheapest right now.",
-  },
-  {
-    icon: "💬",
-    title: "SMS & email automations",
-    body: "Win-back campaigns, abandoned-cart nudges, post-order receipts, review asks — all triggered the moment customer state changes.",
-  },
-  {
-    icon: "💳",
-    title: "Stripe Connect payouts",
-    body: "Money lands in your bank account daily, not monthly. Full Connect onboarding, live balance, refunds, and disputes in one view.",
-  },
-  {
-    icon: "📊",
-    title: "Real financial reporting",
-    body: "Revenue, fees, refunds, and payout reconciliation by channel. Export to Xero or CSV at the end of each month, GST-ready.",
-  },
-  {
-    icon: "👥",
-    title: "Customer CRM",
-    body: "Every buyer is a saved contact with order history, lifetime value, favourite items, and birthday. Segment and target in a click.",
-  },
-] as const;
-
-type Feature = (typeof features)[number];
+import Link from "next/link";
+import { features } from "../features/data";
 
 export function FeaturesGrid() {
   return (
@@ -86,59 +27,87 @@ export function FeaturesGrid() {
             gap: 20,
           }}
         >
-          {features.map((f: Feature) => {
-            const tag = "tag" in f ? f.tag : undefined;
-            return (
-              <div
-                key={f.title}
-                className="glass"
-                style={{ padding: 28, position: "relative" }}
-              >
-                {tag && (
-                  <span
-                    style={{
-                      position: "absolute",
-                      top: 18,
-                      right: 18,
-                      fontSize: 10,
-                      fontWeight: 700,
-                      letterSpacing: "0.08em",
-                      textTransform: "uppercase",
-                      color: "var(--orange)",
-                      padding: "4px 9px",
-                      borderRadius: 999,
-                      background: "rgba(255,107,53,0.12)",
-                      border: "1px solid rgba(255,107,53,0.35)",
-                    }}
-                  >
-                    {tag}
-                  </span>
-                )}
-                <div
+          {features.map((f) => (
+            <Link
+              key={f.slug}
+              href={`/features/${f.slug}`}
+              className="glass feature-tile"
+              style={{
+                padding: 28,
+                position: "relative",
+                display: "flex",
+                flexDirection: "column",
+                cursor: "pointer",
+                textDecoration: "none",
+              }}
+            >
+              {f.tag && (
+                <span
                   style={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 12,
-                    background: "var(--green-15)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 24,
-                    marginBottom: 18,
+                    position: "absolute",
+                    top: 18,
+                    right: 18,
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    color: "var(--orange)",
+                    padding: "4px 9px",
+                    borderRadius: 999,
+                    background: "rgba(255,107,53,0.12)",
+                    border: "1px solid rgba(255,107,53,0.35)",
                   }}
-                  aria-hidden
                 >
-                  {f.icon}
-                </div>
-                <h3 style={{ fontSize: 18, marginBottom: 10, color: "var(--cloud)" }}>
-                  {f.title}
-                </h3>
-                <p style={{ fontSize: 14.5, color: "var(--steel)", lineHeight: 1.6 }}>
-                  {f.body}
-                </p>
+                  {f.tag}
+                </span>
+              )}
+              <div
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 12,
+                  background: "var(--green-15)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 24,
+                  marginBottom: 18,
+                }}
+                aria-hidden
+              >
+                {f.icon}
               </div>
-            );
-          })}
+              <h3 style={{ fontSize: 18, marginBottom: 10, color: "var(--cloud)" }}>
+                {f.title}
+              </h3>
+              <p
+                style={{
+                  fontSize: 14.5,
+                  color: "var(--steel)",
+                  lineHeight: 1.6,
+                  marginBottom: 16,
+                  flex: 1,
+                }}
+              >
+                {f.summary}
+              </p>
+              <span
+                className="feature-tile-cta"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  color: "var(--green)",
+                  fontWeight: 600,
+                  fontSize: 14,
+                  marginTop: "auto",
+                  transition: "gap 0.18s",
+                }}
+              >
+                Learn more <span aria-hidden>→</span>
+              </span>
+            </Link>
+          ))}
         </div>
       </div>
     </section>

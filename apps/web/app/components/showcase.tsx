@@ -30,9 +30,9 @@ const showcases = [
     eyebrow: "Growth",
     title: "Turn one visit into ten with built-in CRM.",
     body:
-      "Every buyer auto-saves as a customer. BiteBack loyalty awards points on every order, tiers customers by spend, and sends birthday deals automatically. Trigger win-back SMS the moment someone goes quiet.",
+      "Every buyer auto-saves as a customer. The Winback engine awards points on every order, tiers customers by spend, and sends birthday deals automatically. It fires winback SMS the moment someone goes quiet.",
     bullets: [
-      "BiteBack tiers: Bronze, Silver, Gold, VIP",
+      "Winback engine tiers: Bronze, Silver, Gold, VIP",
       "Points redeem at checkout — no extra app required",
       "Abandoned-cart and win-back automations out of the box",
       "Segment by lifetime value, channel, or last-order date",

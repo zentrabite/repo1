@@ -23,7 +23,7 @@ const tiers = [
     tag: "Busy restaurants ready to scale",
     features: [
       "Unlimited orders",
-      "BiteBack loyalty & CRM",
+      "Winback engine & CRM",
       "SMS automations (500 / mo incl.)",
       "Smart delivery routing (Uber + DoorDash)",
       "Custom domain support",

@@ -10,7 +10,7 @@ export function Footer() {
         { label: "Features", href: "#features" },
         { label: "Pricing", href: "#pricing" },
         { label: "Storefronts", href: "#showcase" },
-        { label: "BiteBack loyalty", href: "#features" },
+        { label: "Winback engine", href: "/features/winback" },
         { label: "Delivery routing", href: "#features" },
       ],
     },
