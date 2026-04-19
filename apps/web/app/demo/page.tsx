@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Logo } from "../components/logo";
-import { LOGIN_URL, SIGNUP_URL, DASHBOARD_URL } from "../../lib/config";
+import { SIGNUP_URL } from "../../lib/config";
 import { slides } from "./slides";
 import { SlideVisual } from "./slide-visual";
 
@@ -260,13 +260,13 @@ export default function DemoPage() {
                 >
                   Start free trial <span aria-hidden>→</span>
                 </a>
-                <a
-                  href={`${DASHBOARD_URL}/login`}
+                <Link
+                  href="/demo/live"
                   className="btn-secondary"
                   style={{ padding: "12px 24px", fontSize: 15 }}
                 >
-                  Open the live demo
-                </a>
+                  Open the interactive demo
+                </Link>
               </div>
             )}
           </div>
