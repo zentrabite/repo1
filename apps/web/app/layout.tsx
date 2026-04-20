@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { Outfit, Inter, JetBrains_Mono } from "next/font/google";
 import Nav from "./components/nav";
-import Footer from "./components/footer";
+import { Footer } from "./components/footer";
 import "./globals.css";
 
 const outfit = Outfit({
