@@ -1,4 +1,4 @@
-﻿import { Hero } from "./components/hero";
+import { Hero } from "./components/hero";
 import { FeaturesGrid } from "./components/features-grid";
 import { AIBrain } from "./components/ai-brain";
 import { RevenueEngine } from "./components/revenue-engine";
