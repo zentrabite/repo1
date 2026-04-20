@@ -1,6 +1,6 @@
 ﻿import type { Metadata } from "next";
 import { Outfit, Inter, JetBrains_Mono } from "next/font/google";
-import Nav from "./components/nav";
+import { Nav } from "./components/nav";
 import { Footer } from "./components/footer";
 import "./globals.css";
 
@@ -55,5 +55,3 @@ export default function RootLayout({
         <Footer />
       </body>
     </html>
-  );
-}
