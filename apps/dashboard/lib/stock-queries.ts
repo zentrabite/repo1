@@ -20,11 +20,8 @@ export type StockItem = {
   last_delivered_at: string | null;
   created_at: string;
 };
-
-const supabase = () => supabase;
-
 export async function getStock(businessId: string): Promise<StockItem[]> {
-  const { data, error } = await supabase()
+  const { data, error } = await supabase
     .from("stock_items")
     .select("*")
     .eq("business_id", businessId)
@@ -50,7 +47,7 @@ export async function createStockItem(
     auto_reorder: Boolean(input.auto_reorder ?? false),
     expiry_date: input.expiry_date ?? null,
   };
-  const { data, error } = await supabase()
+  const { data, error } = await supabase
     .from("stock_items")
     .insert(row)
     .select()
@@ -69,12 +66,12 @@ export async function updateStockItem(
   ] as const;
   const payload: Record<string, unknown> = {};
   for (const k of allowed) if (k in updates) payload[k] = (updates as any)[k];
-  const { error } = await supabase().from("stock_items").update(payload).eq("id", id);
+  const { error } = await supabase.from("stock_items").update(payload).eq("id", id);
   if (error) throw error;
 }
 
 export async function deleteStockItem(id: string): Promise<void> {
-  const { error } = await supabase().from("stock_items").delete().eq("id", id);
+  const { error } = await supabase.from("stock_items").delete().eq("id", id);
   if (error) throw error;
 }
 
@@ -89,7 +86,7 @@ export async function recordStockCount(
 ): Promise<number> {
   const before = Number(item.on_hand ?? 0);
 
-  const { error: cErr } = await supabase().from("stock_counts").insert({
+  const { error: cErr } = await supabase.from("stock_counts").insert({
     business_id: businessId,
     stock_item_id: item.id,
     before_qty: before,
@@ -99,7 +96,7 @@ export async function recordStockCount(
   });
   if (cErr) throw cErr;
 
-  const { error: uErr } = await supabase()
+  const { error: uErr } = await supabase
     .from("stock_items")
     .update({ on_hand: afterQty, last_counted_at: new Date().toISOString() })
     .eq("id", item.id);
