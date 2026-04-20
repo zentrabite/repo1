@@ -1,6 +1,6 @@
 // Client-side stock queries. Mirrors the pattern used by @/lib/queries for menu.
 // Imports the browser-scoped supabase client.
-import { createClient } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 export type StockItem = {
   id: string;
@@ -21,7 +21,7 @@ export type StockItem = {
   created_at: string;
 };
 
-const supabase = () => createClient();
+const supabase = () => supabase;
 
 export async function getStock(businessId: string): Promise<StockItem[]> {
   const { data, error } = await supabase()
