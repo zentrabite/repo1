@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Logo } from "./logo";
+import { LOGIN_URL, SIGNUP_URL } from "../../lib/config";
 
 export function Nav() {
   const [scrolled, setScrolled] = useState(false);
@@ -16,11 +17,11 @@ export function Nav() {
   }, []);
 
   const links = [
-    { href: "/#features", label: "Product" },
-    { href: "/how-it-works", label: "How it works" },
-    { href: "/#industries", label: "Industries" },
-    { href: "/pricing", label: "Pricing" },
+    { href: "#features", label: "Features" },
+    { href: "#ai-brain", label: "AI brain" },
+    { href: "#industries", label: "For any business" },
     { href: "/demo", label: "Demo" },
+    { href: "#faq", label: "FAQ" },
   ];
 
   return (
@@ -69,13 +70,13 @@ export function Nav() {
           style={{ display: "flex", alignItems: "center", gap: 10 }}
           className="nav-cta-desktop"
         >
-          <Link href="/contact" className="btn-ghost">
-            Contact
-          </Link>
-          <Link href="/contact" className="btn-primary">
-            Start 1-month free trial
+          <a href={LOGIN_URL} className="btn-ghost">
+            Log in
+          </a>
+          <a href={SIGNUP_URL} className="btn-primary">
+            Start free trial
             <span aria-hidden>→</span>
-          </Link>
+          </a>
         </div>
 
         <button
@@ -137,22 +138,13 @@ export function Nav() {
               {l.label}
             </Link>
           ))}
-          <Link
-            href="/contact"
-            onClick={() => setOpen(false)}
-            style={{
-              padding: "12px 8px",
-              color: "var(--cloud)",
-              fontWeight: 500,
-              borderRadius: 8,
-            }}
-          >
-            Contact
-          </Link>
           <div style={{ height: 8 }} />
-          <Link href="/contact" onClick={() => setOpen(false)} className="btn-primary" style={{ justifyContent: "center" }}>
-            Start 1-month free trial
-          </Link>
+          <a href={LOGIN_URL} className="btn-secondary" style={{ justifyContent: "center" }}>
+            Log in
+          </a>
+          <a href={SIGNUP_URL} className="btn-primary" style={{ justifyContent: "center" }}>
+            Start free trial
+          </a>
         </div>
       )}
 

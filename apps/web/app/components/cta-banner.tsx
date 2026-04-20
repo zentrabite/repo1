@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { SIGNUP_URL } from "../../lib/config";
 
 export function CTABanner() {
   return (
@@ -17,11 +17,11 @@ export function CTABanner() {
           }}
         >
           <h2 style={{ fontSize: "clamp(28px, 4vw, 40px)", marginBottom: 18 }}>
-            Ready to run your whole business on one system?
+            Ready to own your restaurant's growth?
           </h2>
           <p style={{ fontSize: 17, color: "var(--cloud)", opacity: 0.85, maxWidth: 560, margin: "0 auto 32px" }}>
-            One month free. No credit card. Tailored to your business size and the
-            modules you actually need. Onboarded by a real human inside 48 hours.
+            14-day free trial. No credit card required. Onboarded in 48 hours with a
+            real human — not a chatbot.
           </p>
           <div
             style={{
@@ -31,17 +31,17 @@ export function CTABanner() {
               flexWrap: "wrap",
             }}
           >
-            <Link href="/contact" className="btn-primary" style={{ padding: "15px 30px", fontSize: 16 }}>
-              Start 1-month free trial
+            <a href={SIGNUP_URL} className="btn-primary" style={{ padding: "15px 30px", fontSize: 16 }}>
+              Start free trial
               <span aria-hidden>→</span>
-            </Link>
-            <Link
-              href="/demo"
+            </a>
+            <a
+              href="mailto:hello@zentrabite.com.au?subject=Demo%20request"
               className="btn-secondary"
               style={{ padding: "14px 28px", fontSize: 16 }}
             >
-              See the demo
-            </Link>
+              Book a demo
+            </a>
           </div>
         </div>
       </div>
