@@ -60,7 +60,7 @@ export const features: Feature[] = [
     ],
     whoItsFor:
       "Anyone running a single-screen counter or a busy service pass. If you've ever run separate software for online and in-store, this is what replaces both.",
-    relatedSlugs: ["live-orders", "stripe-payouts", "financial-reporting"],
+    relatedSlugs: ["live-orders", "stock-take", "financial-reporting"],
   },
   {
     slug: "custom-mobile-app",
@@ -483,6 +483,53 @@ export const features: Feature[] = [
     whoItsFor:
       "Restaurants that want to stop renting their customer list from Uber Eats. After 3-6 months on ZentraBite you'll have a real, exportable database of people who've bought from you.",
     relatedSlugs: ["winback", "sms-email", "live-orders"],
+  },
+  {
+    slug: "stock-take",
+    icon: "📦",
+    title: "Stock take with AI ordering",
+    tagline: "Your ingredients count themselves, and the system reorders before you run out.",
+    summary:
+      "Count once, and we track every ingredient from order volume. AI flags what's about to run out, drafts the purchase order, and sends it to your supplier when you tap approve.",
+    eyebrow: "Operations",
+    overview: [
+      "Running out of mozzarella on a Saturday night is a five-figure mistake. ZentraBite's stock take keeps a live count of every ingredient by watching what you sell and what your menu items consume — no handheld scanners, no weekly spreadsheet marathon.",
+      "When levels drop below a threshold, the AI drafts a reorder based on your rolling 4-week usage, upcoming bookings, and the day of the week. You review a one-screen purchase order, tap approve, and it goes straight to the supplier via email or EDI.",
+    ],
+    howItWorks: [
+      {
+        title: "Map recipes once",
+        body: "Each menu item gets a quick BOM: a margherita uses 180g dough, 70g sauce, 90g mozzarella, 5g basil. We pre-fill common items so setup is ~45 minutes.",
+      },
+      {
+        title: "Sell normally",
+        body: "Every paid order automatically deducts ingredients from stock — POS, storefront, app, Uber, DoorDash all feed the same count.",
+      },
+      {
+        title: "AI watches for risk",
+        body: "Each morning the engine forecasts the day's demand against current stock. Items in the danger zone surface at the top of the stock page — with the exact gram/unit shortfall.",
+      },
+      {
+        title: "Approve the PO",
+        body: "The AI drafts a purchase order with quantities rounded to supplier pack sizes, splits across suppliers to get the best price, and sends it when you tap approve.",
+      },
+      {
+        title: "Receive + auto-reconcile",
+        body: "When the delivery arrives, scan the invoice — we match lines to your PO, flag price changes, and adjust stock automatically.",
+      },
+    ],
+    bullets: [
+      "Live stock level for every ingredient, no manual counts",
+      "Auto-deduct from POS + storefront + app + aggregator sales",
+      "AI reorder drafts sized for your rolling 4-week usage",
+      "Multi-supplier: splits each order to cheapest source",
+      "Wastage tracking — flag spoilage with one tap",
+      "Low-stock SMS alerts + auto-86 menu items when empty",
+      "Monthly cost-of-goods report by category and by item",
+    ],
+    whoItsFor:
+      "Any kitchen that currently counts stock on paper or in a spreadsheet — pizzerias, burger shops, cafés. If you've ever sold something you couldn't make, or panic-bought ingredients at 2× price on a Saturday, this is for you.",
+    relatedSlugs: ["pos", "live-orders", "financial-reporting"],
   },
 ];
 

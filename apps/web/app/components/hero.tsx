@@ -15,9 +15,9 @@ export function Hero() {
         className="container"
         style={{ display: "grid", gap: 56, position: "relative", zIndex: 1 }}
       >
-        <div style={{ textAlign: "center", maxWidth: 840, margin: "0 auto" }}>
+        <div style={{ textAlign: "center", maxWidth: 880, margin: "0 auto" }}>
           <div className="eyebrow" style={{ marginBottom: 22 }}>
-            The all-in-one restaurant platform
+            The Business Operating System for small operators
           </div>
           <h1
             style={{
@@ -29,31 +29,70 @@ export function Hero() {
               color: "transparent",
             }}
           >
-            Own your customers.
+            One system to run, grow,
             <br />
             <span style={{ color: "var(--green)", WebkitTextFillColor: "var(--green)" }}>
-              Own your margins.
+              and scale your business.
             </span>
           </h1>
           <p
             style={{
               fontSize: "clamp(17px, 1.6vw, 20px)",
               color: "var(--steel)",
-              maxWidth: 640,
+              maxWidth: 680,
               margin: "0 auto",
               lineHeight: 1.55,
             }}
           >
-            ZentraBite is the complete CRM, ordering, and delivery platform for modern
-            restaurants — commission-free storefronts, live order management, built-in
-            loyalty, and smart delivery routing, all under one roof.
+            ZentraBite replaces a stack of disconnected tools with a single operating
+            system that runs your orders, customers, inventory, and revenue — with AI
+            that tells you exactly what to do next to make more money and waste less.
           </p>
+
+          {/* Outcome chips — the "why" in 10 seconds */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              gap: 8,
+              marginTop: 22,
+              flexWrap: "wrap",
+            }}
+          >
+            {[
+              { icon: "💰", label: "Recover lost revenue" },
+              { icon: "📦", label: "Cut stock waste" },
+              { icon: "🧠", label: "AI decisions, daily" },
+              { icon: "🔁", label: "Win customers back" },
+              { icon: "⚙️", label: "Automate the busywork" },
+            ].map((chip) => (
+              <span
+                key={chip.label}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "7px 13px",
+                  borderRadius: 999,
+                  background: "var(--navy-40)",
+                  border: "1px solid var(--mist-9)",
+                  fontSize: 13,
+                  color: "var(--cloud)",
+                  fontWeight: 500,
+                }}
+              >
+                <span aria-hidden>{chip.icon}</span>
+                {chip.label}
+              </span>
+            ))}
+          </div>
+
           <div
             style={{
               display: "flex",
               gap: 12,
               justifyContent: "center",
-              marginTop: 36,
+              marginTop: 32,
               flexWrap: "wrap",
             }}
           >
@@ -66,7 +105,7 @@ export function Hero() {
             </a>
           </div>
           <div style={{ marginTop: 18, fontSize: 13, color: "var(--steel)" }}>
-            No credit card required · Cancel anytime · Free onboarding
+            No credit card required · Cancel anytime · Free onboarding · Works across 30+ business types
           </div>
         </div>
 

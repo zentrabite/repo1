@@ -9,6 +9,7 @@ const NAV = [
   { href: "/demo/live/orders",      label: "Orders",     emoji: "📋" },
   { href: "/demo/live/pos",         label: "POS",        emoji: "🧾" },
   { href: "/demo/live/menu",        label: "Menu",       emoji: "🍕" },
+  { href: "/demo/live/stock",       label: "Stock",      emoji: "📦" },
   { href: "/demo/live/ai-calls",    label: "AI calls",   emoji: "📞" },
   { href: "/demo/live/drivers",     label: "Drivers",    emoji: "🛵" },
   { href: "/demo/live/customers",   label: "Customers",  emoji: "👥" },

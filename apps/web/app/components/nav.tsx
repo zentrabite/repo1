@@ -18,7 +18,8 @@ export function Nav() {
 
   const links = [
     { href: "#features", label: "Features" },
-    { href: "#showcase", label: "Product" },
+    { href: "#ai-brain", label: "AI brain" },
+    { href: "#industries", label: "For any business" },
     { href: "/demo", label: "Demo" },
     { href: "#faq", label: "FAQ" },
   ];

@@ -5,18 +5,18 @@ export function FeaturesGrid() {
   return (
     <section id="features" className="section">
       <div className="container">
-        <div style={{ textAlign: "center", maxWidth: 760, margin: "0 auto 56px" }}>
+        <div style={{ textAlign: "center", maxWidth: 780, margin: "0 auto 56px" }}>
           <div className="eyebrow" style={{ marginBottom: 18 }}>
-            Everything you need, nothing you don't
+            The engine inside the Business OS
           </div>
           <h2 style={{ fontSize: "clamp(30px, 4vw, 44px)", marginBottom: 18 }}>
-            One platform. Every part of service.
+            One system. Every part of the business.
           </h2>
           <p style={{ fontSize: 17, color: "var(--steel)", lineHeight: 1.6 }}>
-            Stop stitching together five tools for one restaurant. ZentraBite gives
-            you the POS, the ordering page, the loyalty app, the SMS tool, and the
-            delivery dispatcher — and we'll even build your custom website and mobile
-            app on top.
+            Stop paying for five disconnected tools that don't talk to each other.
+            ZentraBite runs your POS, ordering, CRM, loyalty, inventory, automations,
+            and reporting in one system — so every sale, customer, and stock movement
+            feeds a single brain that tells you what to do next.
           </p>
         </div>
 

@@ -7,6 +7,10 @@ export function SlideVisual({ kind }: { kind: VisualKind }) {
   switch (kind) {
     case "intro":
       return <IntroVisual />;
+    case "ai-brain":
+      return <AIBrainVisual />;
+    case "stock":
+      return <StockVisual />;
     case "pos":
       return <PosVisual />;
     case "app-website":
@@ -48,17 +52,130 @@ function IntroVisual() {
       style={{
         ...baseCard,
         textAlign: "center",
-        padding: "48px 32px",
+        padding: "36px 28px",
         background: "linear-gradient(135deg, rgba(0,182,122,0.18), rgba(28,45,72,0.55))",
       }}
     >
-      <div style={{ fontSize: 88, marginBottom: 20 }}>🍽️</div>
-      <div style={{ fontFamily: "var(--font-outfit)", fontSize: 28, fontWeight: 700 }}>
-        Built for restaurants.
+      <div style={{ fontSize: 60, marginBottom: 10 }}>🧠</div>
+      <div style={{ fontFamily: "var(--font-outfit)", fontSize: 22, fontWeight: 700, marginBottom: 18 }}>
+        The Business Operating System
       </div>
-      <div style={{ color: "var(--steel)", fontSize: 14, marginTop: 8 }}>
-        Designed in Adelaide. Used across Australia.
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
+        {[
+          { icon: "🍽️", label: "Food & hospitality" },
+          { icon: "✂️", label: "Personal services" },
+          { icon: "💪", label: "Fitness & health" },
+          { icon: "🛍️", label: "Retail & ecom" },
+          { icon: "🔧", label: "Services & trades" },
+          { icon: "📅", label: "Appointments" },
+        ].map((c) => (
+          <div
+            key={c.label}
+            style={{
+              padding: "10px 8px",
+              borderRadius: 10,
+              background: "rgba(15,25,42,0.55)",
+              border: "1px solid var(--mist-9)",
+              fontSize: 11,
+              color: "var(--cloud)",
+            }}
+          >
+            <div style={{ fontSize: 20, marginBottom: 4 }}>{c.icon}</div>
+            {c.label}
+          </div>
+        ))}
       </div>
+      <div style={{ color: "var(--steel)", fontSize: 12, marginTop: 14 }}>
+        One system. Any small business.
+      </div>
+    </div>
+  );
+}
+
+function AIBrainVisual() {
+  return (
+    <div style={{ ...baseCard, padding: 20 }}>
+      <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--steel)", marginBottom: 10 }}>
+        inbox · 7:00am
+      </div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: "var(--cloud)", marginBottom: 2 }}>
+        Your daily brief — Monday
+      </div>
+      <div style={{ fontSize: 11.5, color: "var(--steel)", marginBottom: 14 }}>
+        $3,248 yesterday · 14% above avg
+      </div>
+      {[
+        { tone: "warn", title: "Stock alert · Chicken thigh", body: "Out in 2 days. Reorder 18kg — $261." },
+        { tone: "ok", title: "Winback recovered $840 last week", body: "22 lapsed orders back. Boost flow?" },
+        { tone: "warn", title: "5 VIPs not seen in 21 days", body: "Combined LTV $4,120. Send winback?" },
+      ].map((r, idx) => (
+        <div
+          key={idx}
+          style={{
+            padding: "9px 11px",
+            borderRadius: 9,
+            background: "rgba(15,25,42,0.55)",
+            border: `1px solid ${r.tone === "warn" ? "rgba(255,107,53,0.35)" : "rgba(0,182,122,0.35)"}`,
+            marginBottom: 7,
+          }}
+        >
+          <div style={{ fontSize: 12, fontWeight: 700, color: r.tone === "warn" ? "var(--orange)" : "var(--green)", marginBottom: 2 }}>
+            {r.title}
+          </div>
+          <div style={{ fontSize: 11.5, color: "var(--steel)", lineHeight: 1.45 }}>{r.body}</div>
+        </div>
+      ))}
+      <div style={{ marginTop: 6, fontSize: 10.5, color: "var(--steel)", textAlign: "center", fontStyle: "italic" }}>
+        Reply "act" and ZentraBite executes it.
+      </div>
+    </div>
+  );
+}
+
+function StockVisual() {
+  const rows = [
+    { name: "Chicken thigh", qty: "4.2kg", pct: 23, status: "critical", sug: "+18kg" },
+    { name: "Mozzarella",    qty: "6.1kg", pct: 30, status: "low",      sug: "+14kg" },
+    { name: "Pizza boxes",   qty: "42",    pct: 10, status: "critical", sug: "+360" },
+    { name: "Pizza flour",   qty: "32kg",  pct: 53, status: "ok",       sug: "—" },
+  ];
+  const color = (s: string) => (s === "critical" ? "#ff5f57" : s === "low" ? "var(--orange)" : "var(--green)");
+  return (
+    <div style={{ ...baseCard, padding: 20 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 14 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--cloud)" }}>Inventory · live</div>
+        <div style={{ fontSize: 11, color: "var(--green)", fontWeight: 700 }}>✨ AI reorder $838</div>
+      </div>
+      {rows.map((r) => (
+        <div key={r.name} style={{ marginBottom: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--cloud)", marginBottom: 4 }}>
+            <span>{r.name}</span>
+            <span style={{ fontFamily: "var(--font-mono)", color: "var(--steel)" }}>
+              {r.qty}
+              <span style={{ color: color(r.status), marginLeft: 8, fontWeight: 700 }}>{r.sug}</span>
+            </span>
+          </div>
+          <div style={{ height: 6, background: "var(--mist-6)", borderRadius: 999, overflow: "hidden" }}>
+            <div style={{ width: `${r.pct}%`, height: "100%", background: color(r.status) }} />
+          </div>
+        </div>
+      ))}
+      <button
+        style={{
+          marginTop: 8,
+          width: "100%",
+          padding: 10,
+          borderRadius: 10,
+          background: "var(--green)",
+          color: "var(--navy)",
+          border: "none",
+          fontWeight: 700,
+          fontSize: 12.5,
+          cursor: "pointer",
+        }}
+      >
+        Accept AI orders · send to suppliers
+      </button>
     </div>
   );
 }

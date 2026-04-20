@@ -13,6 +13,8 @@ export type Slide = {
 
 export type VisualKind =
   | "intro"
+  | "ai-brain"
+  | "stock"
   | "pos"
   | "app-website"
   | "live-orders"
@@ -29,20 +31,58 @@ export const slides: Slide[] = [
   {
     id: "intro",
     eyebrow: "Welcome",
-    title: "Meet ZentraBite — in 90 seconds.",
+    title: "ZentraBite — the Business Operating System for small operators.",
     body:
-      "This is a guided tour of every part of the platform. For each feature you'll see what it does, how it works, and exactly how it changes the numbers for a typical restaurant doing $40-80k a month.",
+      "This is a guided tour of the whole system. You'll see how ZentraBite runs your orders, customers, stock, and revenue — and exactly how every feature changes your numbers.",
     bullets: [
-      "11 features, 11 short slides",
+      "Replaces 5+ disconnected tools with one system",
+      "Built for restaurants, salons, gyms, retail, services & more",
       "Use ← → arrows or click the controls",
-      "Jump straight into the live demo whenever you're ready",
     ],
     impact: [
-      { metric: "Avg. setup time", value: "48 hours", sub: "from signup to first online order" },
-      { metric: "Avg. uplift", value: "+18%", sub: "in repeat-order rate within 90 days" },
+      { metric: "Avg. setup time", value: "48 hours", sub: "from signup to first sale" },
+      { metric: "Avg. revenue lift", value: "+18%", sub: "within 90 days" },
       { metric: "Cost replaced", value: "$420/mo", sub: "of POS + ordering + loyalty + SMS tools" },
     ],
     visual: "intro",
+  },
+  {
+    id: "ai-brain",
+    eyebrow: "The Brain",
+    title: "AI that tells you what to do next.",
+    body:
+      "ZentraBite's Business Intelligence Layer reads every sale, customer, and stock movement — then sends you a daily brief with predictions, alerts, and one-tap actions.",
+    bullets: [
+      "Daily AI email at 7am — predictions + action list",
+      "Spots at-risk customers, stock shortages, and upsell opportunities",
+      "Reply \"act\" and ZentraBite executes the recommendation",
+      "One brain, not ten dashboards",
+    ],
+    impact: [
+      { metric: "Time on reports", value: "−4 hrs/wk", sub: "AI writes the summary for you" },
+      { metric: "Revenue actions taken", value: "3–5 per day", sub: "nudged automatically" },
+      { metric: "Decisions automated", value: "62%", sub: "of operator admin (avg)" },
+    ],
+    visual: "ai-brain",
+  },
+  {
+    id: "stock",
+    eyebrow: "Operations",
+    title: "AI stock take + predictive ordering.",
+    body:
+      "ZentraBite tracks every ingredient, SKU, and consumable. It learns your use rate, flags expiry, watches deliveries — and tells you exactly what to reorder today.",
+    bullets: [
+      "Live inventory with par levels + days-of-cover",
+      "Expiry awareness — waste gets flagged before it happens",
+      "Predictive reorders with one-tap accept to supplier",
+      "Delivery tracking so you always know what's coming in",
+    ],
+    impact: [
+      { metric: "Food/stock waste", value: "−27%", sub: "avg in first 90 days" },
+      { metric: "Stockouts", value: "→ near zero", sub: "on tracked items" },
+      { metric: "Reorder time", value: "−85%", sub: "vs manual ordering" },
+    ],
+    visual: "stock",
   },
   {
     id: "pos",
@@ -237,9 +277,9 @@ export const slides: Slide[] = [
   {
     id: "outro",
     eyebrow: "Ready?",
-    title: "That's the whole platform.",
+    title: "That's the whole operating system.",
     body:
-      "11 features. One subscription. Onboarded in 48 hours, free trial for 14 days, no credit card to start. The live demo dashboard lets you click through everything in real time with sample data.",
+      "One subscription runs your whole business. Onboarded in 48 hours, free trial for 14 days, no credit card to start. The live demo dashboard lets you click through everything in real time with sample data.",
     bullets: [
       "14-day free trial — no card required",
       "Free onboarding call with a real human",

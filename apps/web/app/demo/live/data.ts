@@ -594,3 +594,72 @@ export const analytics = {
     { postcode: "5045", orders: 98,  revenue: 4_578.20 },
   ],
 };
+
+// ---- Stock take + AI ordering ----
+export type StockStatus = "ok" | "low" | "critical" | "expiring";
+
+export type StockItem = {
+  id: string;
+  name: string;
+  category: "Protein" | "Produce" | "Dairy" | "Dry goods" | "Beverages" | "Packaging";
+  supplier: string;
+  unit: string;
+  onHand: number;
+  reorderAt: number;
+  parLevel: number;
+  avgDailyUse: number;
+  costPerUnit: number;
+  lastDelivery: string;
+  expiresIn: number | null;
+  aiSuggestOrder: number;
+  status: StockStatus;
+  linkedMenuItems: string[];
+};
+
+export const stockItems: StockItem[] = [
+  { id: "s01", name: "Chicken thigh (boneless)", category: "Protein",   supplier: "Meatworks AU",  unit: "kg",    onHand: 4.2,  reorderAt: 6,   parLevel: 18,  avgDailyUse: 2.1,  costPerUnit: 14.50, lastDelivery: "2026-04-14", expiresIn: 3,    aiSuggestOrder: 18,  status: "critical", linkedMenuItems: ["Chicken parmi", "Thai green curry"] },
+  { id: "s02", name: "Pizza flour (00)",          category: "Dry goods", supplier: "Molino Italia", unit: "kg",    onHand: 32,   reorderAt: 25,  parLevel: 60,  avgDailyUse: 4.8,  costPerUnit: 3.40,  lastDelivery: "2026-04-10", expiresIn: null, aiSuggestOrder: 0,   status: "ok",       linkedMenuItems: ["Margherita", "Pepperoni", "Quattro formaggi"] },
+  { id: "s03", name: "Mozzarella (fior di latte)", category: "Dairy",    supplier: "La Casa Dairy", unit: "kg",    onHand: 6.1,  reorderAt: 8,   parLevel: 20,  avgDailyUse: 3.2,  costPerUnit: 12.80, lastDelivery: "2026-04-16", expiresIn: 5,    aiSuggestOrder: 14,  status: "low",      linkedMenuItems: ["Margherita", "Quattro formaggi"] },
+  { id: "s04", name: "San Marzano tomato",        category: "Produce",   supplier: "Veggie Co",     unit: "case",  onHand: 2,    reorderAt: 3,   parLevel: 6,   avgDailyUse: 0.6,  costPerUnit: 28.00, lastDelivery: "2026-04-13", expiresIn: 9,    aiSuggestOrder: 4,   status: "low",      linkedMenuItems: ["Margherita", "Pepperoni"] },
+  { id: "s05", name: "Wagyu patty (180g)",        category: "Protein",   supplier: "Meatworks AU",  unit: "patty", onHand: 48,   reorderAt: 30,  parLevel: 120, avgDailyUse: 9,    costPerUnit: 6.80,  lastDelivery: "2026-04-17", expiresIn: 4,    aiSuggestOrder: 72,  status: "ok",       linkedMenuItems: ["Wagyu burger"] },
+  { id: "s06", name: "Pad thai rice noodle",      category: "Dry goods", supplier: "Asian Pantry",  unit: "kg",    onHand: 1.2,  reorderAt: 3,   parLevel: 8,   avgDailyUse: 1.1,  costPerUnit: 4.20,  lastDelivery: "2026-04-08", expiresIn: null, aiSuggestOrder: 8,   status: "critical", linkedMenuItems: ["Pad thai"] },
+  { id: "s07", name: "Coke 330ml can",            category: "Beverages", supplier: "Coca-Cola AU",  unit: "can",   onHand: 184,  reorderAt: 120, parLevel: 480, avgDailyUse: 38,   costPerUnit: 1.20,  lastDelivery: "2026-04-15", expiresIn: 210,  aiSuggestOrder: 0,   status: "ok",       linkedMenuItems: ["Coke"] },
+  { id: "s08", name: "Takeaway pizza box (14\")", category: "Packaging", supplier: "BoxPack",       unit: "box",   onHand: 42,   reorderAt: 80,  parLevel: 400, avgDailyUse: 32,   costPerUnit: 0.48,  lastDelivery: "2026-04-11", expiresIn: null, aiSuggestOrder: 360, status: "critical", linkedMenuItems: ["Margherita", "Pepperoni", "Quattro formaggi"] },
+  { id: "s09", name: "Double cream",              category: "Dairy",     supplier: "La Casa Dairy", unit: "L",     onHand: 2.4,  reorderAt: 3,   parLevel: 8,   avgDailyUse: 0.9,  costPerUnit: 9.60,  lastDelivery: "2026-04-09", expiresIn: 2,    aiSuggestOrder: 6,   status: "expiring", linkedMenuItems: ["Tiramisu", "Pasta carbonara"] },
+  { id: "s10", name: "Basil (fresh bunch)",       category: "Produce",   supplier: "Veggie Co",     unit: "bunch", onHand: 14,   reorderAt: 10,  parLevel: 30,  avgDailyUse: 3,    costPerUnit: 2.40,  lastDelivery: "2026-04-18", expiresIn: 3,    aiSuggestOrder: 0,   status: "ok",       linkedMenuItems: ["Margherita", "Pasta al pomodoro"] },
+  { id: "s11", name: "Espresso beans",            category: "Beverages", supplier: "Bean & Co",     unit: "kg",    onHand: 3.8,  reorderAt: 4,   parLevel: 12,  avgDailyUse: 1.2,  costPerUnit: 38.00, lastDelivery: "2026-04-12", expiresIn: 45,   aiSuggestOrder: 10,  status: "low",      linkedMenuItems: ["Espresso", "Latte", "Tiramisu"] },
+  { id: "s12", name: "Free-range egg",            category: "Dairy",     supplier: "Farm Fresh",    unit: "dozen", onHand: 6,    reorderAt: 5,   parLevel: 20,  avgDailyUse: 2.4,  costPerUnit: 7.80,  lastDelivery: "2026-04-16", expiresIn: 14,   aiSuggestOrder: 0,   status: "ok",       linkedMenuItems: ["Pasta carbonara", "Tiramisu"] },
+];
+
+export type StockDelivery = {
+  id: string;
+  supplier: string;
+  eta: string;
+  status: "scheduled" | "in-transit" | "delivered" | "delayed";
+  itemsCount: number;
+  total: number;
+};
+
+export const stockDeliveries: StockDelivery[] = [
+  { id: "d01", supplier: "Meatworks AU",  eta: "2026-04-21", status: "scheduled",  itemsCount: 4, total: 682.40 },
+  { id: "d02", supplier: "La Casa Dairy", eta: "2026-04-20", status: "in-transit", itemsCount: 3, total: 284.80 },
+  { id: "d03", supplier: "Veggie Co",     eta: "2026-04-20", status: "delivered",  itemsCount: 6, total: 198.60 },
+  { id: "d04", supplier: "BoxPack",       eta: "2026-04-22", status: "delayed",    itemsCount: 2, total: 412.00 },
+];
+
+export const stockStats = {
+  itemsTracked: stockItems.length,
+  lowOrCritical: stockItems.filter((s) => s.status === "low" || s.status === "critical").length,
+  expiringSoon: stockItems.filter((s) => s.expiresIn !== null && s.expiresIn <= 3).length,
+  estWasteAvoided30d: 1_280,
+  aiSuggestedOrderValue: stockItems.reduce((sum, s) => sum + s.aiSuggestOrder * s.costPerUnit, 0),
+  estReorderCost: 1_840.20,
+};
+
+export function stockStatusLabel(status: StockStatus): string {
+  return ({ ok: "In stock", low: "Low", critical: "Critical", expiring: "Expiring soon" } as const)[status];
+}
+
+export function stockStatusColor(status: StockStatus): string {
+  return ({ ok: "var(--green)", low: "var(--orange)", critical: "#ff5f57", expiring: "#febc2e" } as const)[status];
+}
