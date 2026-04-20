@@ -7,16 +7,14 @@ export function FeaturesGrid() {
       <div className="container">
         <div style={{ textAlign: "center", maxWidth: 780, margin: "0 auto 56px" }}>
           <div className="eyebrow" style={{ marginBottom: 18 }}>
-            The engine inside the Business OS
+            The engine
           </div>
           <h2 style={{ fontSize: "clamp(30px, 4vw, 44px)", marginBottom: 18 }}>
             One system. Every part of the business.
           </h2>
           <p style={{ fontSize: 17, color: "var(--steel)", lineHeight: 1.6 }}>
-            Stop paying for five disconnected tools that don't talk to each other.
-            ZentraBite runs your POS, ordering, CRM, loyalty, inventory, automations,
-            and reporting in one system — so every sale, customer, and stock movement
-            feeds a single brain that tells you what to do next.
+            Replace five disconnected tools. Every sale, customer and stock movement
+            feeds one brain that tells you what to do next.
           </p>
         </div>
 
@@ -113,3 +111,5 @@ export function FeaturesGrid() {
     </section>
   );
 }
+
+

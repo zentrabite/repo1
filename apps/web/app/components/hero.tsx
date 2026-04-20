@@ -16,7 +16,7 @@ export function Hero() {
       >
         <div style={{ textAlign: "center", maxWidth: 880, margin: "0 auto" }}>
           <div className="eyebrow" style={{ marginBottom: 22 }}>
-            The Business Operating System for small operators
+            Business Operating System
           </div>
           <h1
             style={{
@@ -43,9 +43,8 @@ export function Hero() {
               lineHeight: 1.55,
             }}
           >
-            ZentraBite replaces a stack of disconnected tools with a single operating
-            system that runs your orders, customers, inventory, and revenue — with AI
-            that tells you exactly what to do next to make more money and waste less.
+            Run orders, customers, stock and revenue in one place. An AI co-pilot
+            tells you what to do next to make more money and waste less.
           </p>
 
           {/* Outcome chips — the "why" in 10 seconds */}
@@ -104,7 +103,7 @@ export function Hero() {
             </a>
           </div>
           <div style={{ marginTop: 18, fontSize: 13, color: "var(--steel)" }}>
-            No credit card required · Cancel anytime · Free onboarding · Works across 30+ business types
+            No credit card · Cancel anytime · Free onboarding · Works across 30+ business types
           </div>
         </div>
 

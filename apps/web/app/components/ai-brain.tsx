@@ -4,15 +4,14 @@ export function AIBrain() {
       <div className="container">
         <div style={{ textAlign: "center", maxWidth: 820, margin: "0 auto 48px" }}>
           <div className="eyebrow" style={{ marginBottom: 18 }}>
-            The Business Intelligence Layer
+            Business Intelligence
           </div>
           <h2 style={{ fontSize: "clamp(30px, 4vw, 44px)", marginBottom: 18 }}>
             An AI co-pilot that actually runs the business.
           </h2>
           <p style={{ fontSize: 17, color: "var(--steel)", lineHeight: 1.6 }}>
-            Every sale, booking, customer and stock movement feeds the ZentraBite brain.
-            It doesn't just show you dashboards — it tells you what's working, what's
-            breaking, and the three things you should do today to make more money.
+            Every sale, booking, customer and stock movement feeds one brain. It tells
+            you what's working, what's broken, and what to do today.
           </p>
         </div>
 
@@ -222,3 +221,5 @@ export function AIBrain() {
     </section>
   );
 }
+
+

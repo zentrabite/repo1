@@ -34,6 +34,13 @@ const REVENUE_PILLARS = [
     body: "Abandoned carts, failed payments, no-show bookings — all flagged and recovered with one-tap automations.",
     metric: "8–12% of sales recovered",
   },
+  {
+    icon: "📦",
+    label: "Stock intelligence",
+    title: "Cut waste. Never stock out.",
+    body: "AI par levels, expiry tracking and auto-reorder suggestions — based on real demand, not guesswork.",
+    metric: "−22% food & stock waste",
+  },
 ];
 
 const CUSTOMER_VALUE = [
@@ -66,9 +73,8 @@ export function RevenueEngine() {
             Built to make you more money — not just track it.
           </h2>
           <p style={{ fontSize: 17, color: "var(--steel)", lineHeight: 1.6 }}>
-            Most software shows you what already happened. ZentraBite is built to
-            move the numbers — every feature has a direct line to revenue: more
-            tickets, more repeat orders, more recurring customers, less leakage.
+            Other software reports the past. ZentraBite moves the numbers — more
+            tickets, more repeats, less leakage.
           </p>
         </div>
 
@@ -162,10 +168,8 @@ export function RevenueEngine() {
               Stop chasing new customers. Squeeze more from the ones you already have.
             </h3>
             <p style={{ fontSize: 15, color: "var(--steel)", lineHeight: 1.65 }}>
-              It's 5–7× cheaper to keep a customer than to acquire one. ZentraBite's
-              CRM tracks every customer's lifetime value, predicts who's about to
-              churn, and runs the re-engagement on autopilot — so your existing base
-              becomes a compounding revenue asset.
+              Keeping a customer is 5–7× cheaper than finding a new one. The CRM
+              tracks lifetime value, spots churn early and runs winback on autopilot.
             </p>
           </div>
           <div style={{ display: "grid", gap: 14 }}>
@@ -221,3 +225,5 @@ export function RevenueEngine() {
     </section>
   );
 }
+
+

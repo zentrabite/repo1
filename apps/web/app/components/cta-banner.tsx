@@ -16,11 +16,10 @@ export function CTABanner() {
           }}
         >
           <h2 style={{ fontSize: "clamp(28px, 4vw, 40px)", marginBottom: 18 }}>
-            Ready to own your restaurant's growth?
+            Ready to own your growth?
           </h2>
           <p style={{ fontSize: 17, color: "var(--cloud)", opacity: 0.85, maxWidth: 560, margin: "0 auto 32px" }}>
-            1-month free trial. No credit card required. Onboarded in 48 hours with a
-            real human — not a chatbot.
+            1-month free trial. No card. Onboarded in 48 hours.
           </p>
           <div
             style={{
