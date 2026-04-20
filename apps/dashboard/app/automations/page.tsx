@@ -7,7 +7,7 @@ import Modal from "@/components/modal";
 import Toast from "@/components/toast";
 import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
-import { getCampaigns, updateCampaign, createCampaign } from "@/lib/queries";
+import { getCampaigns, updateCampaign, createCampaign, getSmsStats } from "@/lib/queries";
 import type { Campaign } from "@/lib/database.types";
 
 const C = { g:"#00B67A", o:"#FF6B35", st:"#6B7C93" };
@@ -21,16 +21,43 @@ export default function AutomationsPage() {
   const [isNew,   setIsNew]   = useState(false);
   const [loading, setLoading] = useState(true);
   const [form,    setForm]    = useState({ name:"", trigger:"", template:"", type:"SMS", active:true, trigger_days:14, discount_amount:10, cooldown_days:30 });
+  const [smsSent, setSmsSent] = useState(0);
+  const [smsConv, setSmsConv] = useState(0);
 
   useEffect(() => {
     if (!businessId) return;
-    getCampaigns(businessId).then(data => { setCamps(data); setLoading(false); });
+    Promise.all([
+      getCampaigns(businessId),
+      getSmsStats(businessId),
+    ]).then(([camps, stats]) => {
+      setCamps(camps);
+      setSmsSent(stats.sent);
+      setSmsConv(stats.converted);
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, [businessId]);
 
+  const [running, setRunning] = useState(false);
+
   const totalActive = camps.filter(c => c.active).length;
-  const totalSent   = camps.reduce((a,c) => a + 0, 0); // populated from sms_logs
-  const totalConv   = 0;
-  const totalRev    = 0;
+
+  const runNow = async () => {
+    if (!businessId) return;
+    setRunning(true);
+    try {
+      const res  = await fetch("/api/automations/run", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ businessId }),
+      });
+      const data = await res.json();
+      show(data.sent > 0 ? `✅ Sent ${data.sent} messages` : "No customers due right now");
+    } catch {
+      show("❌ Failed to run automations");
+    } finally {
+      setRunning(false);
+    }
+  };
 
   const openEdit = (c: Campaign) => {
     setEditing(c);
@@ -71,14 +98,19 @@ export default function AutomationsPage() {
           <h2 style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:20, color:"#fff" }}>Automations</h2>
           <p style={{ color:C.st, fontSize:12 }}>SMS & email with triggers & attribution</p>
         </div>
-        <button className="bp" onClick={openNew}>+ New</button>
+        <div style={{ display:"flex", gap:8 }}>
+          <button className="bg-btn" onClick={runNow} disabled={running}>
+            {running ? "Running…" : "▶ Run Now"}
+          </button>
+          <button className="bp" onClick={openNew}>+ New</button>
+        </div>
       </div>
 
       <div style={{ display:"flex", gap:10, flexWrap:"wrap", marginBottom:12 }}>
         <StatCard label="Active"    value={String(totalActive)} icon="⚡" />
-        <StatCard label="Sent"      value={totalSent.toLocaleString()} icon="📤" delay={50} />
-        <StatCard label="Converted" value={String(totalConv)} accent icon="✅" delay={100} />
-        <StatCard label="Revenue"   value={`$${totalRev.toLocaleString()}`} accent icon="💰" delay={150} />
+        <StatCard label="SMS Sent"  value={smsSent.toLocaleString()} icon="📤" delay={50} />
+        <StatCard label="Converted" value={String(smsConv)} accent icon="✅" delay={100} />
+        <StatCard label="Conv Rate" value={smsSent > 0 ? `${Math.round(smsConv/smsSent*100)}%` : "—"} accent icon="📊" delay={150} />
       </div>
 
       <div style={{ display:"flex", flexDirection:"column", gap:8 }}>

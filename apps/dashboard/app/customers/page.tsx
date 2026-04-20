@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react";
 import Badge from "@/components/badge";
 import Toast from "@/components/toast";
+import Modal from "@/components/modal";
 import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
-import { getCustomers, getCustomerOrders } from "@/lib/queries";
+import { getCustomers, getCustomerOrders, createCustomer } from "@/lib/queries";
 import type { Customer, Order } from "@/lib/database.types";
 
 const C = { g:"#00B67A", o:"#FF6B35", am:"#F59E0B", st:"#6B7C93" };
@@ -23,12 +24,15 @@ export default function CustomersPage() {
   const { toast, show } = useToast();
   const { businessId } = useBusiness();
 
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customers,  setCustomers]  = useState<Customer[]>([]);
   const [custOrders, setCustOrders] = useState<Order[]>([]);
-  const [seg,      setSeg]      = useState("All");
-  const [search,   setSearch]   = useState("");
-  const [selected, setSelected] = useState<Customer | null>(null);
-  const [loading,  setLoading]  = useState(true);
+  const [seg,        setSeg]        = useState("All");
+  const [search,     setSearch]     = useState("");
+  const [selected,   setSelected]   = useState<Customer | null>(null);
+  const [loading,    setLoading]    = useState(true);
+  const [addingCust, setAddingCust] = useState(false);
+  const [saving,     setSaving]     = useState(false);
+  const [newCust,    setNewCust]    = useState({ name:"", phone:"", email:"" });
 
   useEffect(() => {
     if (!businessId) return;
@@ -39,6 +43,19 @@ export default function CustomersPage() {
     if (!selected) return;
     getCustomerOrders(selected.id).then(setCustOrders);
   }, [selected]);
+
+  const saveNewCustomer = async () => {
+    if (!businessId || !newCust.name.trim()) return show("Name is required");
+    setSaving(true);
+    try {
+      const c = await createCustomer(businessId, newCust);
+      setCustomers(prev => [c, ...prev]);
+      setNewCust({ name:"", phone:"", email:"" });
+      setAddingCust(false);
+      show("Customer added ✓");
+    } catch { show("Failed to add customer"); }
+    finally { setSaving(false); }
+  };
 
   const filtered = customers
     .filter(c => seg === "All" || c.segment === seg)
@@ -99,7 +116,7 @@ export default function CustomersPage() {
           <h2 style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:20, color:"#fff" }}>Customers</h2>
           <p style={{ color:C.st, fontSize:12 }}>CRM database · {customers.length} total</p>
         </div>
-        <button className="bp" onClick={() => show("Add customer — coming soon")}>+ Add</button>
+        <button className="bp" onClick={() => { setNewCust({ name:"", phone:"", email:"" }); setAddingCust(true); }}>+ Add</button>
       </div>
 
       <div style={{ display:"flex", gap:5, marginBottom:12, flexWrap:"wrap" }}>
@@ -131,6 +148,16 @@ export default function CustomersPage() {
           </tbody>
         </table>
       </div>
+      <Modal open={addingCust} onClose={() => setAddingCust(false)} title="Add Customer">
+        <div style={{ marginBottom:12 }}><label>Full Name *</label><input value={newCust.name} onChange={e=>setNewCust(n=>({...n,name:e.target.value}))} placeholder="Jane Smith" autoFocus /></div>
+        <div style={{ marginBottom:12 }}><label>Phone</label><input value={newCust.phone} onChange={e=>setNewCust(n=>({...n,phone:e.target.value}))} placeholder="+61 400 000 000" /></div>
+        <div style={{ marginBottom:18 }}><label>Email</label><input type="email" value={newCust.email} onChange={e=>setNewCust(n=>({...n,email:e.target.value}))} placeholder="jane@email.com" /></div>
+        <div style={{ display:"flex", gap:6, justifyContent:"flex-end" }}>
+          <button className="bg-btn" onClick={() => setAddingCust(false)}>Cancel</button>
+          <button className="bp" onClick={saveNewCustomer} disabled={saving}>{saving ? "Saving…" : "Add Customer"}</button>
+        </div>
+      </Modal>
+
       <Toast message={toast.message} visible={toast.visible} />
     </div>
   );

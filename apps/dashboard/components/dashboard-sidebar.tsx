@@ -15,7 +15,7 @@ const MIST  = "rgba(226,232,240,.09)";
 export default function DashboardSidebar() {
   const pathname  = usePathname();
   const router    = useRouter();
-  const { business, email } = useBusiness();
+  const { business, email, isSuperAdmin } = useBusiness();
 
   // Use real business data, fall back to placeholder while loading
   const bizName  = business?.name     ?? "Your Business";
@@ -100,6 +100,15 @@ export default function DashboardSidebar() {
           );
         })}
       </nav>
+
+      {/* ── Super admin link ── */}
+      {isSuperAdmin && (
+        <div style={{ padding: "0 8px 4px" }}>
+          <Link href="/admin" style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 12px", borderRadius:10, background:"rgba(255,71,87,.08)", border:"1px solid rgba(255,71,87,.15)", textDecoration:"none", color:"#FF4757", fontSize:12, fontFamily:"var(--font-inter)", fontWeight:600 }}>
+            <span>🔐</span> Super Admin
+          </Link>
+        </div>
+      )}
 
       {/* ── Bottom: business + logout ── */}
       <div style={{ padding: "12px 14px", borderTop: `1px solid ${MIST}` }}>

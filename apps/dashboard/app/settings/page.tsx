@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Toast from "@/components/toast";
 import { useToast } from "@/hooks/use-toast";
@@ -71,29 +71,47 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
   );
 }
 
-export default function SettingsPage() {
+function SettingsContent() {
   const { toast, show } = useToast();
   const searchParams = useSearchParams();
-  const { businessId, business } = useBusiness();
+  const { businessId, business, email } = useBusiness();
 
   // ── Local state ──────────────────────────────────────────────────────────
   const [profile, setProfile] = useState({
     name: "", type:"Restaurant", location: "",
     subdomain:"",
   });
+  const [notifications, setNotifications] = useState({ notify_email: "", notify_phone: "" });
 
   // Populate form from real business data
   useEffect(() => {
     if (business) {
       setProfile({ name: business.name, type: business.type, location: business.suburb ?? "", subdomain: business.subdomain ?? "" });
+      const settings = (business.settings ?? {}) as Record<string, unknown>;
+      setNotifications({
+        notify_email: (settings.notify_email as string | undefined) ?? "",
+        notify_phone: (settings.notify_phone as string | undefined) ?? "",
+      });
     }
   }, [business]);
+
+  // Build the customer-facing storefront URL
+  const storefrontOrigin =
+    typeof window !== "undefined"
+      ? (process.env.NEXT_PUBLIC_STOREFRONT_URL ?? window.location.origin)
+      : (process.env.NEXT_PUBLIC_STOREFRONT_URL ?? "");
+  const storefrontUrl = profile.subdomain ? `${storefrontOrigin.replace(/\/$/, "")}/store/${profile.subdomain}` : "";
+
+  // Populate team from real auth user
+  useEffect(() => {
+    if (email) {
+      setTeam([{ email, role: "Owner" }]);
+    }
+  }, [email]);
   const [winback, setWinback] = useState({
     enabled:true, trigger:"14", discount:"10", cooldown:"30",
   });
-  const [team, setTeam] = useState([
-    { email:"owner@email.com", role:"Owner" },
-  ]);
+  const [team, setTeam] = useState<{ email:string; role:string }[]>([]);
   const [invite, setInvite] = useState("");
   const [stripeConnected, setStripeConnected] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState<"inactive"|"trialing"|"active">("inactive");
@@ -117,7 +135,7 @@ export default function SettingsPage() {
       const res = await fetch("/api/stripe/connect", {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ business_id:"demo-business-id" }),
+        body: JSON.stringify({ business_id: businessId }),
       });
       const data = await res.json();
       if (data.url) {
@@ -139,7 +157,7 @@ export default function SettingsPage() {
       const res = await fetch("/api/stripe/checkout", {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ business_id:"demo-business-id", email: team[0]?.email ?? "owner@email.com" }),
+        body: JSON.stringify({ business_id: businessId, email: email ?? team[0]?.email ?? "" }),
       });
       const data = await res.json();
       if (data.url) {
@@ -197,12 +215,87 @@ export default function SettingsPage() {
             <Field label="Subdomain">
               <input value={profile.subdomain} onChange={e => setProfile(p=>({...p,subdomain:e.target.value}))} />
             </Field>
+            {storefrontUrl && (
+              <div style={{
+                marginBottom:14, padding:"10px 12px",
+                background:"rgba(0,182,122,.05)", border:"1px solid rgba(0,182,122,.18)", borderRadius:10,
+              }}>
+                <div style={{ fontFamily:"var(--font-inter)", fontSize:11, color:C.st, marginBottom:4 }}>
+                  Your public storefront
+                </div>
+                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                  <a
+                    href={storefrontUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ flex:1, fontFamily:"var(--font-mono)", fontSize:12, color:C.g, wordBreak:"break-all", textDecoration:"none" }}
+                  >
+                    {storefrontUrl}
+                  </a>
+                  <button
+                    className="bg-btn"
+                    style={{ flexShrink:0, padding:"5px 10px", fontSize:11 }}
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(storefrontUrl);
+                        show("Link copied ✓");
+                      } catch {
+                        show("Couldn't copy — select and copy manually");
+                      }
+                    }}
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+            )}
             <button className="bp" style={{ width:"100%", justifyContent:"center", marginTop:4 }} onClick={async () => {
               if (!businessId) return;
               await supabase.from("businesses").update({ name:profile.name, type:profile.type, suburb:profile.location, subdomain:profile.subdomain }).eq("id", businessId);
               show("Profile saved ✓");
             }}>
               Save Profile
+            </button>
+          </div>
+
+          {/* Order Notifications */}
+          <div className="gc" style={{ padding:24 }}>
+            <SectionTitle>Order Notifications</SectionTitle>
+            <p style={{ fontFamily:"var(--font-inter)", fontSize:12, color:C.st, marginTop:-10, marginBottom:16, lineHeight:1.6 }}>
+              Get alerted the moment a new online order comes in. Leave blank to disable a channel.
+            </p>
+            <Field label="Email for order alerts">
+              <input
+                type="email"
+                placeholder="orders@yourbusiness.com"
+                value={notifications.notify_email}
+                onChange={e => setNotifications(n => ({ ...n, notify_email: e.target.value }))}
+              />
+            </Field>
+            <Field label="SMS number for order alerts">
+              <input
+                type="tel"
+                placeholder="+61 4XX XXX XXX"
+                value={notifications.notify_phone}
+                onChange={e => setNotifications(n => ({ ...n, notify_phone: e.target.value }))}
+              />
+            </Field>
+            <button
+              className="bp"
+              style={{ width:"100%", justifyContent:"center", marginTop:4 }}
+              onClick={async () => {
+                if (!businessId) return;
+                const prev = (business?.settings ?? {}) as Record<string, unknown>;
+                const next = {
+                  ...prev,
+                  notify_email: notifications.notify_email.trim() || null,
+                  notify_phone: notifications.notify_phone.trim() || null,
+                };
+                await supabase.from("businesses").update({ settings: next }).eq("id", businessId);
+                show("Notifications saved ✓");
+              }}
+            >
+              Save Notifications
             </button>
           </div>
 
@@ -357,5 +450,13 @@ export default function SettingsPage() {
 
       <Toast message={toast.message} visible={toast.visible} />
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={null}>
+      <SettingsContent />
+    </Suspense>
   );
 }

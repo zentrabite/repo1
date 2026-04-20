@@ -15,25 +15,30 @@
 
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
+import { createServerClient } from "@/lib/supabase-server";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    // business_id comes from your auth session in production.
-    // TODO: replace with real session lookup via Supabase Auth.
-    const { business_id, existing_stripe_account_id } = body as {
-      business_id: string;
-      existing_stripe_account_id?: string;
-    };
+    const { business_id } = body as { business_id: string };
 
     if (!business_id) {
       return NextResponse.json({ error: "business_id is required" }, { status: 400 });
     }
 
-    // ── Step 1: Get or create the Express account ─────────────────────────
-    let accountId = existing_stripe_account_id;
+    const db = createServerClient();
 
+    // ── Step 1: Check for an existing Stripe account on this business ─────
+    const { data: biz } = await db
+      .from("businesses")
+      .select("stripe_account_id")
+      .eq("id", business_id)
+      .single();
+
+    let accountId: string | undefined = biz?.stripe_account_id ?? undefined;
+
+    // ── Step 2: Create Express account if not yet connected ───────────────
     if (!accountId) {
       const account = await stripe.accounts.create({
         type: "express",
@@ -42,7 +47,6 @@ export async function POST(req: Request) {
           transfers:     { requested: true },
         },
         business_profile: {
-          // Stripe will collect the full business profile during onboarding
           mcc: "5812", // Eating places, restaurants
         },
         metadata: {
@@ -51,11 +55,11 @@ export async function POST(req: Request) {
       });
       accountId = account.id;
 
-      // TODO: Save accountId to Supabase:
-      // await supabase
-      //   .from("businesses")
-      //   .update({ stripe_account_id: accountId })
-      //   .eq("id", business_id);
+      // Persist immediately so reconnect always reuses the same account
+      await db
+        .from("businesses")
+        .update({ stripe_account_id: accountId })
+        .eq("id", business_id);
     }
 
     // ── Step 2: Create the onboarding link ────────────────────────────────

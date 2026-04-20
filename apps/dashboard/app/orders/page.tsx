@@ -8,6 +8,7 @@ import Toast from "@/components/toast";
 import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
 import { getOrders, updateOrderStatus } from "@/lib/queries";
+import { supabase } from "@/lib/supabase";
 import type { Order } from "@/lib/database.types";
 
 const C = { g:"#00B67A", o:"#FF6B35", r:"#DC3545", st:"#6B7C93" };
@@ -23,10 +24,74 @@ export default function OrdersPage() {
   const [selected, setSelected] = useState<Order | null>(null);
   const [loading,  setLoading]  = useState(true);
 
+  // ── Play a short beep via Web Audio API (no asset file required) ────────
+  function playBeep() {
+    if (typeof window === "undefined") return;
+    try {
+      const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext;
+      if (!Ctx) return;
+      const ctx = new Ctx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.4);
+      osc.onended = () => ctx.close();
+    } catch { /* ignore */ }
+  }
+
   useEffect(() => {
     if (!businessId) return;
-    getOrders(businessId).then(data => { setOrders(data); setLoading(false); });
-  }, [businessId]);
+    let cancelled = false;
+    getOrders(businessId).then(data => {
+      if (cancelled) return;
+      setOrders(data);
+      setLoading(false);
+    });
+
+    // ── Supabase realtime: listen for new/updated orders for this business ──
+    const channel = supabase
+      .channel(`orders:${businessId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "orders", filter: `business_id=eq.${businessId}` },
+        (payload) => {
+          const newOrder = payload.new as Order;
+          setOrders(prev => prev.some(o => o.id === newOrder.id) ? prev : [newOrder, ...prev]);
+          // Play notification sound
+          playBeep();
+          show(`🔔 New order — $${newOrder.total}`);
+          // Request native browser notification if permitted
+          if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+            new Notification("New order", { body: `Order for $${newOrder.total}`, tag: newOrder.id });
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "orders", filter: `business_id=eq.${businessId}` },
+        (payload) => {
+          const updated = payload.new as Order;
+          setOrders(prev => prev.map(o => o.id === updated.id ? updated : o));
+        }
+      )
+      .subscribe();
+
+    // Ask for native notification permission on first load (non-blocking)
+    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission().catch(() => { /* ignore */ });
+    }
+
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
+  }, [businessId, show]);
 
   const filtered = filter === "All" ? orders : orders.filter(o => o.source === filter);
   const totalRev    = filtered.reduce((a, o) => a + o.total, 0);
