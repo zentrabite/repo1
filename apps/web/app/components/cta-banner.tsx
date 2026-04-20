@@ -1,4 +1,3 @@
-import { SIGNUP_URL } from "../../lib/config";
 
 export function CTABanner() {
   return (
@@ -20,7 +19,7 @@ export function CTABanner() {
             Ready to own your restaurant's growth?
           </h2>
           <p style={{ fontSize: 17, color: "var(--cloud)", opacity: 0.85, maxWidth: 560, margin: "0 auto 32px" }}>
-            14-day free trial. No credit card required. Onboarded in 48 hours with a
+            1-month free trial. No credit card required. Onboarded in 48 hours with a
             real human — not a chatbot.
           </p>
           <div
@@ -31,8 +30,8 @@ export function CTABanner() {
               flexWrap: "wrap",
             }}
           >
-            <a href={SIGNUP_URL} className="btn-primary" style={{ padding: "15px 30px", fontSize: 16 }}>
-              Start free trial
+            <a href="/contact" className="btn-primary" style={{ padding: "15px 30px", fontSize: 16 }}>
+              Start 1-month free trial
               <span aria-hidden>→</span>
             </a>
             <a
@@ -48,3 +47,5 @@ export function CTABanner() {
     </section>
   );
 }
+
+

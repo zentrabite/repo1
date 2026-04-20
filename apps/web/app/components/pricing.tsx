@@ -1,4 +1,3 @@
-import { SIGNUP_URL } from "../../lib/config";
 
 const tiers = [
   {
@@ -14,7 +13,7 @@ const tiers = [
       "Live order board & POS",
       "Email support",
     ],
-    cta: "Start free trial",
+    cta: "Start 1-month free trial",
     highlight: false,
   },
   {
@@ -31,7 +30,7 @@ const tiers = [
       "Custom domain support",
       "Priority chat support",
     ],
-    cta: "Start free trial",
+    cta: "Start 1-month free trial",
     highlight: true,
   },
   {
@@ -179,7 +178,7 @@ export function Pricing() {
                 ))}
               </ul>
               <a
-                href={t.name === "Scale" ? "mailto:hello@zentrabite.com.au?subject=Scale%20plan%20enquiry" : SIGNUP_URL}
+                href={t.name === "Scale" ? "mailto:hello@zentrabite.com.au?subject=Scale%20plan%20enquiry" : "/contact"}
                 className={t.highlight ? "btn-primary" : "btn-secondary"}
                 style={{ marginTop: "auto", justifyContent: "center" }}
               >
@@ -299,3 +298,5 @@ export function Pricing() {
     </section>
   );
 }
+
+

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Logo } from "./logo";
-import { LOGIN_URL, SIGNUP_URL } from "../../lib/config";
+import { LOGIN_URL } from "../../lib/config";
 
 export function Nav() {
   const [scrolled, setScrolled] = useState(false);
@@ -73,8 +73,8 @@ export function Nav() {
           <a href={LOGIN_URL} className="btn-ghost">
             Log in
           </a>
-          <a href={SIGNUP_URL} className="btn-primary">
-            Start free trial
+          <a href="/contact" className="btn-primary">
+            Start 1-month free trial
             <span aria-hidden>→</span>
           </a>
         </div>
@@ -142,8 +142,8 @@ export function Nav() {
           <a href={LOGIN_URL} className="btn-secondary" style={{ justifyContent: "center" }}>
             Log in
           </a>
-          <a href={SIGNUP_URL} className="btn-primary" style={{ justifyContent: "center" }}>
-            Start free trial
+          <a href="/contact" className="btn-primary" style={{ justifyContent: "center" }}>
+            Start 1-month free trial
           </a>
         </div>
       )}
@@ -157,3 +157,5 @@ export function Nav() {
     </header>
   );
 }
+
+

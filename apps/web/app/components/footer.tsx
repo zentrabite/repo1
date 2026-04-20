@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Logo } from "./logo";
-import { LOGIN_URL, SIGNUP_URL } from "../../lib/config";
+import { LOGIN_URL } from "../../lib/config";
 
 export function Footer() {
   const cols = [
@@ -27,7 +27,7 @@ export function Footer() {
       title: "Account",
       links: [
         { label: "Log in", href: LOGIN_URL },
-        { label: "Start free trial", href: SIGNUP_URL },
+        { label: "Start 1-month free trial", href: "/contact" },
         { label: "Book a demo", href: "mailto:hello@zentrabite.com.au?subject=Demo" },
       ],
     },
@@ -122,3 +122,5 @@ export function Footer() {
     </footer>
   );
 }
+
+

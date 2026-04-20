@@ -1,4 +1,3 @@
-import { LOGIN_URL, SIGNUP_URL } from "../../lib/config";
 
 export function Hero() {
   return (
@@ -96,8 +95,8 @@ export function Hero() {
               flexWrap: "wrap",
             }}
           >
-            <a href={SIGNUP_URL} className="btn-primary" style={{ padding: "15px 30px", fontSize: 16 }}>
-              Start free 14-day trial
+            <a href="/contact" className="btn-primary" style={{ padding: "15px 30px", fontSize: 16 }}>
+              Start 1-month free trial
               <span aria-hidden>→</span>
             </a>
             <a href="/demo" className="btn-secondary" style={{ padding: "14px 28px", fontSize: 16 }}>
@@ -256,3 +255,5 @@ export function Hero() {
     </section>
   );
 }
+
+
