@@ -24,7 +24,7 @@ export async function POST(req: Request) {
 
     if (!business) return NextResponse.json({ error: "Business not found" }, { status: 404 });
 
-    const origin = req.headers.get("origin") ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://repo1-dashboard.vercel.app";
+    const origin = req.headers.get("origin") ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://dashboard.zentrabite.com";
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
