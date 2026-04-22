@@ -60,6 +60,13 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE() {
   const res = NextResponse.json({ ok: true });
-  res.cookies.set({ name: COOKIE, value: "", path: "/", maxAge: 0 });
+  res.cookies.set({
+    name: COOKIE,
+    value: "",
+    path: "/",
+    httpOnly: false,
+    sameSite: "lax",
+    maxAge: 0,
+  });
   return res;
 }

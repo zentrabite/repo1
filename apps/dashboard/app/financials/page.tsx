@@ -31,7 +31,7 @@ function SourceRow({ label, rev, fee, color, total }: { label:string; rev:number
 
 export default function FinancialsPage() {
   const { toast, show } = useToast();
-  const { businessId } = useBusiness();
+  const { businessId, business } = useBusiness();
 
   const [analytics, setAnalytics] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,6 +42,27 @@ export default function FinancialsPage() {
       .then(data => { setAnalytics(data); setLoading(false); })
       .catch(() => setLoading(false));
   }, [businessId]);
+
+  // Subscription fee — read from business settings, fall back sensibly.
+  const subscriptionFee = (() => {
+    const s = (business?.settings ?? {}) as Record<string, any>;
+    if (typeof s.subscription_fee === "number" && s.subscription_fee > 0) return s.subscription_fee;
+    return null;
+  })();
+
+  const exportCsv = () => {
+    if (analytics.length === 0) { show("No data to export"); return; }
+    const headers = ["date","total_orders","total_revenue","direct_orders","agg_orders","new_customers","sms_sent","sms_converted"];
+    const rows = analytics.map(a => headers.map(h => a[h] ?? 0).join(","));
+    const blob = new Blob([headers.join(",") + "\n" + rows.join("\n")], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `financials-${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    show("CSV downloaded ✓");
+  };
 
   // Aggregate from analytics_daily
   const totalRev    = analytics.reduce((s, d) => s + Number(d.total_revenue ?? 0), 0);
@@ -64,7 +85,7 @@ export default function FinancialsPage() {
         <StatCard label="Revenue (90d)"     value={totalRev > 0 ? `$${totalRev.toLocaleString()}` : "—"} accent icon="💰" />
         <StatCard label="Aggregator Fees"   value={aggFees  > 0 ? `$${aggFees.toLocaleString()}`  : "—"} icon="🔴" delay={50} />
         <StatCard label="Retained Margin"   value={margin   > 0 ? `$${margin.toLocaleString()}`   : "—"} accent icon="🛡️" delay={100} />
-        <StatCard label="Subscription"      value="$500/mo" icon="📋" delay={150} />
+        <StatCard label="Subscription"      value={subscriptionFee ? `$${subscriptionFee}/mo` : "—"} subtitle={subscriptionFee ? undefined : "Set in billing"} icon="📋" delay={150} />
       </div>
 
       {/* Revenue breakdown + margin */}
@@ -141,8 +162,8 @@ export default function FinancialsPage() {
       </div>
 
       {/* Export */}
-      <button className="bg-btn" style={{ width:"100%", padding:"13px", fontSize:13, justifyContent:"center" }} onClick={() => show("Exported to CSV ✓")}>
-        📊 Export Full Financial Report
+      <button className="bg-btn" style={{ width:"100%", padding:"13px", fontSize:13, justifyContent:"center" }} onClick={exportCsv}>
+        📊 Export Full Financial Report (CSV)
       </button>
 
       <Toast message={toast.message} visible={toast.visible} />

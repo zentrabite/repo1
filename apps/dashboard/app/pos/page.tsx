@@ -69,11 +69,9 @@ export default function POSPage() {
           .maybeSingle();
 
         if (existing) {
+          // Stats (total_orders / total_spent / points_balance / last_order_date)
+          // are updated in a single pass below once we know the final order total.
           customerId = existing.id;
-          await supabase.from("customers").update({
-            last_order_date: new Date().toISOString(),
-            total_orders: supabase.rpc as any, // incremented below
-          }).eq("id", existing.id);
         } else if (customer.name.trim()) {
           const { data: newCust } = await supabase
             .from("customers")

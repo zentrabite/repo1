@@ -60,7 +60,7 @@ export default function OrdersPage() {
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "orders", filter: `business_id=eq.${businessId}` },
-        (payload) => {
+        (payload: any) => {
           const newOrder = payload.new as Order;
           setOrders(prev => prev.some(o => o.id === newOrder.id) ? prev : [newOrder, ...prev]);
           // Play notification sound
@@ -75,7 +75,7 @@ export default function OrdersPage() {
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "orders", filter: `business_id=eq.${businessId}` },
-        (payload) => {
+        (payload: any) => {
           const updated = payload.new as Order;
           setOrders(prev => prev.map(o => o.id === updated.id ? updated : o));
         }

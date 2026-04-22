@@ -108,15 +108,34 @@ function SettingsContent() {
       setTeam([{ email, role: "Owner" }]);
     }
   }, [email]);
-  const [winback, setWinback] = useState({
-    enabled:true, trigger:"14", discount:"10", cooldown:"30",
-  });
   const [team, setTeam] = useState<{ email:string; role:string }[]>([]);
   const [invite, setInvite] = useState("");
   const [stripeConnected, setStripeConnected] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState<"inactive"|"trialing"|"active">("inactive");
   const [connectLoading, setConnectLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [hours, setHours] = useState<Record<string, { open: string; close: string; closed: boolean }>>({
+    mon: { open: "17:00", close: "21:00", closed: false },
+    tue: { open: "17:00", close: "21:00", closed: false },
+    wed: { open: "17:00", close: "21:00", closed: false },
+    thu: { open: "17:00", close: "21:00", closed: false },
+    fri: { open: "17:00", close: "22:00", closed: false },
+    sat: { open: "17:00", close: "22:00", closed: false },
+    sun: { open: "17:00", close: "21:00", closed: false },
+  });
+
+  // Real Stripe + subscription status from the business row
+  useEffect(() => {
+    if (!business) return;
+    setStripeConnected(Boolean(business.stripe_account_id));
+    const settings = (business.settings ?? {}) as Record<string, unknown>;
+    if (settings.subscription_status) {
+      setSubscriptionStatus(settings.subscription_status as any);
+    }
+    if (settings.hours && typeof settings.hours === "object") {
+      setHours(prev => ({ ...prev, ...(settings.hours as any) }));
+    }
+  }, [business]);
 
   // ── Handle Stripe return redirects ──────────────────────────────────────
   useEffect(() => {
@@ -299,24 +318,48 @@ function SettingsContent() {
             </button>
           </div>
 
-          {/* Win-Back Config */}
+          {/* Operating hours */}
           <div className="gc" style={{ padding:24 }}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
-              <SectionTitle>Win-Back Engine</SectionTitle>
-              <Toggle on={winback.enabled} onChange={v => { setWinback(w=>({...w,enabled:v})); show(v?"Win-Back enabled ✓":"Win-Back paused"); }} />
-            </div>
-            <Field label="Inactivity trigger (days)">
-              <input type="number" value={winback.trigger} onChange={e => setWinback(w=>({...w,trigger:e.target.value}))} />
-            </Field>
-            <Field label="Discount amount ($)">
-              <input type="number" value={winback.discount} onChange={e => setWinback(w=>({...w,discount:e.target.value}))} />
-            </Field>
-            <Field label="Cooldown period (days)">
-              <input type="number" value={winback.cooldown} onChange={e => setWinback(w=>({...w,cooldown:e.target.value}))} />
-            </Field>
-            <button className="bp" style={{ width:"100%", justifyContent:"center", marginTop:4 }} onClick={() => show("Win-Back config saved ✓")}>
-              Save Config
+            <SectionTitle>Operating hours</SectionTitle>
+            <p style={{ fontFamily:"var(--font-inter)", fontSize:12, color:C.st, marginTop:-10, marginBottom:16, lineHeight:1.6 }}>
+              Controls your storefront open/closed status and powers the AI phone agent's &ldquo;after hours&rdquo; mode.
+            </p>
+            {([
+              ["mon","Monday"], ["tue","Tuesday"], ["wed","Wednesday"],
+              ["thu","Thursday"], ["fri","Friday"], ["sat","Saturday"], ["sun","Sunday"],
+            ] as [string,string][]).map(([key, label]) => {
+              const h = hours[key];
+              return (
+                <div key={key} style={{ display:"grid", gridTemplateColumns:"90px 1fr 1fr 60px", gap:8, alignItems:"center", marginBottom:8 }}>
+                  <span style={{ fontSize:12, color:C.cl }}>{label}</span>
+                  <input type="time" value={h.open} disabled={h.closed} onChange={e => setHours(hs => ({ ...hs, [key]: { ...hs[key], open: e.target.value } }))} />
+                  <input type="time" value={h.close} disabled={h.closed} onChange={e => setHours(hs => ({ ...hs, [key]: { ...hs[key], close: e.target.value } }))} />
+                  <label style={{ display:"flex", alignItems:"center", gap:4, fontSize:11, color:C.st }}>
+                    <input type="checkbox" checked={h.closed} onChange={e => setHours(hs => ({ ...hs, [key]: { ...hs[key], closed: e.target.checked } }))} />
+                    off
+                  </label>
+                </div>
+              );
+            })}
+            <button className="bp" style={{ width:"100%", justifyContent:"center", marginTop:10 }} onClick={async () => {
+              if (!businessId) return;
+              const prev = (business?.settings ?? {}) as Record<string, unknown>;
+              await supabase.from("businesses").update({ settings: { ...prev, hours } }).eq("id", businessId);
+              show("Hours saved ✓");
+            }}>
+              Save hours
             </button>
+          </div>
+
+          {/* Win-Back pointer */}
+          <div className="gc" style={{ padding:24 }}>
+            <SectionTitle>Win-Back rules</SectionTitle>
+            <p style={{ fontFamily:"var(--font-inter)", fontSize:12, color:C.st, marginBottom:12, lineHeight:1.6 }}>
+              Inactivity triggers, discount amounts and message templates now live on the Win-Back page — one rule per trigger so you can run several in parallel.
+            </p>
+            <a href="/biteback" className="bp" style={{ textDecoration:"none", display:"inline-block" }}>
+              Open Win-Back →
+            </a>
           </div>
         </div>
 

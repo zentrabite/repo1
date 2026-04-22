@@ -131,6 +131,94 @@ export interface Database {
         Insert: Omit<Database["public"]["Tables"]["analytics_daily"]["Row"], "id">;
         Update: Partial<Database["public"]["Tables"]["analytics_daily"]["Insert"]>;
       };
+      winback_rules: {
+        Row: {
+          id:             string;
+          business_id:    string;
+          name:           string;
+          inactive_days:  number;
+          offer_type:     string;         // percent | dollar | free_delivery | free_item
+          offer_value:    number;
+          channel:        string;         // sms | email | push
+          template:       string;
+          cooldown_days:  number;
+          is_active:      boolean;
+          redemptions:    number;
+          revenue:        number;
+          created_at:     string;
+        };
+        Insert: Omit<Database["public"]["Tables"]["winback_rules"]["Row"], "id" | "created_at" | "redemptions" | "revenue">;
+        Update: Partial<Database["public"]["Tables"]["winback_rules"]["Row"]>;
+      };
+      ai_call_profiles: {
+        Row: {
+          id:                 string;
+          business_id:        string;
+          enabled:            boolean;
+          answer_mode:        string;   // after_hours | always | overflow
+          voice:              string;
+          personality:        string;
+          greeting:           string;
+          faq_context:        string | null;
+          escalation_phone:   string | null;
+          take_orders:        boolean;
+          take_bookings:      boolean;
+          send_followup_sms:  boolean;
+          created_at:         string;
+          updated_at:         string;
+        };
+        Insert: Omit<Database["public"]["Tables"]["ai_call_profiles"]["Row"], "id" | "created_at" | "updated_at">;
+        Update: Partial<Database["public"]["Tables"]["ai_call_profiles"]["Row"]>;
+      };
+      roster_shifts: {
+        Row: {
+          id:            string;
+          business_id:   string;
+          employee_id:   string | null;
+          employee_name: string;
+          role:          string | null;
+          shift_start:   string;
+          shift_end:     string;
+          hourly_rate:   number | null;
+          status:        string;
+          notes:         string | null;
+          created_at:    string;
+        };
+        Insert: Omit<Database["public"]["Tables"]["roster_shifts"]["Row"], "id" | "created_at">;
+        Update: Partial<Database["public"]["Tables"]["roster_shifts"]["Row"]>;
+      };
+      ai_recommendations: {
+        Row: {
+          id:            string;
+          business_id:   string;
+          kind:          string;      // stock | retention | staffing | menu | delivery | finance
+          priority:      string;      // urgent | high | normal | low
+          title:         string;
+          body:          string;
+          action_label:  string | null;
+          action_url:    string | null;
+          status:        string;      // open | dismissed | actioned
+          created_at:    string;
+        };
+        Insert: Omit<Database["public"]["Tables"]["ai_recommendations"]["Row"], "id" | "created_at">;
+        Update: Partial<Database["public"]["Tables"]["ai_recommendations"]["Row"]>;
+      };
+      campaign_events: {
+        Row: {
+          id:                  string;
+          business_id:         string;
+          campaign_id:         string | null;
+          winback_rule_id:     string | null;
+          customer_id:         string | null;
+          order_id:            string | null;
+          event_type:          string;      // sent | delivered | clicked | redeemed
+          revenue_attributed:  number;
+          coupon_code:         string | null;
+          created_at:          string;
+        };
+        Insert: Omit<Database["public"]["Tables"]["campaign_events"]["Row"], "id" | "created_at">;
+        Update: Partial<Database["public"]["Tables"]["campaign_events"]["Row"]>;
+      };
     };
   };
 }
@@ -144,3 +232,8 @@ export type SmsLog          = Database["public"]["Tables"]["sms_logs"]["Row"];
 export type MenuCategory    = Database["public"]["Tables"]["menu_categories"]["Row"];
 export type MenuItem        = Database["public"]["Tables"]["menu_items"]["Row"];
 export type AnalyticsDaily  = Database["public"]["Tables"]["analytics_daily"]["Row"];
+export type WinbackRule     = Database["public"]["Tables"]["winback_rules"]["Row"];
+export type AiCallProfile   = Database["public"]["Tables"]["ai_call_profiles"]["Row"];
+export type RosterShift     = Database["public"]["Tables"]["roster_shifts"]["Row"];
+export type AiRecommendation = Database["public"]["Tables"]["ai_recommendations"]["Row"];
+export type CampaignEvent   = Database["public"]["Tables"]["campaign_events"]["Row"];

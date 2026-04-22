@@ -104,6 +104,15 @@ export function useBusiness(): BusinessState {
 }
 
 export async function stopImpersonating() {
-  await fetch("/api/admin/impersonate", { method: "DELETE" });
-  if (typeof window !== "undefined") window.location.href = "/admin";
+  try {
+    await fetch("/api/admin/impersonate", { method: "DELETE" });
+  } catch {
+    // Even if the call fails, clear the cookie locally and reload.
+    if (typeof document !== "undefined") {
+      document.cookie = "zb_impersonate=; Path=/; Max-Age=0";
+    }
+  }
+  if (typeof window !== "undefined") {
+    window.location.href = "/admin";
+  }
 }

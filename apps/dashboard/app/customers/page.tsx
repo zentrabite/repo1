@@ -33,6 +33,10 @@ export default function CustomersPage() {
   const [addingCust, setAddingCust] = useState(false);
   const [saving,     setSaving]     = useState(false);
   const [newCust,    setNewCust]    = useState({ name:"", phone:"", email:"" });
+  const [smsOpen,    setSmsOpen]    = useState(false);
+  const [smsText,    setSmsText]    = useState("");
+  const [smsSending, setSmsSending] = useState(false);
+  const [aiCalling,  setAiCalling]  = useState(false);
 
   useEffect(() => {
     if (!businessId) return;
@@ -61,6 +65,59 @@ export default function CustomersPage() {
     .filter(c => seg === "All" || c.segment === seg)
     .filter(c => !search || c.name.toLowerCase().includes(search.toLowerCase()) || (c.phone ?? "").includes(search));
 
+  const sendSms = async () => {
+    if (!businessId || !selected) return;
+    if (!selected.phone) return show("No phone number on file");
+    if (!smsText.trim())  return show("Write a message first");
+    setSmsSending(true);
+    try {
+      const res = await fetch("/api/sms/send", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to:         selected.phone,
+          message:    smsText.replace(/\{name\}/g, selected.name),
+          businessId,
+          customerId: selected.id,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Send failed");
+      show("SMS sent ✓");
+      setSmsOpen(false);
+      setSmsText("");
+    } catch (e: any) {
+      show(e?.message ?? "SMS send failed");
+    } finally {
+      setSmsSending(false);
+    }
+  };
+
+  const startAiCall = async () => {
+    if (!businessId || !selected) return;
+    if (!selected.phone) return show("No phone number on file");
+    setAiCalling(true);
+    try {
+      const res = await fetch("/api/ai-calls/start", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          businessId,
+          customerId: selected.id,
+          phone:      selected.phone,
+          reason:     "followup",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Call failed");
+      show(`AI call started ✓ (${data.status ?? "queued"})`);
+    } catch (e: any) {
+      show(e?.message ?? "AI call failed");
+    } finally {
+      setAiCalling(false);
+    }
+  };
+
   if (selected) return (
     <div>
       <button className="bg-btn" onClick={() => setSelected(null)} style={{ marginBottom:16 }}>← Back</button>
@@ -84,8 +141,8 @@ export default function CustomersPage() {
             ))}
           </div>
           <div style={{ display:"flex", gap:6, marginTop:14 }}>
-            <button className="bp" style={{ flex:1, justifyContent:"center", fontSize:12, padding:"8px 0" }} onClick={() => show("SMS sent ✓")}>SMS</button>
-            <button className="bg-btn" style={{ flex:1, justifyContent:"center" }} onClick={() => show("AI call started ✓")}>🤖 Call</button>
+            <button className="bp" style={{ flex:1, justifyContent:"center", fontSize:12, padding:"8px 0" }} onClick={() => { setSmsText(`Hi {name}, `); setSmsOpen(true); }} disabled={!selected.phone}>SMS</button>
+            <button className="bg-btn" style={{ flex:1, justifyContent:"center" }} onClick={startAiCall} disabled={!selected.phone || aiCalling}>{aiCalling ? "Calling…" : "🤖 Call"}</button>
           </div>
         </div>
         <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
@@ -105,6 +162,26 @@ export default function CustomersPage() {
           </div>
         </div>
       </div>
+      <Modal open={smsOpen} onClose={() => setSmsOpen(false)} title={`SMS to ${selected.name}`}>
+        <div style={{ marginBottom:10, fontSize:12, color:C.st }}>
+          Going to: <span style={{ color:"#fff" }}>{selected.phone ?? "—"}</span>
+        </div>
+        <div style={{ marginBottom:12 }}>
+          <label>Message</label>
+          <textarea
+            value={smsText}
+            onChange={e => setSmsText(e.target.value)}
+            rows={4}
+            placeholder="Use {name} to personalise"
+            style={{ width:"100%" }}
+          />
+          <div style={{ fontSize:11, color:C.st, marginTop:4 }}>{smsText.length} chars · {`{name}`} will be replaced with "{selected.name}"</div>
+        </div>
+        <div style={{ display:"flex", gap:6, justifyContent:"flex-end" }}>
+          <button className="bg-btn" onClick={() => setSmsOpen(false)}>Cancel</button>
+          <button className="bp" onClick={sendSms} disabled={smsSending || !selected.phone}>{smsSending ? "Sending…" : "Send SMS"}</button>
+        </div>
+      </Modal>
       <Toast message={toast.message} visible={toast.visible} />
     </div>
   );

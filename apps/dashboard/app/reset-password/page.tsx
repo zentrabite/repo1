@@ -20,11 +20,11 @@ function ResetForm() {
   // Supabase sends the user here after they click the email link.
   // The URL contains a code that supabase.auth automatically exchanges for a session.
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }: { data: { session: any } }) => {
       setHasSession(!!session);
     });
     // Listen for the AUTH_CODE exchange that happens when the link is followed
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string) => {
       if (event === "PASSWORD_RECOVERY") setHasSession(true);
     });
     return () => subscription.unsubscribe();

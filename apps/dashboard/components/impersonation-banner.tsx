@@ -44,7 +44,7 @@ export default function ImpersonationBanner() {
           cursor: "pointer",
         }}
       >
-        Stop impersonating →
+        Stop impersonating
       </button>
     </div>
   );

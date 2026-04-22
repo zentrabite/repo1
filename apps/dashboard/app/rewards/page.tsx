@@ -48,7 +48,7 @@ export default function RewardsPage() {
     let cancelled = false;
     getCustomersByPoints(businessId).then(data => {
       if (cancelled) return;
-      const mapped: RewardRow[] = (data ?? []).map((c) => ({
+      const mapped: RewardRow[] = (data ?? []).map((c: any) => ({
         id:    c.id as string,
         name:  (c.name as string) ?? "Customer",
         email: (c.email as string | null) ?? null,
@@ -65,6 +65,25 @@ export default function RewardsPage() {
   const silverCount = useMemo(() => rows.filter(r => r.tier === "Silver").length, [rows]);
   const bronzeCount = useMemo(() => rows.filter(r => r.tier === "Bronze").length, [rows]);
   const totalPts    = useMemo(() => rows.reduce((a, c) => a + c.pts, 0), [rows]);
+
+  const exportCsv = () => {
+    if (rows.length === 0) { show("Nothing to export"); return; }
+    const headers = ["id", "name", "email", "points", "cash_value_aud", "tier"];
+    const body = rows.map(r =>
+      [r.id, r.name, r.email ?? "", r.pts, (r.pts / 100).toFixed(2), r.tier]
+        .map(v => `"${String(v).replace(/"/g, '""')}"`)
+        .join(",")
+    );
+    const csv  = headers.join(",") + "\n" + body.join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href     = url;
+    a.download = `rewards-${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    show("Rewards exported ✓");
+  };
 
   return (
     <div>
@@ -103,7 +122,7 @@ export default function RewardsPage() {
       <div className="gc" style={{ padding:0, overflow:"hidden", marginBottom:12 }}>
         <div style={{ padding:"10px 14px", borderBottom:"1px solid rgba(255,255,255,.06)", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
           <span style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff" }}>Client Points & Tiers</span>
-          <button className="bp" style={{ fontSize:10, padding:"5px 12px" }} onClick={() => show("Points exported ✓")}>Export</button>
+          <button className="bp" style={{ fontSize:10, padding:"5px 12px" }} onClick={exportCsv}>Export</button>
         </div>
         <table>
           <thead>

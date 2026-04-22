@@ -529,9 +529,9 @@ function Toggle({ on }: { on: boolean }) {
 
 function Row({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "150px 1fr", gap: 12, padding: "8px 0", borderBottom: `1px solid ${C.mist}` }}>
-      <span style={{ color: C.st, fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>{k}</span>
-      <span style={{ fontFamily: mono ? "var(--font-mono)" : "var(--font-inter)", fontSize: 13, color: C.cl, wordBreak: "break-all" }}>{v}</span>
+    <div style={{ display: "grid", gridTemplateColumns: "160px 1fr", gap: 10, padding: "6px 0", borderBottom: `1px solid ${C.mist}` }}>
+      <span style={{ color: C.st, fontSize: 12.5 }}>{k}</span>
+      <span style={{ color: C.cl, fontSize: 13, fontFamily: mono ? "var(--font-mono)" : "var(--font-inter)" }}>{v}</span>
     </div>
   );
 }

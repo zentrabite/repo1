@@ -96,6 +96,6 @@ export async function updateBusinessModules(businessId: string, modules: Record<
     .update({ settings: nextSettings })
     .eq("id", businessId);
 
-  if (error) throw new Error(error.message);
+  if (error) throw error;
   return nextSettings;
 }

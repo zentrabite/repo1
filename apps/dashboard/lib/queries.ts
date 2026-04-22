@@ -6,7 +6,10 @@
 //   const orders = await getRecentOrders(businessId)
 
 import { supabase } from "./supabase";
-import type { Order, Customer, Campaign, MenuItem, MenuCategory, AnalyticsDaily } from "./database.types";
+import type {
+  Order, Customer, Campaign, MenuItem, MenuCategory, AnalyticsDaily,
+  WinbackRule, AiCallProfile, RosterShift, AiRecommendation,
+} from "./database.types";
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────
 
@@ -47,14 +50,14 @@ export async function getDashboardStats(businessId: string) {
   const analytics  = analyticsRes.data ?? [];
   const customers  = customersRes.data ?? [];
 
-  const todayRevenue = orders.reduce((sum, o) => sum + (o.total ?? 0), 0);
+  const todayRevenue = orders.reduce((sum: number, o: any) => sum + (o.total ?? 0), 0);
   const directPct    = orders.length > 0
-    ? Math.round(orders.filter(o => o.source === "direct").length / orders.length * 100)
+    ? Math.round(orders.filter((o: any) => o.source === "direct").length / orders.length * 100)
     : 0;
 
-  const vipCount     = customers.filter(c => c.segment === "VIP").length;
-  const atRiskCount  = customers.filter(c => c.segment === "At Risk").length;
-  const newCount     = customers.filter(c => c.segment === "New").length;
+  const vipCount     = customers.filter((c: any) => c.segment === "VIP").length;
+  const atRiskCount  = customers.filter((c: any) => c.segment === "At Risk").length;
+  const newCount     = customers.filter((c: any) => c.segment === "New").length;
 
   return {
     todayOrders:   orders.length,
@@ -288,7 +291,7 @@ export async function getSmsStats(businessId: string) {
   if (error) throw error;
   const logs = data ?? [];
   const sent      = logs.length;
-  const converted = logs.filter(l => l.converted).length;
+  const converted = logs.filter((l: any) => l.converted).length;
   return { sent, converted };
 }
 
@@ -303,4 +306,273 @@ export async function getCustomersByPoints(businessId: string) {
     .order("points_balance", { ascending: false });
   if (error) throw error;
   return data ?? [];
+}
+
+// ─── Dashboard: extended widgets ──────────────────────────────────────────────
+
+// Sum of revenue_attributed from campaign_events in the last N days.
+export async function getRecoveredRevenue(businessId: string, days = 30) {
+  const from = new Date();
+  from.setDate(from.getDate() - days);
+  const { data, error } = await supabase
+    .from("campaign_events")
+    .select("revenue_attributed")
+    .eq("business_id", businessId)
+    .eq("event_type", "redeemed")
+    .gte("created_at", from.toISOString());
+  if (error) throw error;
+  return (data ?? []).reduce((sum: number, r: any) => sum + Number(r.revenue_attributed ?? 0), 0);
+}
+
+// Repeat customer rate over the last N days.
+// A repeat customer is anyone with >1 paid order in the window.
+export async function getRepeatRate(businessId: string, days = 30) {
+  const from = new Date();
+  from.setDate(from.getDate() - days);
+  const { data, error } = await supabase
+    .from("orders")
+    .select("customer_id")
+    .eq("business_id", businessId)
+    .gte("created_at", from.toISOString())
+    .not("customer_id", "is", null);
+  if (error) throw error;
+
+  const rows = data ?? [];
+  const counts = new Map<string, number>();
+  for (const r of rows) {
+    const id = (r as any).customer_id;
+    counts.set(id, (counts.get(id) ?? 0) + 1);
+  }
+  const total  = counts.size;
+  const repeat = Array.from(counts.values()).filter(n => n > 1).length;
+  return {
+    totalCustomers:  total,
+    repeatCustomers: repeat,
+    repeatRate:      total === 0 ? 0 : Math.round((repeat / total) * 100),
+  };
+}
+
+// Revenue, bucketed per day, for the last N days (for the trend chart).
+export async function getRevenueByDay(businessId: string, days = 14) {
+  const from = new Date();
+  from.setDate(from.getDate() - days);
+  const { data, error } = await supabase
+    .from("orders")
+    .select("total, created_at")
+    .eq("business_id", businessId)
+    .gte("created_at", from.toISOString());
+  if (error) throw error;
+
+  const buckets = new Map<string, number>();
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    buckets.set(d.toISOString().split("T")[0], 0);
+  }
+  for (const row of data ?? []) {
+    const day = new Date((row as any).created_at).toISOString().split("T")[0];
+    buckets.set(day, (buckets.get(day) ?? 0) + Number((row as any).total ?? 0));
+  }
+  return Array.from(buckets.entries()).map(([date, revenue]) => ({ date, revenue }));
+}
+
+// Revenue grouped by channel/source for the last N days.
+export async function getRevenueByChannel(businessId: string, days = 30) {
+  const from = new Date();
+  from.setDate(from.getDate() - days);
+  const { data, error } = await supabase
+    .from("orders")
+    .select("total, source")
+    .eq("business_id", businessId)
+    .gte("created_at", from.toISOString());
+  if (error) throw error;
+
+  const map = new Map<string, number>();
+  for (const r of data ?? []) {
+    const ch = (r as any).source || "direct";
+    map.set(ch, (map.get(ch) ?? 0) + Number((r as any).total ?? 0));
+  }
+  return Array.from(map.entries())
+    .map(([channel, revenue]) => ({ channel, revenue }))
+    .sort((a, b) => b.revenue - a.revenue);
+}
+
+// Customer who's spent the most — lifetime.
+export async function getTopCustomer(businessId: string) {
+  const { data, error } = await supabase
+    .from("customers")
+    .select("id, name, phone, total_spent, total_orders")
+    .eq("business_id", businessId)
+    .order("total_spent", { ascending: false })
+    .limit(1);
+  if (error) throw error;
+  return (data ?? [])[0] ?? null;
+}
+
+// Top 3 win-back rules by revenue recovered.
+export async function getTopWinbacks(businessId: string, limit = 3) {
+  const { data, error } = await supabase
+    .from("winback_rules")
+    .select("id, name, redemptions, revenue, is_active")
+    .eq("business_id", businessId)
+    .order("revenue", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data ?? [];
+}
+
+// ─── Win-back rules (CRUD) ────────────────────────────────────────────────────
+
+export async function getWinbackRules(businessId: string) {
+  const { data, error } = await supabase
+    .from("winback_rules")
+    .select("*")
+    .eq("business_id", businessId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as WinbackRule[];
+}
+
+export async function createWinbackRule(businessId: string, input: {
+  name: string; inactive_days: number; offer_type: string;
+  offer_value: number; channel: string; template: string;
+  cooldown_days: number; is_active: boolean;
+}) {
+  const { data, error } = await supabase
+    .from("winback_rules")
+    .insert({ business_id: businessId, ...input })
+    .select()
+    .single();
+  if (error) throw error;
+  return data as WinbackRule;
+}
+
+export async function updateWinbackRule(id: string, updates: Partial<WinbackRule>) {
+  const { error } = await supabase
+    .from("winback_rules")
+    .update(updates)
+    .eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteWinbackRule(id: string) {
+  const { error } = await supabase.from("winback_rules").delete().eq("id", id);
+  if (error) throw error;
+}
+
+// ─── AI Call profile (singleton per business) ─────────────────────────────────
+
+export async function getAiCallProfile(businessId: string) {
+  const { data, error } = await supabase
+    .from("ai_call_profiles")
+    .select("*")
+    .eq("business_id", businessId)
+    .maybeSingle();
+  if (error) throw error;
+  return (data ?? null) as AiCallProfile | null;
+}
+
+export async function upsertAiCallProfile(businessId: string, input: Partial<AiCallProfile>) {
+  const { data, error } = await supabase
+    .from("ai_call_profiles")
+    .upsert(
+      { business_id: businessId, ...input, updated_at: new Date().toISOString() },
+      { onConflict: "business_id" }
+    )
+    .select()
+    .single();
+  if (error) throw error;
+  return data as AiCallProfile;
+}
+
+// ─── Rostering ────────────────────────────────────────────────────────────────
+
+export async function getShifts(businessId: string, weekStartISO: string, weekEndISO: string) {
+  const { data, error } = await supabase
+    .from("roster_shifts")
+    .select("*")
+    .eq("business_id", businessId)
+    .gte("shift_start", weekStartISO)
+    .lte("shift_start", weekEndISO)
+    .order("shift_start");
+  if (error) throw error;
+  return (data ?? []) as RosterShift[];
+}
+
+export async function createShift(businessId: string, input: {
+  employee_name: string; role?: string | null;
+  shift_start: string; shift_end: string;
+  hourly_rate?: number | null; notes?: string | null;
+}) {
+  const { data, error } = await supabase
+    .from("roster_shifts")
+    .insert({ business_id: businessId, status: "scheduled", ...input })
+    .select()
+    .single();
+  if (error) throw error;
+  return data as RosterShift;
+}
+
+export async function updateShift(id: string, updates: Partial<RosterShift>) {
+  const { error } = await supabase.from("roster_shifts").update(updates).eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteShift(id: string) {
+  const { error } = await supabase.from("roster_shifts").delete().eq("id", id);
+  if (error) throw error;
+}
+
+// ─── AI recommendations ───────────────────────────────────────────────────────
+
+export async function getRecommendations(businessId: string, limit = 5) {
+  const { data, error } = await supabase
+    .from("ai_recommendations")
+    .select("*")
+    .eq("business_id", businessId)
+    .eq("status", "open")
+    .order("priority")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return (data ?? []) as AiRecommendation[];
+}
+
+export async function dismissRecommendation(id: string) {
+  const { error } = await supabase
+    .from("ai_recommendations")
+    .update({ status: "dismissed" })
+    .eq("id", id);
+  if (error) throw error;
+}
+
+// ─── Analytics: top items ─────────────────────────────────────────────────────
+
+// Reads the orders.items JSON and aggregates by item name.
+// Works without an order_items table (which the current schema doesn't have).
+export async function getTopMenuItems(businessId: string, days = 30) {
+  const from = new Date();
+  from.setDate(from.getDate() - days);
+  const { data, error } = await supabase
+    .from("orders")
+    .select("items, total")
+    .eq("business_id", businessId)
+    .gte("created_at", from.toISOString());
+  if (error) throw error;
+
+  const map = new Map<string, { qty: number; revenue: number }>();
+  for (const o of data ?? []) {
+    const items = Array.isArray((o as any).items) ? (o as any).items : [];
+    for (const it of items) {
+      const name = it?.name ?? it?.item_name ?? "Unknown";
+      const qty  = Number(it?.quantity ?? it?.qty ?? 1);
+      const price = Number(it?.price ?? it?.unit_price ?? 0);
+      const line = qty * price;
+      const current = map.get(name) ?? { qty: 0, revenue: 0 };
+      map.set(name, { qty: current.qty + qty, revenue: current.revenue + line });
+    }
+  }
+  return Array.from(map.entries())
+    .map(([name, v]) => ({ name, ...v }))
+    .sort((a, b) => b.revenue - a.revenue);
 }
