@@ -663,3 +663,186 @@ export function stockStatusLabel(status: StockStatus): string {
 export function stockStatusColor(status: StockStatus): string {
   return ({ ok: "var(--green)", low: "var(--orange)", critical: "#ff5f57", expiring: "#febc2e" } as const)[status];
 }
+
+// ─── Fulfillment (e-commerce shipping pipeline) ──────────────────────────────
+// Nonna's also sells a meal-kit box nationwide — the fulfillment page is for
+// those physical-shipping orders. Dine-in / takeaway never show up here.
+
+export type FulfillmentStage = "placed" | "picked" | "packed" | "shipped" | "delivered";
+export type FulfillmentType  = "shipping" | "delivery";
+export type DemoShipment = {
+  id: string;
+  number: string;
+  customerName: string;
+  type: FulfillmentType;
+  items: { name: string; qty: number }[];
+  total: number;
+  shipTo: { street: string; suburb: string; state: string; postcode: string };
+  carrier?: string;
+  trackingNumber?: string;
+  placedAt: string;
+  pickedAt?: string;
+  packedAt?: string;
+  shippedAt?: string;
+  deliveredAt?: string;
+};
+
+export const shipments: DemoShipment[] = [
+  {
+    id: "sh01", number: "#SH-1041", customerName: "Olivia Martin", type: "shipping",
+    items: [{ name: "Nonna's meal kit · Lasagna for 2", qty: 1 }, { name: "Tiramisu cup", qty: 2 }],
+    total: 68.50,
+    shipTo: { street: "14 Flinders St", suburb: "Adelaide", state: "SA", postcode: "5000" },
+    placedAt: "2026-04-18T09:12:00",
+  },
+  {
+    id: "sh02", number: "#SH-1040", customerName: "Sofia De Luca", type: "shipping",
+    items: [{ name: "Nonna's meal kit · Ragù for 4", qty: 1 }, { name: "Pasta flour (00) 1kg", qty: 2 }],
+    total: 92.00,
+    shipTo: { street: "8 Grenfell St", suburb: "Adelaide", state: "SA", postcode: "5000" },
+    placedAt: "2026-04-18T08:42:00",
+    pickedAt: "2026-04-18T10:05:00",
+  },
+  {
+    id: "sh03", number: "#SH-1039", customerName: "Henry Fitzgerald", type: "shipping",
+    items: [{ name: "Nonna's meal kit · Margherita for 2", qty: 2 }],
+    total: 54.00,
+    shipTo: { street: "212 Port Rd", suburb: "Hindmarsh", state: "SA", postcode: "5007" },
+    placedAt: "2026-04-17T17:30:00",
+    pickedAt: "2026-04-18T08:20:00",
+    packedAt: "2026-04-18T09:41:00",
+  },
+  {
+    id: "sh04", number: "#SH-1038", customerName: "Mia Novak", type: "shipping",
+    items: [{ name: "Nonna's meal kit · Carbonara for 2", qty: 1 }, { name: "Guanciale 200g", qty: 1 }],
+    total: 61.00,
+    shipTo: { street: "3/44 The Parade", suburb: "Norwood", state: "SA", postcode: "5067" },
+    carrier: "Auspost Express",
+    trackingNumber: "VC123456789AU",
+    placedAt: "2026-04-17T11:10:00",
+    pickedAt: "2026-04-17T13:15:00",
+    packedAt: "2026-04-17T14:40:00",
+    shippedAt: "2026-04-17T16:02:00",
+  },
+  {
+    id: "sh05", number: "#SH-1037", customerName: "Lachlan Park", type: "shipping",
+    items: [{ name: "Nonna's meal kit · Ragù for 2", qty: 1 }],
+    total: 41.00,
+    shipTo: { street: "16 Semaphore Rd", suburb: "Semaphore", state: "SA", postcode: "5019" },
+    carrier: "Sendle",
+    trackingNumber: "SDL-7A1F92X",
+    placedAt: "2026-04-16T09:50:00",
+    pickedAt: "2026-04-16T11:00:00",
+    packedAt: "2026-04-16T12:10:00",
+    shippedAt: "2026-04-16T14:22:00",
+    deliveredAt: "2026-04-18T10:55:00",
+  },
+  {
+    id: "sh06", number: "#SH-1036", customerName: "Zara Ahmed", type: "shipping",
+    items: [{ name: "Nonna's pantry bundle · Sauces x4", qty: 1 }],
+    total: 38.00,
+    shipTo: { street: "7 Portrush Rd", suburb: "Glenunga", state: "SA", postcode: "5064" },
+    carrier: "Auspost Parcel",
+    trackingNumber: "JR999112003AU",
+    placedAt: "2026-04-15T15:02:00",
+    pickedAt: "2026-04-15T16:30:00",
+    packedAt: "2026-04-15T17:05:00",
+    shippedAt: "2026-04-16T09:00:00",
+    deliveredAt: "2026-04-17T12:40:00",
+  },
+  // Same-day delivery (shown on the Delivery tab of the same page)
+  {
+    id: "sh07", number: "#SH-1035", customerName: "James Kim", type: "delivery",
+    items: [{ name: "Pepperoni", qty: 2 }, { name: "Wings", qty: 1 }],
+    total: 64.67,
+    shipTo: { street: "41 Hutt St", suburb: "Adelaide", state: "SA", postcode: "5000" },
+    carrier: "Uber Direct",
+    placedAt: "2026-04-18T11:55:00",
+    pickedAt: "2026-04-18T12:10:00",
+    packedAt: "2026-04-18T12:16:00",
+    shippedAt: "2026-04-18T12:22:00",
+  },
+];
+
+export function shipmentCurrentStage(s: DemoShipment): FulfillmentStage {
+  if (s.deliveredAt) return "delivered";
+  if (s.shippedAt)   return "shipped";
+  if (s.packedAt)    return "packed";
+  if (s.pickedAt)    return "picked";
+  return "placed";
+}
+
+export const fulfillmentStageLabel: Record<FulfillmentStage, { label: string; emoji: string; color: string }> = {
+  placed:    { label: "Placed",    emoji: "🧾", color: "#818CF8" },
+  picked:    { label: "Picked",    emoji: "🛒", color: "#63B3FF" },
+  packed:    { label: "Packed",    emoji: "📦", color: "#F59E0B" },
+  shipped:   { label: "In transit", emoji: "🚚", color: "#00B67A" },
+  delivered: { label: "Delivered", emoji: "✅", color: "#6B7C93" },
+};
+
+// ─── Rostering (staff shifts) ────────────────────────────────────────────────
+// The /rostering page in the CRM lets owners schedule shifts; this is the same
+// week of fake shifts for the demo.
+
+export type RosterRole = "kitchen" | "front" | "driver" | "manager";
+export type RosterStatus = "scheduled" | "confirmed" | "completed" | "missed";
+
+export type DemoShift = {
+  id: string;
+  employeeName: string;
+  role: RosterRole;
+  dayOfWeek: number;   // 0 = Monday
+  start: string;       // "17:00"
+  end: string;         // "22:30"
+  hourlyRate: number;
+  status: RosterStatus;
+  notes?: string;
+};
+
+export const rosterShifts: DemoShift[] = [
+  // Monday
+  { id: "rs01", employeeName: "Marco Russo",   role: "manager", dayOfWeek: 0, start: "15:00", end: "22:30", hourlyRate: 42, status: "confirmed" },
+  { id: "rs02", employeeName: "Luca Conte",    role: "kitchen", dayOfWeek: 0, start: "16:00", end: "22:30", hourlyRate: 32, status: "confirmed" },
+  { id: "rs03", employeeName: "Chloe Wilson",  role: "front",   dayOfWeek: 0, start: "17:00", end: "22:00", hourlyRate: 28, status: "confirmed" },
+  // Tuesday
+  { id: "rs04", employeeName: "Marco Russo",   role: "manager", dayOfWeek: 1, start: "15:00", end: "22:30", hourlyRate: 42, status: "confirmed" },
+  { id: "rs05", employeeName: "Luca Conte",    role: "kitchen", dayOfWeek: 1, start: "16:00", end: "22:30", hourlyRate: 32, status: "confirmed" },
+  { id: "rs06", employeeName: "Ben Rhodes",    role: "driver",  dayOfWeek: 1, start: "18:00", end: "22:00", hourlyRate: 26, status: "scheduled" },
+  // Wednesday
+  { id: "rs07", employeeName: "Chloe Wilson",  role: "front",   dayOfWeek: 2, start: "17:00", end: "22:00", hourlyRate: 28, status: "confirmed" },
+  { id: "rs08", employeeName: "Sofia Bruno",   role: "kitchen", dayOfWeek: 2, start: "16:00", end: "22:30", hourlyRate: 30, status: "confirmed" },
+  // Thursday
+  { id: "rs09", employeeName: "Marco Russo",   role: "manager", dayOfWeek: 3, start: "15:00", end: "22:30", hourlyRate: 42, status: "confirmed" },
+  { id: "rs10", employeeName: "Luca Conte",    role: "kitchen", dayOfWeek: 3, start: "16:00", end: "22:30", hourlyRate: 32, status: "confirmed" },
+  { id: "rs11", employeeName: "Ben Rhodes",    role: "driver",  dayOfWeek: 3, start: "18:00", end: "22:00", hourlyRate: 26, status: "scheduled" },
+  // Friday — busy
+  { id: "rs12", employeeName: "Marco Russo",   role: "manager", dayOfWeek: 4, start: "14:00", end: "23:00", hourlyRate: 42, status: "confirmed" },
+  { id: "rs13", employeeName: "Luca Conte",    role: "kitchen", dayOfWeek: 4, start: "15:30", end: "23:00", hourlyRate: 32, status: "confirmed" },
+  { id: "rs14", employeeName: "Sofia Bruno",   role: "kitchen", dayOfWeek: 4, start: "16:00", end: "23:00", hourlyRate: 30, status: "confirmed" },
+  { id: "rs15", employeeName: "Chloe Wilson",  role: "front",   dayOfWeek: 4, start: "17:00", end: "23:00", hourlyRate: 28, status: "confirmed" },
+  { id: "rs16", employeeName: "Ella Nguyen",   role: "front",   dayOfWeek: 4, start: "17:00", end: "23:00", hourlyRate: 26, status: "confirmed" },
+  { id: "rs17", employeeName: "Ben Rhodes",    role: "driver",  dayOfWeek: 4, start: "17:00", end: "22:30", hourlyRate: 26, status: "confirmed" },
+  { id: "rs18", employeeName: "Kai Patel",     role: "driver",  dayOfWeek: 4, start: "18:00", end: "22:30", hourlyRate: 26, status: "scheduled" },
+  // Saturday — busiest
+  { id: "rs19", employeeName: "Marco Russo",   role: "manager", dayOfWeek: 5, start: "14:00", end: "23:30", hourlyRate: 42, status: "confirmed" },
+  { id: "rs20", employeeName: "Luca Conte",    role: "kitchen", dayOfWeek: 5, start: "15:00", end: "23:30", hourlyRate: 32, status: "confirmed" },
+  { id: "rs21", employeeName: "Sofia Bruno",   role: "kitchen", dayOfWeek: 5, start: "15:00", end: "23:30", hourlyRate: 30, status: "confirmed" },
+  { id: "rs22", employeeName: "Chloe Wilson",  role: "front",   dayOfWeek: 5, start: "16:00", end: "23:00", hourlyRate: 28, status: "confirmed" },
+  { id: "rs23", employeeName: "Ella Nguyen",   role: "front",   dayOfWeek: 5, start: "17:00", end: "23:30", hourlyRate: 26, status: "confirmed" },
+  { id: "rs24", employeeName: "Ben Rhodes",    role: "driver",  dayOfWeek: 5, start: "17:00", end: "23:00", hourlyRate: 26, status: "confirmed" },
+  { id: "rs25", employeeName: "Kai Patel",     role: "driver",  dayOfWeek: 5, start: "18:00", end: "23:00", hourlyRate: 26, status: "confirmed" },
+  // Sunday — quieter
+  { id: "rs26", employeeName: "Marco Russo",   role: "manager", dayOfWeek: 6, start: "15:00", end: "22:00", hourlyRate: 42, status: "confirmed" },
+  { id: "rs27", employeeName: "Sofia Bruno",   role: "kitchen", dayOfWeek: 6, start: "16:00", end: "22:00", hourlyRate: 30, status: "scheduled" },
+  { id: "rs28", employeeName: "Chloe Wilson",  role: "front",   dayOfWeek: 6, start: "16:00", end: "22:00", hourlyRate: 28, status: "scheduled" },
+];
+
+export const rosterRoleLabel: Record<RosterRole, { label: string; color: string; bg: string; emoji: string }> = {
+  kitchen: { label: "Kitchen", color: "#FF6B35", bg: "rgba(255,107,53,0.12)",  emoji: "🍳" },
+  front:   { label: "Front",   color: "#63B3FF", bg: "rgba(99,179,255,0.12)",  emoji: "👋" },
+  driver:  { label: "Driver",  color: "#A855F7", bg: "rgba(168,85,247,0.12)",  emoji: "🛵" },
+  manager: { label: "Manager", color: "#00B67A", bg: "rgba(0,182,122,0.12)",   emoji: "🎩" },
+};
+
+export const rosterDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
