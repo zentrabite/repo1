@@ -546,6 +546,93 @@ export async function dismissRecommendation(id: string) {
   if (error) throw error;
 }
 
+// ─── Fulfillment (e-commerce shipping pipeline) ──────────────────────────────
+
+// The fulfillment pipeline is picked → packed → shipped → delivered.
+// Each stage stamps a timestamp on the orders row.
+export type FulfillmentStage = "placed" | "picked" | "packed" | "shipped" | "delivered";
+
+export const FULFILLMENT_STAGES: FulfillmentStage[] = [
+  "placed", "picked", "packed", "shipped", "delivered",
+];
+
+const STAGE_COLUMN: Record<FulfillmentStage, string> = {
+  placed:    "placed_at",
+  picked:    "picked_at",
+  packed:    "packed_at",
+  shipped:   "shipped_at",
+  delivered: "delivered_at",
+};
+
+// Derives the current stage from which timestamps are set.
+export function currentStage(order: Order): FulfillmentStage {
+  if (order.delivered_at) return "delivered";
+  if (order.shipped_at)   return "shipped";
+  if (order.packed_at)    return "packed";
+  if (order.picked_at)    return "picked";
+  return "placed";
+}
+
+// Fetches every fulfillment-eligible order (shipping or delivery) for the
+// business. Dine-in and takeaway orders aren't shown here — they live on
+// the /orders page.
+export async function getFulfillmentOrders(
+  businessId: string,
+  opts: { type?: "shipping" | "delivery" | "all"; limit?: number } = {},
+) {
+  const { type = "all", limit = 200 } = opts;
+  let q = supabase
+    .from("orders")
+    .select("*")
+    .eq("business_id", businessId)
+    .order("placed_at", { ascending: false })
+    .limit(limit);
+
+  if (type === "all") {
+    q = q.in("fulfillment_type", ["shipping", "delivery"]);
+  } else {
+    q = q.eq("fulfillment_type", type);
+  }
+
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data ?? []) as Order[];
+}
+
+// Stamps the given stage's timestamp on the order. If `now` is false we
+// clear it (un-check). Returns the updated row.
+export async function stampFulfillment(
+  orderId: string,
+  stage: FulfillmentStage,
+  on = true,
+) {
+  const column = STAGE_COLUMN[stage];
+  const { data, error } = await supabase
+    .from("orders")
+    .update({ [column]: on ? new Date().toISOString() : null })
+    .eq("id", orderId)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data as Order;
+}
+
+// Merchant-editable carrier + tracking info.
+export async function updateTracking(orderId: string, input: {
+  carrier?: string | null;
+  tracking_number?: string | null;
+  tracking_url?: string | null;
+}) {
+  const { data, error } = await supabase
+    .from("orders")
+    .update(input)
+    .eq("id", orderId)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data as Order;
+}
+
 // ─── Analytics: top items ─────────────────────────────────────────────────────
 
 // Reads the orders.items JSON and aggregates by item name.

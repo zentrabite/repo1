@@ -54,6 +54,17 @@ export interface Database {
           source:             string;
           stripe_payment_id:  string | null;
           created_at:         string;
+          // ─── Fulfillment tracking (migration 010) ───────────────────────
+          fulfillment_type:   string | null;  // dine_in | takeaway | delivery | shipping
+          placed_at:          string | null;
+          picked_at:          string | null;
+          packed_at:          string | null;
+          shipped_at:         string | null;
+          delivered_at:       string | null;
+          carrier:            string | null;
+          tracking_number:    string | null;
+          tracking_url:       string | null;
+          ship_to:            Json | null;
         };
         Insert: Omit<Database["public"]["Tables"]["orders"]["Row"], "id" | "created_at">;
         Update: Partial<Database["public"]["Tables"]["orders"]["Insert"]>;

@@ -188,7 +188,49 @@ export const features: Feature[] = [
     ],
     whoItsFor:
       "Any service that cannot afford to miss a ticket — which is every restaurant, every day, at 7pm on a Friday.",
-    relatedSlugs: ["pos", "delivery-routing", "storefronts"],
+    relatedSlugs: ["pos", "delivery-routing", "storefronts", "fulfillment"],
+  },
+  {
+    slug: "fulfillment",
+    icon: "📦",
+    title: "Order fulfillment",
+    tagline: "Pick, pack, ship, and track every e-commerce order on one checklist.",
+    summary:
+      "Pick, pack, ship, deliver — every physical order moves through a checklist with carrier, tracking number, and live status for the customer.",
+    eyebrow: "E-commerce",
+    overview: [
+      "For restaurants and food brands that ship physical goods — meal kits, pantry items, merch, coffee beans, sauces — ZentraBite includes a full e-commerce fulfillment checklist. Every order lives on one screen with five checkpoints: placed → picked → packed → shipped → delivered.",
+      "Tap to stamp each stage. Enter carrier and tracking number once and the customer gets a tracking URL automatically. Staff never lose their spot and nothing sits in pick-limbo for three days because someone forgot to mark it packed.",
+    ],
+    howItWorks: [
+      {
+        title: "Order placed",
+        body: "A storefront or app checkout creates the order. It lands on /fulfillment with the full line-item list and ship-to address.",
+      },
+      {
+        title: "Pick + pack",
+        body: "Staff work the queue top-down. Tap Picked when the items are gathered, tap Packed when the box is sealed. Every tap stamps a timestamp.",
+      },
+      {
+        title: "Ship",
+        body: "Enter carrier (Auspost, Sendle, DHL, whoever) and the tracking number. Tap Shipped and the customer automatically gets an email with the tracking URL.",
+      },
+      {
+        title: "Delivered",
+        body: "Mark Delivered manually or let your carrier webhook close the loop. The order drops off the open queue and into the archive for analytics.",
+      },
+    ],
+    bullets: [
+      "Five-stage checklist: placed → picked → packed → shipped → delivered",
+      "Stamp or un-stamp any stage with one tap",
+      "Carrier + tracking number fields feed the customer's tracking URL",
+      "Per-stage counters on the dashboard so nothing is forgotten",
+      "Separate queue from your kitchen Orders page — no crossed wires",
+      "Works for shipping (multi-day) and same-day delivery",
+    ],
+    whoItsFor:
+      "Any restaurant or food brand that ships boxes, not just plates. Meal kits, pantry brands, coffee roasters, hot sauce brands, bakery-subscription clubs.",
+    relatedSlugs: ["live-orders", "storefronts", "stripe-payouts"],
   },
   {
     slug: "storefronts",
