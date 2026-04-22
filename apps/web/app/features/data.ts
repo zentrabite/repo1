@@ -23,7 +23,7 @@ export const features: Feature[] = [
   {
     slug: "pos",
     icon: "🖥️",
-    title: "Integrated POS system",
+    title: "POS system",
     tagline: "One screen for dine-in, takeaway, and online — no separate terminal, no extra fees.",
     summary:
       "Dine-in, takeaway, and online orders on one screen. Split bills, apply discounts, print kitchen tickets, run end-of-day reports — no separate terminal or fees.",
@@ -65,7 +65,7 @@ export const features: Feature[] = [
   {
     slug: "custom-mobile-app",
     icon: "📱",
-    title: "Custom mobile app — built for you",
+    title: "Your own app",
     tag: "Done-for-you",
     tagline: "Your own branded iOS and Android app, designed and launched by our team.",
     summary:
@@ -108,7 +108,7 @@ export const features: Feature[] = [
   {
     slug: "custom-website",
     icon: "🌐",
-    title: "Custom website — built for you",
+    title: "Your own website",
     tag: "Done-for-you",
     tagline: "A beautiful, fast, SEO-ready restaurant site with ordering wired up on day one.",
     summary:
@@ -151,7 +151,7 @@ export const features: Feature[] = [
   {
     slug: "live-orders",
     icon: "🧾",
-    title: "Live order management",
+    title: "Live orders",
     tagline: "Every order beeps, appears instantly, and auto-tracks from New to Delivered.",
     summary:
       "Every incoming order beeps, toasts, and auto-refreshes — realtime across POS, kitchen, and dashboard. No more missed tickets.",
@@ -193,7 +193,7 @@ export const features: Feature[] = [
   {
     slug: "storefronts",
     icon: "🛍️",
-    title: "Commission-free storefronts",
+    title: "Online storefront",
     tagline: "Your own branded ordering page. Keep 100% of the revenue Uber would have taken.",
     summary:
       "Your own branded ordering page. Keep 100% of the revenue Uber and DoorDash would have skimmed — pay only Stripe's standard fees.",
@@ -277,7 +277,7 @@ export const features: Feature[] = [
   {
     slug: "delivery-routing",
     icon: "🚚",
-    title: "Smart delivery routing",
+    title: "Delivery routing",
     tagline: "Auto-dispatch to whichever driver is cheapest right now — yours, Uber, or DoorDash.",
     summary:
       "Auto-assign to your own driver, nearest rider, or fall through to Uber Direct / DoorDash Drive — whichever is cheapest right now.",
@@ -319,7 +319,7 @@ export const features: Feature[] = [
   {
     slug: "sms-email",
     icon: "💬",
-    title: "SMS & email automations",
+    title: "SMS & email",
     tagline: "Win-back, abandoned-cart, review asks, and birthday offers — firing automatically.",
     summary:
       "Win-back campaigns, abandoned-cart nudges, post-order receipts, review asks — all triggered the moment customer state changes.",
@@ -361,7 +361,7 @@ export const features: Feature[] = [
   {
     slug: "stripe-payouts",
     icon: "💳",
-    title: "Stripe Connect payouts",
+    title: "Stripe payouts",
     tagline: "Daily payouts, full dispute handling, zero payment-integration headaches.",
     summary:
       "Money lands in your bank account daily, not monthly. Full Connect onboarding, live balance, refunds, and disputes in one view.",
@@ -403,7 +403,7 @@ export const features: Feature[] = [
   {
     slug: "financial-reporting",
     icon: "📊",
-    title: "Real financial reporting",
+    title: "Financial reports",
     tagline: "Monthly reconciled reports, GST-ready, Xero-ready, your-accountant-ready.",
     summary:
       "Revenue, fees, refunds, and payout reconciliation by channel. Export to Xero or CSV at the end of each month, GST-ready.",
@@ -487,7 +487,7 @@ export const features: Feature[] = [
   {
     slug: "stock-take",
     icon: "📦",
-    title: "Stock take with AI ordering",
+    title: "AI stock control",
     tagline: "Your ingredients count themselves, and the system reorders before you run out.",
     summary:
       "Count once, and we track every ingredient from order volume. AI flags what's about to run out, drafts the purchase order, and sends it to your supplier when you tap approve.",

@@ -21,7 +21,7 @@ export function FeaturesGrid() {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-            gap: 12,
+            gap: 14,
           }}
         >
           {features.map((f) => (
@@ -30,21 +30,46 @@ export function FeaturesGrid() {
               href={`/features/${f.slug}`}
               className="glass feature-tile"
               style={{
-                padding: "18px 20px",
+                padding: "20px 22px",
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
+                flexDirection: "column",
                 gap: 12,
                 cursor: "pointer",
                 textDecoration: "none",
+                minHeight: 140,
               }}
             >
-              <h3 style={{ fontSize: 15, color: "var(--cloud)", margin: 0, fontWeight: 600, lineHeight: 1.3 }}>
+              <div
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 12,
+                  background: "var(--green-15)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 22,
+                  flexShrink: 0,
+                }}
+                aria-hidden
+              >
+                {f.icon}
+              </div>
+              <h3
+                style={{
+                  fontSize: 15.5,
+                  color: "var(--cloud)",
+                  margin: 0,
+                  fontWeight: 700,
+                  lineHeight: 1.25,
+                }}
+              >
                 {f.title}
               </h3>
               <span
                 className="feature-tile-cta"
                 style={{
+                  marginTop: "auto",
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 4,
@@ -52,7 +77,6 @@ export function FeaturesGrid() {
                   fontWeight: 600,
                   fontSize: 13,
                   transition: "gap 0.18s",
-                  flexShrink: 0,
                 }}
               >
                 Learn more <span aria-hidden>→</span>
