@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Nav } from "../components/nav";
 import { Footer } from "../components/footer";
+import { Expandable } from "../components/expandable";
 
 type FlowNode = { id: string; label: string; sub?: string; color?: string };
 type FlowEdge = { from: string; to: string; label?: string };
@@ -12,14 +13,12 @@ export default function HowItWorksPage() {
       <main style={{ paddingTop: 120, paddingBottom: 120, background: "var(--near-black)" }} className="grid-bg">
         <div className="container" style={{ maxWidth: 1100 }}>
           <div style={{ textAlign: "center", maxWidth: 760, margin: "0 auto 56px" }}>
-            <div className="eyebrow" style={{ marginBottom: 16 }}>How ZentraBite works</div>
-            <h1 style={{ fontSize: "clamp(34px, 5.5vw, 52px)", margin: "0 0 18px", lineHeight: 1.08 }}>
-              One platform. Six connected systems.
+            <div className="eyebrow" style={{ marginBottom: 16 }}>How it works</div>
+            <h1 style={{ fontSize: "clamp(34px, 5.5vw, 52px)", margin: "0 0 14px", lineHeight: 1.08 }}>
+              Six connected systems.
             </h1>
-            <p style={{ fontSize: 17, color: "var(--steel)", lineHeight: 1.6 }}>
-              Every part of ZentraBite talks to every other part. Here's exactly what
-              happens behind the scenes when a customer orders, a reward is earned, a
-              campaign fires, or a new business joins the platform.
+            <p style={{ fontSize: 16, color: "var(--steel)" }}>
+              Tap any one to see the diagram.
             </p>
           </div>
 
@@ -170,19 +169,18 @@ export default function HowItWorksPage() {
               border: "1px solid rgba(0,182,122,0.3)",
             }}
           >
-            <h2 style={{ fontSize: 26, margin: "0 0 10px", color: "var(--cloud)" }}>
-              See these systems running on fake data.
+            <h2 style={{ fontSize: 24, margin: "0 0 10px", color: "var(--cloud)" }}>
+              Want to see it on your business?
             </h2>
-            <p style={{ color: "var(--steel)", fontSize: 15, maxWidth: 560, margin: "0 auto 22px" }}>
-              The demo lets you click through orders, trigger rewards, and flip modules
-              on and off — no sign-up.
+            <p style={{ color: "var(--steel)", fontSize: 15, maxWidth: 500, margin: "0 auto 22px" }}>
+              20 minutes. We'll scope what you need.
             </p>
             <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-              <Link href="/demo" className="btn-primary" style={{ padding: "12px 22px", fontSize: 14.5 }}>
-                Open the demo hub →
+              <Link href="/contact" className="btn-primary" style={{ padding: "12px 22px", fontSize: 14.5 }}>
+                Book a call →
               </Link>
-              <Link href="/contact" className="btn-secondary" style={{ padding: "12px 22px", fontSize: 14.5 }}>
-                Start 1-month free trial
+              <Link href="/demo" className="btn-secondary" style={{ padding: "12px 22px", fontSize: 14.5 }}>
+                See the demo
               </Link>
             </div>
           </div>
@@ -209,41 +207,29 @@ function FlowSection({
   edges: FlowEdge[];
 }) {
   return (
-    <section style={{ marginBottom: 56 }}>
-      <div
-        className="glass"
-        style={{
-          padding: 32,
-          display: "grid",
-          gridTemplateColumns: "1fr 1.2fr",
-          gap: 32,
-          alignItems: "center",
-        }}
-        data-flow-row
-      >
-        <div>
+    <section style={{ marginBottom: 18 }}>
+      <div className="glass" style={{ padding: 24 }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap" }}>
           <div
             style={{
               fontFamily: "var(--font-mono)",
               fontSize: 12,
               color: "var(--green)",
-              marginBottom: 10,
               letterSpacing: "0.1em",
             }}
           >
-            / SYSTEM {num}
+            / {num}
           </div>
-          <h2 style={{ fontSize: 28, margin: "0 0 8px", color: "var(--cloud)" }}>{title}</h2>
-          <div style={{ color: "var(--green)", fontSize: 14, fontWeight: 600, marginBottom: 14 }}>{tagline}</div>
-          <p style={{ color: "var(--steel)", fontSize: 14.5, lineHeight: 1.65 }}>{body}</p>
+          <h2 style={{ fontSize: 22, margin: 0, color: "var(--cloud)" }}>{title}</h2>
         </div>
-        <FlowDiagram nodes={nodes} edges={edges} />
+        <div style={{ color: "var(--steel)", fontSize: 14, marginTop: 6 }}>{tagline}</div>
+        <Expandable summary="Show diagram & details">
+          <p style={{ color: "var(--steel)", fontSize: 14.5, lineHeight: 1.65, marginTop: 0, marginBottom: 18 }}>
+            {body}
+          </p>
+          <FlowDiagram nodes={nodes} edges={edges} />
+        </Expandable>
       </div>
-      <style>{`
-        @media (max-width: 820px) {
-          [data-flow-row] { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
     </section>
   );
 }

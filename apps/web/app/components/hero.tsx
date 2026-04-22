@@ -2,7 +2,7 @@
 export function Hero() {
   return (
     <section
-      className="grid-bg"
+      className="grid-bg hero-section"
       style={{
         paddingTop: 160,
         paddingBottom: 96,
@@ -38,52 +38,14 @@ export function Hero() {
             style={{
               fontSize: "clamp(17px, 1.6vw, 20px)",
               color: "var(--steel)",
-              maxWidth: 680,
+              maxWidth: 620,
               margin: "0 auto",
               lineHeight: 1.55,
             }}
           >
-            Run orders, customers, stock and revenue in one place. An AI co-pilot
-            tells you what to do next to make more money and waste less.
+            One place for orders, customers and stock. An AI co-pilot tells you
+            what to do next.
           </p>
-
-          {/* Outcome chips — the "why" in 10 seconds */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              gap: 8,
-              marginTop: 22,
-              flexWrap: "wrap",
-            }}
-          >
-            {[
-              { icon: "💰", label: "Recover lost revenue" },
-              { icon: "📦", label: "Cut stock waste" },
-              { icon: "🧠", label: "AI decisions, daily" },
-              { icon: "🔁", label: "Win customers back" },
-              { icon: "⚙️", label: "Automate the busywork" },
-            ].map((chip) => (
-              <span
-                key={chip.label}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "7px 13px",
-                  borderRadius: 999,
-                  background: "var(--navy-40)",
-                  border: "1px solid var(--mist-9)",
-                  fontSize: 13,
-                  color: "var(--cloud)",
-                  fontWeight: 500,
-                }}
-              >
-                <span aria-hidden>{chip.icon}</span>
-                {chip.label}
-              </span>
-            ))}
-          </div>
 
           <div
             style={{
@@ -95,7 +57,7 @@ export function Hero() {
             }}
           >
             <a href="/contact" className="btn-primary" style={{ padding: "15px 30px", fontSize: 16 }}>
-              Start 1-month free trial
+              Book a call
               <span aria-hidden>→</span>
             </a>
             <a href="/demo" className="btn-secondary" style={{ padding: "14px 28px", fontSize: 16 }}>
@@ -103,7 +65,7 @@ export function Hero() {
             </a>
           </div>
           <div style={{ marginTop: 18, fontSize: 13, color: "var(--steel)" }}>
-            No credit card · Cancel anytime · Free onboarding · Works across 30+ business types
+            Works for any food-service business · Pricing tailored to you
           </div>
         </div>
 
@@ -175,7 +137,7 @@ export function Hero() {
                 ))}
               </div>
               <div style={{ display: "grid", gap: 12 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+                <div className="hero-stats" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
                   {[
                     { label: "Live orders", value: "7", color: "var(--green)" },
                     { label: "Today's revenue", value: "$1,842", color: "var(--cloud)" },
@@ -212,11 +174,12 @@ export function Hero() {
                       background: "var(--navy-40)",
                       border: "1px solid var(--mist-6)",
                       display: "grid",
-                      gridTemplateColumns: "70px 1fr auto auto",
+                      gridTemplateColumns: "60px 1fr auto auto",
                       alignItems: "center",
                       gap: 12,
                       fontSize: 13,
                     }}
+                    className="hero-order-row"
                   >
                     <div style={{ fontFamily: "var(--font-mono)", color: "var(--steel)", fontSize: 12 }}>{o.t}</div>
                     <div>
@@ -246,9 +209,26 @@ export function Hero() {
       </div>
 
       <style>{`
+        @media (max-width: 820px) {
+          .hero-section { padding-top: 120px !important; padding-bottom: 64px !important; }
+        }
         @media (max-width: 720px) {
-          .hero-mock { grid-template-columns: 1fr !important; }
+          .hero-mock { grid-template-columns: 1fr !important; padding: 16px !important; }
           .hero-mock > div:first-child { display: none !important; }
+          .hero-stats { grid-template-columns: 1fr 1fr !important; }
+        }
+        @media (max-width: 480px) {
+          .hero-section { padding-top: 104px !important; padding-bottom: 48px !important; }
+          .hero-stats { grid-template-columns: 1fr !important; }
+          .hero-order-row {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            align-items: center !important;
+            column-gap: 10px !important;
+            row-gap: 6px !important;
+          }
+          .hero-order-row > div:nth-child(2) { flex: 1 1 100%; order: 3; }
+          .hero-order-row > div:nth-child(3) { margin-left: auto; }
         }
       `}</style>
     </section>

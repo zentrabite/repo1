@@ -1,3 +1,5 @@
+import { Expandable } from "./expandable";
+
 const CATEGORIES = [
   {
     icon: "🍽️",
@@ -61,17 +63,11 @@ export function Industries() {
       <div className="container">
         <div style={{ textAlign: "center", maxWidth: 820, margin: "0 auto 56px" }}>
           <div className="eyebrow" style={{ marginBottom: 18 }}>
-            Not a restaurant? We've got you covered.
+            For any business
           </div>
-          <h2 style={{ fontSize: "clamp(30px, 4vw, 44px)", marginBottom: 18 }}>
-            One operating system. Any small business.
+          <h2 style={{ fontSize: "clamp(30px, 4vw, 44px)", marginBottom: 10 }}>
+            Works for restaurants — and everything like them.
           </h2>
-          <p style={{ fontSize: 17, color: "var(--steel)", lineHeight: 1.6 }}>
-            ZentraBite was built for the messy reality of small operators — whether
-            you sell plates, cuts, classes, or consultations. The CRM, automations,
-            AI reports, and revenue engine stay the same. What changes is the shape
-            of your "order" — a booking, a session, a job, or a product.
-          </p>
         </div>
 
         <div
@@ -115,161 +111,47 @@ export function Industries() {
                 </div>
               </div>
 
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 4 }}>
-                {c.types.map((t) => (
-                  <span
-                    key={t}
-                    style={{
-                      fontSize: 11.5,
-                      padding: "4px 10px",
-                      borderRadius: 999,
-                      background: "var(--navy-40)",
-                      border: "1px solid var(--mist-9)",
-                      color: "var(--cloud)",
-                      fontWeight: 500,
-                    }}
-                  >
-                    {t}
-                  </span>
-                ))}
-              </div>
-
-              <div
-                style={{
-                  marginTop: 6,
-                  padding: 14,
-                  borderRadius: 12,
-                  background: "var(--navy-40)",
-                  border: "1px solid var(--mist-6)",
-                  display: "grid",
-                  gap: 8,
-                }}
-              >
-                <Row label="What stays the same" value={c.whatStays} />
-                <Row label="What adapts" value={c.whatChanges} />
-              </div>
-
-              <div
-                style={{
-                  fontSize: 13.5,
-                  color: "var(--cloud)",
-                  lineHeight: 1.55,
-                  paddingTop: 4,
-                  borderTop: "1px dashed var(--mist-9)",
-                }}
-              >
-                <span style={{ color: "var(--green)", fontWeight: 700, marginRight: 6 }}>→</span>
-                {c.outcome}
-              </div>
+              <Expandable summary="Show examples & outcome">
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+                  {c.types.map((t) => (
+                    <span
+                      key={t}
+                      style={{
+                        fontSize: 11.5,
+                        padding: "4px 10px",
+                        borderRadius: 999,
+                        background: "var(--navy-40)",
+                        border: "1px solid var(--mist-9)",
+                        color: "var(--cloud)",
+                        fontWeight: 500,
+                      }}
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+                <div
+                  style={{
+                    padding: 12,
+                    borderRadius: 10,
+                    background: "var(--navy-40)",
+                    border: "1px solid var(--mist-6)",
+                    display: "grid",
+                    gap: 8,
+                    marginBottom: 10,
+                  }}
+                >
+                  <Row label="Stays the same" value={c.whatStays} />
+                  <Row label="Adapts" value={c.whatChanges} />
+                </div>
+                <div style={{ fontSize: 13, color: "var(--cloud)", lineHeight: 1.5 }}>
+                  <span style={{ color: "var(--green)", fontWeight: 700, marginRight: 6 }}>→</span>
+                  {c.outcome}
+                </div>
+              </Expandable>
             </div>
           ))}
         </div>
-
-        {/* Personal Trainer spotlight */}
-        <div
-          className="glass"
-          style={{
-            marginTop: 36,
-            padding: 32,
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 32,
-            alignItems: "center",
-          }}
-        >
-          <div>
-            <div className="eyebrow" style={{ marginBottom: 14, color: "var(--orange)" }}>
-              Spotlight · Personal Trainer
-            </div>
-            <h3 style={{ fontSize: 24, margin: "0 0 14px", color: "var(--cloud)" }}>
-              How a solo PT runs their whole business on ZentraBite
-            </h3>
-            <p style={{ fontSize: 15, color: "var(--steel)", lineHeight: 1.65, marginBottom: 18 }}>
-              Sessions, recurring clients, memberships, and packages — all in one
-              place. ZentraBite books clients in, sends reminders, tracks their
-              progress, and tells you exactly who to re-engage before they churn.
-            </p>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 10 }}>
-              {[
-                "Session bookings & package tracking",
-                "Recurring clients & memberships",
-                "Automated reminders (SMS + email)",
-                "Re-engagement flows for inactive clients",
-                "Lifetime value tracked per client",
-              ].map((b) => (
-                <li key={b} style={{ display: "flex", gap: 10, alignItems: "center", fontSize: 14, color: "var(--cloud)" }}>
-                  <span
-                    style={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: 999,
-                      background: "var(--green-15)",
-                      color: "var(--green)",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 12,
-                      flexShrink: 0,
-                    }}
-                  >
-                    ✓
-                  </span>
-                  {b}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div
-            style={{
-              background: "var(--navy-40)",
-              border: "1px solid var(--mist-6)",
-              borderRadius: 16,
-              padding: 20,
-              display: "grid",
-              gap: 12,
-            }}
-          >
-            <div style={{ fontSize: 11, color: "var(--steel)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>
-              AI insights this week
-            </div>
-            {[
-              { icon: "⚠️", color: "var(--orange)", title: "Client hasn't trained in 14 days", body: "Sarah T. — LTV $1,840. Auto-send re-engagement?" },
-              { icon: "📉", color: "var(--orange)", title: "You're losing high-value clients", body: "3 of your top 10 clients haven't rebooked. Review the list." },
-              { icon: "💪", color: "var(--green)", title: "6 clients finished their 10-pack", body: "Offer the 20-pack upgrade. Projected +$3,200 this month." },
-              { icon: "🎯", color: "var(--green)", title: "Best time to post on Instagram", body: "Tuesday 6:45am — your audience is most active." },
-            ].map((card) => (
-              <div
-                key={card.title}
-                style={{
-                  padding: 14,
-                  borderRadius: 12,
-                  background: "rgba(15,25,42,0.55)",
-                  border: "1px solid var(--mist-9)",
-                  display: "flex",
-                  gap: 12,
-                  alignItems: "flex-start",
-                }}
-              >
-                <div style={{ fontSize: 18 }} aria-hidden>{card.icon}</div>
-                <div>
-                  <div style={{ fontSize: 13.5, fontWeight: 700, color: card.color, marginBottom: 3 }}>
-                    {card.title}
-                  </div>
-                  <div style={{ fontSize: 12.5, color: "var(--steel)", lineHeight: 1.5 }}>{card.body}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <style>{`
-          @media (max-width: 880px) {
-            #industries .glass[style*="grid-template-columns: 1fr 1fr"] {
-              grid-template-columns: 1fr !important;
-            }
-          }
-        `}</style>
       </div>
     </section>
   );

@@ -173,6 +173,33 @@ h1, h2, h3, h4, h5 {
   .container { padding: 0 20px; }
 }
 
+/* Generic responsive helpers — components opt in by adding these classes. */
+.stack-on-mobile {
+  display: grid;
+  gap: 24px;
+}
+@media (max-width: 720px) {
+  .stack-on-mobile { grid-template-columns: 1fr !important; }
+  .stack-on-mobile > * { position: static !important; }
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-ghost {
+  max-width: 100%;
+}
+
+@media (max-width: 520px) {
+  .btn-primary,
+  .btn-secondary {
+    padding: 12px 18px !important;
+    font-size: 14px !important;
+  }
+}
+
+/* Prevent overflow from any table/pre/block elements */
+img, svg, video, canvas, iframe { max-width: 100%; height: auto; }
+
 /* ── Fade-in on scroll ── */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(20px); }

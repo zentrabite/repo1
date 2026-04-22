@@ -4,7 +4,7 @@ export function CTABanner() {
     <section className="section" style={{ paddingBottom: 120 }}>
       <div className="container">
         <div
-          className="glass"
+          className="glass cta-banner-card"
           style={{
             padding: "64px 48px",
             textAlign: "center",
@@ -16,10 +16,10 @@ export function CTABanner() {
           }}
         >
           <h2 style={{ fontSize: "clamp(28px, 4vw, 40px)", marginBottom: 18 }}>
-            Ready to own your growth?
+            Let's build it around your business.
           </h2>
-          <p style={{ fontSize: 17, color: "var(--cloud)", opacity: 0.85, maxWidth: 560, margin: "0 auto 32px" }}>
-            1-month free trial. No card. Onboarded in 48 hours.
+          <p style={{ fontSize: 16, color: "var(--cloud)", opacity: 0.85, maxWidth: 520, margin: "0 auto 28px" }}>
+            Pricing is tailored to what you actually need. 20-minute call to scope it.
           </p>
           <div
             style={{
@@ -30,19 +30,20 @@ export function CTABanner() {
             }}
           >
             <a href="/contact" className="btn-primary" style={{ padding: "15px 30px", fontSize: 16 }}>
-              Start 1-month free trial
+              Book a call
               <span aria-hidden>→</span>
             </a>
-            <a
-              href="mailto:hello@zentrabite.com.au?subject=Demo%20request"
-              className="btn-secondary"
-              style={{ padding: "14px 28px", fontSize: 16 }}
-            >
-              Book a demo
+            <a href="/demo" className="btn-secondary" style={{ padding: "14px 28px", fontSize: 16 }}>
+              See the demo
             </a>
           </div>
         </div>
       </div>
+      <style>{`
+        @media (max-width: 640px) {
+          .cta-banner-card { padding: 40px 24px !important; }
+        }
+      `}</style>
     </section>
   );
 }

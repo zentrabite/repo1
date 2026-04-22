@@ -343,7 +343,7 @@ export default function DemoPage() {
               className="btn-primary"
               style={{ padding: "10px 18px", fontSize: 14 }}
             >
-              Start free trial →
+              Book a call →
             </Link>
           ) : (
             <button onClick={next} className="btn-primary" style={{ padding: "10px 18px", fontSize: 14 }}>
@@ -352,16 +352,6 @@ export default function DemoPage() {
           )}
         </div>
       </footer>
-
-      <style>{`
-        @media (max-width: 880px) {
-          .container > div[style*="grid-template-columns: 1fr 1fr"] {
-            grid-template-columns: 1fr !important;
-            gap: 32px !important;
-          }
-          .impact-tiles { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
     </div>
   );
 }

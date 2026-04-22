@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { Nav } from "../../components/nav";
 import { Footer } from "../../components/footer";
 import { CTABanner } from "../../components/cta-banner";
+import { Expandable } from "../../components/expandable";
 import { features, getFeature, getRelated } from "../data";
 
 export async function generateStaticParams() {
@@ -112,23 +113,41 @@ export default async function FeaturePage({
           </div>
         </section>
 
-        {/* Overview */}
+        {/* Overview — first paragraph only; rest collapsed */}
         <section className="section" style={{ paddingTop: 48 }}>
           <div className="container" style={{ maxWidth: 860 }}>
-            {f.overview.map((p, i) => (
+            {f.overview[0] && (
               <p
-                key={i}
                 style={{
                   fontSize: 17,
                   color: "var(--cloud)",
                   lineHeight: 1.75,
-                  marginBottom: 22,
+                  marginBottom: 14,
                   opacity: 0.9,
                 }}
               >
-                {p}
+                {f.overview[0]}
               </p>
-            ))}
+            )}
+            {f.overview.length > 1 && (
+              <Expandable summary="Keep reading">
+                {f.overview.slice(1).map((p, i) => (
+                  <p
+                    key={i}
+                    style={{
+                      fontSize: 16,
+                      color: "var(--cloud)",
+                      lineHeight: 1.75,
+                      marginTop: 0,
+                      marginBottom: 16,
+                      opacity: 0.9,
+                    }}
+                  >
+                    {p}
+                  </p>
+                ))}
+              </Expandable>
+            )}
           </div>
         </section>
 
@@ -198,7 +217,7 @@ export default async function FeaturePage({
         {/* What's included + Who it's for */}
         <section className="section">
           <div
-            className="container"
+            className="container feature-included-grid"
             style={{
               maxWidth: 960,
               display: "grid",
@@ -363,9 +382,7 @@ export default async function FeaturePage({
 
       <style>{`
         @media (max-width: 780px) {
-          .container > div[style*="grid-template-columns: 1.4fr 1fr"] {
-            grid-template-columns: 1fr !important;
-          }
+          .feature-included-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
         }
       `}</style>
     </>

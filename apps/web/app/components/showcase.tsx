@@ -1,3 +1,5 @@
+import { Expandable } from "./expandable";
+
 const showcases = [
   {
     eyebrow: "Storefronts",
@@ -214,33 +216,35 @@ export function Showcase() {
               >
                 {s.title}
               </h3>
-              <p style={{ color: "var(--steel)", fontSize: 16, lineHeight: 1.65, marginBottom: 20 }}>
-                {s.body}
-              </p>
-              <ul style={{ display: "grid", gap: 10, listStyle: "none" }}>
-                {s.bullets.map((b) => (
-                  <li key={b} style={{ display: "flex", gap: 12, alignItems: "flex-start", fontSize: 15, color: "var(--cloud)" }}>
-                    <span
-                      style={{
-                        width: 22,
-                        height: 22,
-                        borderRadius: 999,
-                        background: "var(--green-15)",
-                        color: "var(--green)",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: 13,
-                        flexShrink: 0,
-                        marginTop: 2,
-                      }}
-                    >
-                      ✓
-                    </span>
-                    {b}
-                  </li>
-                ))}
-              </ul>
+              <Expandable summary="Show the checklist">
+                <p style={{ color: "var(--steel)", fontSize: 15, lineHeight: 1.65, marginBottom: 16, marginTop: 0 }}>
+                  {s.body}
+                </p>
+                <ul style={{ display: "grid", gap: 10, listStyle: "none", margin: 0, padding: 0 }}>
+                  {s.bullets.map((b) => (
+                    <li key={b} style={{ display: "flex", gap: 12, alignItems: "flex-start", fontSize: 14.5, color: "var(--cloud)" }}>
+                      <span
+                        style={{
+                          width: 22,
+                          height: 22,
+                          borderRadius: 999,
+                          background: "var(--green-15)",
+                          color: "var(--green)",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 13,
+                          flexShrink: 0,
+                          marginTop: 2,
+                        }}
+                      >
+                        ✓
+                      </span>
+                      {b}
+                    </li>
+                  ))}
+                </ul>
+              </Expandable>
             </div>
             <div style={{ order: s.reverse ? 1 : 2, display: "flex", justifyContent: "center" }}>
               <SideVisual kind={s.side} />

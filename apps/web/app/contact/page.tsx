@@ -95,16 +95,14 @@ export default function ContactPage() {
     <>
       <Nav />
       <main style={{ paddingTop: 120, paddingBottom: 120, background: "var(--near-black)" }} className="grid-bg">
-        <div className="container" style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 48, alignItems: "flex-start", maxWidth: 1180 }}>
+        <div className="container contact-layout" style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 48, alignItems: "flex-start", maxWidth: 1180 }}>
           <div>
-            <div className="eyebrow" style={{ marginBottom: 18 }}>Tailored to your business</div>
-            <h1 style={{ fontSize: "clamp(32px, 5vw, 52px)", margin: "0 0 20px", lineHeight: 1.08 }}>
-              Let's scope what ZentraBite looks like for your business.
+            <div className="eyebrow" style={{ marginBottom: 18 }}>Book a call</div>
+            <h1 style={{ fontSize: "clamp(32px, 5vw, 52px)", margin: "0 0 14px", lineHeight: 1.08 }}>
+              Tell us about your business.
             </h1>
-            <p style={{ fontSize: 17, color: "var(--steel)", lineHeight: 1.6, marginBottom: 24 }}>
-              Tell us what you run and the modules you want. We'll reply inside one
-              business day with a tailored setup, a live walkthrough if you want one,
-              and a <strong style={{ color: "var(--cloud)" }}>one-month free trial with no credit card</strong>.
+            <p style={{ fontSize: 16, color: "var(--steel)", lineHeight: 1.6, marginBottom: 24, maxWidth: 520 }}>
+              We'll reply inside one business day with a tailored quote.
             </p>
 
             {submitted ? (
@@ -245,7 +243,7 @@ export default function ContactPage() {
                     cursor: !required || submitting ? "not-allowed" : "pointer",
                   }}
                 >
-                  {submitting ? "Sending…" : "Send — start my 1-month free trial →"}
+                  {submitting ? "Sending…" : "Book my call →"}
                 </button>
 
                 <div style={{ fontSize: 12, color: "var(--steel)", textAlign: "center" }}>
@@ -256,7 +254,7 @@ export default function ContactPage() {
           </div>
 
           {/* Sidebar */}
-          <aside style={{ display: "grid", gap: 20, position: "sticky", top: 100 }}>
+          <aside className="contact-sidebar" style={{ display: "grid", gap: 20, position: "sticky", top: 100 }}>
             <TrialCard />
             <NextSteps />
             <BookDemoCard />
@@ -268,8 +266,10 @@ export default function ContactPage() {
 
       <style>{`
         @media (max-width: 960px) {
-          main > .container { grid-template-columns: 1fr !important; }
+          .contact-layout { grid-template-columns: 1fr !important; }
+          .contact-sidebar { position: static !important; top: auto !important; }
         }
+        @media (max-width: 560px) { .contact-row { grid-template-columns: 1fr !important; } }
       `}</style>
     </>
   );
@@ -302,7 +302,6 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function Row({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }} className="contact-row">
-      <style>{`@media (max-width: 560px) { .contact-row { grid-template-columns: 1fr !important; } }`}</style>
       {children}
     </div>
   );
@@ -318,42 +317,30 @@ function TrialCard() {
         border: "1px solid rgba(0,182,122,0.35)",
       }}
     >
-      <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 22, color: "var(--cloud)" }}>
+      <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 20, color: "var(--cloud)" }}>
         1 month free. No card.
       </div>
-      <div style={{ color: "var(--steel)", fontSize: 14, marginTop: 6, lineHeight: 1.55 }}>
-        Full platform, full onboarding, real human support. We only charge you when
-        you're convinced it's working.
+      <div style={{ color: "var(--steel)", fontSize: 13.5, marginTop: 6, lineHeight: 1.55 }}>
+        Full platform, full onboarding, real support. We only charge once you're
+        convinced.
       </div>
-      <ul style={{ listStyle: "none", display: "grid", gap: 8, marginTop: 16 }}>
-        {[
-          "All modules enabled during trial",
-          "Free data migration from Square / Mailchimp / Smile / POS",
-          "Your own branded subdomain + storefront",
-          "AI credits included — real usage, not a demo",
-        ].map((t) => (
-          <li key={t} style={{ display: "flex", gap: 10, fontSize: 13.5, color: "var(--cloud)", alignItems: "flex-start" }}>
-            <span style={{ color: "var(--green)" }}>✓</span>{t}
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
 
 function NextSteps() {
   const steps = [
-    { t: "You send this form", s: "Takes ~60 seconds." },
-    { t: "We reply in 1 business day", s: "A real human, not a chatbot — with a rough setup." },
-    { t: "20-min scoping call", s: "Optional. We confirm modules, integrations, and volume." },
-    { t: "Tailored quote + trial", s: "Your trial starts; we onboard inside 48 hours." },
+    "You send the form",
+    "We reply in 1 business day",
+    "20-min call to scope it",
+    "Tailored quote + free trial",
   ];
   return (
     <div className="glass" style={{ padding: 22 }}>
       <div className="eyebrow" style={{ marginBottom: 14 }}>What happens next</div>
-      <ol style={{ listStyle: "none", display: "grid", gap: 12, counterReset: "step" }}>
+      <ol style={{ listStyle: "none", display: "grid", gap: 10, padding: 0, margin: 0 }}>
         {steps.map((s, i) => (
-          <li key={s.t} style={{ display: "grid", gridTemplateColumns: "24px 1fr", gap: 10 }}>
+          <li key={s} style={{ display: "grid", gridTemplateColumns: "22px 1fr", gap: 10, alignItems: "center" }}>
             <div
               style={{
                 width: 22,
@@ -366,15 +353,11 @@ function NextSteps() {
                 justifyContent: "center",
                 fontSize: 12,
                 fontWeight: 800,
-                flexShrink: 0,
               }}
             >
               {i + 1}
             </div>
-            <div>
-              <div style={{ fontWeight: 600, fontSize: 14, color: "var(--cloud)" }}>{s.t}</div>
-              <div style={{ color: "var(--steel)", fontSize: 12.5, marginTop: 2 }}>{s.s}</div>
-            </div>
+            <div style={{ color: "var(--cloud)", fontSize: 13.5 }}>{s}</div>
           </li>
         ))}
       </ol>
@@ -383,24 +366,7 @@ function NextSteps() {
 }
 
 function BookDemoCard() {
-  return (
-    <div className="glass" style={{ padding: 22 }}>
-      <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 17, color: "var(--cloud)", marginBottom: 6 }}>
-        Prefer a live walkthrough?
-      </div>
-      <div style={{ color: "var(--steel)", fontSize: 13.5, marginBottom: 14 }}>
-        20 minutes. We share screen, you ask hard questions, you leave knowing if
-        this fits.
-      </div>
-      <a
-        href="mailto:hello@zentrabite.com.au?subject=Book%20a%20live%20demo"
-        className="btn-secondary"
-        style={{ padding: "10px 16px", fontSize: 13.5, justifyContent: "center", display: "flex" }}
-      >
-        Book a demo →
-      </a>
-    </div>
-  );
+  return null;
 }
 
 function DirectContact() {

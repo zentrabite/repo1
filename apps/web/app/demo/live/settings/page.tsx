@@ -349,13 +349,13 @@ function IntegrationRow({ name, status, sub }: { name: string; status: "connecte
           background: connected ? "transparent" : "var(--green)",
           border: connected ? "1px solid var(--mist-9)" : "none",
           color: connected ? "var(--steel)" : "var(--navy)",
+          fontWeight: 700,
           fontSize: 12,
-          fontWeight: 600,
           cursor: "pointer",
           fontFamily: "var(--font-inter)",
         }}
       >
-        {connected ? "Manage" : "Connect"}
+        {connected ? "Disconnect" : "Connect"}
       </button>
     </div>
   );

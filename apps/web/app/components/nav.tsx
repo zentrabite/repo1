@@ -17,11 +17,10 @@ export function Nav() {
   }, []);
 
   const links = [
-    { href: "#features", label: "Features" },
-    { href: "#ai-brain", label: "AI brain" },
-    { href: "#industries", label: "For any business" },
+    { href: "#features", label: "What's inside" },
+    { href: "/how-it-works", label: "How it works" },
+    { href: "/pricing", label: "Pricing" },
     { href: "/demo", label: "Demo" },
-    { href: "#faq", label: "FAQ" },
   ];
 
   return (
@@ -74,7 +73,7 @@ export function Nav() {
             Log in
           </a>
           <a href="/contact" className="btn-primary">
-            Start 1-month free trial
+            Book a call
             <span aria-hidden>→</span>
           </a>
         </div>
@@ -143,7 +142,7 @@ export function Nav() {
             Log in
           </a>
           <a href="/contact" className="btn-primary" style={{ justifyContent: "center" }}>
-            Start 1-month free trial
+            Book a call
           </a>
         </div>
       )}

@@ -1,18 +1,16 @@
+import { Expandable } from "./expandable";
+
 export function AIBrain() {
   return (
     <section id="ai-brain" className="section" style={{ paddingTop: 112, position: "relative" }}>
       <div className="container">
         <div style={{ textAlign: "center", maxWidth: 820, margin: "0 auto 48px" }}>
           <div className="eyebrow" style={{ marginBottom: 18 }}>
-            Business Intelligence
+            AI co-pilot
           </div>
-          <h2 style={{ fontSize: "clamp(30px, 4vw, 44px)", marginBottom: 18 }}>
-            An AI co-pilot that actually runs the business.
+          <h2 style={{ fontSize: "clamp(30px, 4vw, 44px)", marginBottom: 10 }}>
+            An assistant that tells you what to do today.
           </h2>
-          <p style={{ fontSize: 17, color: "var(--steel)", lineHeight: 1.6 }}>
-            Every sale, booking, customer and stock movement feeds one brain. It tells
-            you what's working, what's broken, and what to do today.
-          </p>
         </div>
 
         <div
@@ -161,22 +159,26 @@ export function AIBrain() {
             {[
               {
                 icon: "🧠",
-                title: "Predictive insights, not just reports",
+                title: "Predictive insights",
+                short: "Forecasts sales and demand from your own data.",
                 body: "Forecasts next week's sales, demand per item, and staffing gaps — from your actual data, not guesswork.",
               },
               {
                 icon: "📦",
-                title: "Inventory & stock take intelligence",
+                title: "Stock intelligence",
+                short: "Predicts waste before it happens.",
                 body: "Tracks stock, expiry, deliveries, and reorder triggers. Predicts waste before it happens.",
               },
               {
                 icon: "📬",
-                title: "Daily automated reports",
+                title: "Daily brief at 7am",
+                short: "KPI summary and a short action list.",
                 body: "KPI summary, AI insights, and a short action list in your inbox every morning at 7am.",
               },
               {
                 icon: "🎯",
-                title: "Actionable recommendations",
+                title: "One-click actions",
+                short: "Run a winback, order stock, tweak the menu.",
                 body: "One-click execution: run a winback, order stock, tweak a menu item, boost a campaign.",
               },
             ].map((f) => (
@@ -202,10 +204,13 @@ export function AIBrain() {
                   {f.icon}
                 </div>
                 <div>
-                  <div style={{ fontSize: 15.5, fontWeight: 700, color: "var(--cloud)", marginBottom: 6 }}>
+                  <div style={{ fontSize: 15.5, fontWeight: 700, color: "var(--cloud)", marginBottom: 4 }}>
                     {f.title}
                   </div>
-                  <div style={{ fontSize: 13.5, color: "var(--steel)", lineHeight: 1.55 }}>{f.body}</div>
+                  <div style={{ fontSize: 13.5, color: "var(--steel)", lineHeight: 1.5 }}>{f.short}</div>
+                  <Expandable summary="Learn more">
+                    {f.body}
+                  </Expandable>
                 </div>
               </div>
             ))}
