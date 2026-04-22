@@ -3,18 +3,29 @@
 // ─── useBusiness hook ─────────────────────────────────────────────────────────
 // Returns the current user's session, user record, and business.
 // Call this at the top of any page that needs to know who's logged in.
+//
+// If the signed-in user is a super admin AND the `zb_impersonate` cookie is set,
+// the hook returns the *impersonated* business instead of their own, while
+// keeping isSuperAdmin=true and exposing impersonatingBusinessId.
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import type { Business } from "@/lib/database.types";
 
 interface BusinessState {
-  loading:    boolean;
-  businessId: string | null;
-  business:   Business | null;
-  userId:     string | null;
-  email:      string | null;
+  loading:      boolean;
+  businessId:   string | null;
+  business:     Business | null;
+  userId:       string | null;
+  email:        string | null;
   isSuperAdmin: boolean;
+  impersonatingBusinessId: string | null;
+}
+
+function readCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.split("; ").find(c => c.startsWith(name + "="));
+  return match ? decodeURIComponent(match.slice(name.length + 1)) : null;
 }
 
 export function useBusiness(): BusinessState {
@@ -25,6 +36,7 @@ export function useBusiness(): BusinessState {
     userId:       null,
     email:        null,
     isSuperAdmin: false,
+    impersonatingBusinessId: null,
   });
 
   useEffect(() => {
@@ -46,10 +58,20 @@ export function useBusiness(): BusinessState {
         .eq("id", userId)
         .single();
 
-      const businessId   = userRow?.business_id ?? null;
       const isSuperAdmin = userRow?.is_super_admin ?? false;
+      let businessId: string | null = userRow?.business_id ?? null;
 
-      // 3. Get business details
+      // 3. If super admin and impersonation cookie is set, swap the business
+      let impersonatingBusinessId: string | null = null;
+      if (isSuperAdmin) {
+        const imp = readCookie("zb_impersonate");
+        if (imp) {
+          impersonatingBusinessId = imp;
+          businessId = imp;
+        }
+      }
+
+      // 4. Get business details
       let business: Business | null = null;
       if (businessId) {
         const { data: biz } = await supabase
@@ -60,7 +82,15 @@ export function useBusiness(): BusinessState {
         business = biz;
       }
 
-      setState({ loading: false, businessId, business, userId, email, isSuperAdmin });
+      setState({
+        loading: false,
+        businessId,
+        business,
+        userId,
+        email,
+        isSuperAdmin,
+        impersonatingBusinessId,
+      });
     }
 
     load();
@@ -71,4 +101,9 @@ export function useBusiness(): BusinessState {
   }, []);
 
   return state;
+}
+
+export async function stopImpersonating() {
+  await fetch("/api/admin/impersonate", { method: "DELETE" });
+  if (typeof window !== "undefined") window.location.href = "/admin";
 }

@@ -104,23 +104,23 @@ export default function SettingsPage() {
               }}
             >
               <div style={{ fontSize: 11, color: "var(--steel)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600 }}>
-                Current plan
+                Subscription status
               </div>
               <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 26, color: "var(--green)", marginTop: 4 }}>
-                Growth · $99/mo
+                Active
               </div>
               <div style={{ fontSize: 12, color: "var(--steel)", marginTop: 4 }}>
-                2,500 AI credits/mo · unlimited orders · all features
+                All modules enabled · AI credits in good standing
               </div>
               <div style={{ marginTop: 12, fontSize: 12, color: "var(--cloud)" }}>
                 Next billed: <strong>1 May 2026</strong>
               </div>
             </div>
             <button
-              onClick={() => toast("Plan change modal would open (demo)")}
+              onClick={() => toast("Billing portal would open (demo)")}
               style={{ padding: "10px 14px", borderRadius: 10, background: "transparent", border: "1px solid var(--mist-9)", color: "var(--steel)", fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: "var(--font-inter)", width: "100%" }}
             >
-              Change plan
+              Manage billing
             </button>
           </Card>
 

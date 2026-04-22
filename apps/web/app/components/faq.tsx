@@ -25,7 +25,7 @@ const items = [
   },
   {
     q: "Do I need a POS already?",
-    a: "No — ZentraBite includes a built-in POS for in-store orders so a single screen runs dine-in, takeaway, and online. If you have an existing POS you like, we can integrate with it on the Scale plan.",
+    a: "No — ZentraBite includes a built-in POS for in-store orders so a single screen runs dine-in, takeaway, and online. If you have an existing POS you like, we can integrate with it — ask us for a tailored quote.",
   },
   {
     q: "What about GST and accounting?",

@@ -10,7 +10,6 @@ CREATE TABLE IF NOT EXISTS businesses (
   name                TEXT NOT NULL,
   type                TEXT NOT NULL DEFAULT 'Restaurant',
   suburb              TEXT,
-  plan                TEXT DEFAULT 'Pro',
   stripe_account_id   TEXT,          -- Stripe Connect Express account
   stripe_customer_id  TEXT,          -- Stripe subscription customer
   subdomain           TEXT UNIQUE,   -- e.g. sorrentos.zentrabite.com.au

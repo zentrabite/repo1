@@ -260,9 +260,6 @@ export default function DemoPage() {
                 <Link href="/demo/merchant" className="btn-secondary" style={{ padding: "12px 20px", fontSize: 14, justifyContent: "flex-start" }}>
                   🛒 See the customer storefront →
                 </Link>
-                <Link href="/demo/super-admin" className="btn-secondary" style={{ padding: "12px 20px", fontSize: 14, justifyContent: "flex-start" }}>
-                  ⚙️ Open the Super Admin control plane →
-                </Link>
                 <Link href="/contact" className="btn-ghost" style={{ padding: "12px 20px", fontSize: 14, justifyContent: "flex-start", marginTop: 6 }}>
                   → Start my 1-month free trial
                 </Link>

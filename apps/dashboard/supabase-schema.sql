@@ -13,7 +13,6 @@ create table if not exists businesses (
   name               text not null,
   type               text not null,
   suburb             text,
-  plan               text not null default 'starter',
   stripe_account_id  text,
   stripe_customer_id text,
   subdomain          text unique,

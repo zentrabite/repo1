@@ -5,7 +5,6 @@ export const BIZ = {
   name:     "Your Business",
   location: "Location",
   logo:     "🏪",
-  plan:     "Pro",
   // All metrics come from Supabase — zeroed until connected
   revenue:      0,
   directPct:    0,

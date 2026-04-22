@@ -405,7 +405,7 @@ function SettingsContent() {
               <div>
                 <div style={{ padding:"12px 16px", background:"rgba(0,182,122,.06)", border:"1px solid rgba(0,182,122,.15)", borderRadius:10, marginBottom:16 }}>
                   <div style={{ fontFamily:"var(--font-inter)", fontSize:13, color:C.g, fontWeight:600 }}>
-                    {subscriptionStatus === "trialing" ? "✓ Free trial active — 14 days remaining" : "✓ Pro plan active · $500/month"}
+                    {subscriptionStatus === "trialing" ? "✓ Free trial active — 14 days remaining" : "✓ Subscription active"}
                   </div>
                 </div>
                 <button className="bg-btn" style={{ width:"100%", justifyContent:"center" }} onClick={() => window.open("https://dashboard.stripe.com/subscriptions", "_blank")}>

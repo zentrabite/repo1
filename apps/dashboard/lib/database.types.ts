@@ -13,7 +13,6 @@ export interface Database {
           name:               string;
           type:               string;
           suburb:             string | null;
-          plan:               string;
           stripe_account_id:  string | null;
           stripe_customer_id: string | null;
           subdomain:          string | null;
