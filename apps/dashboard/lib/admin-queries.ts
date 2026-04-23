@@ -15,6 +15,13 @@ export type AdminBusinessRow = {
   logo_url:           string | null;
   stripe_account_id:  string | null;
   stripe_customer_id: string | null;
+  // "About" fields — surfaced on /admin/businesses/[id]
+  description:        string | null;
+  contact_phone:      string | null;
+  contact_email:      string | null;
+  website:            string | null;
+  abn:                string | null;
+  address:            string | null;
   settings:           Record<string, unknown>;
   created_at:         string;
   customerCount:      number;
@@ -23,7 +30,7 @@ export type AdminBusinessRow = {
   smsSent:            number;
   lastOrder:          string | null;
   modules:            Record<string, boolean>;
-  owner:              { name: string | null; email: string | null } | null;
+  owner:              { name: string | null; email: string | null; phone: string | null } | null;
 };
 
 const DEFAULT_MODULES: Record<string, boolean> = {
@@ -36,24 +43,27 @@ export async function getAllBusinessesStats(): Promise<AdminBusinessRow[]> {
   const db = createAdminClient();
 
   const [bizsRes, custsRes, ordersRes, smsRes, usersRes] = await Promise.all([
-    db.from("businesses").select("id, name, type, suburb, subdomain, logo_url, stripe_account_id, stripe_customer_id, settings, created_at"),
+    db.from("businesses").select("id, name, type, suburb, subdomain, logo_url, stripe_account_id, stripe_customer_id, description, contact_phone, contact_email, website, abn, address, settings, created_at"),
     db.from("customers").select("id, business_id"),
     db.from("orders").select("id, business_id, total, created_at"),
     db.from("sms_logs").select("id, business_id, status"),
-    db.from("users").select("id, business_id, name, email, role").eq("role", "owner"),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (db.from("users") as any).select("id, business_id, name, email, phone, role").eq("role", "owner"),
   ]);
 
   const bizs    = bizsRes.data    ?? [];
   const custs   = custsRes.data   ?? [];
   const orders  = ordersRes.data  ?? [];
   const smsLogs = smsRes.data     ?? [];
-  const users   = usersRes.data   ?? [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const users   = (usersRes.data ?? []) as any[];
 
   return bizs.map(b => {
     const settings = (b.settings ?? {}) as Record<string, unknown>;
     const modulesRaw = (settings.modules ?? {}) as Record<string, boolean>;
     const modules = { ...DEFAULT_MODULES, ...modulesRaw };
-    const owner   = users.find(u => u.business_id === b.id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const owner   = users.find((u: any) => u.business_id === b.id);
 
     return {
       id:                 b.id,
@@ -64,6 +74,12 @@ export async function getAllBusinessesStats(): Promise<AdminBusinessRow[]> {
       logo_url:           b.logo_url,
       stripe_account_id:  b.stripe_account_id,
       stripe_customer_id: b.stripe_customer_id,
+      description:        b.description ?? null,
+      contact_phone:      b.contact_phone ?? null,
+      contact_email:      b.contact_email ?? null,
+      website:            b.website ?? null,
+      abn:                b.abn ?? null,
+      address:            b.address ?? null,
       settings,
       created_at:         b.created_at,
       customerCount: custs.filter(c => c.business_id === b.id).length,
@@ -74,7 +90,8 @@ export async function getAllBusinessesStats(): Promise<AdminBusinessRow[]> {
         .filter(o => o.business_id === b.id)
         .sort((a, z) => (z.created_at > a.created_at ? 1 : -1))[0]?.created_at ?? null,
       modules,
-      owner: owner ? { name: owner.name ?? null, email: owner.email ?? null } : null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      owner: owner ? { name: (owner as any).name ?? null, email: (owner as any).email ?? null, phone: (owner as any).phone ?? null } : null,
     };
   });
 }

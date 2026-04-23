@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { navigation } from "@/lib/navigation";
 import { supabase } from "@/lib/supabase";
 import { useBusiness } from "@/hooks/use-business";
+import { resolvePermissions } from "@/lib/permissions";
 
 const NAVY  = "#1C2D48";
 const GREEN = "#00B67A";
@@ -15,7 +16,14 @@ const MIST  = "rgba(226,232,240,.09)";
 export default function DashboardSidebar() {
   const pathname  = usePathname();
   const router    = useRouter();
-  const { business, email, isSuperAdmin } = useBusiness();
+  const { business, email, isSuperAdmin, role } = useBusiness();
+
+  // Role-based nav filtering. Owners / super-admins see everything; Manager /
+  // Staff / POS see only what the owner granted them in Settings → Permissions.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const overrides = ((business?.settings as any)?.role_permissions ?? null) as Record<string, string[]> | null;
+  const allowed = resolvePermissions(role, overrides, isSuperAdmin);
+  const visibleNav = navigation.filter(n => allowed.includes(n.href));
 
   // Use real business data, fall back to placeholder while loading
   const bizName  = business?.name     ?? "Your Business";
@@ -74,7 +82,7 @@ export default function DashboardSidebar() {
 
       {/* ── Navigation ── */}
       <nav style={{ flex: 1, padding: "10px 8px" }}>
-        {navigation.map((item) => {
+        {visibleNav.map((item) => {
           const isActive =
             pathname === item.href ||
             (item.href !== "/dashboard" && pathname.startsWith(item.href));

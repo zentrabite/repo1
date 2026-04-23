@@ -20,6 +20,9 @@ interface BusinessState {
   email:        string | null;
   isSuperAdmin: boolean;
   impersonatingBusinessId: string | null;
+  // Role of the current user for the current business. "Owner" by default —
+  // drives role-based nav hiding in the sidebar.
+  role:         string | null;
 }
 
 function readCookie(name: string): string | null {
@@ -37,6 +40,7 @@ export function useBusiness(): BusinessState {
     email:        null,
     isSuperAdmin: false,
     impersonatingBusinessId: null,
+    role:         null,
   });
 
   useEffect(() => {
@@ -82,6 +86,22 @@ export function useBusiness(): BusinessState {
         business = biz;
       }
 
+      // 5. Resolve role. Users.business_id owners are always "Owner"; everyone
+      // else's role comes from business_members keyed on their email.
+      let role: string | null = null;
+      const ownsBusiness = !impersonatingBusinessId && userRow?.business_id === businessId;
+      if (ownsBusiness || isSuperAdmin) {
+        role = "Owner";
+      } else if (businessId && email) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: memberRow } = await (supabase.from("business_members") as any)
+          .select("role")
+          .eq("business_id", businessId)
+          .eq("email", email)
+          .maybeSingle();
+        role = memberRow?.role ?? "Staff";
+      }
+
       setState({
         loading: false,
         businessId,
@@ -90,6 +110,7 @@ export function useBusiness(): BusinessState {
         email,
         isSuperAdmin,
         impersonatingBusinessId,
+        role,
       });
     }
 

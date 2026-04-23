@@ -21,6 +21,14 @@ export interface Database {
           stripe_details_submitted: boolean | null;
           subdomain:          string | null;
           logo_url:           string | null;
+          // Super-admin "About" fields (populated at onboarding, editable from
+          // /admin/businesses/[id]).
+          description:        string | null;
+          contact_phone:      string | null;
+          contact_email:      string | null;
+          website:            string | null;
+          abn:                string | null;
+          address:            string | null;
           settings:           Json;
           created_at:         string;
         };
@@ -100,6 +108,9 @@ export interface Database {
           converted:    boolean;
           twilio_sid:   string | null;
           sent_at:      string;
+          channel:      string | null;
+          rule_id:      string | null;
+          recipient:    string | null;
         };
         Insert: Omit<Database["public"]["Tables"]["sms_logs"]["Row"], "id" | "sent_at">;
         Update: Partial<Database["public"]["Tables"]["sms_logs"]["Insert"]>;

@@ -57,6 +57,53 @@ ALTER TABLE businesses ADD COLUMN IF NOT EXISTS stripe_payouts_enabled  BOOLEAN 
 ALTER TABLE businesses ADD COLUMN IF NOT EXISTS stripe_details_submitted BOOLEAN DEFAULT false;
 
 
+-- ─── Winback runner: let sms_logs double as a channel-agnostic send log ─────
+
+ALTER TABLE sms_logs ADD COLUMN IF NOT EXISTS channel    TEXT DEFAULT 'sms';
+ALTER TABLE sms_logs ADD COLUMN IF NOT EXISTS rule_id    UUID;
+ALTER TABLE sms_logs ADD COLUMN IF NOT EXISTS recipient  TEXT;  -- email OR phone (phone also stored on customer)
+
+CREATE INDEX IF NOT EXISTS idx_sms_logs_rule_customer
+  ON sms_logs(rule_id, customer_id, sent_at DESC);
+
+
+-- ─── Super-admin "About" fields + owner phone (for searching by phone) ─────
+
+-- Owner / staff contact number. Used by super admin to look up a tenant by
+-- phone number when an owner calls in for support.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS phone TEXT;
+
+CREATE INDEX IF NOT EXISTS idx_users_phone ON users(phone) WHERE phone IS NOT NULL;
+
+-- Business-level contact & about fields. Surfaced on /admin/businesses/[id].
+ALTER TABLE businesses ADD COLUMN IF NOT EXISTS description   TEXT;
+ALTER TABLE businesses ADD COLUMN IF NOT EXISTS contact_phone TEXT;
+ALTER TABLE businesses ADD COLUMN IF NOT EXISTS contact_email TEXT;
+ALTER TABLE businesses ADD COLUMN IF NOT EXISTS website       TEXT;
+ALTER TABLE businesses ADD COLUMN IF NOT EXISTS abn           TEXT;
+ALTER TABLE businesses ADD COLUMN IF NOT EXISTS address       TEXT;
+
+CREATE INDEX IF NOT EXISTS idx_businesses_contact_phone
+  ON businesses(contact_phone) WHERE contact_phone IS NOT NULL;
+
+
+-- ─── Team invites (settings → Team) ─────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS business_members (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  business_id  UUID NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
+  email        TEXT NOT NULL,
+  role         TEXT NOT NULL DEFAULT 'Staff',     -- Owner | Manager | Staff
+  invited_by   UUID,                               -- auth.users.id of the inviter
+  status       TEXT NOT NULL DEFAULT 'invited',   -- invited | active | removed
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (business_id, email)
+);
+
+CREATE INDEX IF NOT EXISTS idx_business_members_business
+  ON business_members(business_id);
+
+
 -- ─── Verify ────────────────────────────────────────────────────────────────
 -- Expect: 14 rows, all with data_type (no NULL)
 SELECT column_name, data_type

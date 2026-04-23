@@ -8,6 +8,8 @@ import Toast from "@/components/toast";
 import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
 import { supabase } from "@/lib/supabase";
+import { navigation } from "@/lib/navigation";
+import { DEFAULT_ROLE_PERMISSIONS, NAV_HREFS } from "@/lib/permissions";
 
 const C = { g:"#00B67A", o:"#FF6B35", r:"#FF4757", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(226,232,240,.08)" };
 
@@ -128,6 +130,10 @@ function SettingsContent() {
     sun: { open: "17:00", close: "21:00", closed: false },
   });
 
+  // Role permissions — owner decides what Manager/Staff/POS can see in the nav.
+  const [rolePerms, setRolePerms] = useState<Record<string, string[]>>(DEFAULT_ROLE_PERMISSIONS);
+  const [rolesSaving, setRolesSaving] = useState(false);
+
   // Real Stripe + subscription status from the business row
   useEffect(() => {
     if (!business) return;
@@ -146,6 +152,11 @@ function SettingsContent() {
     }
     if (settings.hours && typeof settings.hours === "object") {
       setHours(prev => ({ ...prev, ...(settings.hours as any) }));
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rp = (settings as any).role_permissions;
+    if (rp && typeof rp === "object") {
+      setRolePerms(prev => ({ ...prev, ...rp }));
     }
   }, [business]);
 
@@ -203,11 +214,75 @@ function SettingsContent() {
     }
   };
 
-  const addMember = () => {
-    if (!invite.trim()) return show("Enter an email address first");
-    setTeam(t => [...t, { email:invite.trim(), role:"Staff" }]);
+  const addMember = async () => {
+    const target = invite.trim();
+    if (!target) return show("Enter an email address first");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(target)) return show("That doesn't look like a valid email");
+
+    // Optimistic UI — add the row immediately, roll back on failure
+    setTeam(t => [...t, { email: target, role: "Staff" }]);
     setInvite("");
-    show("Invite sent ✓");
+    show("Sending invite…");
+
+    try {
+      const res = await fetch("/api/team/invite", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email:        target,
+          businessId:   businessId,
+          role:         "Staff",
+          businessName: profile.name || business?.name || "your team",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setTeam(t => t.filter(m => m.email !== target));
+        show(`Couldn't send invite: ${data.error ?? "unknown error"}`);
+        return;
+      }
+      if (data.skipped) {
+        show("Invite recorded — set up RESEND_API_KEY to send emails");
+      } else if (data.delivered) {
+        show(`Invite sent to ${target} ✓`);
+      } else {
+        show("Invite recorded — email delivery failed");
+      }
+    } catch {
+      setTeam(t => t.filter(m => m.email !== target));
+      show("Network error sending invite");
+    }
+  };
+
+  // Persist role permissions. Reads current settings then deep-merges so we
+  // don't wipe hours / notify_email / etc.
+  const savePermissions = async () => {
+    if (!businessId) return;
+    setRolesSaving(true);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: current } = await supabase.from("businesses").select("settings").eq("id", businessId).single() as any;
+      const prev = (current?.settings ?? {}) as Record<string, unknown>;
+      const next = { ...prev, role_permissions: rolePerms };
+      await supabase.from("businesses").update({ settings: next }).eq("id", businessId);
+      show("Permissions saved ✓");
+    } catch {
+      show("Couldn't save permissions");
+    } finally {
+      setRolesSaving(false);
+    }
+  };
+
+  const toggleRolePerm = (role: string, href: string) => {
+    setRolePerms(prev => {
+      const current = prev[role] ?? [];
+      const has = current.includes(href);
+      return { ...prev, [role]: has ? current.filter(h => h !== href) : [...current, href] };
+    });
+  };
+
+  const resetRoleToDefault = (role: string) => {
+    setRolePerms(prev => ({ ...prev, [role]: DEFAULT_ROLE_PERMISSIONS[role] ?? [] }));
   };
 
   return (
@@ -546,6 +621,81 @@ function SettingsContent() {
                 Invite
               </button>
             </div>
+          </div>
+
+          {/* Permissions */}
+          <div className="gc" style={{ padding:24 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:18 }}>
+              <div>
+                <SectionTitle>Permissions</SectionTitle>
+                <div style={{ fontFamily:"var(--font-inter)", fontSize:12, color:C.st, marginTop:-10 }}>
+                  Choose which pages each role can see. Owners always see everything.
+                </div>
+              </div>
+            </div>
+
+            {["Manager", "Staff", "POS"].map(role => {
+              const allowed = rolePerms[role] ?? [];
+              return (
+                <div key={role} style={{ marginBottom:18, paddingBottom:18, borderBottom:`1px solid ${C.mist}` }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                      <span style={{
+                        padding:"3px 10px", borderRadius:999, fontSize:11, fontWeight:600,
+                        fontFamily:"var(--font-outfit)", background:"rgba(107,124,147,.14)", color:C.cl,
+                      }}>
+                        {role}
+                      </span>
+                      <span style={{ fontSize:11, color:C.st, fontFamily:"var(--font-inter)" }}>
+                        {allowed.length}/{NAV_HREFS.length} pages
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => resetRoleToDefault(role)}
+                      style={{ background:"transparent", border:"none", color:C.st, fontSize:11, cursor:"pointer", textDecoration:"underline" }}
+                    >
+                      Reset to default
+                    </button>
+                  </div>
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:6 }}>
+                    {navigation.map(nav => {
+                      const on = allowed.includes(nav.href);
+                      return (
+                        <label
+                          key={nav.href}
+                          style={{
+                            display:"flex", alignItems:"center", gap:8,
+                            padding:"6px 10px", borderRadius:8,
+                            background: on ? "rgba(0,182,122,.06)" : "transparent",
+                            border: `1px solid ${on ? "rgba(0,182,122,.22)" : C.mist}`,
+                            cursor:"pointer", fontFamily:"var(--font-inter)", fontSize:12,
+                            color: on ? C.cl : C.st,
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={on}
+                            onChange={() => toggleRolePerm(role, nav.href)}
+                            style={{ margin:0 }}
+                          />
+                          <span style={{ fontSize:13 }}>{nav.emoji}</span>
+                          <span>{nav.label}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+
+            <button
+              className="bp"
+              disabled={rolesSaving}
+              onClick={savePermissions}
+              style={{ width:"100%", justifyContent:"center" }}
+            >
+              {rolesSaving ? "Saving…" : "Save permissions"}
+            </button>
           </div>
 
         </div>

@@ -35,6 +35,9 @@ type AdminBiz = {
   subdomain:          string | null;
   stripe_account_id:  string | null;
   stripe_customer_id: string | null;
+  contact_phone:      string | null;
+  contact_email:      string | null;
+  description:        string | null;
   created_at:         string;
   customerCount:      number;
   orderCount:         number;
@@ -42,7 +45,7 @@ type AdminBiz = {
   smsSent:            number;
   lastOrder:          string | null;
   modules:            Record<string, boolean>;
-  owner:              { name: string | null; email: string | null } | null;
+  owner:              { name: string | null; email: string | null; phone: string | null } | null;
 };
 
 const C = { g:"#00B67A", o:"#FF6B35", r:"#FF4757", y:"#FFC14B", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(226,232,240,.09)" };
@@ -93,10 +96,21 @@ export default function AdminPage() {
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     if (!q) return businesses;
-    return businesses.filter(b =>
-      [b.name, b.type, b.suburb ?? "", b.subdomain ?? "", b.owner?.name ?? "", b.owner?.email ?? ""]
-        .join(" ").toLowerCase().includes(q)
-    );
+    // If the query is mostly digits, also match against owner + contact phone
+    // with all non-digits stripped (so "04 1234 5678" matches "0412345678").
+    const qDigits = q.replace(/\D/g, "");
+    const isPhoneish = qDigits.length >= 4 && qDigits.length >= q.replace(/\s|\+/g, "").length * 0.7;
+    return businesses.filter(b => {
+      const textHay = [
+        b.name, b.type, b.suburb ?? "", b.subdomain ?? "",
+        b.owner?.name ?? "", b.owner?.email ?? "",
+        b.contact_email ?? "", b.description ?? "",
+      ].join(" ").toLowerCase();
+      if (textHay.includes(q)) return true;
+      if (!isPhoneish) return false;
+      const phoneHay = [b.owner?.phone ?? "", b.contact_phone ?? ""].join(" ").replace(/\D/g, "");
+      return phoneHay.includes(qDigits);
+    });
   }, [businesses, search]);
 
   const totalRevenue   = businesses.reduce((s, b) => s + b.totalRevenue, 0);
@@ -167,6 +181,25 @@ export default function AdminPage() {
             Every tenant on ZentraBite. Flip modules, impersonate owners, see usage live.
           </p>
         </div>
+        <button
+          onClick={() => router.push("/admin/onboarding/new")}
+          style={{
+            padding: "10px 18px",
+            background: C.g,
+            border: "none",
+            borderRadius: 10,
+            color: "#fff",
+            fontWeight: 600,
+            fontSize: 13,
+            fontFamily: "var(--font-outfit)",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <span style={{ fontSize: 16 }}>+</span> New business onboarding
+        </button>
       </div>
 
       {/* Platform KPIs */}
@@ -199,7 +232,7 @@ export default function AdminPage() {
                 Tenants ({businesses.length})
               </div>
               <input
-                placeholder="Search tenants…"
+                placeholder="Search by name, email, or phone…"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 style={{
@@ -295,6 +328,22 @@ export default function AdminPage() {
                   )}
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
+                  <button
+                    onClick={() => router.push(`/admin/businesses/${active.id}`)}
+                    style={{
+                      padding: "9px 16px",
+                      borderRadius: 8,
+                      background: "rgba(0,182,122,0.12)",
+                      border: "1px solid rgba(0,182,122,0.35)",
+                      color: C.g,
+                      fontSize: 13,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      fontFamily: "var(--font-inter)",
+                    }}
+                  >
+                    About →
+                  </button>
                   <button
                     onClick={() => handleImpersonate(active)}
                     disabled={impersonating === active.id}
@@ -420,11 +469,28 @@ export default function AdminPage() {
                       Owner & contact
                     </div>
                     <div style={{ display: "grid", gap: 8, fontSize: 13.5, fontFamily: "var(--font-inter)", color: C.cl }}>
-                      <Row k="Owner name"  v={active.owner?.name ?? "—"} />
-                      <Row k="Owner email" v={active.owner?.email ?? "—"} />
-                      <Row k="Subdomain"   v={active.subdomain ? `${active.subdomain}.zentrabite.com.au` : "—"} />
-                      <Row k="Stripe acc." v={active.stripe_account_id ?? "—"} />
-                      <Row k="Business ID" v={active.id} mono />
+                      <Row k="Owner name"     v={active.owner?.name ?? "—"} />
+                      <Row k="Owner email"    v={active.owner?.email ?? "—"} />
+                      <Row k="Owner phone"    v={active.owner?.phone ?? "—"} />
+                      <Row k="Business phone" v={active.contact_phone ?? "—"} />
+                      <Row k="Business email" v={active.contact_email ?? "—"} />
+                      <Row k="Subdomain"      v={active.subdomain ? `${active.subdomain}.zentrabite.com.au` : "—"} />
+                      <Row k="Stripe acc."    v={active.stripe_account_id ?? "—"} />
+                      <Row k="Business ID"    v={active.id} mono />
+                    </div>
+                    <div style={{ marginTop: 12 }}>
+                      <button
+                        onClick={() => router.push(`/admin/businesses/${active.id}`)}
+                        style={{
+                          padding: "8px 14px", borderRadius: 8,
+                          background: "rgba(0,182,122,0.12)", color: C.g,
+                          border: "1px solid rgba(0,182,122,0.35)",
+                          fontSize: 13, fontWeight: 700, cursor: "pointer",
+                          fontFamily: "var(--font-inter)",
+                        }}
+                      >
+                        Open About page →
+                      </button>
                     </div>
                   </div>
 
