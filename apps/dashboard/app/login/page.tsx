@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
@@ -21,6 +21,20 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState("");
+
+  // ── Recovery-link rescue ────────────────────────────────────────────────────
+  // Supabase sometimes redirects password-reset emails to the root URL instead
+  // of /reset-password (if the allowlist doesn't match). The server proxy then
+  // bounces unauthenticated users to /login, but the browser preserves the
+  // #access_token=…&type=recovery hash through the 303. If we see that hash
+  // here, forward to /reset-password so the recovery session can be processed.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash;
+    if (hash && hash.includes("type=recovery")) {
+      window.location.replace(`/reset-password${hash}`);
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
