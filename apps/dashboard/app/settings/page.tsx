@@ -111,6 +111,10 @@ function SettingsContent() {
   const [team, setTeam] = useState<{ email:string; role:string }[]>([]);
   const [invite, setInvite] = useState("");
   const [stripeConnected, setStripeConnected] = useState(false);
+  // Granular Stripe Connect onboarding state — drives the copy on the Stripe card.
+  const [stripeCharges, setStripeCharges]   = useState(false); // can accept payments
+  const [stripePayouts, setStripePayouts]   = useState(false); // can receive payouts
+  const [stripeDetails, setStripeDetails]   = useState(false); // completed onboarding form
   const [subscriptionStatus, setSubscriptionStatus] = useState<"inactive"|"trialing"|"active">("inactive");
   const [connectLoading, setConnectLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -127,8 +131,16 @@ function SettingsContent() {
   // Real Stripe + subscription status from the business row
   useEffect(() => {
     if (!business) return;
-    setStripeConnected(Boolean(business.stripe_account_id));
-    const settings = (business.settings ?? {}) as Record<string, unknown>;
+    const b = business as typeof business & {
+      stripe_charges_enabled?:   boolean | null;
+      stripe_payouts_enabled?:   boolean | null;
+      stripe_details_submitted?: boolean | null;
+    };
+    setStripeConnected(Boolean(b.stripe_account_id));
+    setStripeCharges(Boolean(b.stripe_charges_enabled));
+    setStripePayouts(Boolean(b.stripe_payouts_enabled));
+    setStripeDetails(Boolean(b.stripe_details_submitted));
+    const settings = (b.settings ?? {}) as Record<string, unknown>;
     if (settings.subscription_status) {
       setSubscriptionStatus(settings.subscription_status as any);
     }
@@ -368,47 +380,95 @@ function SettingsContent() {
 
           {/* Stripe Connect */}
           <div className="gc" style={{ padding:24 }}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:18 }}>
-              <SectionTitle>Stripe Payments</SectionTitle>
-              <StatusPill active={stripeConnected} label={stripeConnected ? "Connected" : "Not connected"} />
-            </div>
-
-            {stripeConnected ? (
-              <div>
-                <div style={{ fontFamily:"var(--font-inter)", fontSize:13, color:C.st, lineHeight:1.6, marginBottom:16 }}>
-                  Your Stripe Express account is connected. Payments from your storefront will go directly to your bank account (minus Stripe&apos;s processing fee).
-                </div>
-                <div style={{ padding:"12px 16px", background:"rgba(0,182,122,.06)", border:"1px solid rgba(0,182,122,.15)", borderRadius:10, marginBottom:16 }}>
-                  <div style={{ fontFamily:"var(--font-inter)", fontSize:12, color:C.g, fontWeight:600 }}>
-                    ✓ Payments enabled · Direct to your bank
+            {(() => {
+              // Three-state UX:
+              //   not-started   — no stripe account id
+              //   incomplete    — account exists but charges or payouts still disabled
+              //   live          — charges + payouts both enabled
+              const state =
+                !stripeConnected ? "not-started"
+                : stripeCharges && stripePayouts ? "live"
+                : "incomplete";
+              const pillLabel = state === "live" ? "Live" : state === "incomplete" ? "Finish onboarding" : "Not connected";
+              const pillActive = state === "live";
+              return (
+                <>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:18 }}>
+                    <SectionTitle>Stripe Payments</SectionTitle>
+                    <StatusPill active={pillActive} label={pillLabel} />
                   </div>
-                </div>
-                <button className="bg-btn" style={{ width:"100%", justifyContent:"center" }} onClick={() => window.open("https://dashboard.stripe.com", "_blank")}>
-                  Open Stripe Dashboard ↗
-                </button>
-              </div>
-            ) : (
-              <div>
-                <div style={{ fontFamily:"var(--font-inter)", fontSize:13, color:C.st, lineHeight:1.6, marginBottom:16 }}>
-                  Connect Stripe so customers can pay and funds go directly to your bank. Takes about 5 minutes.
-                </div>
-                <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:16, fontSize:13, color:C.st, fontFamily:"var(--font-inter)" }}>
-                  {["Accept card payments from customers","Funds deposited directly to your bank","Stripe handles all compliance & security"].map((item, i) => (
-                    <div key={i} style={{ display:"flex", alignItems:"center", gap:8 }}>
-                      <span style={{ color:C.g, fontWeight:700 }}>✓</span> {item}
+
+                  {state === "live" && (
+                    <div>
+                      <div style={{ fontFamily:"var(--font-inter)", fontSize:13, color:C.st, lineHeight:1.6, marginBottom:16 }}>
+                        Your Stripe Express account is fully onboarded. Payments go direct to your bank (minus Stripe&apos;s processing fee).
+                      </div>
+                      <div style={{ padding:"12px 16px", background:"rgba(0,182,122,.06)", border:"1px solid rgba(0,182,122,.15)", borderRadius:10, marginBottom:16 }}>
+                        <div style={{ fontFamily:"var(--font-inter)", fontSize:12, color:C.g, fontWeight:600 }}>
+                          ✓ Charges enabled · ✓ Payouts enabled
+                        </div>
+                      </div>
+                      <button className="bg-btn" style={{ width:"100%", justifyContent:"center" }} onClick={() => window.open("https://dashboard.stripe.com", "_blank")}>
+                        Open Stripe Dashboard ↗
+                      </button>
                     </div>
-                  ))}
-                </div>
-                <button
-                  className="bp"
-                  style={{ width:"100%", justifyContent:"center" }}
-                  onClick={handleStripeConnect}
-                  disabled={connectLoading}
-                >
-                  {connectLoading ? "Opening Stripe…" : "Connect Stripe →"}
-                </button>
-              </div>
-            )}
+                  )}
+
+                  {state === "incomplete" && (
+                    <div>
+                      <div style={{ fontFamily:"var(--font-inter)", fontSize:13, color:C.st, lineHeight:1.6, marginBottom:16 }}>
+                        Stripe still needs a few details before you can take payments. Usually this is bank account info or an identity document.
+                      </div>
+                      <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:16, fontSize:13, fontFamily:"var(--font-inter)" }}>
+                        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                          <span style={{ color: stripeDetails ? C.g : C.o, fontWeight:700, width:14 }}>{stripeDetails ? "✓" : "•"}</span>
+                          <span style={{ color:C.cl }}>Business details submitted</span>
+                        </div>
+                        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                          <span style={{ color: stripeCharges ? C.g : C.o, fontWeight:700, width:14 }}>{stripeCharges ? "✓" : "•"}</span>
+                          <span style={{ color:C.cl }}>Ready to accept charges</span>
+                        </div>
+                        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                          <span style={{ color: stripePayouts ? C.g : C.o, fontWeight:700, width:14 }}>{stripePayouts ? "✓" : "•"}</span>
+                          <span style={{ color:C.cl }}>Ready to receive payouts</span>
+                        </div>
+                      </div>
+                      <button
+                        className="bp"
+                        style={{ width:"100%", justifyContent:"center" }}
+                        onClick={handleStripeConnect}
+                        disabled={connectLoading}
+                      >
+                        {connectLoading ? "Opening Stripe…" : "Finish onboarding →"}
+                      </button>
+                    </div>
+                  )}
+
+                  {state === "not-started" && (
+                    <div>
+                      <div style={{ fontFamily:"var(--font-inter)", fontSize:13, color:C.st, lineHeight:1.6, marginBottom:16 }}>
+                        Connect Stripe so customers can pay and funds go directly to your bank. Takes about 5 minutes.
+                      </div>
+                      <div style={{ display:"flex", flexDirection:"column", gap:8, marginBottom:16, fontSize:13, color:C.st, fontFamily:"var(--font-inter)" }}>
+                        {["Accept card payments from customers","Funds deposited directly to your bank","Stripe handles all compliance & security"].map((item, i) => (
+                          <div key={i} style={{ display:"flex", alignItems:"center", gap:8 }}>
+                            <span style={{ color:C.g, fontWeight:700 }}>✓</span> {item}
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        className="bp"
+                        style={{ width:"100%", justifyContent:"center" }}
+                        onClick={handleStripeConnect}
+                        disabled={connectLoading}
+                      >
+                        {connectLoading ? "Opening Stripe…" : "Connect Stripe →"}
+                      </button>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </div>
 
           {/* Subscription */}

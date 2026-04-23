@@ -217,8 +217,8 @@ export default function DemoRosteringPage() {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function hoursBetween(start: string, end: string): number {
-  const [sh, sm] = start.split(":").map(Number);
-  const [eh, em] = end.split(":").map(Number);
+  const [sh = 0, sm = 0] = start.split(":").map(Number);
+  const [eh = 0, em = 0] = end.split(":").map(Number);
   return Math.max(0, eh + em / 60 - (sh + sm / 60));
 }
 
@@ -364,7 +364,7 @@ function ShiftDrawer({
 
         <div style={{ padding: 22, display: "grid", gap: 20 }}>
           <div style={{ display: "grid", gap: 8 }}>
-            <Row label="Day"     value={rosterDays[shift.dayOfWeek]} />
+            <Row label="Day"     value={rosterDays[shift.dayOfWeek] ?? ""} />
             <Row label="Shift"   value={`${shift.start} – ${shift.end}`} mono />
             <Row label="Hours"   value={`${hours.toFixed(1)} h`} mono />
             <Row label="Rate"    value={`$${shift.hourlyRate.toFixed(2)} / h`} mono />

@@ -7,6 +7,7 @@ import Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { createServerClient } from "@/lib/supabase-server";
 import { notifyOwnerOfOrder } from "@/lib/notify";
+import { sendCustomerReceipt } from "@/lib/email";
 
 export const dynamic = "force-dynamic";
 
@@ -126,13 +127,25 @@ async function handlePaymentSucceeded(pi: Stripe.PaymentIntent) {
 
   // ── Notify the business owner (email + SMS) ────────────────────────────
   if (newOrder?.id) {
-    await notifyOwnerOfOrder({
-      businessId:   business_id,
-      orderId:      newOrder.id,
-      amount:       pi.amount / 100,
-      customerName: customer_name ?? null,
-      itemCount:    Array.isArray(parsedItems) ? parsedItems.length : undefined,
-    });
+    await Promise.allSettled([
+      notifyOwnerOfOrder({
+        businessId:   business_id,
+        orderId:      newOrder.id,
+        amount:       pi.amount / 100,
+        customerName: customer_name ?? null,
+        itemCount:    Array.isArray(parsedItems) ? parsedItems.length : undefined,
+      }),
+      // Customer receipt — only if we have their email
+      customer_email ? sendOrderReceipt({
+        db,
+        to:           customer_email,
+        businessId:   business_id,
+        orderId:      newOrder.id,
+        customerName: customer_name ?? "there",
+        amount:       pi.amount / 100,
+        items:        parsedItems,
+      }) : Promise.resolve(),
+    ]);
   }
 }
 
@@ -179,30 +192,100 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     stripe_payment_id: session.payment_intent as string,
   }).select("id").single();
 
-  // ── Notify the business owner (email + SMS) ────────────────────────────
+  // ── Notify the business owner (email + SMS) + email customer receipt ──
   if (newOrder?.id) {
-    await notifyOwnerOfOrder({
-      businessId:   business_id,
-      orderId:      newOrder.id,
-      amount,
-      customerName: customer_name ?? null,
-      itemCount:    Array.isArray(parsedItems) ? parsedItems.length : undefined,
+    await Promise.allSettled([
+      notifyOwnerOfOrder({
+        businessId:   business_id,
+        orderId:      newOrder.id,
+        amount,
+        customerName: customer_name ?? null,
+        itemCount:    Array.isArray(parsedItems) ? parsedItems.length : undefined,
+      }),
+      customer_email ? sendOrderReceipt({
+        db,
+        to:           customer_email,
+        businessId:   business_id,
+        orderId:      newOrder.id,
+        customerName: customer_name ?? "there",
+        amount,
+        items:        parsedItems,
+      }) : Promise.resolve(),
+    ]);
+  }
+}
+
+// ─── Customer receipt helper ────────────────────────────────────────────────
+// Small wrapper that fetches the business name + storefront URL so the email
+// template has everything it needs. Non-fatal — logs and moves on if anything
+// goes wrong.
+
+type OrderItemLike = { name?: string; title?: string; qty?: number; quantity?: number; price?: number; unit_price?: number; amount?: number };
+
+async function sendOrderReceipt(args: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  db:           any;
+  to:           string;
+  businessId:   string;
+  orderId:      string;
+  customerName: string;
+  amount:       number;
+  items:        unknown;
+}): Promise<void> {
+  try {
+    const { data: biz } = await args.db
+      .from("businesses")
+      .select("name, subdomain")
+      .eq("id", args.businessId)
+      .single();
+    if (!biz) return;
+
+    const origin = process.env.NEXT_PUBLIC_STOREFRONT_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "";
+    const storeUrl = biz.subdomain && origin ? `${origin.replace(/\/$/, "")}/store/${biz.subdomain}` : undefined;
+
+    const rawItems = Array.isArray(args.items) ? args.items as OrderItemLike[] : [];
+    const items = rawItems.map(it => ({
+      name:  it.name ?? it.title ?? "Item",
+      qty:   it.qty ?? it.quantity,
+      price: it.price ?? it.unit_price ?? it.amount,
+    }));
+
+    await sendCustomerReceipt({
+      to:           args.to,
+      customerName: args.customerName,
+      businessName: biz.name ?? "Your store",
+      orderNumber:  args.orderId.slice(0, 8),
+      total:        args.amount,
+      items,
+      storeUrl,
     });
+  } catch (err) {
+    console.error("[webhook] receipt send failed:", err instanceof Error ? err.message : err);
   }
 }
 
 async function handleMerchantOnboarded(account: Stripe.Account) {
-  if (!account.charges_enabled || !account.details_submitted) return;
   const businessId = account.metadata?.zentrabite_business_id;
   if (!businessId) return;
 
+  // Track onboarding state on dedicated columns (not inside settings JSON) so
+  // the Settings page can distinguish "account created" from "onboarding
+  // complete" from "payouts blocked". The webhook fires on every account
+  // update, so we always write the latest flags.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (createServerClient() as any)
     .from("businesses")
-    .update({ stripe_account_id: account.id })
+    .update({
+      stripe_account_id:        account.id,
+      stripe_charges_enabled:   account.charges_enabled ?? false,
+      stripe_payouts_enabled:   account.payouts_enabled ?? false,
+      stripe_details_submitted: account.details_submitted ?? false,
+    })
     .eq("id", businessId);
 
-  console.log(`[webhook] Merchant onboarded: ${businessId}`);
+  console.log(
+    `[webhook] Account updated ${businessId} — charges=${account.charges_enabled} payouts=${account.payouts_enabled} details=${account.details_submitted}`
+  );
 }
 
 async function handleSubscriptionChange(sub: Stripe.Subscription) {
@@ -210,14 +293,27 @@ async function handleSubscriptionChange(sub: Stripe.Subscription) {
   if (!businessId) return;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (createServerClient() as any)
+  const db = createServerClient() as any;
+
+  // Read current settings so we can MERGE rather than overwrite — otherwise
+  // the merchant's notify_email / notify_phone / hours / etc. all get wiped
+  // every time a subscription event fires.
+  const { data: biz } = await db
+    .from("businesses")
+    .select("settings")
+    .eq("id", businessId)
+    .single();
+  const prev: Record<string, unknown> = (biz?.settings ?? {}) as Record<string, unknown>;
+
+  await db
     .from("businesses")
     .update({
+      stripe_customer_id: sub.customer as string,
       settings: {
+        ...prev,
         subscription_status:     sub.status,
         subscription_period_end: new Date(sub.current_period_end * 1000).toISOString(),
-        stripe_customer_id:      sub.customer as string,
-      }
+      },
     })
     .eq("id", businessId);
 }
@@ -227,8 +323,22 @@ async function handleSubscriptionCancelled(sub: Stripe.Subscription) {
   if (!businessId) return;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (createServerClient() as any)
+  const db = createServerClient() as any;
+
+  const { data: biz } = await db
     .from("businesses")
-    .update({ settings: { subscription_status: "cancelled" } })
+    .select("settings")
+    .eq("id", businessId)
+    .single();
+  const prev: Record<string, unknown> = (biz?.settings ?? {}) as Record<string, unknown>;
+
+  await db
+    .from("businesses")
+    .update({
+      settings: {
+        ...prev,
+        subscription_status: "cancelled",
+      },
+    })
     .eq("id", businessId);
 }

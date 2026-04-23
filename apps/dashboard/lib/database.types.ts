@@ -15,6 +15,10 @@ export interface Database {
           suburb:             string | null;
           stripe_account_id:  string | null;
           stripe_customer_id: string | null;
+          // Stripe Connect onboarding state (written by /api/stripe/webhook)
+          stripe_charges_enabled:   boolean | null;
+          stripe_payouts_enabled:   boolean | null;
+          stripe_details_submitted: boolean | null;
           subdomain:          string | null;
           logo_url:           string | null;
           settings:           Json;

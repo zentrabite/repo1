@@ -1,9 +1,27 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
-export const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// Lazy-initialised so build-time prerender doesn't crash when env vars are
+// missing. The client is only constructed on first property access.
+let _client: SupabaseClient | null = null;
+function getClient(): SupabaseClient {
+  if (_client) return _client;
+  const url  = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !anon) {
+    throw new Error(
+      "Missing Supabase env vars. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.",
+    );
+  }
+  _client = createClient(url, anon);
+  return _client;
+}
+
+export const supabase: SupabaseClient = new Proxy({} as SupabaseClient, {
+  get(_t, prop) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (getClient() as any)[prop];
+  },
+});
 
 // ─── Load business + menu by subdomain ───────────────────────────────────────
 export async function getBusinessBySubdomain(subdomain: string) {

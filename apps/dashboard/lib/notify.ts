@@ -7,6 +7,7 @@
 // Missing creds or destinations are silently skipped so the webhook never fails.
 
 import { createServerClient } from "@/lib/supabase-server";
+import { sendEmail } from "@/lib/email";
 
 type NotifyOrderInput = {
   businessId: string;
@@ -48,41 +49,10 @@ export async function notifyOwnerOfOrder(input: NotifyOrderInput): Promise<void>
 
   // Run email and SMS in parallel — failures don't block the webhook
   await Promise.allSettled([
-    notifyEmail ? sendEmail(notifyEmail, subject, plainBody) : Promise.resolve(),
+    notifyEmail ? sendEmail({ to: notifyEmail, subject, text: plainBody }) : Promise.resolve(),
     notifyPhone ? sendSms(notifyPhone, `${subject} — ${businessName} (${shortId})`) : Promise.resolve(),
     writeNotificationRow(db, businessId, orderId, subject, plainBody),
   ]);
-}
-
-// ─── Email via Resend ─────────────────────────────────────────────────────────
-
-async function sendEmail(to: string, subject: string, text: string): Promise<void> {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from   = process.env.RESEND_FROM_EMAIL ?? "ZentraBite <orders@zentrabite.com.au>";
-  if (!apiKey) {
-    console.warn("[notify] RESEND_API_KEY not set — skipping email");
-    return;
-  }
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type":  "application/json",
-      },
-      body: JSON.stringify({
-        from, to, subject,
-        text,
-        html: `<pre style="font-family:system-ui,sans-serif;font-size:14px;line-height:1.6">${escapeHtml(text)}</pre>`,
-      }),
-    });
-    if (!res.ok) {
-      const body = await res.text();
-      console.error("[notify] Resend error:", res.status, body);
-    }
-  } catch (err) {
-    console.error("[notify] Email send failed:", err);
-  }
 }
 
 // ─── SMS via Twilio ───────────────────────────────────────────────────────────
@@ -131,6 +101,3 @@ async function writeNotificationRow(db: any, businessId: string, orderId: string
   }
 }
 
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}

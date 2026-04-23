@@ -1,11 +1,13 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-export default function OrderConfirmedPage() {
+function OrderConfirmedContent() {
   const searchParams = useSearchParams();
   const sessionId    = searchParams.get("session_id");
+  // sessionId is available here for future use (e.g. "Tracking #${sessionId}")
 
   return (
     <div style={{ minHeight:"100vh", background:"#0F1F2D", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
@@ -42,5 +44,13 @@ export default function OrderConfirmedPage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+export default function OrderConfirmedPage() {
+  return (
+    <Suspense fallback={null}>
+      <OrderConfirmedContent />
+    </Suspense>
   );
 }
