@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { navigation } from "@/lib/navigation";
-import { supabase } from "@/lib/supabase";
 import { useBusiness } from "@/hooks/use-business";
 import { resolvePermissions } from "@/lib/permissions";
 
@@ -31,15 +30,13 @@ export default function DashboardSidebar() {
   const bizType  = business?.type     ?? "";
   const bizLogo  = "🏪"; // Will be replaced with actual logo_url when set in Settings
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     if (signingOut) return;
     setSigningOut(true);
-    // Fire-and-forget client signOut so the in-memory Supabase client forgets
-    // its token immediately — the server endpoint is what actually clears the
-    // cookies that the proxy reads, and does a 303 redirect to /login.
-    try { await supabase.auth.signOut(); } catch { /* ignore — server handles it */ }
-    // Use a real navigation (not fetch) so the browser follows the 303 redirect
-    // and the cleared Set-Cookie headers actually land.
+    // Navigate straight to the server logout route. We intentionally do NOT
+    // await supabase.auth.signOut() here — gotrue-js takes a lock that can
+    // hang for 5s+ (especially under React Strict Mode), blocking navigation.
+    // The server route clears the cookies, which is what actually matters.
     window.location.href = "/auth/logout";
   };
 
