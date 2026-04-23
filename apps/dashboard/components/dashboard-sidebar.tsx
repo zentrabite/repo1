@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { navigation } from "@/lib/navigation";
 import { supabase } from "@/lib/supabase";
 import { useBusiness } from "@/hooks/use-business";
@@ -15,8 +16,8 @@ const MIST  = "rgba(226,232,240,.09)";
 
 export default function DashboardSidebar() {
   const pathname  = usePathname();
-  const router    = useRouter();
   const { business, email, isSuperAdmin, role } = useBusiness();
+  const [signingOut, setSigningOut] = useState(false);
 
   // Role-based nav filtering. Owners / super-admins see everything; Manager /
   // Staff / POS see only what the owner granted them in Settings → Permissions.
@@ -31,8 +32,15 @@ export default function DashboardSidebar() {
   const bizLogo  = "🏪"; // Will be replaced with actual logo_url when set in Settings
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = "/login";
+    if (signingOut) return;
+    setSigningOut(true);
+    // Fire-and-forget client signOut so the in-memory Supabase client forgets
+    // its token immediately — the server endpoint is what actually clears the
+    // cookies that the proxy reads, and does a 303 redirect to /login.
+    try { await supabase.auth.signOut(); } catch { /* ignore — server handles it */ }
+    // Use a real navigation (not fetch) so the browser follows the 303 redirect
+    // and the cleared Set-Cookie headers actually land.
+    window.location.href = "/auth/logout";
   };
 
   return (
@@ -138,17 +146,20 @@ export default function DashboardSidebar() {
 
         <button
           onClick={handleLogout}
+          disabled={signingOut}
           style={{
             display: "flex", alignItems: "center", gap: 8,
             width: "100%", padding: "9px 13px", borderRadius: 10,
             background: "transparent", border: "none",
             fontFamily: "var(--font-inter)", fontSize: 13, color: STEEL,
-            cursor: "pointer", transition: "color .15s", textAlign: "left",
+            cursor: signingOut ? "wait" : "pointer",
+            opacity: signingOut ? 0.6 : 1,
+            transition: "color .15s", textAlign: "left",
           }}
-          onMouseEnter={e => (e.currentTarget.style.color = "#FF4757")}
-          onMouseLeave={e => (e.currentTarget.style.color = STEEL)}
+          onMouseEnter={e => { if (!signingOut) e.currentTarget.style.color = "#FF4757"; }}
+          onMouseLeave={e => { if (!signingOut) e.currentTarget.style.color = STEEL; }}
         >
-          <span style={{ fontSize: 15 }}>→</span> Sign out
+          <span style={{ fontSize: 15 }}>→</span> {signingOut ? "Signing out…" : "Sign out"}
         </button>
       </div>
     </aside>
