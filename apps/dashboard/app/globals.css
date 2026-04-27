@@ -1,0 +1,266 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Brand token reference ────────────────────────────────────────────────────
+   Navy:        #1C2D48  — navigation, card surfaces
+   Green:       #00B67A  — CTAs, active states, success
+   Orange:      #FF6B35  — alerts, urgency, Uber/aggregator
+   Near Black:  #0F1F2D  — page background
+   Steel:       #6B7C93  — labels, secondary text
+   Cloud:       #F8FAFB  — primary foreground text
+   Mist:        #E2E8F0  — borders, dividers
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── Root scale ─────────────────────────────────────────────────────────────
+   18px base makes the UI feel properly sized on a 38" monitor while
+   remaining readable on standard laptops (16px is the browser default). */
+html { font-size: 18px; }
+
+body {
+  font-family: var(--font-inter), "Inter", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.24); }
+::selection { background: #00B67A; color: #fff; }
+
+/* ── Animations ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .35; }
+}
+
+.fd { animation: fadeIn .3s ease-out both; }
+
+/* ── Glass card — 16px radius (brand spec: 16px for modals/cards) ── */
+.gc {
+  background: rgba(28, 45, 72, .55);   /* Navy #1C2D48 at 55% */
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(226, 232, 240, .09);  /* Mist at 9% */
+  border-radius: 16px;
+  transition: border-color .2s, box-shadow .2s;
+}
+.gc:hover {
+  border-color: rgba(0, 182, 122, .22);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, .2);
+}
+
+/* ── Small surface (menu items, list rows) — 12px radius ── */
+.gs {
+  background: rgba(28, 45, 72, .4);
+  border: 1px solid rgba(226, 232, 240, .08);
+  border-radius: 12px;
+  transition: border-color .18s;
+}
+.gs:hover { border-color: rgba(226, 232, 240, .16); }
+
+/* ── Primary button — Green fill, white text ── */
+.bp {
+  background: #00B67A;
+  color: #fff;
+  padding: 11px 24px;
+  border-radius: 10px;
+  font-family: var(--font-inter), sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: background .18s, transform .15s, box-shadow .18s;
+  box-shadow: 0 2px 14px rgba(0, 182, 122, .3);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+.bp:hover {
+  background: #00a36d;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 20px rgba(0, 182, 122, .4);
+}
+.bp:active { transform: translateY(0); }
+
+/* ── Secondary button — Green border + green text (brand spec) ── */
+.bg-btn {
+  background: transparent;
+  color: #6B7C93;
+  padding: 9px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(226, 232, 240, .12);
+  font-family: var(--font-inter), sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .18s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.bg-btn:hover { background: rgba(255,255,255,.07); color: #F8FAFB; border-color: rgba(226,232,240,.2); }
+.bg-btn.on    { background: rgba(0,182,122,.12); color: #00B67A; border-color: rgba(0,182,122,.35); }
+
+/* ── Badge pill — always 999px radius (brand spec) ── */
+.bd {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-outfit), sans-serif;
+  letter-spacing: .1px;
+  white-space: nowrap;
+}
+
+/* ── Tables ── */
+table { width: 100%; border-collapse: collapse; }
+th {
+  padding: 13px 16px;
+  text-align: left;
+  font-family: var(--font-outfit), sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  color: #6B7C93;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  border-bottom: 1px solid rgba(226, 232, 240, .08);
+}
+td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(226, 232, 240, .05);
+  font-size: 14px;
+  color: #E2E8F0;
+  vertical-align: middle;
+  font-family: var(--font-inter), sans-serif;
+}
+tbody tr { transition: background .13s; cursor: pointer; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: rgba(255, 255, 255, .03); }
+
+/* ── Inputs — 8px radius (brand spec) ── */
+input, select, textarea {
+  background: rgba(28, 45, 72, .6);
+  border: 1px solid rgba(226, 232, 240, .12);
+  border-radius: 8px;
+  padding: 11px 14px;
+  color: #F8FAFB;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 14px;
+  outline: none;
+  width: 100%;
+  transition: border-color .18s, background .18s;
+  box-sizing: border-box;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: rgba(0, 182, 122, .5);
+  background: rgba(28, 45, 72, .8);
+}
+input::placeholder { color: rgba(248,250,251,.25); }
+select option { background: #1C2D48; font-size: 14px; }
+textarea { resize: vertical; min-height: 80px; }
+
+/* ── Form label — Inter caption style ── */
+label {
+  display: block;
+  font-size: 12px;
+  font-family: var(--font-inter), sans-serif;
+  color: #6B7C93;
+  font-weight: 400;
+  margin-bottom: 6px;
+}
+
+/* ── Live pulse dot ── */
+.ld {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #00B67A;
+  animation: pulse 2s infinite;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* ── Progress bar ── */
+.pb-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(226, 232, 240, .08);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.pb-fill {
+  height: 100%;
+  /* No border-radius on fill — avoids pixel artifact at width: 0% */
+  border-radius: 0;
+  transition: width .5s ease;
+}
+/* Round the left cap only when there is actual width */
+.pb-fill[style*="width: 0"] { display: none; }
+
+/* ── Empty table row ── */
+.empty-row td {
+  text-align: center;
+  padding: 52px 20px;
+  color: rgba(248,250,251,.18);
+  font-size: 14px;
+  cursor: default;
+  font-family: var(--font-inter), sans-serif;
+}
+.empty-row:hover { background: transparent !important; }
+
+/* ── Toggle switch ── */
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+.toggle input[type="checkbox"] {
+  appearance: none;
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.1);
+  position: relative;
+  cursor: pointer;
+  transition: background .15s ease;
+}
+.toggle input[type="checkbox"]::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  transition: transform .15s ease, background .15s ease;
+}
+.toggle input[type="checkbox"]:checked {
+  background: rgba(0,182,122,.25);
+  border-color: rgba(0,182,122,.4);
+}
+.toggle input[type="checkbox"]:checked::after {
+  transform: translateX(16px);
+  background: #00B67A;
+}
+.toggle span {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6B7C93;
+  letter-spacing: .5px;
+}
+.toggle input[type="checkbox"]:checked + span {
+  color: #00B67A;
+}

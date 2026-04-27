@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZentraBite — Business Operating System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root{
+  --bg:#08121e;--navy:#1a2d48;--g:#00b67a;--gd:#009a67;--go:#00e59a;
+  --or:#ff6b35;--st:#6b7c93;--cl:#eef2f7;--mi:rgba(226,232,240,0.1);
+  --g15:rgba(0,182,122,0.15);--g08:rgba(0,182,122,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--cl);overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+#prog{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--g),var(--go));z-index:9999;width:0%;pointer-events:none;}
+#bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+.blob{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0;}
+.blob-a{width:600px;height:600px;background:radial-gradient(circle,rgba(0,182,122,0.12),transparent 70%);top:-100px;right:-100px;}
+.blob-b{width:500px;height:500px;background:radial-gradient(circle,rgba(0,80,200,0.08),transparent 70%);bottom:-50px;left:-100px;}
+.blob-c{width:400px;height:400px;background:radial-gradient(circle,rgba(255,107,53,0.06),transparent 70%);top:40%;left:30%;}
+
+/* ── Nav ── */
+#nav{position:fixed;top:0;left:0;right:0;z-index:500;height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 48px;transition:all 0.3s;}
+#nav.scrolled{background:rgba(8,18,30,0.92);backdrop-filter:blur(28px);border-bottom:1px solid rgba(226,232,240,0.07);}
+.logo{font-family:'Outfit',sans-serif;font-size:19px;font-weight:900;color:var(--cl);text-decoration:none;display:flex;align-items:center;gap:9px;}
+.logo-ico{width:28px;height:28px;background:linear-gradient(135deg,var(--g),var(--go));border-radius:8px;display:flex;align-items:center;justify-content:center;}
+.logo-ico svg{width:16px;height:16px;}
+.n-links{display:flex;gap:2px;list-style:none;}
+.n-links a{color:var(--st);font-size:13.5px;font-weight:500;padding:7px 13px;border-radius:8px;text-decoration:none;transition:all 0.15s;}
+.n-links a:hover{color:var(--cl);background:rgba(255,255,255,0.05);}
+.n-acts{display:flex;align-items:center;gap:10px;}
+.btn-gl{color:var(--st);font-size:13.5px;font-weight:500;padding:8px 14px;text-decoration:none;transition:color 0.15s;}
+.btn-gl:hover{color:var(--cl);}
+.btn-n{background:var(--g);color:#fff;font-size:13.5px;font-weight:700;padding:9px 20px;border-radius:9px;text-decoration:none;box-shadow:0 4px 20px rgba(0,182,122,0.4);transition:all 0.18s;display:inline-flex;align-items:center;gap:7px;border:none;cursor:pointer;font-family:'Inter',sans-serif;}
+.btn-n:hover{background:var(--gd);box-shadow:0 8px 32px rgba(0,182,122,0.55);transform:translateY(-1px);}
+
+/* ── Hero ── */
+#hero{position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:90px 24px 32px;flex-direction:column;}
+.hero-badge{display:inline-flex;align-items:center;gap:9px;background:var(--g08);border:1px solid rgba(0,182,122,0.2);border-radius:999px;padding:6px 16px;margin-bottom:26px;}
+.badge-pulse{width:7px;height:7px;border-radius:50%;background:var(--g);animation:pulse-dot 2s infinite;}
+@keyframes pulse-dot{0%,100%{box-shadow:0 0 0 0 rgba(0,182,122,0.7);}70%{box-shadow:0 0 0 6px rgba(0,182,122,0);}}
+.badge-txt{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.13em;color:var(--g);}
+.hero-h1{font-family:'Outfit',sans-serif;font-size:clamp(40px,6.2vw,82px);font-weight:900;line-height:1.0;letter-spacing:-0.035em;max-width:860px;margin-bottom:20px;}
+.h1-white{background:linear-gradient(180deg,var(--cl) 30%,rgba(238,242,247,0.55));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.h1-green{color:var(--g);text-shadow:0 0 60px rgba(0,182,122,0.6);}
+.hero-sub{font-size:clamp(15px,1.7vw,18px);color:var(--st);line-height:1.7;max-width:540px;margin:0 auto 32px;}
+.hero-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:16px;}
+.btn-lg{display:inline-flex;align-items:center;gap:9px;padding:14px 28px;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none;border:none;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;}
+.btn-lg.p{background:var(--g);color:#fff;box-shadow:0 6px 28px rgba(0,182,122,0.45);}
+.btn-lg.p:hover{background:var(--gd);transform:translateY(-2px);box-shadow:0 10px 40px rgba(0,182,122,0.6);}
+.btn-lg.s{background:rgba(255,255,255,0.05);color:var(--cl);border:1px solid rgba(226,232,240,0.13);backdrop-filter:blur(8px);}
+.btn-lg.s:hover{background:rgba(255,255,255,0.09);border-color:rgba(226,232,240,0.24);transform:translateY(-1px);}
+.hero-trust{font-size:12px;color:rgba(107,124,147,0.7);display:flex;align-items:center;gap:10px;justify-content:center;flex-wrap:wrap;}
+.trust-sep{width:3px;height:3px;border-radius:50%;background:rgba(107,124,147,0.3);}
+
+/* ── MacBook ── */
+#macbook-section{position:relative;z-index:1;padding:40px 24px 56px;display:flex;justify-content:center;}
+.macbook-wrap{max-width:940px;width:100%;perspective:1400px;}
+.macbook-tilt{transform:rotateX(8deg);transform-origin:center bottom;transition:transform 0.5s cubic-bezier(0.16,1,0.3,1);animation:mb-float 8s ease-in-out infinite;}
+@keyframes mb-float{0%,100%{transform:rotateX(8deg) translateY(0);}50%{transform:rotateX(6deg) translateY(-12px);}}
+.macbook-tilt:hover{transform:rotateX(3deg) translateY(-8px);animation:none;}
+.mb-outer{position:relative;}
+.mb-lid{background:linear-gradient(160deg,#1e3048,#152436);border-radius:14px 14px 0 0;padding:10px 10px 0;border:1px solid rgba(255,255,255,0.08);border-bottom:none;box-shadow:0 -4px 30px rgba(0,0,0,0.5);}
+.mb-bezel{background:#0a141e;border-radius:8px 8px 0 0;overflow:hidden;position:relative;aspect-ratio:16/10;}
+.mb-camera{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:7px;height:7px;border-radius:50%;background:#0d1e2e;border:1px solid rgba(255,255,255,0.06);z-index:2;}
+.mb-screen{width:100%;height:100%;overflow:hidden;}
+.mb-hinge{height:6px;background:linear-gradient(180deg,#0e1e2e,#1a2d40);}
+.mb-base{background:linear-gradient(180deg,#1a2d40,#111e2d);height:20px;border-radius:0 0 8px 8px;border:1px solid rgba(255,255,255,0.06);border-top:none;position:relative;}
+.mb-trackpad{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:90px;height:7px;border-radius:3px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.05);}
+.mb-foot-left,.mb-foot-right{position:absolute;bottom:-4px;width:90px;height:4px;background:linear-gradient(90deg,#0e1a28,#1a2d40);border-radius:0 0 4px 4px;}
+.mb-foot-left{left:40px;}.mb-foot-right{right:40px;}
+.mb-glow{position:absolute;bottom:-80px;left:50%;transform:translateX(-50%);width:70%;height:80px;background:radial-gradient(ellipse,rgba(0,182,122,0.25),transparent 70%);pointer-events:none;filter:blur(10px);}
+.db-wrap{width:100%;height:100%;background:#0a141e;display:grid;grid-template-columns:140px 1fr;font-family:'Inter',sans-serif;}
+.db-nav{padding:7px 5px;border-right:1px solid rgba(226,232,240,0.05);display:flex;flex-direction:column;gap:1px;background:#070f1a;}
+.db-nav-item{padding:6px 9px;border-radius:5px;font-size:10.5px;font-weight:500;color:var(--st);display:flex;align-items:center;gap:5px;cursor:pointer;white-space:nowrap;}
+.db-nav-item.on{background:var(--g);color:#fff;font-weight:600;}
+.db-nav-section{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(107,124,147,0.4);padding:7px 9px 3px;margin-top:3px;}
+.db-main{padding:10px;display:flex;flex-direction:column;gap:7px;overflow:hidden;}
+.db-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1px;}
+.db-page-title{font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;}
+.db-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.db-s{background:rgba(26,45,72,0.6);border:1px solid rgba(226,232,240,0.05);border-radius:7px;padding:9px;}
+.db-sl{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--st);margin-bottom:2px;}
+.db-sv{font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;}
+.db-sv.g{color:var(--g);}
+.db-orders{display:flex;flex-direction:column;gap:5px;}
+.db-order{background:rgba(26,45,72,0.5);border:1px solid rgba(226,232,240,0.05);border-radius:6px;padding:8px 10px;display:grid;grid-template-columns:38px 1fr auto auto;align-items:center;gap:6px;}
+.db-oid{font-family:monospace;font-size:9px;color:var(--st);}
+.db-oname{font-size:10px;font-weight:600;color:var(--cl);}
+.db-oitems{font-size:9px;color:var(--st);margin-top:1px;}
+.db-oamt{font-family:'Outfit',sans-serif;font-weight:800;font-size:10.5px;}
+.db-tag{padding:2px 6px;border-radius:999px;font-size:8.5px;font-weight:700;white-space:nowrap;}
+.db-live{display:flex;align-items:center;gap:4px;font-size:8.5px;color:var(--g);font-weight:600;}
+.db-live-dot{width:5px;height:5px;border-radius:50%;background:var(--g);animation:pulse-dot 2s infinite;}
+
+/* ── Stats bar ── */
+#statsbar{position:relative;z-index:1;padding:24px 48px;border-top:1px solid rgba(226,232,240,0.06);border-bottom:1px solid rgba(226,232,240,0.06);background:rgba(26,45,72,0.18);}
+.stats-row{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center;}
+.s-n{font-family:'Outfit',sans-serif;font-size:clamp(28px,3.2vw,46px);font-weight:900;color:var(--g);}
+.s-l{font-size:12.5px;color:var(--st);margin-top:4px;}
+
+/* ── Journey Flowchart ── */
+#journey{position:relative;z-index:1;padding:64px 24px 72px;background:rgba(12,22,38,0.6);}
+.journey-inner{max-width:1200px;margin:0 auto;}
+.journey-heading{text-align:center;margin-bottom:44px;}
+.s-eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--g);padding:5px 13px;border-radius:999px;background:var(--g15);border:1px solid rgba(0,182,122,0.25);}
+.j-h2{font-family:'Outfit',sans-serif;font-size:clamp(26px,3.5vw,42px);font-weight:900;letter-spacing:-0.028em;line-height:1.08;margin:14px 0 10px;}
+.j-sub{font-size:15px;color:var(--st);line-height:1.6;max-width:520px;margin:0 auto;}
+
+/* Two-row snake layout */
+.j-track{position:relative;}
+.j-row{display:flex;align-items:stretch;gap:0;}
+.j-row-b{flex-direction:row-reverse;}
+.j-node{flex:1;position:relative;padding:16px 14px;border:1px solid rgba(226,232,240,0.07);background:rgba(15,25,42,0.7);backdrop-filter:blur(8px);display:flex;flex-direction:column;gap:6px;transition:all 0.25s;}
+.j-node:hover{border-color:rgba(0,182,122,0.3);background:rgba(0,182,122,0.05);}
+.j-node.j-start{border-color:rgba(0,182,122,0.35);background:rgba(0,182,122,0.08);}
+.j-node.j-end{border-color:rgba(0,182,122,0.5);background:rgba(0,182,122,0.12);}
+.j-row-a .j-node{border-radius:0;border-right:none;}
+.j-row-a .j-node:first-child{border-radius:14px 0 0 0;}
+.j-row-a .j-node:last-child{border-radius:0 14px 0 0;border-right:1px solid rgba(226,232,240,0.07);}
+.j-row-b .j-node{border-radius:0;border-right:none;border-top:none;}
+.j-row-b .j-node:last-child{border-radius:0 0 0 14px;border-right:none;}
+.j-row-b .j-node:first-child{border-radius:0 0 14px 0;border-right:1px solid rgba(226,232,240,0.07);}
+/* Corner connector between rows */
+.j-corner{width:100%;display:flex;position:relative;}
+.j-corner-line{flex:1;height:44px;border-right:1px solid rgba(0,182,122,0.25);border-bottom:1px solid rgba(0,182,122,0.25);border-bottom-right-radius:0;}
+.j-corner-label{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--g);font-weight:600;display:flex;align-items:center;gap:5px;background:rgba(0,182,122,0.1);border:1px solid rgba(0,182,122,0.25);padding:3px 10px;border-radius:999px;}
+
+/* Arrows inside rows */
+.j-arrow-cell{width:28px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(15,25,42,0.7);border-top:1px solid rgba(226,232,240,0.07);border-bottom:none;}
+.j-row-b .j-arrow-cell{border-top:none;border-bottom:1px solid rgba(226,232,240,0.07);}
+.j-arr{color:rgba(0,182,122,0.5);font-size:14px;line-height:1;}
+.j-row-b .j-arr{transform:scaleX(-1);display:inline-block;}
+
+.j-step-num{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(0,182,122,0.55);margin-bottom:1px;}
+.j-icon{font-size:20px;line-height:1;margin-bottom:2px;}
+.j-label{font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:700;color:var(--cl);line-height:1.25;}
+.j-desc{font-size:10.5px;color:var(--st);line-height:1.5;}
+.j-tag{display:inline-flex;align-items:center;gap:4px;margin-top:4px;font-size:9.5px;font-weight:600;padding:2px 8px;border-radius:999px;}
+.j-tag.auto{background:rgba(0,182,122,0.1);color:var(--g);border:1px solid rgba(0,182,122,0.2);}
+.j-tag.ai{background:rgba(91,156,246,0.1);color:#5b9cf6;border:1px solid rgba(91,156,246,0.2);}
+.j-tag.earn{background:rgba(240,165,0,0.1);color:#f0b429;border:1px solid rgba(240,165,0,0.2);}
+.j-tag.win{background:rgba(255,107,53,0.1);color:var(--or);border:1px solid rgba(255,107,53,0.2);}
+
+/* ── Modules Grid ── */
+#modules{position:relative;z-index:1;padding:56px 48px;}
+.mod-inner{max-width:1200px;margin:0 auto;}
+.mod-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:14px;}
+.mod-h2{font-family:'Outfit',sans-serif;font-size:clamp(22px,2.8vw,34px);font-weight:900;letter-spacing:-0.025em;}
+.mod-sub{font-size:13px;color:var(--st);max-width:360px;line-height:1.55;}
+.mod-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+.mod-card{background:rgba(15,25,42,0.75);border:1px solid rgba(226,232,240,0.07);border-radius:12px;padding:14px 13px;display:flex;flex-direction:column;gap:8px;transition:all 0.22s;cursor:default;}
+.mod-card:hover{border-color:rgba(0,182,122,0.28);background:rgba(0,182,122,0.05);transform:translateY(-2px);}
+.mod-ico{font-size:20px;width:38px;height:38px;border-radius:9px;background:var(--g08);border:1px solid rgba(0,182,122,0.15);display:flex;align-items:center;justify-content:center;}
+.mod-name{font-size:12.5px;font-weight:700;color:var(--cl);line-height:1.25;}
+.mod-detail{font-size:10.5px;color:var(--st);line-height:1.5;}
+.mod-badge{display:inline-flex;align-items:center;font-size:9px;font-weight:700;padding:2px 7px;border-radius:999px;margin-top:2px;width:fit-content;}
+.mod-badge.live{background:rgba(0,182,122,0.12);color:var(--g);border:1px solid rgba(0,182,122,0.2);}
+.mod-badge.ai{background:rgba(91,156,246,0.1);color:#5b9cf6;border:1px solid rgba(91,156,246,0.2);}
+
+/* ── Feature Storytelling ── */
+#storytelling{position:relative;z-index:1;padding:56px 0;}
+.story-inner{max-width:1200px;margin:0 auto;padding:0 48px;}
+.story-heading{text-align:center;margin-bottom:48px;}
+.s-h2{font-family:'Outfit',sans-serif;font-size:clamp(26px,3.5vw,44px);font-weight:900;letter-spacing:-0.028em;line-height:1.08;margin:14px 0 12px;}
+.s-p{font-size:15px;color:var(--st);line-height:1.65;max-width:540px;margin:0 auto;}
+.story-layout{display:grid;grid-template-columns:200px 1fr;gap:52px;align-items:start;}
+.story-nav{position:sticky;top:88px;}
+.story-nav-item{padding:11px 14px;border-radius:10px;cursor:pointer;transition:all 0.22s;border:1px solid transparent;margin-bottom:4px;position:relative;}
+.story-nav-item.active{background:rgba(0,182,122,0.1);border-color:rgba(0,182,122,0.25);}
+.story-nav-item.active::before{content:'';position:absolute;left:-2px;top:50%;transform:translateY(-50%);width:3px;height:65%;background:var(--g);border-radius:999px;}
+.story-nav-title{font-size:13px;font-weight:600;color:var(--st);transition:color 0.2s;line-height:1.3;}
+.story-nav-item.active .story-nav-title{color:var(--cl);}
+.story-nav-sub{font-size:11px;color:rgba(107,124,147,0.55);margin-top:2px;}
+.story-content{display:flex;flex-direction:column;}
+.story-panel{min-height:70vh;display:flex;align-items:center;padding:28px 0;opacity:0.3;transition:opacity 0.4s;}
+.story-panel.active{opacity:1;}
+.story-panel-inner{width:100%;}
+.story-panel-header{margin-bottom:20px;}
+.story-panel-eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--g);padding:4px 11px;border-radius:999px;background:var(--g08);border:1px solid rgba(0,182,122,0.2);margin-bottom:11px;}
+.story-panel-title{font-family:'Outfit',sans-serif;font-size:clamp(22px,2.6vw,34px);font-weight:800;letter-spacing:-0.023em;margin-bottom:10px;line-height:1.1;}
+.story-panel-desc{font-size:14px;color:var(--st);line-height:1.7;max-width:560px;margin-bottom:16px;}
+.panel-bullets{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:18px;}
+.pb{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--cl);line-height:1.5;background:rgba(15,25,42,0.6);border:1px solid rgba(226,232,240,0.06);border-radius:9px;padding:9px 11px;}
+.pb-ico{font-size:13px;flex-shrink:0;margin-top:1px;}
+.story-screen{background:rgba(15,25,42,0.85);backdrop-filter:blur(20px);border:1px solid rgba(226,232,240,0.09);border-radius:16px;overflow:hidden;box-shadow:0 20px 70px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.05);}
+.s-chrome{display:flex;align-items:center;gap:6px;padding:9px 13px;background:rgba(6,12,22,0.6);border-bottom:1px solid rgba(226,232,240,0.06);}
+.s-dot{width:8px;height:8px;border-radius:50%;}
+.s-url{flex:1;margin:0 9px;padding:3px 10px;background:rgba(255,255,255,0.04);border-radius:5px;font-size:10px;color:var(--st);font-family:monospace;}
+.s-body{padding:14px;min-height:200px;}
+.screen-orders{display:flex;flex-direction:column;gap:7px;}
+.screen-customers{display:grid;grid-template-columns:1fr 1.2fr;gap:10px;}
+.screen-ai,.screen-campaigns{display:flex;flex-direction:column;gap:7px;}
+.screen-rewards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.cust-profile{background:rgba(26,45,72,0.5);border:1px solid rgba(226,232,240,0.07);border-radius:11px;padding:14px;}
+.cust-avatar{width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,var(--g),#00e5a0);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:10px;}
+.cust-name{font-family:'Outfit',sans-serif;font-weight:700;font-size:14px;color:var(--cl);margin-bottom:3px;}
+.cust-meta{font-size:10.5px;color:var(--st);}
+.cust-stats{display:flex;flex-direction:column;gap:6px;margin-top:10px;}
+.cust-stat{display:flex;justify-content:space-between;align-items:center;font-size:11px;}
+.cust-stat-l{color:var(--st);}.cust-stat-v{color:var(--cl);font-weight:600;}.cust-stat-v.g{color:var(--g);}
+.ai-brief-card{background:rgba(26,45,72,0.5);border:1px solid rgba(226,232,240,0.07);border-radius:11px;padding:13px;}
+.ai-brief-head{display:flex;align-items:center;gap:7px;margin-bottom:10px;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--g);}
+.ai-brief-dot{width:5px;height:5px;border-radius:50%;background:var(--g);animation:pulse-dot 2s infinite;}
+.ai-item{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:rgba(10,20,34,0.5);border:1px solid rgba(226,232,240,0.05);border-radius:7px;font-size:11px;color:var(--cl);line-height:1.5;margin-bottom:5px;}
+.ai-dot{width:5px;height:5px;border-radius:50%;background:var(--g);flex-shrink:0;margin-top:3px;box-shadow:0 0 6px rgba(0,182,122,0.7);animation:pulse-dot 2s infinite;}
+.tier-card{background:rgba(26,45,72,0.5);border:1px solid rgba(226,232,240,0.07);border-radius:11px;padding:12px;text-align:center;}
+.tier-icon{font-size:24px;margin-bottom:6px;}
+.tier-name{font-family:'Outfit',sans-serif;font-weight:700;font-size:12.5px;color:var(--cl);margin-bottom:3px;}
+.tier-pts{font-size:10px;color:var(--st);margin-bottom:7px;}
+.tier-bar{height:3px;background:rgba(226,232,240,0.08);border-radius:999px;overflow:hidden;}
+.tier-fill{height:100%;border-radius:999px;}
+.tier-perks{margin-top:8px;display:flex;flex-direction:column;gap:3px;}
+.tier-perk{font-size:9.5px;color:var(--st);}
+.campaign-card{background:rgba(26,45,72,0.5);border:1px solid rgba(226,232,240,0.07);border-radius:9px;padding:11px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:7px;}
+.camp-name{font-size:11.5px;font-weight:600;color:var(--cl);margin-bottom:2px;}
+.camp-meta{font-size:10px;color:var(--st);}
+.camp-sent{text-align:right;}
+.camp-sent-n{font-family:'Outfit',sans-serif;font-weight:700;font-size:13px;color:var(--g);}
+.camp-sent-l{font-size:9px;color:var(--st);}
+.camp-status{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:600;padding:2px 7px;border-radius:999px;margin-top:3px;}
+
+/* ── AI Chat ── */
+#ai{position:relative;z-index:1;padding:64px 48px;}
+.ai-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start;}
+.ai-left{position:sticky;top:88px;}
+.ai-left h2{font-family:'Outfit',sans-serif;font-size:clamp(24px,3.2vw,40px);font-weight:900;letter-spacing:-0.025em;margin-bottom:12px;line-height:1.08;}
+.ai-left p{font-size:14px;color:var(--st);line-height:1.7;margin-bottom:22px;}
+.ai-bullets{display:flex;flex-direction:column;gap:9px;margin-bottom:26px;}
+.ai-b{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--cl);line-height:1.55;}
+.ai-b-ico{width:20px;height:20px;border-radius:6px;background:var(--g15);border:1px solid rgba(0,182,122,0.22);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:10px;}
+.chat-ui{background:rgba(12,22,38,0.88);backdrop-filter:blur(28px);border:1px solid rgba(226,232,240,0.1);border-radius:18px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.55);}
+.chat-hdr{padding:12px 16px;border-bottom:1px solid rgba(226,232,240,0.07);display:flex;align-items:center;gap:10px;background:rgba(8,15,28,0.5);}
+.chat-av{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--g),var(--go));display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.chat-nm{font-weight:700;font-size:13px;color:var(--cl);}
+.chat-st{font-size:10.5px;color:var(--g);display:flex;align-items:center;gap:4px;margin-top:2px;}
+.chat-st-dot{width:5px;height:5px;border-radius:50%;background:var(--g);animation:pulse-dot 2s infinite;}
+.chat-msgs{padding:14px;height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth;}
+.chat-msgs::-webkit-scrollbar{width:3px;}
+.chat-msgs::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px;}
+.msg{display:flex;flex-direction:column;gap:3px;animation:msg-in 0.3s ease both;}
+@keyframes msg-in{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.msg.u{align-items:flex-end;}.msg.b{align-items:flex-start;}
+.msg-bub{padding:10px 13px;border-radius:13px;font-size:12px;line-height:1.65;max-width:90%;}
+.msg.u .msg-bub{background:var(--g);color:#fff;border-radius:13px 13px 4px 13px;}
+.msg.b .msg-bub{background:rgba(26,45,72,0.75);color:var(--cl);border:1px solid rgba(226,232,240,0.08);border-radius:13px 13px 13px 4px;}
+.msg.b .msg-bub strong{color:var(--g);}
+.msg-t{font-size:9px;color:rgba(107,124,147,0.5);margin:0 4px;}
+.typ-bub{background:rgba(26,45,72,0.7);border:1px solid rgba(226,232,240,0.08);border-radius:13px 13px 13px 4px;padding:11px 14px;display:inline-flex;gap:5px;align-items:center;}
+.typ-d{width:6px;height:6px;border-radius:50%;background:var(--st);animation:typ 1.2s ease-in-out infinite;}
+.typ-d:nth-child(2){animation-delay:0.2s;}.typ-d:nth-child(3){animation-delay:0.4s;}
+@keyframes typ{0%,80%,100%{transform:scale(0.65);opacity:0.3;}40%{transform:scale(1);opacity:1;}}
+.chat-sugs{padding:9px 13px;display:flex;flex-wrap:wrap;gap:5px;border-top:1px solid rgba(226,232,240,0.06);background:rgba(6,12,22,0.35);}
+.sug{background:rgba(26,45,72,0.6);border:1px solid rgba(226,232,240,0.09);border-radius:999px;padding:5px 11px;font-size:10.5px;color:var(--st);cursor:pointer;transition:all 0.17s;white-space:nowrap;}
+.sug:hover{border-color:rgba(0,182,122,0.3);color:var(--g);background:rgba(0,182,122,0.07);}
+.chat-in-row{padding:10px 13px;border-top:1px solid rgba(226,232,240,0.07);display:flex;gap:7px;background:rgba(5,10,20,0.4);}
+.chat-inp{flex:1;background:rgba(26,45,72,0.65);border:1px solid rgba(226,232,240,0.1);border-radius:9px;padding:9px 13px;color:var(--cl);font-family:'Inter',sans-serif;font-size:12px;outline:none;transition:border-color 0.2s;}
+.chat-inp:focus{border-color:rgba(0,182,122,0.45);}
+.chat-inp::placeholder{color:rgba(107,124,147,0.5);}
+.chat-send{background:var(--g);border:none;border-radius:9px;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.18s;color:#fff;}
+.chat-send:hover{background:var(--gd);transform:scale(1.08);}
+.chat-send:disabled{background:rgba(0,182,122,0.3);cursor:not-allowed;transform:none;}
+.chat-send svg{width:14px;height:14px;}
+
+/* ── CTA ── */
+#cta{position:relative;z-index:1;padding:80px 48px;text-align:center;overflow:hidden;}
+#cta::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 50%,rgba(0,182,122,0.13),transparent);pointer-events:none;}
+#cta::after{content:'';position:absolute;top:-1px;left:10%;right:10%;height:1px;background:linear-gradient(90deg,transparent,rgba(0,182,122,0.5),transparent);}
+.cta-h{font-family:'Outfit',sans-serif;font-size:clamp(32px,5vw,62px);font-weight:900;letter-spacing:-0.033em;line-height:1.04;max-width:780px;margin:0 auto 16px;}
+.cta-sub{font-size:16px;color:var(--st);max-width:420px;margin:0 auto 36px;line-height:1.65;}
+.cta-note{font-size:11.5px;color:rgba(107,124,147,0.6);margin-top:18px;}
+
+/* ── Footer ── */
+footer{position:relative;z-index:1;border-top:1px solid rgba(226,232,240,0.06);padding:40px 52px 24px;background:rgba(5,10,20,0.75);backdrop-filter:blur(12px);}
+.ft-inner{max-width:1200px;margin:0 auto;}
+.ft-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:36px;margin-bottom:32px;}
+.ft-brand{font-family:'Outfit',sans-serif;font-size:18px;font-weight:900;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.ft-tag{font-size:12.5px;color:var(--st);line-height:1.65;max-width:220px;margin-top:7px;}
+.ft-col-h{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:rgba(107,124,147,0.6);margin-bottom:12px;}
+.ft-links{list-style:none;display:flex;flex-direction:column;gap:8px;}
+.ft-links a{font-size:12.5px;color:rgba(107,124,147,0.65);text-decoration:none;transition:color 0.15s;}
+.ft-links a:hover{color:var(--cl);}
+.ft-bottom{padding-top:18px;border-top:1px solid rgba(226,232,240,0.05);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.ft-copy{font-size:11.5px;color:rgba(107,124,147,0.45);}
+
+/* ── Utility ── */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity 0.7s cubic-bezier(0.16,1,0.3,1),transform 0.7s cubic-bezier(0.16,1,0.3,1);}
+.reveal.in{opacity:1;transform:translateY(0);}
+.d1{transition-delay:0.1s;}.d2{transition-delay:0.2s;}.d3{transition-delay:0.3s;}
+
+/* ── Responsive ── */
+@media(max-width:1024px){
+  .mod-grid{grid-template-columns:repeat(3,1fr);}
+  .story-layout{grid-template-columns:1fr;}
+  .story-nav{position:static;display:flex;flex-wrap:wrap;gap:7px;margin-bottom:24px;}
+  .story-nav-item{flex:1;min-width:130px;}
+  .story-panel{min-height:auto;}
+  .ai-inner{grid-template-columns:1fr;}
+  .ai-left{position:static;}
+  .ft-top{grid-template-columns:1fr 1fr;}
+  .j-row-a .j-node:last-child,.j-row-b .j-node:first-child{border-right:1px solid rgba(226,232,240,0.07);}
+}
+@media(max-width:768px){
+  #nav{padding:0 20px;}
+  .n-links{display:none;}
+  #statsbar,#journey,#modules,.story-inner,#ai,#cta,footer{padding-left:20px;padding-right:20px;}
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+  .mod-grid{grid-template-columns:repeat(2,1fr);}
+  .j-row{flex-direction:column;}
+  .j-row-b{flex-direction:column;}
+  .j-node,.j-row-a .j-node,.j-row-b .j-node{border-radius:12px !important;border:1px solid rgba(226,232,240,0.07) !important;}
+  .j-arrow-cell{display:none;}
+  .j-corner{display:none;}
+  .panel-bullets{grid-template-columns:1fr;}
+  .screen-customers{grid-template-columns:1fr;}
+  .screen-rewards{grid-template-columns:repeat(2,1fr);}
+  .db-wrap{grid-template-columns:1fr;}
+  .db-nav{display:none;}
+  .db-stats{grid-template-columns:repeat(2,1fr);}
+  .ft-top{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div id="prog"></div>
+<canvas id="bg"></canvas>
+<div class="blob blob-a" id="blob-a"></div>
+<div class="blob blob-b" id="blob-b"></div>
+<div class="blob blob-c" id="blob-c"></div>
+
+<!-- ─── Nav ─── -->
+<nav id="nav">
+  <a class="logo" href="#">
+    <div class="logo-ico"><svg viewBox="0 0 18 18" fill="none"><path d="M3 9l4-4 4 4 4-4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13l4-4 4 4 4-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".5"/></svg></div>
+    ZentraBite
+  </a>
+  <ul class="n-links">
+    <li><a href="#journey">How it works</a></li>
+    <li><a href="#modules">Platform</a></li>
+    <li><a href="#storytelling">Features</a></li>
+    <li><a href="#ai">AI</a></li>
+  </ul>
+  <div class="n-acts">
+    <a class="btn-gl" href="#">Log in</a>
+    <a class="btn-n" href="#cta">Start free trial →</a>
+  </div>
+</nav>
+
+<!-- ─── Hero ─── -->
+<section id="hero">
+  <div class="hero-badge reveal">
+    <span class="badge-pulse"></span>
+    <span class="badge-txt">Business Operating System</span>
+  </div>
+  <h1 class="hero-h1 reveal">
+    <span class="h1-white">One system to run, grow,</span><br>
+    <span class="h1-green">and scale your business.</span>
+  </h1>
+  <p class="hero-sub reveal d1">Orders, customers, stock, campaigns, and an AI co-pilot — all wired together from day one. Turn every first-time visitor into a lifetime regular.</p>
+  <div class="hero-btns reveal d2">
+    <a href="#cta" class="btn-lg p">Start 1-month free trial →</a>
+    <a href="#ai" class="btn-lg s"><span>✨</span> Ask the AI</a>
+  </div>
+  <p class="hero-trust reveal d3">
+    <span>✓ No credit card</span>
+    <span class="trust-sep"></span>
+    <span>✓ Any food-service business</span>
+    <span class="trust-sep"></span>
+    <span>✓ Pricing tailored to you</span>
+  </p>
+</section>
+
+<!-- ─── MacBook Showcase ─── -->
+<section id="macbook-section">
+  <div class="macbook-wrap">
+    <div class="macbook-tilt" id="mbTilt">
+      <div class="mb-outer">
+        <div class="mb-lid">
+          <div class="mb-bezel">
+            <div class="mb-camera"></div>
+            <div class="mb-screen">
+              <div class="db-wrap">
+                <div class="db-nav">
+                  <div class="db-nav-section">Main</div>
+                  <div class="db-nav-item on">📦 Orders</div>
+                  <div class="db-nav-item">👥 Customers</div>
+                  <div class="db-nav-item">🍽️ Menu</div>
+                  <div class="db-nav-section">Grow</div>
+                  <div class="db-nav-item">📣 Campaigns</div>
+                  <div class="db-nav-item">⭐ Rewards</div>
+                  <div class="db-nav-item">🤖 AI Calls</div>
+                  <div class="db-nav-section">Ops</div>
+                  <div class="db-nav-item">🚚 Delivery</div>
+                  <div class="db-nav-item">💰 Financials</div>
+                  <div class="db-nav-item">📦 Stock</div>
+                  <div class="db-nav-item">🏪 POS</div>
+                </div>
+                <div class="db-main">
+                  <div class="db-topbar">
+                    <div style="display:flex;align-items:center;gap:9px;">
+                      <div class="db-page-title">Orders</div>
+                      <div class="db-live"><span class="db-live-dot"></span>Live</div>
+                    </div>
+                    <div style="font-size:9px;color:var(--st);">Mon 28 Apr · 12:34 PM</div>
+                  </div>
+                  <div class="db-stats">
+                    <div class="db-s"><div class="db-sl">Live orders</div><div class="db-sv g">7</div></div>
+                    <div class="db-s"><div class="db-sl">Revenue today</div><div class="db-sv">$1,842</div></div>
+                    <div class="db-s"><div class="db-sl">Avg. ticket</div><div class="db-sv">$38.20</div></div>
+                    <div class="db-s"><div class="db-sl">Customers</div><div class="db-sv">48</div></div>
+                  </div>
+                  <div class="db-orders">
+                    <div class="db-order"><div class="db-oid">#1289</div><div><div class="db-oname">Olivia M.</div><div class="db-oitems">2× Margherita · Garlic bread</div></div><div class="db-oamt">$42.50</div><div class="db-tag" style="background:rgba(0,182,122,0.14);color:#00b67a;border:1px solid rgba(0,182,122,0.28);">New</div></div>
+                    <div class="db-order"><div class="db-oid">#1288</div><div><div class="db-oname">James K.</div><div class="db-oitems">Wagyu burger · Fries · Coke</div></div><div class="db-oamt">$31.80</div><div class="db-tag" style="background:rgba(255,107,53,0.14);color:#ff6b35;border:1px solid rgba(255,107,53,0.28);">Cooking</div></div>
+                    <div class="db-order"><div class="db-oid">#1287</div><div><div class="db-oname">Priya S.</div><div class="db-oitems">3× Pad thai · Spring rolls</div></div><div class="db-oamt">$58.40</div><div class="db-tag" style="background:rgba(107,124,147,0.14);color:#6b7c93;border:1px solid rgba(107,124,147,0.22);">On the way</div></div>
+                    <div class="db-order"><div class="db-oid">#1286</div><div><div class="db-oname">Nathan C.</div><div class="db-oitems">1× Chicken pesto pasta</div></div><div class="db-oamt">$24.00</div><div class="db-tag" style="background:rgba(91,156,246,0.12);color:#5b9cf6;border:1px solid rgba(91,156,246,0.25);">Ready</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mb-hinge"></div>
+        <div class="mb-base"><div class="mb-trackpad"></div><div class="mb-foot-left"></div><div class="mb-foot-right"></div></div>
+        <div class="mb-glow"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Stats bar ─── -->
+<div id="statsbar">
+  <div class="stats-row">
+    <div class="reveal"><div class="s-n count-up" data-target="2400" data-suffix="+">0</div><div class="s-l">Orders processed daily</div></div>
+    <div class="reveal d1"><div class="s-n count-up" data-target="99" data-suffix="%">0</div><div class="s-l">Uptime SLA</div></div>
+    <div class="reveal d2"><div class="s-n count-up" data-target="15">0</div><div class="s-l">Modules in one platform</div></div>
+    <div class="reveal d3"><div class="s-n" style="font-size:clamp(22px,2.8vw,40px);">1 month</div><div class="s-l">Free trial · no card needed</div></div>
+  </div>
+</div>
+
+<!-- ─── Customer Journey Flowchart ─── -->
+<section id="journey">
+  <div class="journey-inner">
+    <div class="journey-heading reveal">
+      <div class="s-eyebrow">Customer Journey</div>
+      <h2 class="j-h2">From first order<br><span style="color:var(--g);">to forever client.</span></h2>
+      <p class="j-sub">ZentraBite automates every step of the retention loop. Set it up once — it runs forever.</p>
+    </div>
+
+    <!-- Row A → left to right: steps 1–5 -->
+    <div class="j-track reveal">
+      <div class="j-row j-row-a">
+        <div class="j-node j-start">
+          <div class="j-step-num">Step 01</div>
+          <div class="j-icon">🛒</div>
+          <div class="j-label">First Order</div>
+          <div class="j-desc">Via POS, your storefront, Uber Eats, or DoorDash — all channels feed one board.</div>
+          <span class="j-tag earn">Any channel</span>
+        </div>
+        <div class="j-arrow-cell"><span class="j-arr">›</span></div>
+        <div class="j-node">
+          <div class="j-step-num">Step 02</div>
+          <div class="j-icon">👤</div>
+          <div class="j-label">Profile Auto-Created</div>
+          <div class="j-desc">Name, contact, spend, channel, and order history saved instantly. Zero manual entry.</div>
+          <span class="j-tag auto">Automatic</span>
+        </div>
+        <div class="j-arrow-cell"><span class="j-arr">›</span></div>
+        <div class="j-node">
+          <div class="j-step-num">Step 03</div>
+          <div class="j-icon">⭐</div>
+          <div class="j-label">Points Credited</div>
+          <div class="j-desc">Bronze tier activated. Points added instantly. Reward progress shown on next visit.</div>
+          <span class="j-tag earn">Loyalty active</span>
+        </div>
+        <div class="j-arrow-cell"><span class="j-arr">›</span></div>
+        <div class="j-node">
+          <div class="j-step-num">Step 04</div>
+          <div class="j-icon">💬</div>
+          <div class="j-label">"How was it?" SMS</div>
+          <div class="j-desc">Sent 2 hours after order. Includes a 50pt bonus for their next visit. 68% return rate.</div>
+          <span class="j-tag auto">Auto-sent</span>
+        </div>
+        <div class="j-arrow-cell"><span class="j-arr">›</span></div>
+        <div class="j-node">
+          <div class="j-step-num">Step 05</div>
+          <div class="j-icon">🤖</div>
+          <div class="j-label">AI Monitors Daily</div>
+          <div class="j-desc">Churn risk scored every night. Spend patterns tracked. Tier progress calculated.</div>
+          <span class="j-tag ai">AI powered</span>
+        </div>
+      </div>
+
+      <!-- Corner: turning point between row A and row B -->
+      <div class="j-corner">
+        <div class="j-corner-line"></div>
+        <div class="j-corner-label">↓ Goes quiet? Trigger win-back ↓</div>
+      </div>
+
+      <!-- Row B → right to left: steps 9–6 (visually reversed so arrows point left) -->
+      <div class="j-row j-row-b">
+        <div class="j-node j-end">
+          <div class="j-step-num">Step 09</div>
+          <div class="j-icon">♾️</div>
+          <div class="j-label">Forever Client</div>
+          <div class="j-desc">Platinum tier. VIP comms, priority support, 2× points, highest LTV customer segment.</div>
+          <span class="j-tag earn">♛ VIP status</span>
+        </div>
+        <div class="j-arrow-cell"><span class="j-arr">›</span></div>
+        <div class="j-node">
+          <div class="j-step-num">Step 08</div>
+          <div class="j-icon">🏆</div>
+          <div class="j-label">Platinum Nudge</div>
+          <div class="j-desc">AI detects they're 160pts from the next tier and fires a personal "almost there" SMS.</div>
+          <span class="j-tag ai">AI triggered</span>
+        </div>
+        <div class="j-arrow-cell"><span class="j-arr">›</span></div>
+        <div class="j-node">
+          <div class="j-step-num">Step 07</div>
+          <div class="j-icon">🔄</div>
+          <div class="j-label">They Return</div>
+          <div class="j-desc">Silver tier unlocked. Spend history deepens. AI refines their churn risk model.</div>
+          <span class="j-tag earn">Tier up</span>
+        </div>
+        <div class="j-arrow-cell"><span class="j-arr">›</span></div>
+        <div class="j-node">
+          <div class="j-step-num">Step 06</div>
+          <div class="j-icon">📣</div>
+          <div class="j-label">Win-back Campaign</div>
+          <div class="j-desc">At day 14 of silence: AI voice call → SMS fallback → $5 off offer. $4,280 avg recovered/mo.</div>
+          <span class="j-tag win">Day 14 auto</span>
+        </div>
+        <div class="j-arrow-cell"><span class="j-arr">›</span></div>
+        <div class="j-node">
+          <div class="j-step-num">Loop</div>
+          <div class="j-icon">📈</div>
+          <div class="j-label">Revenue Compounds</div>
+          <div class="j-desc">Each cycle: higher tier, higher spend, lower churn risk. The flywheel builds itself.</div>
+          <span class="j-tag auto">Flywheel</span>
+        </div>
+      </div>
+    </div><!-- /j-track -->
+  </div>
+</section>
+
+<!-- ─── All Modules Grid ─── -->
+<section id="modules">
+  <div class="mod-inner">
+    <div class="mod-head reveal">
+      <div>
+        <div class="s-eyebrow" style="margin-bottom:12px;">The platform</div>
+        <h2 class="mod-h2">15 modules. One login.<br>Everything connected.</h2>
+      </div>
+      <p class="mod-sub">Every module shares the same customer, order, and financial data — no integrations, no double-entry, no gaps.</p>
+    </div>
+    <div class="mod-grid reveal">
+      <div class="mod-card">
+        <div class="mod-ico">📦</div>
+        <div class="mod-name">Order Management</div>
+        <div class="mod-detail">Real-time board across POS, storefront & aggregators. Auto-updates kitchen, dispatch & stock.</div>
+        <span class="mod-badge live">● Live</span>
+      </div>
+      <div class="mod-card">
+        <div class="mod-ico">👥</div>
+        <div class="mod-name">Customer CRM</div>
+        <div class="mod-detail">Full profiles with LTV, visit frequency, churn risk score & auto-segments (VIP, at-risk, lapsed).</div>
+        <span class="mod-badge live">● Live</span>
+      </div>
+      <div class="mod-card">
+        <div class="mod-ico">⭐</div>
+        <div class="mod-name">Rewards Engine</div>
+        <div class="mod-detail">Points-per-dollar, Bronze → Platinum tiers, free-item redemptions. Customers actually understand it.</div>
+        <span class="mod-badge live">● Live</span>
+      </div>
+      <div class="mod-card">
+        <div class="mod-ico">📣</div>
+        <div class="mod-name">Campaigns</div>
+        <div class="mod-detail">SMS, email & AI voice campaigns triggered by customer behaviour. Every send tracked to revenue.</div>
+        <span class="mod-badge live">● Live</span>
+      </div>
+      <div class="mod-card">
+        <div class="mod-ico">🤖</div>
+        <div class="mod-name">AI Co-pilot</div>
+        <div class="mod-detail">Daily 7 AM brief. AI voice win-back calls. Menu, stock & staffing recommendations from real data.</div>
+        <span class="mod-badge ai">✦ AI</span>
+      </div>
+      <div class="mod-card">
+        <div class="mod-ico">🏪</div>
+        <div class="mod-name">POS</div>
+        <div class="mod-detail">Table orders, walk-ins & split bills. Syncs instantly to the order board, stock & financials.</div>
+        <span class="mod-badge live">● Live</span>
+      </div>
+      <div class="mod-card">
+        <div class="mod-ico">🛍️</div>
+        <div class="mod-name">Online Storefront</div>
+        <div class="mod-detail">Branded ordering page, no third-party fees. Direct orders captured into CRM automatically.</div>
+        <span class="mod-badge live">● Live</span>
+      </div>
+      <div class="mod-card">
+        <div class="mod-ico">🚚</div>
+        <div class="mod-name">Delivery & Dispatch</div>
+        <div class="mod-detail">Driver assignment, live ETA tracking, and customer SMS notifications — all in one screen.</div>
+        <span class="mod-badge live">● Live</span>
+      </div>
+      <div class="mod-card">
+        <div class="mod-ico">📦</div>
+        <div class="mod-name">Stock & Inventory</div>
+        <div class="mod-detail">Par-level alerts, auto-deduction per order, supplier reorder suggestions. Never 86 an item again.</div>
+        <span class="mod-badge live">● Live</span>
+      </div>
+      <div class="mod-card">
+        <div class="mod-ico">💰</div>
+        <div class="mod-name">Financials</div>
+        <div class="mod-detail">Daily P&L, channel breakdown, cost-of-goods, and tax-ready exports. No separate accounting app needed.</div>
+        <span class="mod-badge live">● Live</span>
+      </div>
+      <div class="mod-card">
+        <div class="mod-ico">🍽️</div>
+        <div class="mod-name">Menu Management</div>
+        <div class="mod-detail">One menu, every channel. Update once and prices sync across POS, storefront & aggregators instantly.</div>
+        <span class="mod-badge live">● Live</span>
+      </div>
+      <div class="mod-card">
+        <div class="mod-ico">📊</div>
+        <div class="mod-name">Analytics</div>
+        <div class="mod-detail">Revenue by hour, day & channel. Top items, table turns, repeat rate. Drill to any transaction.</div>
+        <span class="mod-badge live">● Live</span>
+      </div>
+      <div class="mod-card">
+        <div class="mod-ico">🔔</div>
+        <div class="mod-name">Win-back Automations</div>
+        <div class="mod-detail">Day-14 lapse trigger: AI call → SMS → $5 off. Fully automated. Avg $4,280/mo recovered.</div>
+        <span class="mod-badge ai">✦ AI</span>
+      </div>
+      <div class="mod-card">
+        <div class="mod-ico">📋</div>
+        <div class="mod-name">Kitchen Display</div>
+        <div class="mod-detail">Real-time ticket display for kitchen staff. Status updates flow back to dispatch and customer SMS.</div>
+        <span class="mod-badge live">● Live</span>
+      </div>
+      <div class="mod-card">
+        <div class="mod-ico">🔗</div>
+        <div class="mod-name">Aggregator Sync</div>
+        <div class="mod-detail">Uber Eats, DoorDash & Menulog orders pull into one board. Compare channel profitability side-by-side.</div>
+        <span class="mod-badge live">● Live</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Feature Storytelling ─── -->
+<section id="storytelling">
+  <div class="story-inner">
+    <div class="story-heading reveal">
+      <div class="s-eyebrow">Deep dive</div>
+      <h2 class="s-h2">Every part of your business,<br>in one system.</h2>
+      <p class="s-p">Change an order status and the stock, dispatch, and customer record all update automatically.</p>
+    </div>
+    <div class="story-layout">
+      <div class="story-nav" id="storyNav">
+        <div class="story-nav-item active" data-panel="orders"><div class="story-nav-title">Order Management</div><div class="story-nav-sub">Real-time · multi-channel</div></div>
+        <div class="story-nav-item" data-panel="customers"><div class="story-nav-title">Customer CRM</div><div class="story-nav-sub">Profiles · LTV · churn risk</div></div>
+        <div class="story-nav-item" data-panel="ai"><div class="story-nav-title">AI Co-pilot</div><div class="story-nav-sub">Daily brief · voice calls</div></div>
+        <div class="story-nav-item" data-panel="rewards"><div class="story-nav-title">Rewards Engine</div><div class="story-nav-sub">Tiers · points · redemptions</div></div>
+        <div class="story-nav-item" data-panel="campaigns"><div class="story-nav-title">Campaigns & Winback</div><div class="story-nav-sub">SMS · email · AI calls</div></div>
+      </div>
+
+      <div class="story-content" id="storyContent">
+
+        <!-- Orders -->
+        <div class="story-panel active" data-panel="orders">
+          <div class="story-panel-inner">
+            <div class="story-panel-header">
+              <div class="story-panel-eyebrow">📦 Order Management</div>
+              <h3 class="story-panel-title">Every order, in real time.<br>Across every channel.</h3>
+              <p class="story-panel-desc">Your POS, storefront, and third-party aggregators all feed the same board. Status changes trigger kitchen screens, driver dispatch, stock deductions, and customer SMS automatically — nothing falls through.</p>
+            </div>
+            <div class="panel-bullets">
+              <div class="pb"><span class="pb-ico">🔄</span><span>One board for POS, storefront, Uber Eats, DoorDash & Menulog — no switching apps</span></div>
+              <div class="pb"><span class="pb-ico">⚡</span><span>Status change triggers kitchen display, driver dispatch, stock deduction & SMS in one action</span></div>
+              <div class="pb"><span class="pb-ico">📊</span><span>Live stats: revenue, avg ticket, order count, and top items — updated every 30 seconds</span></div>
+              <div class="pb"><span class="pb-ico">🚨</span><span>Alerts when an item is low-stock mid-service, before you 86 it and lose revenue</span></div>
+            </div>
+            <div class="story-screen">
+              <div class="s-chrome"><span class="s-dot" style="background:#ff5f57;"></span><span class="s-dot" style="background:#febc2e;"></span><span class="s-dot" style="background:#28c840;"></span><div class="s-url">dashboard.zentrabite.com.au/orders</div></div>
+              <div class="s-body">
+                <div class="screen-orders">
+                  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:4px;">
+                    <div class="db-s"><div class="db-sl">Live orders</div><div class="db-sv g">7</div></div>
+                    <div class="db-s"><div class="db-sl">Revenue today</div><div class="db-sv">$1,842</div></div>
+                    <div class="db-s"><div class="db-sl">Avg ticket</div><div class="db-sv">$38.20</div></div>
+                  </div>
+                  <div class="db-order"><div class="db-oid">#1289</div><div><div class="db-oname">Olivia M.</div><div class="db-oitems">2× Margherita · Garlic bread</div></div><div class="db-oamt">$42.50</div><div class="db-tag" style="background:rgba(0,182,122,0.14);color:#00b67a;border:1px solid rgba(0,182,122,0.28);">New</div></div>
+                  <div class="db-order"><div class="db-oid">#1288</div><div><div class="db-oname">James K.</div><div class="db-oitems">Wagyu burger · Fries · Coke</div></div><div class="db-oamt">$31.80</div><div class="db-tag" style="background:rgba(255,107,53,0.14);color:#ff6b35;border:1px solid rgba(255,107,53,0.28);">Cooking</div></div>
+                  <div class="db-order"><div class="db-oid">#1287</div><div><div class="db-oname">Priya S.</div><div class="db-oitems">3× Pad thai · Spring rolls</div></div><div class="db-oamt">$58.40</div><div class="db-tag" style="background:rgba(107,124,147,0.14);color:#6b7c93;border:1px solid rgba(107,124,147,0.22);">On the way</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customers -->
+        <div class="story-panel" data-panel="customers">
+          <div class="story-panel-inner">
+            <div class="story-panel-header">
+              <div class="story-panel-eyebrow">👥 Customer CRM</div>
+              <h3 class="story-panel-title">Know every customer.<br>Keep the good ones.</h3>
+              <p class="story-panel-desc">Full profiles with spend history, visit frequency, lifetime value, and order patterns. Automatic segments for high-value, at-risk, and lapsed customers — ready to target instantly.</p>
+            </div>
+            <div class="panel-bullets">
+              <div class="pb"><span class="pb-ico">📈</span><span>Lifetime value, churn risk score, and favourite items calculated automatically per customer</span></div>
+              <div class="pb"><span class="pb-ico">🏷️</span><span>Auto-segments: VIP (top 10%), At-risk (dropping off), Lapsed (21+ days), First-timer</span></div>
+              <div class="pb"><span class="pb-ico">🔍</span><span>Search any customer and see their full order history, rewards balance, and AI recommendations</span></div>
+              <div class="pb"><span class="pb-ico">📞</span><span>One-click to fire a personalised SMS, trigger an AI call, or add them to a campaign</span></div>
+            </div>
+            <div class="story-screen">
+              <div class="s-chrome"><span class="s-dot" style="background:#ff5f57;"></span><span class="s-dot" style="background:#febc2e;"></span><span class="s-dot" style="background:#28c840;"></span><div class="s-url">dashboard.zentrabite.com.au/customers/priya-s</div></div>
+              <div class="s-body">
+                <div class="screen-customers">
+                  <div class="cust-profile">
+                    <div class="cust-avatar">😊</div>
+                    <div class="cust-name">Priya S.</div>
+                    <div class="cust-meta">Member since Jan 2024 · Gold tier</div>
+                    <div class="cust-stats">
+                      <div class="cust-stat"><span class="cust-stat-l">Lifetime value</span><span class="cust-stat-v g">$2,840</span></div>
+                      <div class="cust-stat"><span class="cust-stat-l">Total orders</span><span class="cust-stat-v">64</span></div>
+                      <div class="cust-stat"><span class="cust-stat-l">Avg order</span><span class="cust-stat-v">$44.40</span></div>
+                      <div class="cust-stat"><span class="cust-stat-l">Last order</span><span class="cust-stat-v">2 days ago</span></div>
+                      <div class="cust-stat"><span class="cust-stat-l">Churn risk</span><span class="cust-stat-v" style="color:#00b67a;">Low</span></div>
+                    </div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:8px;">
+                    <div class="db-s"><div class="db-sl">Favourite item</div><div style="font-weight:600;font-size:12px;color:var(--cl);margin-top:4px;">🍜 Pad Thai (ordered 28×)</div></div>
+                    <div class="db-s"><div class="db-sl">Reward points</div><div class="db-sv g">2,840 pts</div></div>
+                    <div class="db-s"><div class="db-sl">Next reward</div><div style="font-size:10.5px;color:var(--cl);margin-top:4px;">Free dessert at 3,000 pts<div style="margin-top:5px;height:3px;background:rgba(226,232,240,0.08);border-radius:999px;overflow:hidden;"><div style="width:94%;height:100%;background:var(--g);border-radius:999px;"></div></div></div></div>
+                    <div class="db-s"><div class="db-sl">AI recommendation</div><div style="font-size:10.5px;color:var(--g);margin-top:4px;">✨ Send "almost there" SMS — 160pts from Platinum</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI -->
+        <div class="story-panel" data-panel="ai">
+          <div class="story-panel-inner">
+            <div class="story-panel-header">
+              <div class="story-panel-eyebrow">🤖 AI Co-pilot</div>
+              <h3 class="story-panel-title">Your business, briefed<br>every morning.</h3>
+              <p class="story-panel-desc">The AI scans your orders, customers, and stock overnight and delivers 5 actionable insights at 7 AM. It also makes AI voice calls to lapsed customers automatically and logs every outcome.</p>
+            </div>
+            <div class="panel-bullets">
+              <div class="pb"><span class="pb-ico">🌅</span><span>7 AM daily brief: top 5 actions ranked by revenue impact, specific to your business</span></div>
+              <div class="pb"><span class="pb-ico">📞</span><span>AI voice calls lapsed customers at day 14 — sounds human, logs outcome, sends SMS fallback</span></div>
+              <div class="pb"><span class="pb-ico">💡</span><span>Menu, stock, staffing, and campaign suggestions — all backed by your actual sales data</span></div>
+              <div class="pb"><span class="pb-ico">📉</span><span>Revenue anomaly detection: flags dips before you notice them and tells you the root cause</span></div>
+            </div>
+            <div class="story-screen">
+              <div class="s-chrome"><span class="s-dot" style="background:#ff5f57;"></span><span class="s-dot" style="background:#febc2e;"></span><span class="s-dot" style="background:#28c840;"></span><div class="s-url">dashboard.zentrabite.com.au/ai</div></div>
+              <div class="s-body">
+                <div class="ai-brief-card">
+                  <div class="ai-brief-head"><span class="ai-brief-dot"></span>AI Daily Brief · Mon 28 Apr · 7:00 AM</div>
+                  <div class="ai-item"><div class="ai-dot"></div><div>42 customers haven't ordered in 21+ days. <strong>AI calling starts at 10 AM</strong> — expected $340 recovered.</div></div>
+                  <div class="ai-item"><div class="ai-dot"></div><div>Saturday revenue down 18%. <strong>Burger stock ran out</strong> at 7 PM — raise par 40% next week.</div></div>
+                  <div class="ai-item"><div class="ai-dot"></div><div>Priya S. is 160pts from Platinum. A <strong>personal SMS tonight</strong> could lock in Q2 loyalty.</div></div>
+                  <div class="ai-item"><div class="ai-dot"></div><div>Uber Eats fees up 2.1%. <strong>14 customers</strong> could switch to direct — campaign queued.</div></div>
+                  <div class="ai-item"><div class="ai-dot"></div><div>Tuesday 6–8 PM is your quietest slot. A $5 off campaign = <strong>~$280 extra revenue</strong>.</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rewards -->
+        <div class="story-panel" data-panel="rewards">
+          <div class="story-panel-inner">
+            <div class="story-panel-header">
+              <div class="story-panel-eyebrow">⭐ Rewards Engine</div>
+              <h3 class="story-panel-title">Earn points. Unlock tiers.<br>Redeem free items.</h3>
+              <p class="story-panel-desc">Transparent, motivating rewards your customers actually understand. Every order earns points, tiers unlock real perks, and redemptions drive repeat visits — not confusion.</p>
+            </div>
+            <div class="panel-bullets">
+              <div class="pb"><span class="pb-ico">🎯</span><span>Configurable earn rate per tier — 1pt/$ Bronze, 1.5pt/$ Silver, 2pt/$ Gold & Platinum</span></div>
+              <div class="pb"><span class="pb-ico">🎁</span><span>Free-item redemptions, birthday bonuses, priority queuing, and VIP-only offers per tier</span></div>
+              <div class="pb"><span class="pb-ico">📱</span><span>Customers track points via SMS link — no app download required. Frictionless by design.</span></div>
+              <div class="pb"><span class="pb-ico">🔔</span><span>AI auto-sends "almost there" nudge when a customer is within 200pts of the next tier</span></div>
+            </div>
+            <div class="story-screen">
+              <div class="s-chrome"><span class="s-dot" style="background:#ff5f57;"></span><span class="s-dot" style="background:#febc2e;"></span><span class="s-dot" style="background:#28c840;"></span><div class="s-url">dashboard.zentrabite.com.au/rewards</div></div>
+              <div class="s-body">
+                <div class="screen-rewards">
+                  <div class="tier-card">
+                    <div class="tier-icon">🥉</div><div class="tier-name">Bronze</div><div class="tier-pts">0 – 999 pts</div>
+                    <div class="tier-bar"><div class="tier-fill" style="width:100%;background:linear-gradient(90deg,#cd7f32,#e8a87c);"></div></div>
+                    <div class="tier-perks"><div class="tier-perk">✓ 1pt per $1 spent</div><div class="tier-perk">✓ Birthday bonus</div></div>
+                    <div style="font-size:10px;color:var(--st);margin-top:7px;">186 members</div>
+                  </div>
+                  <div class="tier-card" style="border-color:rgba(0,182,122,0.25);background:rgba(0,182,122,0.06);">
+                    <div class="tier-icon">🥈</div><div class="tier-name" style="color:var(--g);">Silver</div><div class="tier-pts">1,000 – 2,499 pts</div>
+                    <div class="tier-bar"><div class="tier-fill" style="width:100%;background:linear-gradient(90deg,#8a9ba8,#c0cfd8);"></div></div>
+                    <div class="tier-perks"><div class="tier-perk">✓ 1.5pts per $1</div><div class="tier-perk">✓ Free delivery</div></div>
+                    <div style="font-size:10px;color:var(--g);margin-top:7px;">34 members</div>
+                  </div>
+                  <div class="tier-card">
+                    <div class="tier-icon">🥇</div><div class="tier-name">Gold</div><div class="tier-pts">2,500+ pts</div>
+                    <div class="tier-bar"><div class="tier-fill" style="width:100%;background:linear-gradient(90deg,#f0a500,#ffd700);"></div></div>
+                    <div class="tier-perks"><div class="tier-perk">✓ 2pts per $1</div><div class="tier-perk">✓ Priority support</div></div>
+                    <div style="font-size:10px;color:var(--st);margin-top:7px;">16 members</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Campaigns -->
+        <div class="story-panel" data-panel="campaigns">
+          <div class="story-panel-inner">
+            <div class="story-panel-header">
+              <div class="story-panel-eyebrow">📣 Campaigns & Winback</div>
+              <h3 class="story-panel-title">Automated campaigns that<br>run while you sleep.</h3>
+              <p class="story-panel-desc">SMS, email, and AI voice campaigns triggered by customer behaviour — churn risk, first order, tier unlock, quiet period. Set it once and let it run. Every send is tracked to revenue.</p>
+            </div>
+            <div class="panel-bullets">
+              <div class="pb"><span class="pb-ico">🤖</span><span>AI voice calls lapsed customers — sounds natural, logs the conversation, SMS fallback if no answer</span></div>
+              <div class="pb"><span class="pb-ico">🧠</span><span>Behaviour triggers: first order, 14-day lapse, tier unlock, birthday, unredeemed rewards</span></div>
+              <div class="pb"><span class="pb-ico">💸</span><span>Every campaign tied to revenue — see exact ROI per message, per campaign, per customer segment</span></div>
+              <div class="pb"><span class="pb-ico">🎯</span><span>Quiet-slot promo: AI identifies your slowest hour and auto-creates a targeted offer to fill it</span></div>
+            </div>
+            <div class="story-screen">
+              <div class="s-chrome"><span class="s-dot" style="background:#ff5f57;"></span><span class="s-dot" style="background:#febc2e;"></span><span class="s-dot" style="background:#28c840;"></span><div class="s-url">dashboard.zentrabite.com.au/campaigns</div></div>
+              <div class="s-body">
+                <div class="screen-campaigns">
+                  <div class="campaign-card"><div><div class="camp-name">Win-back: 21-day lapse</div><div class="camp-meta">AI voice call → SMS fallback · Auto-trigger</div><div class="camp-status" style="background:rgba(0,182,122,0.12);color:#00b67a;">● Active</div></div><div class="camp-sent"><div class="camp-sent-n">$4,280</div><div class="camp-sent-l">recovered</div></div></div>
+                  <div class="campaign-card"><div><div class="camp-name">First-order follow-up</div><div class="camp-meta">SMS at +2h · "How was it?" + 50pt bonus</div><div class="camp-status" style="background:rgba(0,182,122,0.12);color:#00b67a;">● Active</div></div><div class="camp-sent"><div class="camp-sent-n">68%</div><div class="camp-sent-l">2nd order rate</div></div></div>
+                  <div class="campaign-card"><div><div class="camp-name">Tuesday quiet-slot promo</div><div class="camp-meta">SMS · $5 off 6–8 PM · 180 recipients</div><div class="camp-status" style="background:rgba(255,107,53,0.12);color:#ff6b35;">⏸ Scheduled</div></div><div class="camp-sent"><div class="camp-sent-n">$940</div><div class="camp-sent-l">projected</div></div></div>
+                  <div class="campaign-card"><div><div class="camp-name">Gold tier upgrade</div><div class="camp-meta">Auto-SMS when 160pts from Platinum</div><div class="camp-status" style="background:rgba(0,182,122,0.12);color:#00b67a;">● Active</div></div><div class="camp-sent"><div class="camp-sent-n">+23%</div><div class="camp-sent-l">repeat rate</div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── AI Chat ─── -->
+<section id="ai">
+  <div class="ai-inner">
+    <div class="ai-left reveal">
+      <div class="s-eyebrow" style="margin-bottom:16px;">AI Co-pilot</div>
+      <h2>Your business,<br><span style="color:var(--g);">on autopilot.</span></h2>
+      <p>Ask questions about your business in plain English. ZentraBite knows your orders, customers, stock, and financials — and tells you exactly what to do next.</p>
+      <div class="ai-bullets">
+        <div class="ai-b"><div class="ai-b-ico">📊</div><span>Daily brief with your top 5 actionable insights at 7 AM every morning</span></div>
+        <div class="ai-b"><div class="ai-b-ico">🤖</div><span>AI voice calls lapsed customers and logs every conversation outcome</span></div>
+        <div class="ai-b"><div class="ai-b-ico">📣</div><span>Campaign recommendations based on live churn risk and revenue gaps</span></div>
+        <div class="ai-b"><div class="ai-b-ico">💡</div><span>Menu, stock, and staffing suggestions backed by your real sales data</span></div>
+        <div class="ai-b"><div class="ai-b-ico">🔍</div><span>Revenue anomaly detection — flags dips and tells you the exact cause</span></div>
+      </div>
+      <a href="#cta" class="btn-lg p" style="width:fit-content;">See it in your account →</a>
+    </div>
+    <div class="reveal d1">
+      <div class="chat-ui">
+        <div class="chat-hdr">
+          <div class="chat-av">✨</div>
+          <div><div class="chat-nm">ZentraBite AI</div><div class="chat-st"><span class="chat-st-dot"></span>Online · analysing your data</div></div>
+        </div>
+        <div class="chat-msgs" id="chatMsgs">
+          <div class="msg b"><div class="msg-bub">👋 Hey! I'm your ZentraBite AI. I have access to your orders, customers, stock, and financials. What would you like to know?</div><div class="msg-t">Just now</div></div>
+        </div>
+        <div class="chat-sugs" id="chatSugs">
+          <span class="sug" onclick="sendChat(this.textContent)">Who are my top customers?</span>
+          <span class="sug" onclick="sendChat(this.textContent)">Why is revenue down?</span>
+          <span class="sug" onclick="sendChat(this.textContent)">What should I promote?</span>
+          <span class="sug" onclick="sendChat(this.textContent)">How do I reduce churn?</span>
+        </div>
+        <div class="chat-in-row">
+          <input class="chat-inp" id="chatInp" placeholder="Ask anything about your business…" onkeydown="if(event.key==='Enter')sendChat()">
+          <button class="chat-send" id="chatSendBtn" onclick="sendChat()">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M14 8L2 2l3 6-3 6 12-6z" fill="currentColor"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CTA ─── -->
+<section id="cta">
+  <div class="s-eyebrow reveal" style="margin:0 auto 20px;display:inline-flex;">Ready to grow?</div>
+  <h2 class="cta-h reveal d1">Start your <span style="color:var(--g);">1-month free trial</span> today.</h2>
+  <p class="cta-sub reveal d2">No credit card. No lock-in. Pricing tailored to your business after your trial.</p>
+  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;" class="reveal d3">
+    <a href="#" class="btn-lg p" style="padding:16px 38px;font-size:16px;">Book a call with us →</a>
+    <a href="#storytelling" class="btn-lg s" style="padding:15px 28px;font-size:15px;">Explore the platform</a>
+  </div>
+  <p class="cta-note reveal">Works for restaurants, cafés, food trucks, retail, services, and more.</p>
+</section>
+
+<!-- ─── Footer ─── -->
+<footer>
+  <div class="ft-inner">
+    <div class="ft-top">
+      <div>
+        <div class="ft-brand"><div class="logo-ico" style="width:24px;height:24px;border-radius:7px;"><svg viewBox="0 0 18 18" fill="none"><path d="M3 9l4-4 4 4 4-4" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 13l4-4 4 4 4-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".5"/></svg></div>ZentraBite</div>
+        <p class="ft-tag">The Business Operating System built for small operators who want to run, grow, and scale without juggling 10 tools.</p>
+      </div>
+      <div><div class="ft-col-h">Product</div><ul class="ft-links"><li><a href="#">Orders</a></li><li><a href="#">CRM</a></li><li><a href="#">Rewards</a></li><li><a href="#">AI Calls</a></li><li><a href="#">All modules</a></li></ul></div>
+      <div><div class="ft-col-h">Company</div><ul class="ft-links"><li><a href="#">About</a></li><li><a href="#">Pricing</a></li><li><a href="#">Blog</a></li><li><a href="#">Contact</a></li></ul></div>
+      <div><div class="ft-col-h">Legal</div><ul class="ft-links"><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li><li><a href="#">Security</a></li></ul></div>
+    </div>
+    <div class="ft-bottom"><span class="ft-copy">© 2026 ZentraBite Pty Ltd. Built for small operators in Australia.</span><span class="ft-copy">zentrabite.com.au</span></div>
+  </div>
+</footer>
+
+<!-- ─── Three.js ─── -->
+<script>
+(function(){
+  const cvs=document.getElementById('bg');
+  const rndr=new THREE.WebGLRenderer({canvas:cvs,antialias:true,alpha:true});
+  rndr.setPixelRatio(Math.min(devicePixelRatio,2));
+  rndr.setSize(innerWidth,innerHeight);
+  rndr.setClearColor(0,0);
+  const sc=new THREE.Scene();
+  sc.fog=new THREE.FogExp2(0x08121e,.026);
+  const cam=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,200);
+  cam.position.set(0,2,9);
+  const GW=55,GH=55;
+  const wG=new THREE.BufferGeometry();
+  const wP=new Float32Array(GW*GH*3);
+  const wPh=new Float32Array(GW*GH);
+  for(let i=0;i<GW;i++)for(let j=0;j<GH;j++){const k=i*GH+j;wP[k*3]=(i-GW/2)*.56;wP[k*3+1]=0;wP[k*3+2]=(j-GH/2)*.56-2;wPh[k]=Math.random()*Math.PI*2;}
+  wG.setAttribute('position',new THREE.BufferAttribute(wP,3));
+  const wGrid=new THREE.Points(wG,new THREE.PointsMaterial({color:0x1a3050,size:.04,transparent:true,opacity:.5,sizeAttenuation:true}));
+  wGrid.position.y=-3.8;wGrid.rotation.x=-.18;sc.add(wGrid);
+  const NS=2000,sP=new Float32Array(NS*3),sC=new Float32Array(NS*3);
+  for(let i=0;i<NS;i++){sP[i*3]=(Math.random()-.5)*80;sP[i*3+1]=(Math.random()-.5)*60;sP[i*3+2]=(Math.random()-.5)*80-8;if(Math.random()>.93){sC[i*3]=0;sC[i*3+1]=.71;sC[i*3+2]=.48;}else{const b=.4+Math.random()*.6;sC[i*3]=b*.75;sC[i*3+1]=b*.85;sC[i*3+2]=b;}}
+  const sG=new THREE.BufferGeometry();sG.setAttribute('position',new THREE.BufferAttribute(sP,3));sG.setAttribute('color',new THREE.BufferAttribute(sC,3));
+  sc.add(new THREE.Points(sG,new THREE.PointsMaterial({size:.05,vertexColors:true,transparent:true,opacity:.65,sizeAttenuation:true})));
+  const iA=new THREE.Mesh(new THREE.IcosahedronGeometry(1.4,1),new THREE.MeshBasicMaterial({color:0x00b67a,wireframe:true,transparent:true,opacity:.22}));
+  const iB=new THREE.Mesh(new THREE.IcosahedronGeometry(2.1,1),new THREE.MeshBasicMaterial({color:0x00b67a,wireframe:true,transparent:true,opacity:.07}));
+  iA.position.set(4.8,.6,-4);iB.position.set(4.8,.6,-4);sc.add(iA,iB);
+  const oct=new THREE.Mesh(new THREE.OctahedronGeometry(.6),new THREE.MeshBasicMaterial({color:0x1c4d78,wireframe:true,transparent:true,opacity:.25}));
+  oct.position.set(-5.2,1.4,-3);sc.add(oct);
+  const r1=new THREE.Mesh(new THREE.TorusGeometry(5,.016,8,120),new THREE.MeshBasicMaterial({color:0x1a3250,transparent:true,opacity:.3}));
+  r1.rotation.x=Math.PI/2.3;r1.position.y=-1;sc.add(r1);
+  const r2=new THREE.Mesh(new THREE.TorusGeometry(8,.011,8,120),new THREE.MeshBasicMaterial({color:0x00b67a,transparent:true,opacity:.08}));
+  r2.rotation.x=Math.PI/2.9;r2.rotation.z=Math.PI/5;sc.add(r2);
+  const mx={x:0,y:0};
+  document.addEventListener('mousemove',e=>{mx.x=(e.clientX/innerWidth-.5)*2;mx.y=-(e.clientY/innerHeight-.5)*2;});
+  window.addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();rndr.setSize(innerWidth,innerHeight);});
+  window.addEventListener('scroll',()=>{const y=scrollY,s=innerHeight;cvs.style.opacity=y<s*.6?1:Math.max(0,1-(y-s*.6)/(s*1.4));},{passive:true});
+  let t=0;
+  (function a(){requestAnimationFrame(a);t+=.005;
+    const pos=wGrid.geometry.attributes.position;
+    for(let i=0;i<GW;i++)for(let j=0;j<GH;j++){const k=i*GH+j;pos.array[k*3+1]=Math.sin(t*.8+i*.3+wPh[k])*.18+Math.cos(t*.5+j*.25)*.12;}
+    pos.needsUpdate=true;
+    iA.rotation.x+=.006;iA.rotation.y+=.008;iB.rotation.x-=.004;iB.rotation.y-=.006;
+    oct.rotation.x+=.007;oct.rotation.z+=.005;
+    r1.rotation.z+=.006;r2.rotation.y+=.004;
+    cam.position.x+=(mx.x*.32-cam.position.x)*.022;cam.position.y+=(mx.y*.22+2-cam.position.y)*.022;
+    cam.lookAt(0,0,0);rndr.render(sc,cam);
+  })();
+})();
+</script>
+
+<!-- ─── UI Scripts ─── -->
+<script>
+window.addEventListener('scroll',()=>{const d=document.documentElement;document.getElementById('prog').style.width=((scrollY/(d.scrollHeight-d.clientHeight))*100)+'%';},{passive:true});
+window.addEventListener('scroll',()=>document.getElementById('nav').classList.toggle('scrolled',scrollY>50),{passive:true});
+window.addEventListener('mousemove',e=>{const x=e.clientX/innerWidth,y=e.clientY/innerHeight;document.getElementById('blob-a').style.transform=`translate(${x*20}px,${y*15}px)`;document.getElementById('blob-b').style.transform=`translate(${-x*18}px,${-y*14}px)`;document.getElementById('blob-c').style.transform=`translate(${(x-.5)*25}px,${(y-.5)*20}px)`;},{passive:true});
+
+const mb=document.getElementById('mbTilt');
+if(mb){const wrap=mb.closest('.macbook-wrap');wrap.addEventListener('mousemove',e=>{const r=mb.getBoundingClientRect();const rx=((e.clientY-r.top)/r.height-.5)*-12;const ry=((e.clientX-r.left)/r.width-.5)*12;mb.style.transform=`rotateX(${rx}deg) rotateY(${ry}deg)`;mb.style.animation='none';mb.style.transition='transform 0.08s';});wrap.addEventListener('mouseleave',()=>{mb.style.animation='mb-float 8s ease-in-out infinite';mb.style.transition='';});}
+
+const ro=new IntersectionObserver(entries=>{entries.forEach((e,i)=>{if(e.isIntersecting)setTimeout(()=>e.target.classList.add('in'),i*65);});},{threshold:0.1});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+
+const co=new IntersectionObserver(entries=>{entries.forEach(en=>{if(!en.isIntersecting)return;const el=en.target,target=+el.dataset.target,suffix=el.dataset.suffix||'';let cur=0;const inc=target/60;const t=setInterval(()=>{cur=Math.min(cur+inc,target);el.textContent=Math.round(cur).toLocaleString()+suffix;if(cur>=target)clearInterval(t);},16);co.unobserve(el);});},{threshold:.5});
+document.querySelectorAll('.count-up').forEach(el=>co.observe(el));
+
+// Storytelling scroll
+const panels=document.querySelectorAll('.story-panel');
+const navItems=document.querySelectorAll('.story-nav-item');
+const storyObs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting&&e.intersectionRatio>.4){const id=e.target.dataset.panel;panels.forEach(p=>p.classList.toggle('active',p.dataset.panel===id));navItems.forEach(n=>n.classList.toggle('active',n.dataset.panel===id));}});},{threshold:.4,rootMargin:'-20% 0px -20% 0px'});
+panels.forEach(p=>storyObs.observe(p));
+navItems.forEach(item=>{item.addEventListener('click',()=>{const id=item.dataset.panel;const target=document.querySelector(`.story-panel[data-panel="${id}"]`);if(target)target.scrollIntoView({behavior:'smooth',block:'center'});});});
+
+// AI Chat
+const ANSWERS={
+  "who are my top customers?":
+    `Your <strong>top 5 by lifetime value</strong> this month:\n\n1. <strong>Priya S.</strong> — $482 · Gold · 11 orders · 2 days ago\n2. <strong>James K.</strong> — $371 · Silver · 9 orders · 4 days ago\n3. <strong>Olivia M.</strong> — $344 · Silver · 8 orders · today\n4. <strong>Nathan C.</strong> — $298 · Bronze · 7 orders · 6 days ago\n5. <strong>Aisha R.</strong> — $261 · Bronze · 6 orders · 3 days ago\n\n<strong>💡 Tip:</strong> Priya is 160pts from Platinum. A "you're almost there" SMS tonight could lock in her loyalty for Q2.`,
+  "why is revenue down?":
+    `Revenue is <strong>down 14% vs. last week</strong> ($8,240 vs $9,580). Three root causes:\n\n📉 <strong>Thursday dropped 31%</strong> — storm + 3 driver no-shows\n🍔 <strong>Burger stock ran out</strong> Tuesday 7 PM — 90-min 86 of your #1 item\n📡 <strong>Uber Eats outage</strong> Wed 11 AM–2 PM — est. $320 lost\n\n<strong>💡 Actions:</strong> Raise burger par 40% Tue/Wed · Add backup Thursday drivers · Enable direct ordering fallback.`,
+  "what should i promote?":
+    `Top 3 items by margin + opportunity:\n\n🥇 <strong>Wagyu Burger</strong> — $18.50 margin · 94% sell-through · only in 32% of orders. Banner = ~$460/wk extra.\n🥈 <strong>Garlic Prawn Pasta</strong> — $14.20 margin · 4.8★ · almost entirely dinner. A lunch promo opens a new slot.\n🥉 <strong>Mango Lassi</strong> — $9.80 margin · pairs with 60% of curry orders but only added 22% of the time. Checkout prompt = easy money.\n\n<strong>💡</strong> Want me to draft the SMS campaign now?`,
+  "how do i reduce churn?":
+    `Your 30-day churn is <strong>18%</strong>, up from 13% last month. Here's the fix:\n\n🔄 <strong>42 customers</strong> 21+ days lapsed — AI win-back calls at 10 AM today\n📬 <strong>First-order retention is 44%</strong> — customers who got a post-order SMS were 2.3× more likely to return\n🎁 <strong>68 members</strong> have unredeemed rewards — a reminder SMS recovers ~22% within 7 days\n\n<strong>💡 Take all 3 actions:</strong> ZentraBite estimates ~$1,100 recovered this month.`,
+};
+const FOLLOWUPS={
+  "who are my top customers?":["Send Priya a tier upgrade SMS","Who's at risk of churning?","Show my Gold tier members"],
+  "why is revenue down?":["Fix my burger stock levels","Set up driver backup","Show week vs week comparison"],
+  "what should i promote?":["Draft the SMS campaign","What's my highest margin item?","Schedule a Tuesday promo"],
+  "how do i reduce churn?":["Start AI win-back calls now","Set up post-order SMS","Show the 42 at-risk customers"],
+};
+const DEF_FU=["What's my best day?","Should I run a campaign?","How are my rewards performing?"];
+let busy=false;
+const chatEl=document.getElementById('chatMsgs');
+const sugsEl=document.getElementById('chatSugs');
+function addMsg(role,html){const d=document.createElement('div');d.className='msg '+role;const b=document.createElement('div');b.className='msg-bub';b.innerHTML=html.replace(/\n/g,'<br>');const t=document.createElement('div');t.className='msg-t';t.textContent='Just now';d.appendChild(b);d.appendChild(t);chatEl.appendChild(d);chatEl.scrollTop=chatEl.scrollHeight;return d;}
+function setSugs(items){sugsEl.innerHTML='';items.forEach(s=>{const el=document.createElement('span');el.className='sug';el.textContent=s;el.onclick=()=>sendChat(s);sugsEl.appendChild(el);});}
+function sendChat(text){
+  if(busy)return;
+  const inp=document.getElementById('chatInp');
+  const q=(text||inp.value).trim();if(!q)return;
+  inp.value='';busy=true;
+  document.getElementById('chatSendBtn').disabled=true;
+  sugsEl.innerHTML='';
+  addMsg('u',q);
+  const typ=document.createElement('div');typ.className='msg b';typ.innerHTML='<div class="typ-bub"><span class="typ-d"></span><span class="typ-d"></span><span class="typ-d"></span></div>';
+  chatEl.appendChild(typ);chatEl.scrollTop=chatEl.scrollHeight;
+  const key=q.toLowerCase().replace(/[?!.]/g,'').trim();
+  const answer=ANSWERS[key]||`In a live ZentraBite account, I'd analyse your real orders, customers, and financials to answer: "<strong>${q}</strong>".\n\nI'd surface the top 2–3 actions ranked by revenue impact — specific to your data.\n\n<strong>Start your free trial</strong> to ask this with real, personalised answers.`;
+  setTimeout(()=>{
+    typ.remove();
+    const msgEl=addMsg('b','');
+    const bub=msgEl.querySelector('.msg-bub');
+    const words=answer.split(/(?<=\s)/);
+    let i=0,built='';
+    const cur='<span style="display:inline-block;width:2px;height:11px;background:var(--g);animation:blink .7s infinite;margin-left:1px;vertical-align:middle;border-radius:1px;"></span>';
+    bub.innerHTML=cur;
+    function next(){if(i<words.length){built+=words[i++];bub.innerHTML=built.replace(/\n/g,'<br>')+cur;chatEl.scrollTop=chatEl.scrollHeight;setTimeout(next,14+Math.random()*16);}else{bub.innerHTML=built.replace(/\n/g,'<br>');busy=false;document.getElementById('chatSendBtn').disabled=false;setSugs(FOLLOWUPS[key]||DEF_FU);}}
+    next();
+  },850+Math.random()*500);
+}
+</script>
+<style>@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}</style>
+</body>
+</html>

@@ -1,0 +1,46 @@
+# ─── Line-ending normalisation ──────────────────────────────────────────────
+# Windows checkouts were round-tripping every text file through CRLF, making
+# every diff look like the entire repo had changed. This pins everything to
+# LF in the repo; your working tree can still be CRLF on Windows if core.autocrlf
+# is set to true.
+
+*                  text=auto eol=lf
+
+# Source
+*.ts               text eol=lf
+*.tsx              text eol=lf
+*.js               text eol=lf
+*.jsx              text eol=lf
+*.mjs              text eol=lf
+*.cjs              text eol=lf
+*.json             text eol=lf
+*.md               text eol=lf
+*.yml              text eol=lf
+*.yaml             text eol=lf
+*.css              text eol=lf
+*.scss             text eol=lf
+*.html             text eol=lf
+*.svg              text eol=lf
+*.sql              text eol=lf
+
+# Windows scripts — keep CRLF so cmd.exe doesn't choke
+*.ps1              text eol=crlf
+*.cmd              text eol=crlf
+*.bat              text eol=crlf
+
+# Binaries — never touch
+*.png              binary
+*.jpg              binary
+*.jpeg             binary
+*.gif              binary
+*.ico              binary
+*.webp             binary
+*.woff             binary
+*.woff2            binary
+*.ttf              binary
+*.eot              binary
+*.pdf              binary
+*.docx             binary
+*.xlsx             binary
+*.pptx             binary
+*.zip              binary

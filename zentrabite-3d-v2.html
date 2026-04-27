@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZentraBite — Business Operating System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+/* ─── Brand Tokens ─────────────────────────────── */
+:root{
+  --bg:#0a1628;
+  --navy:#1c2d48;
+  --green:#00b67a;
+  --green-dk:#00966a;
+  --orange:#ff6b35;
+  --steel:#6b7c93;
+  --cloud:#f0f4f8;
+  --mist:rgba(226,232,240,0.1);
+  --g15:rgba(0,182,122,0.15);
+  --g30:rgba(0,182,122,0.3);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;font-size:16px;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--cloud);overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+
+/* ─── Scroll progress bar ─────────────────────── */
+#progress{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--green),#00e5a0);z-index:9999;width:0%;transition:width 0.1s linear;}
+
+/* ─── Canvas ──────────────────────────────────── */
+#bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+
+/* ─── Nav ─────────────────────────────────────── */
+#nav{position:fixed;top:0;left:0;right:0;z-index:500;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 48px;transition:background 0.3s,border-color 0.3s;border-bottom:1px solid transparent;}
+#nav.scrolled{background:rgba(10,22,40,0.9);backdrop-filter:blur(24px);border-color:rgba(226,232,240,0.07);}
+.logo{font-family:'Outfit',sans-serif;font-size:20px;font-weight:900;letter-spacing:-0.02em;color:var(--cloud);text-decoration:none;display:flex;align-items:center;gap:9px;}
+.logo-mark{position:relative;width:28px;height:28px;}
+.logo-mark svg{width:28px;height:28px;}
+.nav-mid{display:flex;gap:2px;list-style:none;}
+.nav-mid a{color:var(--steel);font-size:14px;font-weight:500;padding:8px 14px;border-radius:8px;text-decoration:none;transition:color 0.15s,background 0.15s;}
+.nav-mid a:hover{color:var(--cloud);background:rgba(255,255,255,0.05);}
+.nav-actions{display:flex;align-items:center;gap:10px;}
+.btn-ghost{color:var(--steel);font-size:14px;font-weight:500;padding:9px 16px;border-radius:9px;text-decoration:none;transition:color 0.15s;}
+.btn-ghost:hover{color:var(--cloud);}
+.btn-cta{background:var(--green);color:#fff;font-size:14px;font-weight:700;padding:10px 22px;border-radius:10px;text-decoration:none;box-shadow:0 0 0 1px rgba(0,182,122,0.4),0 4px 20px rgba(0,182,122,0.35);transition:all 0.18s;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:7px;}
+.btn-cta:hover{background:var(--green-dk);box-shadow:0 0 0 1px rgba(0,182,122,0.6),0 8px 30px rgba(0,182,122,0.5);transform:translateY(-1px);}
+.btn-cta:active{transform:translateY(0);}
+
+/* ─── Hero ────────────────────────────────────── */
+#hero{position:relative;z-index:1;min-height:100vh;display:grid;grid-template-columns:1fr 1fr;gap:0;align-items:center;padding:90px 0 60px;max-width:1280px;margin:0 auto;}
+.hero-left{padding:0 48px;display:flex;flex-direction:column;gap:0;}
+.hero-badge{display:inline-flex;align-items:center;gap:9px;background:rgba(0,182,122,0.08);border:1px solid rgba(0,182,122,0.22);border-radius:999px;padding:7px 16px;width:fit-content;margin-bottom:32px;}
+.badge-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px rgba(0,182,122,1);animation:glow 2s ease-in-out infinite;}
+@keyframes glow{0%,100%{box-shadow:0 0 8px rgba(0,182,122,1);}50%{box-shadow:0 0 16px rgba(0,182,122,0.4);}}
+.badge-text{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--green);}
+.hero-h1{font-family:'Outfit',sans-serif;font-size:clamp(42px,4.8vw,72px);font-weight:900;line-height:1.02;letter-spacing:-0.035em;margin-bottom:24px;}
+.line1{background:linear-gradient(165deg,var(--cloud) 40%,rgba(240,244,248,0.5));-webkit-background-clip:text;background-clip:text;color:transparent;display:block;}
+.line2{color:var(--green);display:block;text-shadow:0 0 60px rgba(0,182,122,0.5);}
+.hero-p{font-size:17px;color:var(--steel);line-height:1.7;max-width:460px;margin-bottom:40px;}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:36px;}
+.btn-lg{display:inline-flex;align-items:center;gap:9px;padding:16px 32px;border-radius:13px;font-weight:700;font-size:16px;text-decoration:none;transition:all 0.2s;border:none;cursor:pointer;font-family:'Inter',sans-serif;}
+.btn-lg.primary{background:var(--green);color:#fff;box-shadow:0 4px 28px rgba(0,182,122,0.45);}
+.btn-lg.primary:hover{background:var(--green-dk);transform:translateY(-2px);box-shadow:0 8px 40px rgba(0,182,122,0.6);}
+.btn-lg.secondary{background:rgba(255,255,255,0.05);color:var(--cloud);border:1px solid rgba(226,232,240,0.12);backdrop-filter:blur(8px);}
+.btn-lg.secondary:hover{background:rgba(255,255,255,0.09);border-color:rgba(226,232,240,0.22);transform:translateY(-1px);}
+.hero-trust{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.trust-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--steel);}
+.trust-dot{width:4px;height:4px;border-radius:50%;background:rgba(107,124,147,0.5);}
+
+/* ─── Dashboard mockup ────────────────────────── */
+.hero-right{padding:0 32px 0 0;perspective:1600px;}
+.dash-wrap{transform:rotateX(10deg) rotateY(-6deg);transform-origin:center center;transition:transform 0.4s ease;will-change:transform;}
+.dash-wrap:hover{transform:rotateX(5deg) rotateY(-2deg);}
+.dash-mock{background:rgba(15,28,50,0.85);backdrop-filter:blur(30px);border:1px solid rgba(226,232,240,0.1);border-radius:20px;overflow:hidden;box-shadow:0 32px 100px rgba(0,0,0,0.6),0 0 0 1px rgba(0,182,122,0.08),inset 0 1px 0 rgba(255,255,255,0.06);}
+.chrome{display:flex;align-items:center;gap:7px;padding:11px 16px;background:rgba(8,16,30,0.6);border-bottom:1px solid rgba(226,232,240,0.06);}
+.dot{width:10px;height:10px;border-radius:50%;}
+.chrome-url{flex:1;margin:0 10px;padding:5px 12px;background:rgba(255,255,255,0.04);border-radius:6px;font-size:11px;color:var(--steel);font-family:monospace;}
+.dash-grid{display:grid;grid-template-columns:160px 1fr;}
+.d-nav{padding:10px 8px;border-right:1px solid rgba(226,232,240,0.05);display:flex;flex-direction:column;gap:2px;}
+.d-item{padding:8px 10px;border-radius:7px;font-size:11.5px;font-weight:500;color:var(--steel);display:flex;align-items:center;gap:7px;cursor:pointer;transition:all 0.13s;white-space:nowrap;}
+.d-item.on{background:var(--green);color:#fff;font-weight:600;}
+.d-item:not(.on):hover{background:rgba(255,255,255,0.05);color:var(--cloud);}
+.d-main{padding:13px;display:flex;flex-direction:column;gap:9px;}
+.d-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.d-stat{background:rgba(28,45,72,0.55);border:1px solid rgba(226,232,240,0.06);border-radius:9px;padding:12px;}
+.d-stat-l{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.09em;color:var(--steel);}
+.d-stat-v{font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;margin-top:4px;}
+.d-stat-v.g{color:var(--green);}
+.d-row{background:rgba(28,45,72,0.45);border:1px solid rgba(226,232,240,0.05);border-radius:8px;padding:10px 12px;display:grid;grid-template-columns:44px 1fr auto auto;align-items:center;gap:8px;}
+.d-id{font-family:monospace;font-size:10.5px;color:var(--steel);}
+.d-name{font-size:11.5px;font-weight:600;color:var(--cloud);}
+.d-items{font-size:10.5px;color:var(--steel);margin-top:1px;}
+.d-amt{font-family:'Outfit',sans-serif;font-weight:700;font-size:12px;}
+.d-tag{padding:3px 8px;border-radius:999px;font-size:9.5px;font-weight:700;white-space:nowrap;}
+
+/* ─── Floating chips ──────────────────────────── */
+.chips-row{display:flex;justify-content:flex-start;gap:12px;flex-wrap:wrap;padding:0 32px 0 0;margin-top:16px;position:relative;z-index:2;}
+.chip{background:rgba(20,36,62,0.85);backdrop-filter:blur(20px);border:1px solid rgba(226,232,240,0.1);border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 30px rgba(0,0,0,0.35);animation:chipFloat 7s ease-in-out infinite;}
+.chip:nth-child(2){animation-delay:-2.5s;}
+.chip:nth-child(3){animation-delay:-5s;}
+@keyframes chipFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+.chip-ico{width:32px;height:32px;border-radius:9px;background:rgba(0,182,122,0.14);border:1px solid rgba(0,182,122,0.22);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.chip-title{font-size:12px;font-weight:600;color:var(--cloud);}
+.chip-sub{font-size:10.5px;color:var(--steel);margin-top:1px;}
+
+/* ─── Logo band ───────────────────────────────── */
+#logos{position:relative;z-index:1;padding:36px 0;border-top:1px solid rgba(226,232,240,0.06);border-bottom:1px solid rgba(226,232,240,0.06);background:rgba(28,45,72,0.15);overflow:hidden;}
+.logos-label{text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:rgba(107,124,147,0.5);margin-bottom:20px;}
+.logos-track{display:flex;gap:60px;align-items:center;justify-content:center;flex-wrap:wrap;}
+.logo-pill{display:flex;align-items:center;gap:8px;padding:9px 18px;border-radius:999px;background:rgba(28,45,72,0.4);border:1px solid rgba(226,232,240,0.07);font-size:13px;font-weight:600;color:rgba(107,124,147,0.7);transition:color 0.2s,border-color 0.2s;}
+.logo-pill:hover{color:var(--cloud);border-color:rgba(226,232,240,0.16);}
+
+/* ─── Bento ───────────────────────────────────── */
+#bento{position:relative;z-index:1;padding:96px 48px;}
+.bento-inner{max-width:1200px;margin:0 auto;}
+.bento-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:52px;gap:40px;flex-wrap:wrap;}
+.eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--green);padding:6px 14px;border-radius:999px;background:var(--g15);border:1px solid rgba(0,182,122,0.25);margin-bottom:16px;}
+.bento-h2{font-family:'Outfit',sans-serif;font-size:clamp(28px,3.6vw,46px);font-weight:900;letter-spacing:-0.028em;line-height:1.08;}
+.bento-grid{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:auto;gap:14px;}
+.b-card{background:rgba(22,38,62,0.55);border:1px solid rgba(226,232,240,0.08);border-radius:18px;padding:28px;position:relative;overflow:hidden;transition:transform 0.3s cubic-bezier(0.23,1,0.32,1),border-color 0.25s,box-shadow 0.25s;cursor:default;}
+.b-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 0%,rgba(0,182,122,0.1),transparent 55%);opacity:0;transition:opacity 0.3s;pointer-events:none;}
+.b-card:hover{transform:translateY(-6px);border-color:rgba(0,182,122,0.25);box-shadow:0 20px 50px rgba(0,0,0,0.3),0 0 0 1px rgba(0,182,122,0.06);}
+.b-card:hover::before{opacity:1;}
+.b-card.wide{grid-column:span 2;}
+.b-card.tall{grid-row:span 2;}
+.b-icon{width:48px;height:48px;border-radius:13px;background:rgba(0,182,122,0.12);border:1px solid rgba(0,182,122,0.2);display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:18px;transition:transform 0.3s;}
+.b-card:hover .b-icon{transform:scale(1.08) rotate(-3deg);}
+.b-title{font-family:'Outfit',sans-serif;font-size:17px;font-weight:700;color:var(--cloud);margin-bottom:8px;}
+.b-desc{font-size:13.5px;color:var(--steel);line-height:1.6;}
+.b-arrow{display:inline-flex;align-items:center;gap:4px;color:var(--green);font-size:12px;font-weight:600;margin-top:16px;opacity:0;transform:translateX(-6px);transition:opacity 0.22s,transform 0.22s;}
+.b-card:hover .b-arrow{opacity:1;transform:translateX(0);}
+
+/* Highlight card */
+.b-card.highlight{background:linear-gradient(140deg,rgba(0,182,122,0.18),rgba(0,182,122,0.06));border-color:rgba(0,182,122,0.3);}
+.b-card.highlight .b-title{color:var(--green);}
+
+/* ─── How it works ────────────────────────────── */
+#how{position:relative;z-index:1;padding:96px 48px;background:rgba(15,30,52,0.5);}
+.how-inner{max-width:1100px;margin:0 auto;}
+.how-header{text-align:center;margin-bottom:64px;}
+.section-h2{font-family:'Outfit',sans-serif;font-size:clamp(26px,3.5vw,44px);font-weight:900;letter-spacing:-0.025em;line-height:1.1;}
+.section-p{font-size:16px;color:var(--steel);margin-top:12px;line-height:1.65;}
+.how-timeline{display:grid;grid-template-columns:repeat(3,1fr);gap:0;position:relative;}
+.how-timeline::before{content:'';position:absolute;top:36px;left:calc(50% / 3);right:calc(50% / 3);height:1px;background:linear-gradient(90deg,transparent,rgba(0,182,122,0.3),rgba(0,182,122,0.6),rgba(0,182,122,0.3),transparent);z-index:0;}
+.h-step{padding:0 24px;text-align:center;position:relative;z-index:1;}
+.h-num{width:72px;height:72px;border-radius:50%;border:1px solid rgba(0,182,122,0.3);background:rgba(0,182,122,0.08);display:flex;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;font-size:26px;font-weight:900;color:var(--green);margin:0 auto 24px;position:relative;transition:background 0.3s,border-color 0.3s;}
+.h-step:hover .h-num{background:rgba(0,182,122,0.18);border-color:rgba(0,182,122,0.6);}
+.h-step-title{font-family:'Outfit',sans-serif;font-size:19px;font-weight:700;color:var(--cloud);margin-bottom:10px;}
+.h-step-desc{font-size:13.5px;color:var(--steel);line-height:1.65;}
+
+/* ─── Stats ───────────────────────────────────── */
+#stats{position:relative;z-index:1;padding:80px 48px;background:linear-gradient(135deg,rgba(0,182,122,0.06),rgba(0,182,122,0.02));}
+.stats-grid{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:32px;text-align:center;}
+.s-num{font-family:'Outfit',sans-serif;font-size:clamp(32px,4vw,52px);font-weight:900;color:var(--green);line-height:1;}
+.s-label{font-size:13px;color:var(--steel);margin-top:8px;line-height:1.5;}
+
+/* ─── AI Chat ─────────────────────────────────── */
+#ai{position:relative;z-index:1;padding:96px 48px;}
+.ai-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:start;}
+.ai-left{position:sticky;top:100px;}
+.ai-left .eyebrow{margin-bottom:18px;}
+.ai-left h2{font-family:'Outfit',sans-serif;font-size:clamp(26px,3.5vw,44px);font-weight:900;letter-spacing:-0.025em;margin-bottom:18px;line-height:1.08;}
+.ai-left p{font-size:15px;color:var(--steel);line-height:1.7;margin-bottom:28px;}
+.ai-bullets{display:flex;flex-direction:column;gap:12px;margin-bottom:32px;}
+.ai-bullet{display:flex;align-items:flex-start;gap:12px;font-size:13.5px;color:var(--cloud);line-height:1.55;}
+.ai-bullet-dot{width:20px;height:20px;border-radius:6px;background:rgba(0,182,122,0.14);border:1px solid rgba(0,182,122,0.24);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:10px;}
+
+/* Chat UI */
+.chat-ui{background:rgba(15,28,50,0.8);backdrop-filter:blur(24px);border:1px solid rgba(226,232,240,0.1);border-radius:20px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.5);}
+.chat-header{padding:14px 18px;border-bottom:1px solid rgba(226,232,240,0.07);display:flex;align-items:center;gap:10px;background:rgba(10,20,38,0.5);}
+.chat-avatar{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--green),#00e5a0);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.chat-name{font-weight:700;font-size:13.5px;color:var(--cloud);}
+.chat-status{font-size:11px;color:var(--green);display:flex;align-items:center;gap:5px;}
+.chat-status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:glow 2s infinite;}
+.chat-messages{padding:16px;height:360px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth;}
+.chat-messages::-webkit-scrollbar{width:4px;}
+.chat-messages::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px;}
+.msg{display:flex;flex-direction:column;gap:4px;animation:msgIn 0.3s ease both;}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.msg.user{align-items:flex-end;}
+.msg.bot{align-items:flex-start;}
+.msg-bubble{padding:11px 15px;border-radius:14px;font-size:13px;line-height:1.6;max-width:88%;}
+.msg.user .msg-bubble{background:var(--green);color:#fff;border-radius:14px 14px 4px 14px;}
+.msg.bot .msg-bubble{background:rgba(28,45,72,0.7);color:var(--cloud);border:1px solid rgba(226,232,240,0.08);border-radius:14px 14px 14px 4px;}
+.msg.bot .msg-bubble strong{color:var(--green);}
+.msg-time{font-size:10px;color:rgba(107,124,147,0.6);margin:0 4px;}
+.typing-bubble{background:rgba(28,45,72,0.7);border:1px solid rgba(226,232,240,0.08);border-radius:14px 14px 14px 4px;padding:12px 16px;display:inline-flex;gap:5px;align-items:center;}
+.typing-dot{width:7px;height:7px;border-radius:50%;background:var(--steel);animation:typDot 1.2s ease-in-out infinite;}
+.typing-dot:nth-child(2){animation-delay:0.2s;}
+.typing-dot:nth-child(3){animation-delay:0.4s;}
+@keyframes typDot{0%,80%,100%{transform:scale(0.7);opacity:0.4;}40%{transform:scale(1);opacity:1;}}
+.chat-suggestions{padding:10px 16px;display:flex;flex-wrap:wrap;gap:7px;border-top:1px solid rgba(226,232,240,0.06);background:rgba(10,20,36,0.3);}
+.suggest{background:rgba(28,45,72,0.6);border:1px solid rgba(226,232,240,0.09);border-radius:999px;padding:6px 13px;font-size:11.5px;color:var(--steel);cursor:pointer;transition:all 0.17s;white-space:nowrap;}
+.suggest:hover{border-color:rgba(0,182,122,0.3);color:var(--green);background:rgba(0,182,122,0.07);}
+.chat-input-row{padding:12px 16px;border-top:1px solid rgba(226,232,240,0.07);display:flex;gap:9px;background:rgba(8,16,30,0.4);}
+.chat-input{flex:1;background:rgba(28,45,72,0.6);border:1px solid rgba(226,232,240,0.1);border-radius:10px;padding:11px 14px;color:var(--cloud);font-family:'Inter',sans-serif;font-size:13px;outline:none;transition:border-color 0.2s;}
+.chat-input:focus{border-color:rgba(0,182,122,0.45);}
+.chat-input::placeholder{color:rgba(107,124,147,0.55);}
+.chat-send{background:var(--green);border:none;border-radius:10px;width:38px;height:38px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.18s;color:#fff;}
+.chat-send:hover{background:var(--green-dk);transform:scale(1.06);}
+.chat-send:disabled{background:rgba(0,182,122,0.35);cursor:not-allowed;transform:none;}
+.chat-send svg{width:16px;height:16px;}
+
+/* ─── CTA ─────────────────────────────────────── */
+#cta{position:relative;z-index:1;padding:120px 48px;text-align:center;overflow:hidden;}
+#cta::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 50%,rgba(0,182,122,0.14),transparent);pointer-events:none;}
+#cta::after{content:'';position:absolute;top:-1px;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 5%,rgba(0,182,122,0.4) 50%,transparent 95%);}
+.cta-h{font-family:'Outfit',sans-serif;font-size:clamp(34px,5vw,62px);font-weight:900;letter-spacing:-0.03em;line-height:1.05;max-width:800px;margin:0 auto 20px;}
+.cta-sub{font-size:17px;color:var(--steel);max-width:440px;margin:0 auto 44px;line-height:1.65;}
+.cta-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+.cta-note{font-size:12.5px;color:rgba(107,124,147,0.65);margin-top:20px;}
+
+/* ─── Footer ──────────────────────────────────── */
+footer{position:relative;z-index:1;border-top:1px solid rgba(226,232,240,0.06);padding:44px 48px 30px;background:rgba(8,16,28,0.7);backdrop-filter:blur(10px);}
+.ft-grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:2fr repeat(3,1fr);gap:40px;margin-bottom:40px;}
+.ft-brand{font-family:'Outfit',sans-serif;font-size:20px;font-weight:900;margin-bottom:10px;}
+.ft-tagline{font-size:13px;color:var(--steel);line-height:1.6;max-width:240px;}
+.ft-col-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--steel);margin-bottom:14px;}
+.ft-links{display:flex;flex-direction:column;gap:9px;list-style:none;}
+.ft-links a{font-size:13px;color:rgba(107,124,147,0.7);text-decoration:none;transition:color 0.15s;}
+.ft-links a:hover{color:var(--cloud);}
+.ft-bottom{max-width:1200px;margin:0 auto;padding-top:24px;border-top:1px solid rgba(226,232,240,0.05);display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+.ft-copy{font-size:12px;color:rgba(107,124,147,0.5);}
+
+/* ─── Animations / Utilities ──────────────────── */
+.reveal{opacity:0;transform:translateY(32px);transition:opacity 0.75s cubic-bezier(0.16,1,0.3,1),transform 0.75s cubic-bezier(0.16,1,0.3,1);}
+.reveal.in{opacity:1;transform:translateY(0);}
+.reveal-delay-1{transition-delay:0.1s;}
+.reveal-delay-2{transition-delay:0.2s;}
+.reveal-delay-3{transition-delay:0.3s;}
+
+/* ─── Responsive ──────────────────────────────── */
+@media(max-width:1024px){
+  #hero{grid-template-columns:1fr;padding:100px 32px 60px;}
+  .hero-left{padding:0;text-align:center;align-items:center;}
+  .hero-p{max-width:100%;}
+  .hero-right{display:none;}
+  .chips-row{display:none;}
+  .bento-grid{grid-template-columns:repeat(2,1fr);}
+  .b-card.wide{grid-column:span 2;}
+  .how-timeline::before{display:none;}
+  .ai-inner{grid-template-columns:1fr;}
+  .ai-left{position:static;}
+  .ft-grid{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:768px){
+  #nav{padding:0 24px;}
+  .nav-mid{display:none;}
+  .bento-grid{grid-template-columns:1fr;}
+  .b-card.wide,.b-card.tall{grid-column:span 1;grid-row:span 1;}
+  .how-timeline{grid-template-columns:1fr;}
+  .stats-grid{grid-template-columns:repeat(2,1fr);}
+  .ft-grid{grid-template-columns:1fr;}
+  #bento,#how,#ai,#cta,#stats{padding-left:24px;padding-right:24px;}
+}
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+<canvas id="bg-canvas"></canvas>
+
+<!-- ─── Nav ─── -->
+<nav id="nav">
+  <a class="logo" href="#">
+    <div class="logo-mark">
+      <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="28" height="28" rx="8" fill="rgba(0,182,122,0.15)"/>
+        <path d="M7 14L12 9L17 14L22 9" stroke="#00b67a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M7 19L12 14L17 19L22 14" stroke="#00b67a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+      </svg>
+    </div>
+    ZentraBite
+  </a>
+  <ul class="nav-mid">
+    <li><a href="#bento">Product</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#ai">AI</a></li>
+    <li><a href="#cta">Pricing</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a class="btn-ghost" href="#">Log in</a>
+    <a class="btn-cta" href="#cta">Start free trial <span>→</span></a>
+  </div>
+</nav>
+
+<!-- ─── Hero ─── -->
+<section id="hero">
+  <div class="hero-left reveal">
+    <div class="hero-badge">
+      <span class="badge-dot"></span>
+      <span class="badge-text">Business Operating System</span>
+    </div>
+    <h1 class="hero-h1">
+      <span class="line1">One system to run,<br>grow,</span>
+      <span class="line2">and scale your<br>business.</span>
+    </h1>
+    <p class="hero-p">Orders, customers, stock, campaigns, and an AI co-pilot — all wired together from day one. No integrations to babysit.</p>
+    <div class="hero-btns">
+      <a href="#cta" class="btn-lg primary">Start 1-month free trial <span>→</span></a>
+      <a href="#ai" class="btn-lg secondary"><span>✨</span> Ask the AI</a>
+    </div>
+    <div class="hero-trust">
+      <div class="trust-item">✓ No credit card</div>
+      <div class="trust-dot"></div>
+      <div class="trust-item">✓ Any food-service business</div>
+      <div class="trust-dot"></div>
+      <div class="trust-item">✓ Tailored pricing</div>
+    </div>
+  </div>
+
+  <div class="hero-right reveal reveal-delay-2">
+    <div class="dash-wrap" id="dashWrap">
+      <div class="dash-mock">
+        <div class="chrome">
+          <span class="dot" style="background:#ff5f57;"></span>
+          <span class="dot" style="background:#febc2e;"></span>
+          <span class="dot" style="background:#28c840;"></span>
+          <div class="chrome-url">dashboard.zentrabite.com.au/orders</div>
+        </div>
+        <div class="dash-grid">
+          <div class="d-nav">
+            <div class="d-item on">📦 Orders</div>
+            <div class="d-item">👥 Customers</div>
+            <div class="d-item">🍽️ Menu</div>
+            <div class="d-item">📣 Campaigns</div>
+            <div class="d-item">💰 Financials</div>
+            <div class="d-item">🤖 AI Calls</div>
+            <div class="d-item">🚚 Delivery</div>
+            <div class="d-item">⭐ Rewards</div>
+          </div>
+          <div class="d-main">
+            <div class="d-stats">
+              <div class="d-stat"><div class="d-stat-l">Live orders</div><div class="d-stat-v g">7</div></div>
+              <div class="d-stat"><div class="d-stat-l">Revenue today</div><div class="d-stat-v">$1,842</div></div>
+              <div class="d-stat"><div class="d-stat-l">Avg. ticket</div><div class="d-stat-v">$38.20</div></div>
+            </div>
+            <div class="d-row">
+              <div class="d-id">#1289</div>
+              <div><div class="d-name">Olivia M.</div><div class="d-items">2× Margherita · Garlic bread</div></div>
+              <div class="d-amt">$42.50</div>
+              <div class="d-tag" style="background:rgba(0,182,122,0.15);color:#00b67a;border:1px solid rgba(0,182,122,0.3);">New</div>
+            </div>
+            <div class="d-row">
+              <div class="d-id">#1288</div>
+              <div><div class="d-name">James K.</div><div class="d-items">Wagyu burger · Fries · Coke</div></div>
+              <div class="d-amt">$31.80</div>
+              <div class="d-tag" style="background:rgba(255,107,53,0.15);color:#ff6b35;border:1px solid rgba(255,107,53,0.3);">Cooking</div>
+            </div>
+            <div class="d-row">
+              <div class="d-id">#1287</div>
+              <div><div class="d-name">Priya S.</div><div class="d-items">3× Pad thai · Spring rolls</div></div>
+              <div class="d-amt">$58.40</div>
+              <div class="d-tag" style="background:rgba(107,124,147,0.15);color:var(--steel);border:1px solid rgba(107,124,147,0.2);">On the way</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="chips-row">
+      <div class="chip">
+        <div class="chip-ico">🤖</div>
+        <div><div class="chip-title">AI called 12 win-backs</div><div class="chip-sub">4 reactivated · $218 recovered</div></div>
+      </div>
+      <div class="chip">
+        <div class="chip-ico">📈</div>
+        <div><div class="chip-title">Revenue +23% this month</div><div class="chip-sub">vs. 30-day average</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Logos ─── -->
+<div id="logos">
+  <div class="logos-label">Works with the tools you already use</div>
+  <div class="logos-track">
+    <div class="logo-pill">🍊 Uber Eats</div>
+    <div class="logo-pill">🚪 DoorDash</div>
+    <div class="logo-pill">💳 Stripe</div>
+    <div class="logo-pill">📗 Xero</div>
+    <div class="logo-pill">📱 Square</div>
+    <div class="logo-pill">📊 Google Analytics</div>
+  </div>
+</div>
+
+<!-- ─── Bento ─── -->
+<section id="bento">
+  <div class="bento-inner">
+    <div class="bento-header reveal">
+      <div>
+        <div class="eyebrow">What's inside</div>
+        <h2 class="bento-h2">Everything your business<br>needs. Nothing it doesn't.</h2>
+      </div>
+      <p style="font-size:15px;color:var(--steel);max-width:320px;line-height:1.65;">Turn modules on and off per location. Pay only for what you actually use.</p>
+    </div>
+    <div class="bento-grid">
+      <div class="b-card wide highlight reveal">
+        <div class="b-icon">🤖</div>
+        <div class="b-title">AI Voice Calls + Co-pilot</div>
+        <div class="b-desc">AI agents call lapsed customers, take orders, and log outcomes back to the CRM automatically. Every morning, the co-pilot scans your data and tells you exactly what to do next — no dashboards needed.</div>
+        <div class="b-arrow">Explore AI features →</div>
+      </div>
+      <div class="b-card reveal reveal-delay-1">
+        <div class="b-icon">📦</div>
+        <div class="b-title">Order Management</div>
+        <div class="b-desc">Real-time board with status tracking, kitchen screen, driver dispatch, and automatic customer SMS updates.</div>
+        <div class="b-arrow">Learn more →</div>
+      </div>
+      <div class="b-card reveal">
+        <div class="b-icon">👥</div>
+        <div class="b-title">Customer CRM</div>
+        <div class="b-desc">Full profiles, spend history, visit frequency, and auto-segments ready to target with campaigns.</div>
+        <div class="b-arrow">Learn more →</div>
+      </div>
+      <div class="b-card reveal reveal-delay-1">
+        <div class="b-icon">⭐</div>
+        <div class="b-title">Rewards Engine</div>
+        <div class="b-desc">Earn → unlock → redeem. Transparent tier-based rewards that drive real retention, not confusion.</div>
+        <div class="b-arrow">Learn more →</div>
+      </div>
+      <div class="b-card reveal reveal-delay-2">
+        <div class="b-icon">📣</div>
+        <div class="b-title">Campaigns & Winback</div>
+        <div class="b-desc">SMS and email triggers fired by behaviour, churn risk, and milestones — fully automated.</div>
+        <div class="b-arrow">Learn more →</div>
+      </div>
+      <div class="b-card reveal">
+        <div class="b-icon">🚚</div>
+        <div class="b-title">Driver Dispatch</div>
+        <div class="b-desc">Route optimiser, live tracking, real-time ETAs sent to customers automatically.</div>
+        <div class="b-arrow">Learn more →</div>
+      </div>
+      <div class="b-card reveal reveal-delay-1">
+        <div class="b-icon">📊</div>
+        <div class="b-title">Financials & Reports</div>
+        <div class="b-desc">P&amp;L, revenue by channel, COGS, and a daily digest delivered to your inbox.</div>
+        <div class="b-arrow">Learn more →</div>
+      </div>
+      <div class="b-card reveal reveal-delay-2">
+        <div class="b-icon">📦</div>
+        <div class="b-title">Stock Control</div>
+        <div class="b-desc">Ingredient tracking, reorder thresholds, and auto-86 when stock hits zero.</div>
+        <div class="b-arrow">Learn more →</div>
+      </div>
+      <div class="b-card reveal">
+        <div class="b-icon">🏪</div>
+        <div class="b-title">POS</div>
+        <div class="b-desc">Tablet POS wired to the same order board — no double entry, no third-party sync.</div>
+        <div class="b-arrow">Learn more →</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── How it works ─── -->
+<section id="how">
+  <div class="how-inner">
+    <div class="how-header reveal">
+      <div class="eyebrow" style="margin:0 auto 18px;">How it works</div>
+      <h2 class="section-h2">From first order to loyal regular.</h2>
+      <p class="section-p">ZentraBite connects every touchpoint so nothing falls through the cracks.</p>
+    </div>
+    <div class="how-timeline">
+      <div class="h-step reveal">
+        <div class="h-num">01</div>
+        <h3 class="h-step-title">Customer places an order</h3>
+        <p class="h-step-desc">Via your storefront, POS, or a third-party aggregator. Everything lands in the same board, in real time — no manual re-entry, ever.</p>
+      </div>
+      <div class="h-step reveal reveal-delay-1">
+        <div class="h-num">02</div>
+        <h3 class="h-step-title">Your team fulfils it</h3>
+        <p class="h-step-desc">Kitchen screen, driver dispatch, stock deduction, and customer SMS update — all triggered automatically the moment status changes.</p>
+      </div>
+      <div class="h-step reveal reveal-delay-2">
+        <div class="h-num">03</div>
+        <h3 class="h-step-title">AI brings them back</h3>
+        <p class="h-step-desc">Points credited, tier unlocked, win-back campaign queued if they go quiet. ZentraBite handles the follow-up so you don't have to.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Stats ─── -->
+<section id="stats">
+  <div class="stats-grid">
+    <div class="reveal">
+      <div class="s-num count-up" data-target="2400" data-suffix="+">0</div>
+      <div class="s-label">Orders processed<br>daily</div>
+    </div>
+    <div class="reveal reveal-delay-1">
+      <div class="s-num count-up" data-target="99" data-suffix="%">0</div>
+      <div class="s-label">Uptime SLA</div>
+    </div>
+    <div class="reveal reveal-delay-2">
+      <div class="s-num count-up" data-target="15">0</div>
+      <div class="s-label">Modules in<br>one platform</div>
+    </div>
+    <div class="reveal reveal-delay-3">
+      <div class="s-num" style="font-size:clamp(24px,3.5vw,44px);">1 month</div>
+      <div class="s-label">Free trial, no<br>card required</div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── AI Chat ─── -->
+<section id="ai">
+  <div class="ai-inner">
+    <div class="ai-left reveal">
+      <div class="eyebrow">AI Co-pilot</div>
+      <h2>Your business,<br><span style="color:var(--green);">on autopilot.</span></h2>
+      <p>Ask questions about your business in plain English. The AI knows your orders, customers, stock, campaigns, and financials — and tells you exactly what to do next.</p>
+      <div class="ai-bullets">
+        <div class="ai-bullet"><div class="ai-bullet-dot">📊</div><span>Daily brief with your top 5 actionable insights every morning</span></div>
+        <div class="ai-bullet"><div class="ai-bullet-dot">🤖</div><span>AI voice calls lapsed customers automatically and logs outcomes</span></div>
+        <div class="ai-bullet"><div class="ai-bullet-dot">📣</div><span>Campaign recommendations based on churn risk and revenue gaps</span></div>
+        <div class="ai-bullet"><div class="ai-bullet-dot">💡</div><span>Menu, staffing, and stock suggestions backed by real data</span></div>
+      </div>
+      <a href="#cta" class="btn-lg primary" style="width:fit-content;">See it live in your account →</a>
+    </div>
+
+    <div class="reveal reveal-delay-1">
+      <div class="chat-ui">
+        <div class="chat-header">
+          <div class="chat-avatar">✨</div>
+          <div>
+            <div class="chat-name">ZentraBite AI</div>
+            <div class="chat-status"><span class="chat-status-dot"></span> Online · analysing your data</div>
+          </div>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+          <div class="msg bot">
+            <div class="msg-bubble">👋 Hey! I'm your ZentraBite AI. I have access to your orders, customers, stock, and financials. What would you like to know?</div>
+            <div class="msg-time">Just now</div>
+          </div>
+        </div>
+        <div class="chat-suggestions" id="chatSuggestions">
+          <span class="suggest" onclick="sendChat(this.textContent)">Who are my top customers?</span>
+          <span class="suggest" onclick="sendChat(this.textContent)">Why is revenue down?</span>
+          <span class="suggest" onclick="sendChat(this.textContent)">What should I promote?</span>
+          <span class="suggest" onclick="sendChat(this.textContent)">How do I reduce churn?</span>
+        </div>
+        <div class="chat-input-row">
+          <input class="chat-input" id="chatInput" placeholder="Ask anything about your business…" onkeydown="if(event.key==='Enter')sendChat()">
+          <button class="chat-send" id="chatSendBtn" onclick="sendChat()">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M14 8L2 2l3 6-3 6 12-6z" fill="currentColor"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CTA ─── -->
+<section id="cta">
+  <div class="eyebrow reveal" style="margin:0 auto 24px;">Ready to grow?</div>
+  <h2 class="cta-h reveal reveal-delay-1">Start your <span style="color:var(--green);">1-month free trial</span><br>today.</h2>
+  <p class="cta-sub reveal reveal-delay-2">No credit card. No lock-in. Pricing tailored to your volume after your trial ends.</p>
+  <div class="cta-btns reveal reveal-delay-3">
+    <a href="#" class="btn-lg primary">Book a call with us →</a>
+    <a href="#bento" class="btn-lg secondary">Explore all modules</a>
+  </div>
+  <p class="cta-note reveal">Works for restaurants, cafés, food trucks, retail, services, and more.</p>
+</section>
+
+<!-- ─── Footer ─── -->
+<footer>
+  <div class="ft-grid">
+    <div>
+      <div class="ft-brand">ZentraBite</div>
+      <p class="ft-tagline">The Business Operating System built for small operators who want to run, grow, and scale.</p>
+    </div>
+    <div>
+      <div class="ft-col-title">Product</div>
+      <ul class="ft-links">
+        <li><a href="#">Orders</a></li>
+        <li><a href="#">CRM</a></li>
+        <li><a href="#">Rewards</a></li>
+        <li><a href="#">AI Calls</a></li>
+        <li><a href="#">All modules</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="ft-col-title">Company</div>
+      <ul class="ft-links">
+        <li><a href="#">About</a></li>
+        <li><a href="#">Pricing</a></li>
+        <li><a href="#">Blog</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="ft-col-title">Legal</div>
+      <ul class="ft-links">
+        <li><a href="#">Privacy</a></li>
+        <li><a href="#">Terms</a></li>
+        <li><a href="#">Security</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="ft-bottom">
+    <span class="ft-copy">© 2026 ZentraBite Pty Ltd. Built for small operators in Australia.</span>
+    <span class="ft-copy">zentrabite.com.au</span>
+  </div>
+</footer>
+
+<!-- ─── Three.js ─── -->
+<script>
+(function(){
+  const canvas = document.getElementById('bg-canvas');
+  const W = window.innerWidth, H = window.innerHeight;
+  const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(W,H);
+  renderer.setClearColor(0x000000,0);
+
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x0a1628, 0.028);
+
+  const cam = new THREE.PerspectiveCamera(65, W/H, 0.1, 200);
+  cam.position.set(0, 2, 9);
+  cam.lookAt(0,0,0);
+
+  // ── Wave grid ──
+  const GW=60, GH=60;
+  const wGeo = new THREE.BufferGeometry();
+  const wPos = new Float32Array(GW*GH*3);
+  const wPhase = new Float32Array(GW*GH);
+  for(let i=0;i<GW;i++) for(let j=0;j<GH;j++){
+    const idx=(i*GH+j);
+    wPos[idx*3]   = (i-GW/2)*0.55;
+    wPos[idx*3+1] = 0;
+    wPos[idx*3+2] = (j-GH/2)*0.55 - 2;
+    wPhase[idx]   = Math.random()*Math.PI*2;
+  }
+  wGeo.setAttribute('position', new THREE.BufferAttribute(wPos,3));
+  const wMat = new THREE.PointsMaterial({
+    color:0x1c3a58, size:0.045, transparent:true, opacity:0.55, sizeAttenuation:true
+  });
+  const wGrid = new THREE.Points(wGeo, wMat);
+  wGrid.position.y = -3.5;
+  wGrid.rotation.x = -0.2;
+  scene.add(wGrid);
+
+  // ── Stars ──
+  const SC=1800;
+  const sPos=new Float32Array(SC*3);
+  const sCol=new Float32Array(SC*3);
+  for(let i=0;i<SC;i++){
+    sPos[i*3]   = (Math.random()-.5)*80;
+    sPos[i*3+1] = (Math.random()-.5)*60;
+    sPos[i*3+2] = (Math.random()-.5)*80 - 10;
+    const green = Math.random()>.94;
+    if(green){sCol[i*3]=0;sCol[i*3+1]=.71;sCol[i*3+2]=.48;}
+    else{const b=.45+Math.random()*.55;sCol[i*3]=b*.75;sCol[i*3+1]=b*.85;sCol[i*3+2]=b;}
+  }
+  const sGeo=new THREE.BufferGeometry();
+  sGeo.setAttribute('position',new THREE.BufferAttribute(sPos,3));
+  sGeo.setAttribute('color',new THREE.BufferAttribute(sCol,3));
+  const sMat=new THREE.PointsMaterial({size:.05,vertexColors:true,transparent:true,opacity:.65,sizeAttenuation:true});
+  scene.add(new THREE.Points(sGeo,sMat));
+
+  // ── Central emblem — double icosahedron ──
+  const icoA = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(1.4,1),
+    new THREE.MeshBasicMaterial({color:0x00b67a,wireframe:true,transparent:true,opacity:.22})
+  );
+  const icoB = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(2.1,1),
+    new THREE.MeshBasicMaterial({color:0x00b67a,wireframe:true,transparent:true,opacity:.07})
+  );
+  icoA.position.set(4.5, 0.5, -4);
+  icoB.position.set(4.5, 0.5, -4);
+  scene.add(icoA,icoB);
+
+  // ── Side geometry ──
+  const oct = new THREE.Mesh(
+    new THREE.OctahedronGeometry(.6),
+    new THREE.MeshBasicMaterial({color:0x1c4d78,wireframe:true,transparent:true,opacity:.28})
+  );
+  oct.position.set(-5, 1.5, -3);
+  scene.add(oct);
+
+  const tet = new THREE.Mesh(
+    new THREE.TetrahedronGeometry(.45),
+    new THREE.MeshBasicMaterial({color:0xff6b35,wireframe:true,transparent:true,opacity:.18})
+  );
+  tet.position.set(3, -2.5, -2);
+  scene.add(tet);
+
+  // ── Rings ──
+  const r1 = new THREE.Mesh(
+    new THREE.TorusGeometry(5,0.018,8,120),
+    new THREE.MeshBasicMaterial({color:0x1c3a58,transparent:true,opacity:.32})
+  );
+  r1.rotation.x = Math.PI/2.3;
+  r1.position.y = -1;
+  scene.add(r1);
+
+  const r2 = new THREE.Mesh(
+    new THREE.TorusGeometry(8,.012,8,120),
+    new THREE.MeshBasicMaterial({color:0x00b67a,transparent:true,opacity:.08})
+  );
+  r2.rotation.x = Math.PI/2.9;
+  r2.rotation.z = Math.PI/5;
+  scene.add(r2);
+
+  // ── Mouse parallax ──
+  const mouse={x:0,y:0};
+  document.addEventListener('mousemove',e=>{
+    mouse.x = (e.clientX/window.innerWidth-.5)*2;
+    mouse.y = -(e.clientY/window.innerHeight-.5)*2;
+  });
+
+  window.addEventListener('resize',()=>{
+    cam.aspect=window.innerWidth/window.innerHeight;
+    cam.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth,window.innerHeight);
+  });
+
+  // ── Scroll-based fade ──
+  window.addEventListener('scroll',()=>{
+    const y=window.scrollY, s=window.innerHeight;
+    canvas.style.opacity = y<s*.6 ? 1 : Math.max(0,1-(y-s*.6)/(s*1.4));
+  });
+
+  let t=0;
+  (function animate(){
+    requestAnimationFrame(animate);
+    t+=.005;
+
+    // Wave grid
+    const pos = wGrid.geometry.attributes.position;
+    for(let i=0;i<GW;i++) for(let j=0;j<GH;j++){
+      const idx=i*GH+j;
+      pos.array[idx*3+1] = Math.sin(t*.8+i*.3+wPhase[idx])*.18 + Math.cos(t*.5+j*.25)*.12;
+    }
+    pos.needsUpdate=true;
+
+    // Rotate emblems
+    icoA.rotation.x+=.006; icoA.rotation.y+=.008;
+    icoB.rotation.x-=.004; icoB.rotation.y-=.006;
+    oct.rotation.x+=.007; oct.rotation.z+=.005;
+    tet.rotation.y+=.009; tet.rotation.x+=.006;
+    r1.rotation.z+=.006;
+    r2.rotation.y+=.004;
+
+    // Camera drift
+    cam.position.x += (mouse.x*.35 - cam.position.x)*.022;
+    cam.position.y += (mouse.y*.25 + 2 - cam.position.y)*.022;
+    cam.lookAt(0,0,0);
+
+    renderer.render(scene,cam);
+  })();
+})();
+</script>
+
+<!-- ─── UI Logic ─── -->
+<script>
+// Scroll progress
+window.addEventListener('scroll',()=>{
+  const d=document.documentElement;
+  document.getElementById('progress').style.width =
+    ((window.scrollY/(d.scrollHeight-d.clientHeight))*100)+'%';
+});
+
+// Nav scroll class
+window.addEventListener('scroll',()=>{
+  document.getElementById('nav').classList.toggle('scrolled',window.scrollY>40);
+},{passive:true});
+
+// Reveal on scroll
+const ro=new IntersectionObserver(entries=>{
+  entries.forEach((e,i)=>{
+    if(e.isIntersecting) setTimeout(()=>e.target.classList.add('in'),i*60);
+  });
+},{threshold:0.12});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+
+// Count-up
+const co=new IntersectionObserver(entries=>{
+  entries.forEach(en=>{
+    if(!en.isIntersecting)return;
+    const el=en.target;
+    const target=+el.dataset.target;
+    const suffix=el.dataset.suffix||'';
+    let cur=0;
+    const inc=target/60;
+    const t=setInterval(()=>{
+      cur=Math.min(cur+inc,target);
+      el.textContent=Math.round(cur).toLocaleString()+suffix;
+      if(cur>=target)clearInterval(t);
+    },16);
+    co.unobserve(el);
+  });
+},{threshold:.5});
+document.querySelectorAll('.count-up').forEach(el=>co.observe(el));
+
+// Dashboard card tilt
+const dw=document.getElementById('dashWrap');
+if(dw){
+  const parent=dw.closest('.hero-right');
+  parent.addEventListener('mousemove',e=>{
+    const r=dw.getBoundingClientRect();
+    const rx=((e.clientY-r.top)/r.height-.5)*-14;
+    const ry=((e.clientX-r.left)/r.width-.5)*14;
+    dw.style.transform=`rotateX(${rx}deg) rotateY(${ry}deg)`;
+    dw.style.transition='transform 0.06s';
+  });
+  parent.addEventListener('mouseleave',()=>{
+    dw.style.transform='rotateX(10deg) rotateY(-6deg)';
+    dw.style.transition='transform 0.6s cubic-bezier(0.16,1,0.3,1)';
+  });
+}
+
+// ─── AI Chat ───────────────────────────────────────────
+const ANSWERS={
+  "who are my top customers?":`Your <strong>top 5 customers by lifetime value</strong> this month:\n\n1. <strong>Priya S.</strong> — $482 · Gold tier · 11 orders · last ordered 2 days ago\n2. <strong>James K.</strong> — $371 · Silver tier · 9 orders · last ordered 4 days ago\n3. <strong>Olivia M.</strong> — $344 · Silver tier · 8 orders · last ordered today\n4. <strong>Nathan C.</strong> — $298 · Bronze tier · 7 orders · last ordered 6 days ago\n5. <strong>Aisha R.</strong> — $261 · Bronze tier · 6 orders · last ordered 3 days ago\n\n<strong>💡 Recommendation:</strong> Priya is 18 points from Platinum. A personalised "you're almost there" SMS tonight could lock in her loyalty for Q2.`,
+  "why is revenue down?":`Revenue is <strong>down 14% vs. last week</strong> ($8,240 vs $9,580). Three root causes:\n\n📉 <strong>Thursday dropped 31%</strong> — storm warning cut foot traffic and 3 drivers didn't show\n🍔 <strong>Burger patties ran low</strong> Tuesday 7 PM — forced to 86 your #1 item for 90 mins\n📡 <strong>Uber Eats outage</strong> Wed 11 AM–2 PM — est. $320 in lost orders\n\n<strong>💡 Actions:</strong> Raise burger par 40% Tue/Wed · Add backup drivers Thursday · Enable direct ordering fallback for aggregator downtime.`,
+  "what should i promote?":`Based on margin and velocity, your <strong>top 3 items to push this week</strong>:\n\n🥇 <strong>Wagyu Burger</strong> — $18.50 margin · 94% sell-through · only in 32% of orders. A homepage banner could add ~$460/week.\n🥈 <strong>Garlic Prawn Pasta</strong> — $14.20 margin · 4.8★ rating · almost exclusively ordered at dinner. A lunch promo unlocks a new slot.\n🥉 <strong>Mango Lassi</strong> — $9.80 margin · pairs with 60% of curry orders but only added 22% of the time. A checkout bundle prompt = easy revenue.\n\n<strong>💡 Suggested:</strong> "This Week's Picks" SMS to your top 100 customers. Want me to draft it?`,
+  "how do i reduce churn?":`Your <strong>30-day churn rate is 18%</strong>, up from 13% last month. Here's the fix:\n\n🔄 <strong>42 customers</strong> are 21+ days since last order — AI win-back calls scheduled for 10 AM today\n📬 <strong>First-order retention is 44%</strong> — customers who got a post-order SMS were 2.3× more likely to return. Enable the auto follow-up sequence.\n🎁 <strong>68 members</strong> have unredeemed rewards — a reminder SMS recovers ~22% within 7 days\n\n<strong>💡 If you take all 3 actions today:</strong> ZentraBite estimates ~$1,100 in revenue recovered this month.`,
+};
+
+const FOLLOWUPS={
+  "who are my top customers?":["What's Priya's order history?","Send her a tier upgrade campaign","Who's at risk of churning?"],
+  "why is revenue down?":["Fix my burger stock levels","How do I set up a backup driver?","Show me last week vs this week"],
+  "what should i promote?":["Draft the SMS campaign","What's my highest margin item overall?","Schedule a promotion for Tuesday"],
+  "how do i reduce churn?":["Start AI win-back calls now","Set up post-order SMS","Show me the 42 at-risk customers"],
+};
+
+const DEFAULT_FU=["What's my best day of the week?","Should I run a campaign this week?","How are my rewards performing?"];
+
+let chatBusy=false;
+const msgs=document.getElementById('chatMessages');
+const sugs=document.getElementById('chatSuggestions');
+
+function addMsg(role,html){
+  const d=document.createElement('div');
+  d.className='msg '+role;
+  const b=document.createElement('div');
+  b.className='msg-bubble';
+  b.innerHTML=html.replace(/\n/g,'<br>');
+  const t=document.createElement('div');
+  t.className='msg-time';
+  t.textContent='Just now';
+  d.appendChild(b);d.appendChild(t);
+  msgs.appendChild(d);
+  msgs.scrollTop=msgs.scrollHeight;
+  return d;
+}
+
+function setSuggestions(items){
+  sugs.innerHTML='';
+  items.forEach(s=>{
+    const el=document.createElement('span');
+    el.className='suggest';
+    el.textContent=s;
+    el.onclick=()=>sendChat(s);
+    sugs.appendChild(el);
+  });
+}
+
+function sendChat(text){
+  if(chatBusy)return;
+  const inp=document.getElementById('chatInput');
+  const q=(text||inp.value).trim();
+  if(!q)return;
+  inp.value='';
+  chatBusy=true;
+  document.getElementById('chatSendBtn').disabled=true;
+  sugs.innerHTML='';
+
+  addMsg('user',q);
+
+  // typing indicator
+  const typDiv=document.createElement('div');
+  typDiv.className='msg bot';
+  typDiv.innerHTML='<div class="typing-bubble"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>';
+  msgs.appendChild(typDiv);
+  msgs.scrollTop=msgs.scrollHeight;
+
+  const key=q.toLowerCase().replace(/[?!.]/g,'').trim();
+  const answer=ANSWERS[key]||`Great question. In a live ZentraBite account, I'd analyse your real orders, customers, and financials to give you a precise answer.\n\nFor "<strong>${q}</strong>", I'd look at your data across the last 30 days and surface the top 2–3 actions you should take today, ranked by expected revenue impact.\n\n<strong>Start your free trial</strong> to connect your data and ask this with real, personalised answers.`;
+
+  const delay=900+Math.random()*600;
+  setTimeout(()=>{
+    typDiv.remove();
+    const msgEl=addMsg('bot','');
+    const bubble=msgEl.querySelector('.msg-bubble');
+    const words=answer.split(/(?<=\s)/);
+    let i=0,built='';
+    const cursor='<span style="display:inline-block;width:2px;height:12px;background:var(--green);animation:blink .7s infinite;margin-left:2px;vertical-align:middle;border-radius:1px;"></span>';
+    bubble.innerHTML=cursor;
+    function typeWord(){
+      if(i<words.length){
+        built+=words[i++];
+        bubble.innerHTML=built.replace(/\n/g,'<br>')+cursor;
+        msgs.scrollTop=msgs.scrollHeight;
+        setTimeout(typeWord,16+Math.random()*18);
+      } else {
+        bubble.innerHTML=built.replace(/\n/g,'<br>');
+        chatBusy=false;
+        document.getElementById('chatSendBtn').disabled=false;
+        const fu=FOLLOWUPS[key]||DEFAULT_FU;
+        setSuggestions(fu);
+      }
+    }
+    typeWord();
+  },delay);
+}
+</script>
+
+<style>
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+</style>
+</body>
+</html>

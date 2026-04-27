@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZentraBite — Business Operating System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root {
+  --navy: #1c2d48;
+  --green: #00b67a;
+  --green-dark: #00a36d;
+  --orange: #ff6b35;
+  --bg: #0f1f2d;
+  --steel: #6b7c93;
+  --cloud: #f8fafb;
+  --mist: #e2e8f0;
+  --mist-9: rgba(226,232,240,0.09);
+  --mist-12: rgba(226,232,240,0.12);
+  --navy-55: rgba(28,45,72,0.55);
+  --navy-40: rgba(28,45,72,0.4);
+  --green-15: rgba(0,182,122,0.15);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--cloud);overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+
+/* ── Canvas ── */
+#three-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;transition:opacity 0.5s;}
+
+/* ── Nav ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:68px;display:flex;align-items:center;justify-content:space-between;background:rgba(15,31,45,0.82);backdrop-filter:blur(20px);border-bottom:1px solid rgba(226,232,240,0.07);}
+.nav-logo{font-family:'Outfit',sans-serif;font-size:21px;font-weight:800;color:var(--cloud);display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-logo-dot{width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 10px rgba(0,182,122,0.9);animation:pulse 2s infinite;}
+.nav-links{display:flex;align-items:center;gap:2px;list-style:none;}
+.nav-links a{color:var(--steel);text-decoration:none;font-size:14px;font-weight:500;padding:8px 14px;border-radius:8px;transition:color 0.15s,background 0.15s;}
+.nav-links a:hover{color:var(--cloud);background:rgba(255,255,255,0.05);}
+.nav-cta{background:var(--green)!important;color:white!important;border-radius:9px!important;font-weight:600!important;box-shadow:0 0 18px rgba(0,182,122,0.35);transition:all 0.18s!important;}
+.nav-cta:hover{background:var(--green-dark)!important;transform:translateY(-1px);box-shadow:0 4px 22px rgba(0,182,122,0.5)!important;}
+
+/* ── Hero ── */
+#hero{position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:130px 24px 70px;overflow:hidden;}
+.hero-content{position:relative;z-index:2;max-width:860px;margin:0 auto;}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--green);padding:7px 16px;border-radius:999px;background:rgba(0,182,122,0.1);border:1px solid rgba(0,182,122,0.25);margin-bottom:28px;}
+.hero-h1{font-family:'Outfit',sans-serif;font-size:clamp(40px,7vw,78px);font-weight:800;line-height:1.04;letter-spacing:-0.03em;margin-bottom:22px;}
+.gradient-text{background:linear-gradient(175deg,var(--cloud) 30%,rgba(248,250,251,0.55));-webkit-background-clip:text;background-clip:text;color:transparent;}
+.green-text{color:var(--green);text-shadow:0 0 50px rgba(0,182,122,0.45);}
+.hero-sub{font-size:clamp(16px,2vw,19px);color:var(--steel);line-height:1.65;max-width:540px;margin:0 auto 38px;}
+.hero-ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:18px;}
+.btn-primary{display:inline-flex;align-items:center;gap:8px;background:var(--green);color:white;padding:15px 32px;border-radius:12px;font-weight:700;font-size:16px;text-decoration:none;transition:background 0.18s,transform 0.15s,box-shadow 0.18s;box-shadow:0 4px 24px rgba(0,182,122,0.4);border:none;cursor:pointer;}
+.btn-primary:hover{background:var(--green-dark);transform:translateY(-2px);box-shadow:0 8px 36px rgba(0,182,122,0.55);}
+.btn-secondary{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.04);color:var(--cloud);padding:14px 26px;border-radius:12px;font-weight:600;font-size:16px;text-decoration:none;border:1px solid var(--mist-12);transition:all 0.18s;backdrop-filter:blur(8px);}
+.btn-secondary:hover{background:rgba(255,255,255,0.08);border-color:rgba(226,232,240,0.24);transform:translateY(-1px);}
+.hero-note{font-size:13px;color:var(--steel);}
+
+/* ── Floating dashboard card ── */
+.float-cards-container{position:relative;z-index:1;margin-top:52px;perspective:1400px;}
+.float-card{background:rgba(28,45,72,0.58);backdrop-filter:blur(24px);border:1px solid rgba(226,232,240,0.1);border-radius:18px;padding:0;box-shadow:0 24px 80px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.06);overflow:hidden;}
+.main-dashboard-card{max-width:860px;margin:0 auto;transform:rotateX(8deg);transform-origin:center bottom;transition:transform 0.3s ease,box-shadow 0.3s ease;}
+.browser-chrome{display:flex;align-items:center;gap:7px;padding:10px 14px;border-bottom:1px solid rgba(226,232,240,0.07);background:rgba(10,20,35,0.5);}
+.tl{width:10px;height:10px;border-radius:50%;}
+.url-bar{flex:1;margin-left:10px;padding:5px 12px;background:rgba(255,255,255,0.04);border-radius:6px;font-size:11px;color:var(--steel);font-family:monospace;}
+.dashboard-body{display:grid;grid-template-columns:175px 1fr;}
+.dash-sidebar{padding:12px 9px;border-right:1px solid rgba(226,232,240,0.06);display:flex;flex-direction:column;gap:3px;}
+.dash-sidebar-item{padding:8px 11px;border-radius:7px;font-size:12px;font-weight:500;color:var(--steel);display:flex;align-items:center;gap:7px;transition:all 0.15s;cursor:pointer;}
+.dash-sidebar-item.active{background:var(--green);color:white;font-weight:600;}
+.dash-sidebar-item:not(.active):hover{background:rgba(255,255,255,0.05);color:var(--cloud);}
+.dash-main{padding:14px;display:flex;flex-direction:column;gap:10px;}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;}
+.stat-tile{background:var(--navy-40);border:1px solid rgba(226,232,240,0.06);border-radius:10px;padding:13px;}
+.stat-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--steel);}
+.stat-value{font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;color:var(--cloud);margin-top:5px;}
+.stat-value.green{color:var(--green);}
+.order-row{background:var(--navy-40);border:1px solid rgba(226,232,240,0.05);border-radius:9px;padding:11px 13px;display:grid;grid-template-columns:50px 1fr auto auto;align-items:center;gap:9px;font-size:12px;}
+.order-id{font-family:monospace;color:var(--steel);font-size:11px;}
+.order-name{font-weight:600;color:var(--cloud);margin-bottom:2px;}
+.order-items{color:var(--steel);font-size:11px;}
+.order-total{font-family:'Outfit',sans-serif;font-weight:700;font-size:13px;}
+.sbadge{padding:3px 9px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:0.03em;}
+
+/* ── Mini cards ── */
+.mini-cards-row{display:flex;justify-content:center;gap:14px;margin-top:18px;flex-wrap:wrap;}
+.mini-card{background:rgba(28,45,72,0.72);backdrop-filter:blur(20px);border:1px solid rgba(226,232,240,0.1);border-radius:14px;padding:14px 18px;font-size:13px;display:flex;align-items:center;gap:11px;box-shadow:0 8px 32px rgba(0,0,0,0.3);white-space:nowrap;}
+.mini-card:nth-child(1){animation:floatCard 6s ease-in-out infinite;}
+.mini-card:nth-child(2){animation:floatCard 6s ease-in-out infinite;animation-delay:-2s;}
+.mini-card:nth-child(3){animation:floatCard 6s ease-in-out infinite;animation-delay:-4s;}
+.mini-icon{width:36px;height:36px;border-radius:10px;background:rgba(0,182,122,0.14);border:1px solid rgba(0,182,122,0.24);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+
+/* ── Stats bar ── */
+#stats-bar{position:relative;z-index:1;padding:38px 24px;border-top:1px solid rgba(226,232,240,0.06);border-bottom:1px solid rgba(226,232,240,0.06);background:rgba(28,45,72,0.2);backdrop-filter:blur(10px);}
+.stats-inner{max-width:880px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;text-align:center;}
+.stat-number{font-family:'Outfit',sans-serif;font-size:38px;font-weight:800;color:var(--green);}
+.stat-desc{font-size:13px;color:var(--steel);margin-top:4px;}
+
+/* ── Sections ── */
+section{position:relative;z-index:1;}
+.section-pad{padding:96px 24px;}
+.section-inner{max-width:1140px;margin:0 auto;}
+.section-header{text-align:center;max-width:660px;margin:0 auto 56px;}
+.section-eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--green);padding:6px 14px;border-radius:999px;background:rgba(0,182,122,0.1);border:1px solid rgba(0,182,122,0.25);margin-bottom:18px;}
+.section-h2{font-family:'Outfit',sans-serif;font-size:clamp(28px,4vw,46px);font-weight:800;letter-spacing:-0.025em;line-height:1.1;margin-bottom:14px;}
+.section-sub{font-size:16px;color:var(--steel);line-height:1.65;}
+
+/* ── Modules grid ── */
+.modules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:13px;}
+.module-card{background:rgba(28,45,72,0.42);border:1px solid rgba(226,232,240,0.08);border-radius:16px;padding:22px;cursor:pointer;transition:transform 0.28s cubic-bezier(0.23,1,0.32,1),border-color 0.2s,box-shadow 0.2s,background 0.2s;transform-style:preserve-3d;position:relative;overflow:hidden;}
+.module-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(0,182,122,0.13),transparent 60%);opacity:0;transition:opacity 0.3s;pointer-events:none;}
+.module-card:hover{transform:translateY(-7px) rotateX(4deg);border-color:rgba(0,182,122,0.28);box-shadow:0 18px 44px rgba(0,0,0,0.3),0 0 28px rgba(0,182,122,0.08);background:rgba(28,45,72,0.68);}
+.module-card:hover::before{opacity:1;}
+.module-icon{width:46px;height:46px;border-radius:12px;background:rgba(0,182,122,0.12);border:1px solid rgba(0,182,122,0.2);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:13px;transition:transform 0.3s,box-shadow 0.3s;}
+.module-card:hover .module-icon{transform:translateZ(20px) scale(1.06);box-shadow:0 8px 20px rgba(0,182,122,0.22);}
+.module-title{font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;color:var(--cloud);margin-bottom:6px;}
+.module-desc{font-size:12.5px;color:var(--steel);line-height:1.55;}
+.module-arrow{display:inline-flex;align-items:center;gap:4px;color:var(--green);font-size:12px;font-weight:600;margin-top:12px;opacity:0;transform:translateX(-4px);transition:opacity 0.2s,transform 0.2s;}
+.module-card:hover .module-arrow{opacity:1;transform:translateX(0);}
+
+/* ── How it works ── */
+.how-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+.how-step{background:rgba(28,45,72,0.38);border:1px solid rgba(226,232,240,0.08);border-radius:20px;padding:32px 26px;transition:transform 0.22s,border-color 0.2s;}
+.how-step:hover{transform:translateY(-5px);border-color:rgba(0,182,122,0.24);}
+.step-num{font-family:'Outfit',sans-serif;font-size:54px;font-weight:800;color:rgba(0,182,122,0.14);line-height:1;margin-bottom:16px;}
+.step-title{font-family:'Outfit',sans-serif;font-size:20px;font-weight:700;color:var(--cloud);margin-bottom:10px;}
+.step-desc{font-size:14px;color:var(--steel);line-height:1.65;}
+
+/* ── AI Section ── */
+#ai-section{background:rgba(0,182,122,0.03);border-top:1px solid rgba(0,182,122,0.09);border-bottom:1px solid rgba(0,182,122,0.09);}
+.ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;}
+.ai-insight-card{background:rgba(28,45,72,0.58);border:1px solid rgba(226,232,240,0.09);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:10px;}
+.ai-insight-item{background:rgba(15,31,45,0.55);border:1px solid rgba(226,232,240,0.06);border-radius:10px;padding:12px 14px;display:flex;align-items:flex-start;gap:11px;font-size:13px;color:var(--cloud);line-height:1.5;transition:border-color 0.2s;}
+.ai-insight-item:hover{border-color:rgba(0,182,122,0.22);}
+.ai-insight-dot{width:8px;height:8px;border-radius:50%;background:var(--green);margin-top:4px;flex-shrink:0;box-shadow:0 0 7px rgba(0,182,122,0.7);animation:pulse 2s infinite;}
+
+/* ── AI Ask widget ── */
+#ai-ask{position:relative;z-index:1;padding:96px 24px;background:linear-gradient(180deg,rgba(0,182,122,0.04) 0%,transparent 100%);border-bottom:1px solid rgba(226,232,240,0.07);}
+.ask-inner{max-width:760px;margin:0 auto;text-align:center;}
+.ask-card{background:rgba(28,45,72,0.58);backdrop-filter:blur(24px);border:1px solid rgba(0,182,122,0.18);border-radius:20px;padding:32px;margin-top:40px;text-align:left;}
+.ask-input-row{display:flex;gap:10px;margin-bottom:20px;}
+.ask-input{flex:1;background:rgba(15,31,45,0.7);border:1px solid rgba(226,232,240,0.14);border-radius:12px;padding:14px 18px;color:var(--cloud);font-family:'Inter',sans-serif;font-size:15px;outline:none;transition:border-color 0.2s;}
+.ask-input:focus{border-color:rgba(0,182,122,0.5);}
+.ask-input::placeholder{color:rgba(248,250,251,0.28);}
+.ask-btn{background:var(--green);color:white;border:none;border-radius:12px;padding:14px 22px;font-family:'Inter',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:background 0.18s,transform 0.15s,box-shadow 0.18s;white-space:nowrap;box-shadow:0 4px 18px rgba(0,182,122,0.35);display:flex;align-items:center;gap:8px;}
+.ask-btn:hover{background:var(--green-dark);transform:translateY(-1px);box-shadow:0 6px 24px rgba(0,182,122,0.5);}
+.ask-btn:disabled{background:rgba(0,182,122,0.4);cursor:not-allowed;transform:none;}
+.ask-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
+.ask-chip{background:rgba(28,45,72,0.6);border:1px solid rgba(226,232,240,0.1);border-radius:999px;padding:7px 14px;font-size:12px;color:var(--steel);cursor:pointer;transition:all 0.18s;white-space:nowrap;}
+.ask-chip:hover{border-color:rgba(0,182,122,0.3);color:var(--green);background:rgba(0,182,122,0.08);}
+.ask-response{background:rgba(15,31,45,0.6);border:1px solid rgba(226,232,240,0.07);border-radius:12px;padding:20px;display:none;}
+.ask-response.visible{display:block;animation:fadeUp 0.4s ease both;}
+.ask-response-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--green);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.ask-response-text{font-size:14px;color:var(--cloud);line-height:1.75;}
+.ask-response-text strong{color:var(--green);font-weight:600;}
+.typing-cursor{display:inline-block;width:2px;height:14px;background:var(--green);animation:blink 0.8s infinite;margin-left:2px;vertical-align:middle;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0;}}
+
+/* ── CTA ── */
+#cta-section{text-align:center;padding:120px 24px;position:relative;overflow:hidden;}
+#cta-section::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(0,182,122,0.12) 0%,transparent 70%);pointer-events:none;}
+.cta-h2{font-family:'Outfit',sans-serif;font-size:clamp(32px,5vw,58px);font-weight:800;letter-spacing:-0.025em;line-height:1.1;max-width:740px;margin:0 auto 18px;}
+.cta-sub{font-size:17px;color:var(--steel);max-width:460px;margin:0 auto 38px;line-height:1.65;}
+.cta-note{font-size:13px;color:var(--steel);margin-top:18px;}
+
+/* ── Footer ── */
+footer{position:relative;z-index:1;border-top:1px solid rgba(226,232,240,0.07);padding:36px 40px 26px;background:rgba(12,22,36,0.65);backdrop-filter:blur(10px);}
+.footer-inner{max-width:1140px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;}
+.footer-brand{font-family:'Outfit',sans-serif;font-weight:800;font-size:18px;color:var(--cloud);margin-bottom:5px;}
+.footer-copy{font-size:13px;color:var(--steel);}
+.footer-links{display:flex;gap:20px;list-style:none;}
+.footer-links a{font-size:13px;color:var(--steel);text-decoration:none;transition:color 0.15s;}
+.footer-links a:hover{color:var(--cloud);}
+
+/* ── Animations ── */
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 10px rgba(0,182,122,0.9);}50%{opacity:0.45;box-shadow:0 0 3px rgba(0,182,122,0.2);}}
+@keyframes floatCard{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
+.fade-in{opacity:0;transform:translateY(28px);transition:opacity 0.7s ease,transform 0.7s ease;}
+.fade-in.visible{opacity:1;transform:translateY(0);}
+
+/* ── Responsive ── */
+@media(max-width:900px){.dashboard-body{grid-template-columns:1fr;}.dash-sidebar{display:none;}.stats-inner{grid-template-columns:repeat(2,1fr);}.how-steps{grid-template-columns:1fr;}.ai-grid{grid-template-columns:1fr;}.mini-cards-row{flex-direction:column;align-items:center;}}
+@media(max-width:640px){nav .nav-links li:not(:last-child){display:none;}.stat-row{grid-template-columns:repeat(2,1fr);}.ask-input-row{flex-direction:column;}}
+</style>
+</head>
+<body>
+
+<canvas id="three-canvas"></canvas>
+
+<!-- ── Nav ── -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-dot"></div>
+    ZentraBite
+  </a>
+  <ul class="nav-links">
+    <li><a href="#modules">Product</a></li>
+    <li><a href="#how-it-works">How it works</a></li>
+    <li><a href="#ai-ask">AI Demo</a></li>
+    <li><a href="#cta-section" class="nav-cta">Start free trial</a></li>
+  </ul>
+</nav>
+
+<!-- ── Hero ── -->
+<section id="hero">
+  <div style="width:100%;">
+    <div class="hero-content">
+      <div class="eyebrow">
+        <span style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;flex-shrink:0;"></span>
+        Business Operating System
+      </div>
+      <h1 class="hero-h1">
+        <span class="gradient-text">One system to run, grow,</span><br>
+        <span class="green-text">and scale your business.</span>
+      </h1>
+      <p class="hero-sub">Orders, customers, stock, campaigns, and an AI co-pilot — all in one place, wired together from day one.</p>
+      <div class="hero-ctas">
+        <a href="#cta-section" class="btn-primary">Start 1-month free trial <span>→</span></a>
+        <a href="#ai-ask" class="btn-secondary"><span>✨</span> Ask the AI</a>
+      </div>
+      <p class="hero-note">Works for any food-service business · Pricing tailored to you</p>
+    </div>
+
+    <!-- 3D Dashboard Card -->
+    <div class="float-cards-container">
+      <div class="float-card main-dashboard-card" id="dashCard">
+        <div class="browser-chrome">
+          <span class="tl" style="background:#ff5f57;"></span>
+          <span class="tl" style="background:#febc2e;"></span>
+          <span class="tl" style="background:#28c840;"></span>
+          <div class="url-bar">dashboard.zentrabite.com.au/orders</div>
+        </div>
+        <div class="dashboard-body">
+          <div class="dash-sidebar">
+            <div class="dash-sidebar-item active">📦 Orders</div>
+            <div class="dash-sidebar-item">👥 Customers</div>
+            <div class="dash-sidebar-item">🍽️ Menu</div>
+            <div class="dash-sidebar-item">📣 Campaigns</div>
+            <div class="dash-sidebar-item">💰 Financials</div>
+            <div class="dash-sidebar-item">🤖 AI Calls</div>
+            <div class="dash-sidebar-item">🚚 Delivery</div>
+            <div class="dash-sidebar-item">⭐ Rewards</div>
+          </div>
+          <div class="dash-main">
+            <div class="stat-row">
+              <div class="stat-tile"><div class="stat-label">Live orders</div><div class="stat-value green">7</div></div>
+              <div class="stat-tile"><div class="stat-label">Today's revenue</div><div class="stat-value">$1,842</div></div>
+              <div class="stat-tile"><div class="stat-label">Avg. ticket</div><div class="stat-value">$38.20</div></div>
+            </div>
+            <div class="order-row">
+              <div class="order-id">#1289</div>
+              <div><div class="order-name">Olivia M.</div><div class="order-items">2× Margherita · 1× Garlic bread</div></div>
+              <div class="order-total">$42.50</div>
+              <div class="sbadge" style="background:rgba(0,182,122,0.15);color:var(--green);border:1px solid rgba(0,182,122,0.3);">New</div>
+            </div>
+            <div class="order-row">
+              <div class="order-id">#1288</div>
+              <div><div class="order-name">James K.</div><div class="order-items">1× Wagyu burger · Fries · Coke</div></div>
+              <div class="order-total">$31.80</div>
+              <div class="sbadge" style="background:rgba(255,107,53,0.15);color:var(--orange);border:1px solid rgba(255,107,53,0.3);">Cooking</div>
+            </div>
+            <div class="order-row">
+              <div class="order-id">#1287</div>
+              <div><div class="order-name">Priya S.</div><div class="order-items">3× Pad thai · 2× Spring rolls</div></div>
+              <div class="order-total">$58.40</div>
+              <div class="sbadge" style="background:rgba(107,124,147,0.15);color:var(--steel);border:1px solid rgba(107,124,147,0.25);">On the way</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mini-cards-row">
+        <div class="mini-card">
+          <div class="mini-icon">🤖</div>
+          <div><div style="font-weight:600;color:var(--cloud);font-size:13px;">AI called 12 win-backs today</div><div style="color:var(--steel);font-size:11px;">4 reactivated · $218 recovered</div></div>
+        </div>
+        <div class="mini-card">
+          <div class="mini-icon">⭐</div>
+          <div><div style="font-weight:600;color:var(--cloud);font-size:13px;">Rewards program live</div><div style="color:var(--steel);font-size:11px;">236 members · 18% redemption rate</div></div>
+        </div>
+        <div class="mini-card">
+          <div class="mini-icon">📈</div>
+          <div><div style="font-weight:600;color:var(--cloud);font-size:13px;">Revenue up 23% this month</div><div style="color:var(--steel);font-size:11px;">vs. 30-day average</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Stats bar ── -->
+<div id="stats-bar">
+  <div class="stats-inner">
+    <div><div class="stat-number fade-count" data-target="2400" data-suffix="+">0</div><div class="stat-desc">Orders processed daily</div></div>
+    <div><div class="stat-number fade-count" data-target="99" data-suffix="%">0</div><div class="stat-desc">Uptime SLA</div></div>
+    <div><div class="stat-number fade-count" data-target="15">0</div><div class="stat-desc">Modules in one platform</div></div>
+    <div><div class="stat-number" style="font-size:32px;">1 month</div><div class="stat-desc">Free trial, no card required</div></div>
+  </div>
+</div>
+
+<!-- ── Modules ── -->
+<section id="modules" class="section-pad">
+  <div class="section-inner">
+    <div class="section-header fade-in">
+      <div class="section-eyebrow">What's inside</div>
+      <h2 class="section-h2">Everything you need, in one place.</h2>
+      <p class="section-sub">Turn modules on and off per location. Pay for what you use.</p>
+    </div>
+    <div class="modules-grid">
+      <div class="module-card fade-in"><div class="module-icon">📦</div><div class="module-title">Order Management</div><div class="module-desc">Real-time order board with status tracking, driver dispatch, and automatic customer notifications.</div><div class="module-arrow">Learn more →</div></div>
+      <div class="module-card fade-in"><div class="module-icon">👥</div><div class="module-title">Customer CRM</div><div class="module-desc">Full customer profiles, spend history, visit frequency, and automated segments ready to target.</div><div class="module-arrow">Learn more →</div></div>
+      <div class="module-card fade-in"><div class="module-icon">🍽️</div><div class="module-title">Menu Management</div><div class="module-desc">Live menu editor with photos, variants, modifiers, and time-based availability windows.</div><div class="module-arrow">Learn more →</div></div>
+      <div class="module-card fade-in"><div class="module-icon">📣</div><div class="module-title">Campaigns & Winback</div><div class="module-desc">SMS and email campaigns triggered by customer behaviour, churn risk, and lifetime milestones.</div><div class="module-arrow">Learn more →</div></div>
+      <div class="module-card fade-in"><div class="module-icon">🤖</div><div class="module-title">AI Voice Calls</div><div class="module-desc">AI agents call lapsed customers, take orders, and log every outcome back to the CRM automatically.</div><div class="module-arrow">Learn more →</div></div>
+      <div class="module-card fade-in"><div class="module-icon">⭐</div><div class="module-title">Rewards Engine</div><div class="module-desc">Earn points, unlock tiers, redeem free items. Transparent rewards that drive real retention.</div><div class="module-arrow">Learn more →</div></div>
+      <div class="module-card fade-in"><div class="module-icon">🚚</div><div class="module-title">Driver Dispatch</div><div class="module-desc">Route optimiser, live driver tracking, and real-time ETA updates sent directly to customers.</div><div class="module-arrow">Learn more →</div></div>
+      <div class="module-card fade-in"><div class="module-icon">📊</div><div class="module-title">Financials & Reports</div><div class="module-desc">P&amp;L, revenue by channel, cost of goods, and a daily digest delivered straight to your inbox.</div><div class="module-arrow">Learn more →</div></div>
+      <div class="module-card fade-in"><div class="module-icon">🏪</div><div class="module-title">POS</div><div class="module-desc">Tablet POS wired to the same order board — no double entry, no third-party sync headaches.</div><div class="module-arrow">Learn more →</div></div>
+      <div class="module-card fade-in"><div class="module-icon">📦</div><div class="module-title">Stock Control</div><div class="module-desc">Track ingredients, set reorder thresholds, and auto-86 menu items when stock runs dry.</div><div class="module-arrow">Learn more →</div></div>
+      <div class="module-card fade-in"><div class="module-icon">🗓️</div><div class="module-title">Rostering</div><div class="module-desc">Shift scheduling, labour cost tracking, and SMS notifications for your entire team.</div><div class="module-arrow">Learn more →</div></div>
+      <div class="module-card fade-in"><div class="module-icon">🔗</div><div class="module-title">Integrations</div><div class="module-desc">Uber Eats, DoorDash, Xero, Stripe, and more — all feeding the same single source of truth.</div><div class="module-arrow">Learn more →</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── How it works ── -->
+<section id="how-it-works" class="section-pad" style="background:rgba(28,45,72,0.14);">
+  <div class="section-inner">
+    <div class="section-header fade-in">
+      <div class="section-eyebrow">How it works</div>
+      <h2 class="section-h2">From first order to loyal regular.</h2>
+      <p class="section-sub">ZentraBite connects every touchpoint so nothing falls through the cracks.</p>
+    </div>
+    <div class="how-steps">
+      <div class="how-step fade-in"><div class="step-num">01</div><div class="step-title">Customer places an order</div><div class="step-desc">Via your storefront, POS, or a third-party aggregator. Every order lands in the same board, in real time — no manual re-entry.</div></div>
+      <div class="how-step fade-in"><div class="step-num">02</div><div class="step-title">Your team works it</div><div class="step-desc">Kitchen screen, driver dispatch, stock deduction, and a customer SMS update are all triggered automatically the moment status changes.</div></div>
+      <div class="how-step fade-in"><div class="step-num">03</div><div class="step-title">AI keeps them coming back</div><div class="step-desc">Points credited, tier unlocked, win-back campaign queued if they go quiet. ZentraBite handles the follow-up so you don't have to.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── AI Daily Brief section ── -->
+<section id="ai-section" class="section-pad">
+  <div class="section-inner">
+    <div class="ai-grid">
+      <div class="fade-in">
+        <div class="section-eyebrow" style="margin-bottom:20px;">AI Co-pilot</div>
+        <h2 class="section-h2">Your business, on autopilot.</h2>
+        <p class="section-sub" style="margin-bottom:28px;">Every morning, ZentraBite's AI scans your data and tells you exactly what to act on — no dashboards to dig through.</p>
+        <a href="#ai-ask" class="btn-primary" style="display:inline-flex;">Try the AI demo ✨</a>
+      </div>
+      <div class="ai-insight-card fade-in">
+        <div style="font-size:11px;font-weight:700;color:var(--steel);text-transform:uppercase;letter-spacing:0.1em;padding:0 4px 4px;display:flex;align-items:center;gap:7px;"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 2s infinite;"></span>AI Daily Brief · Mon 28 Apr</div>
+        <div class="ai-insight-item"><div class="ai-insight-dot"></div><div>42 customers haven't ordered in 21+ days. AI calling starts at 10 AM — expected $340 recovered.</div></div>
+        <div class="ai-insight-item"><div class="ai-insight-dot"></div><div>Saturday revenue was 18% below forecast. Burger stock ran out at 7 PM — add 40% more next week.</div></div>
+        <div class="ai-insight-item"><div class="ai-insight-dot"></div><div>Priya S. just hit Gold tier. Automated "thanks" SMS sent + free dessert unlocked on next order.</div></div>
+        <div class="ai-insight-item"><div class="ai-insight-dot"></div><div>Uber Eats fees up 2.1% this month. 14 customers could shift to direct ordering — campaign queued.</div></div>
+        <div class="ai-insight-item"><div class="ai-insight-dot"></div><div>Tuesday 6–8 PM is your quietest slot. A targeted $5 off campaign could add ~$280 in revenue.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── AI Ask Demo ── -->
+<section id="ai-ask">
+  <div class="ask-inner">
+    <div class="section-eyebrow">Ask ZentraBite AI</div>
+    <h2 class="section-h2" style="margin-top:16px;">Ask anything about your business.</h2>
+    <p class="section-sub">Try the AI demo — ask questions like a real operator would.</p>
+    <div class="ask-card">
+      <div class="ask-chips">
+        <span class="ask-chip" onclick="askQuestion(this.textContent)">Who are my top customers?</span>
+        <span class="ask-chip" onclick="askQuestion(this.textContent)">Why is revenue down this week?</span>
+        <span class="ask-chip" onclick="askQuestion(this.textContent)">Which menu items should I promote?</span>
+        <span class="ask-chip" onclick="askQuestion(this.textContent)">How do I reduce churn?</span>
+        <span class="ask-chip" onclick="askQuestion(this.textContent)">What's my most profitable day?</span>
+        <span class="ask-chip" onclick="askQuestion(this.textContent)">Should I run a campaign this week?</span>
+      </div>
+      <div class="ask-input-row">
+        <input class="ask-input" id="askInput" type="text" placeholder="Ask anything about your restaurant…" onkeydown="if(event.key==='Enter') sendAsk()">
+        <button class="ask-btn" id="askBtn" onclick="sendAsk()">
+          <span>✨</span> Ask AI
+        </button>
+      </div>
+      <div class="ask-response" id="askResponse">
+        <div class="ask-response-label"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 2s infinite;flex-shrink:0;"></span>ZentraBite AI</div>
+        <div class="ask-response-text" id="askResponseText"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ── -->
+<section id="cta-section">
+  <div style="position:relative;z-index:1;">
+    <div class="section-eyebrow" style="margin-bottom:22px;">Ready to grow?</div>
+    <h2 class="cta-h2">Start your <span style="color:var(--green);">1-month free trial</span> today.</h2>
+    <p class="cta-sub">No credit card. No lock-in. Pricing tailored to your business after your trial.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <a href="#" class="btn-primary" style="padding:17px 38px;font-size:17px;">Book a call with us →</a>
+      <a href="#modules" class="btn-secondary" style="padding:16px 30px;font-size:16px;">Explore modules</a>
+    </div>
+    <p class="cta-note">Works for restaurants, cafés, food trucks, retail, services, and more.</p>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-brand">ZentraBite</div>
+      <div class="footer-copy">© 2026 ZentraBite. Built for small operators.</div>
+    </div>
+    <ul class="footer-links">
+      <li><a href="#">Product</a></li>
+      <li><a href="#">Pricing</a></li>
+      <li><a href="#">Contact</a></li>
+      <li><a href="#">Privacy</a></li>
+    </ul>
+  </div>
+</footer>
+
+<!-- ── Three.js Scene ── -->
+<script>
+const canvas = document.getElementById('three-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x000000, 0);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.z = 6;
+
+// ── Starfield ──
+const starCount = 2200;
+const starPos = new Float32Array(starCount * 3);
+const starCol = new Float32Array(starCount * 3);
+for (let i = 0; i < starCount; i++) {
+  starPos[i*3]   = (Math.random() - 0.5) * 35;
+  starPos[i*3+1] = (Math.random() - 0.5) * 35;
+  starPos[i*3+2] = (Math.random() - 0.5) * 22;
+  const g = Math.random() > 0.93;
+  if (g) { starCol[i*3]=0; starCol[i*3+1]=0.71; starCol[i*3+2]=0.48; }
+  else {
+    const b = 0.45 + Math.random() * 0.55;
+    starCol[i*3]=b*0.78; starCol[i*3+1]=b*0.88; starCol[i*3+2]=b;
+  }
+}
+const starGeo = new THREE.BufferGeometry();
+starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+starGeo.setAttribute('color', new THREE.BufferAttribute(starCol, 3));
+const starMat = new THREE.PointsMaterial({ size: 0.042, vertexColors: true, transparent: true, opacity: 0.75, sizeAttenuation: true });
+const stars = new THREE.Points(starGeo, starMat);
+scene.add(stars);
+
+// ── Wireframe geometries ──
+const wireData = [
+  { geo: new THREE.IcosahedronGeometry(0.9, 1), color: 0x00b67a, opacity: 0.32, pos: [3.8, 1.2, -2.5], rotSpeed: [0.38, 0.28, 0] },
+  { geo: new THREE.OctahedronGeometry(0.55),    color: 0x1c4d78, opacity: 0.22, pos: [-3.8, -0.6, -1.5], rotSpeed: [-0.24, 0, 0.18] },
+  { geo: new THREE.TetrahedronGeometry(0.42),   color: 0xff6b35, opacity: 0.18, pos: [2.6, -2.2, -3],   rotSpeed: [0, 0.44, 0.22] },
+  { geo: new THREE.IcosahedronGeometry(0.35, 0),color: 0x00b67a, opacity: 0.15, pos: [-2.2, 2.4, -4],  rotSpeed: [0.3, 0.3, 0.15] },
+];
+const wireMeshes = wireData.map(d => {
+  const mat = new THREE.MeshBasicMaterial({ color: d.color, wireframe: true, transparent: true, opacity: d.opacity });
+  const mesh = new THREE.Mesh(d.geo, mat);
+  mesh.position.set(...d.pos);
+  mesh.userData.rotSpeed = d.rotSpeed;
+  scene.add(mesh);
+  return mesh;
+});
+
+// ── Glowing orbs ──
+const orbData = [
+  { pos: [-2.2, 2.0, -1.2], color: 0x00b67a, r: 0.12 },
+  { pos: [3.2, -1.6, -2.2], color: 0x00b67a, r: 0.1 },
+  { pos: [-1.2, -2.8, -0.8], color: 0xff6b35, r: 0.09 },
+];
+const orbMeshes = orbData.map(d => {
+  const mat = new THREE.MeshBasicMaterial({ color: d.color, transparent: true, opacity: 0.65 });
+  const mesh = new THREE.Mesh(new THREE.SphereGeometry(d.r, 12, 12), mat);
+  mesh.position.set(...d.pos);
+  mesh.userData.baseY = d.pos[1];
+  scene.add(mesh);
+  return mesh;
+});
+
+// ── Rings ──
+const ringA = new THREE.Mesh(
+  new THREE.TorusGeometry(4.2, 0.018, 8, 120),
+  new THREE.MeshBasicMaterial({ color: 0x1c3a58, transparent: true, opacity: 0.38 })
+);
+ringA.rotation.x = Math.PI / 2.4;
+scene.add(ringA);
+
+const ringB = new THREE.Mesh(
+  new THREE.TorusGeometry(6.5, 0.012, 8, 120),
+  new THREE.MeshBasicMaterial({ color: 0x00b67a, transparent: true, opacity: 0.1 })
+);
+ringB.rotation.x = Math.PI / 3;
+ringB.rotation.z = Math.PI / 5;
+scene.add(ringB);
+
+// ── Mouse ──
+const mouse = { x: 0, y: 0 };
+document.addEventListener('mousemove', e => {
+  mouse.x = (e.clientX / window.innerWidth - 0.5) * 2;
+  mouse.y = -(e.clientY / window.innerHeight - 0.5) * 2;
+});
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ── Animate ──
+let t = 0;
+(function animate() {
+  requestAnimationFrame(animate);
+  t += 0.005;
+  stars.rotation.y = t * 0.04;
+  stars.rotation.x = t * 0.016;
+  wireMeshes.forEach(m => {
+    const s = m.userData.rotSpeed;
+    m.rotation.x += s[0] * 0.008;
+    m.rotation.y += s[1] * 0.008;
+    m.rotation.z += s[2] * 0.008;
+  });
+  orbMeshes.forEach((m, i) => {
+    m.position.y = m.userData.baseY + Math.sin(t * 0.7 + i * 2.1) * 0.32;
+  });
+  ringA.rotation.z = t * 0.07;
+  ringB.rotation.y = t * 0.05;
+  camera.position.x += (mouse.x * 0.28 - camera.position.x) * 0.025;
+  camera.position.y += (mouse.y * 0.18 - camera.position.y) * 0.025;
+  camera.lookAt(scene.position);
+  renderer.render(scene, camera);
+})();
+
+// Fade canvas on scroll
+window.addEventListener('scroll', () => {
+  const y = window.scrollY, s = window.innerHeight;
+  canvas.style.opacity = y < s * 0.5 ? 1 : Math.max(0, 1 - (y - s * 0.5) / (s * 1.2));
+});
+
+// ── 3D card tilt ──
+const dashCard = document.getElementById('dashCard');
+dashCard.addEventListener('mousemove', function(e) {
+  const r = this.getBoundingClientRect();
+  const rx = ((e.clientY - r.top) / r.height - 0.5) * -12;
+  const ry = ((e.clientX - r.left) / r.width - 0.5) * 12;
+  this.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+  this.style.transition = 'transform 0.05s';
+});
+dashCard.addEventListener('mouseleave', function() {
+  this.style.transform = 'rotateX(8deg) rotateY(0deg)';
+  this.style.transition = 'transform 0.6s ease';
+});
+
+// ── Module card tilt ──
+document.querySelectorAll('.module-card').forEach(card => {
+  card.addEventListener('mousemove', function(e) {
+    const r = this.getBoundingClientRect();
+    const rx = ((e.clientY - r.top) / r.height - 0.5) * -10;
+    const ry = ((e.clientX - r.left) / r.width - 0.5) * 10;
+    this.style.transform = `translateY(-7px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+    this.style.transition = 'transform 0.06s';
+  });
+  card.addEventListener('mouseleave', function() {
+    this.style.transform = '';
+    this.style.transition = 'transform 0.45s ease';
+  });
+});
+
+// ── Fade-in on scroll ──
+const fadeObserver = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) setTimeout(() => e.target.classList.add('visible'), i * 70);
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => fadeObserver.observe(el));
+
+// ── Count-up ──
+const countObserver = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    const el = entry.target;
+    const target = parseInt(el.dataset.target);
+    const suffix = el.dataset.suffix || '';
+    let cur = 0;
+    const inc = target / 55;
+    const timer = setInterval(() => {
+      cur = Math.min(cur + inc, target);
+      el.textContent = Math.round(cur).toLocaleString() + suffix;
+      if (cur >= target) clearInterval(timer);
+    }, 16);
+    countObserver.unobserve(el);
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('.fade-count').forEach(el => countObserver.observe(el));
+</script>
+
+<!-- ── AI Ask Demo Script ── -->
+<script>
+const RESPONSES = {
+  "who are my top customers?": `Your <strong>top 5 customers by lifetime value</strong> this month:<br><br>
+1. <strong>Priya S.</strong> — $482 · Gold tier · 11 orders · last ordered 2 days ago<br>
+2. <strong>James K.</strong> — $371 · Silver tier · 9 orders · last ordered 4 days ago<br>
+3. <strong>Olivia M.</strong> — $344 · Silver tier · 8 orders · last ordered today<br>
+4. <strong>Nathan C.</strong> — $298 · Bronze tier · 7 orders · last ordered 6 days ago<br>
+5. <strong>Aisha R.</strong> — $261 · Bronze tier · 6 orders · last ordered 3 days ago<br><br>
+<strong>Recommendation:</strong> Priya is close to Platinum — a personalised offer could lock in her loyalty for Q2.`,
+
+  "why is revenue down this week?": `Revenue is <strong>down 14% vs. last week ($8,240 vs $9,580)</strong>. Key drivers:<br><br>
+• <strong>Thursday dropped 31%</strong> — storm warning reduced foot traffic + 3 driver no-shows<br>
+• <strong>Burger patties ran low</strong> on Tuesday at 7 PM, forcing 86 of your #1 menu item for 90 mins<br>
+• <strong>Uber Eats outage</strong> Wed 11 AM–2 PM cost an estimated $320 in lost orders<br><br>
+<strong>Action items:</strong> Increase burger par 40% on Tues/Wed · Add 2 backup drivers to Thurs roster · Enable direct ordering fallback for aggregator downtime.`,
+
+  "which menu items should i promote?": `Based on margin and order velocity, here are your <strong>top 3 items to push this week</strong>:<br><br>
+🥇 <strong>Wagyu Burger</strong> — $18.50 margin · 94% sell-through · only in 32% of orders. A homepage banner could add ~$460/week.<br>
+🥈 <strong>Garlic Prawn Pasta</strong> — $14.20 margin · high satisfaction (4.8★) · ordered almost exclusively at dinner. A lunch promo could unlock a new slot.<br>
+🥉 <strong>Mango Lassi</strong> — $9.80 margin · pairs with 60% of curry orders but only added 22% of the time. A bundle prompt at checkout = easy revenue.<br><br>
+<strong>Suggested:</strong> Run a "This Week's Picks" campaign via SMS to your top 100 customers.`,
+
+  "how do i reduce churn?": `Your <strong>30-day churn rate is 18%</strong>, up from 13% last month. Here's what's driving it and how to fix it:<br><br>
+• <strong>42 customers</strong> are 21+ days since last order — AI win-back calls scheduled for 10 AM today<br>
+• <strong>First-order retention is low (44%)</strong> — customers who received a post-order SMS were 2.3× more likely to return. Enable auto follow-up.<br>
+• <strong>Loyalty friction:</strong> 68 members have unredeemed rewards — a reminder SMS typically recovers 22% within 7 days<br><br>
+<strong>If you take all 3 actions today</strong>, ZentraBite estimates ~$1,100 in revenue recovered this month.`,
+
+  "what's my most profitable day?": `Your <strong>most profitable day is Friday</strong>, averaging <strong>$2,840/day</strong> over the past 8 weeks.<br><br>
+📅 Day breakdown (avg revenue):<br>
+Mon $1,120 · Tue $980 · Wed $1,340 · Thu $1,580 · <strong>Fri $2,840</strong> · Sat $2,610 · Sun $1,890<br><br>
+Friday is driven by:<br>
+• 40% higher delivery orders (vs weekday avg)<br>
+• Wagyu Burger and Prawn Pasta sell 2× faster<br>
+• Your two highest-spending regulars order on Friday<br><br>
+<strong>Opportunity:</strong> You're currently under-staffed on Fridays — adding one extra shift could reduce wait times and lift revenue a further ~$300.`,
+
+  "should i run a campaign this week?": `<strong>Yes — Tuesday is your weakest slot and conditions are ideal.</strong><br><br>
+Recommended campaign: <strong>"$5 off this Tuesday 5–8 PM"</strong> via SMS to your 180 customers who haven't ordered in 7–14 days.<br><br>
+Estimated send: 180 messages · Est. open rate: 78% · Est. conversion: 14–18%<br>
+→ <strong>Projected orders: 25–32 · Projected revenue: $820–$1,060</strong><br>
+Campaign cost: ~$9 in SMS credits · ROI: <strong>90× estimated</strong><br><br>
+ZentraBite can write the message, schedule the send, and track attribution automatically. Ready to launch?`,
+};
+
+const GENERIC_RESPONSES = [
+  q => `Great question. Based on your current data, <strong>ZentraBite's AI</strong> would pull your actual orders, customer records, and financial data to give you a precise answer.<br><br>In a live account, the AI analyses your real numbers — churn risk, stock levels, campaign ROI, and more — and tells you exactly what to do next, in plain English.<br><br><strong>Start your free trial</strong> to connect your data and ask this with real answers.`,
+];
+
+function askQuestion(q) {
+  document.getElementById('askInput').value = q;
+  sendAsk();
+}
+
+function sendAsk() {
+  const input = document.getElementById('askInput');
+  const q = input.value.trim();
+  if (!q) return;
+
+  const btn = document.getElementById('askBtn');
+  const responseEl = document.getElementById('askResponse');
+  const textEl = document.getElementById('askResponseText');
+
+  btn.disabled = true;
+  btn.innerHTML = '<span style="display:inline-block;animation:spin 0.8s linear infinite">⟳</span> Thinking…';
+
+  const key = q.toLowerCase().replace(/[?!.]/g,'');
+  const answer = RESPONSES[key] || GENERIC_RESPONSES[0](q);
+
+  responseEl.style.display = 'none';
+  responseEl.classList.remove('visible');
+  textEl.innerHTML = '';
+
+  setTimeout(() => {
+    responseEl.style.display = 'block';
+    setTimeout(() => responseEl.classList.add('visible'), 10);
+
+    // Type out response
+    let i = 0;
+    const cursor = '<span class="typing-cursor"></span>';
+    textEl.innerHTML = cursor;
+
+    const words = answer.split(/(?<=\s)/);
+    let built = '';
+    function typeNext() {
+      if (i < words.length) {
+        built += words[i++];
+        textEl.innerHTML = built + cursor;
+        // scroll into view
+        responseEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        setTimeout(typeNext, 18 + Math.random() * 20);
+      } else {
+        textEl.innerHTML = built;
+        btn.disabled = false;
+        btn.innerHTML = '<span>✨</span> Ask AI';
+      }
+    }
+    typeNext();
+  }, 900 + Math.random() * 400);
+}
+
+// spin animation for loading
+const style = document.createElement('style');
+style.textContent = '@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}';
+document.head.appendChild(style);
+</script>
+
+</body>
+</html>

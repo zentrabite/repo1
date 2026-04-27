@@ -1,0 +1,167 @@
+"use client";
+
+export const dynamic = "force-dynamic";
+
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { supabase } from "@/lib/supabase";
+
+const C = { g: "#00B67A", st: "#6B7C93", cl: "#F8FAFB", r: "#FF4757" };
+
+// ── Inner component ───────────────────────────────────────────────────────────
+// useSearchParams() must live inside a <Suspense> boundary in Next.js 15+.
+// Moving it here lets the outer LoginPage export stay Suspense-wrapped.
+function LoginForm() {
+  const router       = useRouter();
+  const searchParams = useSearchParams();
+  const redirect     = searchParams.get("redirect") ?? "/dashboard";
+
+  const [email,    setEmail]    = useState("");
+  const [password, setPassword] = useState("");
+  const [loading,  setLoading]  = useState(false);
+  const [error,    setError]    = useState("");
+
+  // ── Recovery-link rescue ────────────────────────────────────────────────────
+  // Supabase sometimes redirects password-reset emails to the root URL instead
+  // of /reset-password (if the allowlist doesn't match). The server proxy then
+  // bounces unauthenticated users to /login, but the browser preserves the
+  // #access_token=…&type=recovery hash through the 303. If we see that hash
+  // here, forward to /reset-password so the recovery session can be processed.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash;
+    if (hash && hash.includes("type=recovery")) {
+      window.location.replace(`/reset-password${hash}`);
+    }
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+        return;
+      }
+
+      if (data.session) {
+        window.location.href = "/dashboard";
+      } else {
+        setError("Login succeeded but no session was created. Please try again.");
+        setLoading(false);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unexpected error occurred");
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      {/* Logo */}
+      <div style={{ textAlign: "center", marginBottom: 40 }}>
+        <div style={{
+          width: 52, height: 52, borderRadius: 14,
+          background: C.g,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 20,
+          color: "#1C2D48",
+          margin: "0 auto 16px",
+          boxShadow: "0 4px 20px rgba(0,182,122,.35)",
+        }}>ZB</div>
+        <h1 style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 26, color: C.cl }}>
+          Zentra<span style={{ color: C.g }}>Bite</span>
+        </h1>
+        <p style={{ fontFamily: "var(--font-inter)", fontSize: 14, color: C.st, marginTop: 6 }}>
+          Sign in to your merchant dashboard
+        </p>
+      </div>
+
+      {/* Form */}
+      <div className="gc" style={{ padding: 32 }}>
+        <form onSubmit={handleLogin}>
+          <div style={{ marginBottom: 16 }}>
+            <label>Email address</label>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="owner@yourbusiness.com"
+              required
+              autoFocus
+            />
+          </div>
+
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
+              <label style={{ margin:0 }}>Password</label>
+              <Link href="/forgot-password" style={{ fontSize:11, color:C.g, textDecoration:"none", fontFamily:"var(--font-inter)" }}>Forgot password?</Link>
+            </div>
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+            />
+          </div>
+
+          {error && (
+            <div style={{
+              padding: "10px 14px", borderRadius: 8, marginBottom: 16,
+              background: "rgba(255,71,87,.1)", border: "1px solid rgba(255,71,87,.2)",
+              fontFamily: "var(--font-inter)", fontSize: 13, color: C.r,
+            }}>
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className="bp"
+            disabled={loading}
+            style={{ width: "100%", justifyContent: "center", opacity: loading ? .7 : 1 }}
+          >
+            {loading ? "Signing in…" : "Sign In →"}
+          </button>
+        </form>
+      </div>
+
+      <p style={{
+        textAlign: "center", marginTop: 20,
+        fontFamily: "var(--font-inter)", fontSize: 13, color: C.st,
+      }}>
+        Don&apos;t have an account?{" "}
+        <Link href="/signup" style={{ color: C.g, textDecoration: "none", fontWeight: 500 }}>
+          Sign up
+        </Link>
+      </p>
+    </>
+  );
+}
+
+// ── Page export ───────────────────────────────────────────────────────────────
+export default function LoginPage() {
+  return (
+    <div style={{
+      minHeight: "100vh",
+      background: "#0F1F2D",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 24,
+    }}>
+      <div style={{ width: "100%", maxWidth: 420 }}>
+        <Suspense fallback={null}>
+          <LoginForm />
+        </Suspense>
+      </div>
+    </div>
+  );
+}
