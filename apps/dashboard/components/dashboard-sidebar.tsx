@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { Building2, LogOut } from "lucide-react";
 import { navigation } from "@/lib/navigation";
 import { useBusiness } from "@/hooks/use-business";
 import { resolvePermissions } from "@/lib/permissions";
@@ -12,11 +13,13 @@ const GREEN = "#00B67A";
 const STEEL = "#6B7C93";
 const CLOUD = "#F8FAFB";
 const MIST  = "rgba(226,232,240,.09)";
+const HOVER_BG = "rgba(226,232,240,.06)";
 
 export default function DashboardSidebar() {
   const pathname  = usePathname();
   const { business, email, isSuperAdmin, role } = useBusiness();
   const [signingOut, setSigningOut] = useState(false);
+  const [hoveredHref, setHoveredHref] = useState<string | null>(null);
 
   // Role-based nav filtering. Owners / super-admins see everything; Manager /
   // Staff / POS see only what the owner granted them in Settings → Permissions.
@@ -81,7 +84,9 @@ export default function DashboardSidebar() {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={logoUrl} alt={bizName} style={{ width: 40, height: 40, borderRadius: 10, objectFit: "cover", marginBottom: 5 }} />
         ) : (
-          <div style={{ fontSize: 22, marginBottom: 5 }}>🏪</div>
+          <div style={{ marginBottom: 5, color: STEEL, display: "flex", alignItems: "center" }}>
+            <Building2 size={22} strokeWidth={1.75} />
+          </div>
         )}
         <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 14, color: CLOUD }}>
           {bizName}
@@ -97,23 +102,34 @@ export default function DashboardSidebar() {
           const isActive =
             pathname === item.href ||
             (item.href !== "/dashboard" && pathname.startsWith(item.href));
+          const isHovered = hoveredHref === item.href;
+          const Icon = item.icon;
+
+          const background = isActive
+            ? "rgba(0,182,122,.11)"
+            : isHovered
+            ? HOVER_BG
+            : "transparent";
+          const color = isActive ? GREEN : STEEL;
 
           return (
             <Link
               key={item.href}
               href={item.href}
+              onMouseEnter={() => setHoveredHref(item.href)}
+              onMouseLeave={() => setHoveredHref(null)}
               style={{
-                display: "flex", alignItems: "center", gap: 10,
+                display: "flex", alignItems: "center", gap: 12,
                 padding: "10px 12px", borderRadius: 10, marginBottom: 2,
                 fontFamily: "var(--font-inter)", fontSize: 14,
                 fontWeight: isActive ? 600 : 400,
-                color: isActive ? GREEN : STEEL,
-                background: isActive ? "rgba(0,182,122,.11)" : "transparent",
+                color,
+                background,
                 borderLeft: `2px solid ${isActive ? GREEN : "transparent"}`,
                 textDecoration: "none", transition: "all .15s",
               }}
             >
-              <span style={{ fontSize: 16, lineHeight: 1, flexShrink: 0 }}>{item.emoji}</span>
+              <Icon size={18} strokeWidth={1.75} color={color} style={{ flexShrink: 0, display: "block" }} />
               {item.label}
             </Link>
           );
@@ -123,8 +139,8 @@ export default function DashboardSidebar() {
       {/* ── Super admin link ── */}
       {isSuperAdmin && (
         <div style={{ padding: "0 8px 4px" }}>
-          <Link href="/admin" style={{ display:"flex", alignItems:"center", gap:8, padding:"8px 12px", borderRadius:10, background:"rgba(255,71,87,.08)", border:"1px solid rgba(255,71,87,.15)", textDecoration:"none", color:"#FF4757", fontSize:12, fontFamily:"var(--font-inter)", fontWeight:600 }}>
-            <span>🔐</span> Super Admin
+          <Link href="/admin" style={{ display:"flex", alignItems:"center", gap:12, padding:"8px 12px", borderRadius:10, background:"rgba(255,71,87,.08)", border:"1px solid rgba(255,71,87,.15)", textDecoration:"none", color:"#FF4757", fontSize:12, fontFamily:"var(--font-inter)", fontWeight:600 }}>
+            Super Admin
           </Link>
         </div>
       )}
@@ -142,7 +158,7 @@ export default function DashboardSidebar() {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={logoUrl} alt={bizName} style={{ width: 24, height: 24, borderRadius: 6, objectFit: "cover", flexShrink: 0 }} />
           ) : (
-            <span style={{ fontSize: 16 }}>🏪</span>
+            <Building2 size={18} strokeWidth={1.75} color={STEEL} style={{ flexShrink: 0, display: "block" }} />
           )}
           <div style={{ flex: 1, overflow: "hidden" }}>
             <div style={{ fontFamily: "var(--font-inter)", fontSize: 12, color: CLOUD, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -156,18 +172,29 @@ export default function DashboardSidebar() {
           onClick={handleLogout}
           disabled={signingOut}
           style={{
-            display: "flex", alignItems: "center", gap: 8,
+            display: "flex", alignItems: "center", gap: 12,
             width: "100%", padding: "9px 13px", borderRadius: 10,
             background: "transparent", border: "none",
             fontFamily: "var(--font-inter)", fontSize: 13, color: STEEL,
             cursor: signingOut ? "wait" : "pointer",
             opacity: signingOut ? 0.6 : 1,
-            transition: "color .15s", textAlign: "left",
+            transition: "all .15s", textAlign: "left",
           }}
-          onMouseEnter={e => { if (!signingOut) e.currentTarget.style.color = "#FF4757"; }}
-          onMouseLeave={e => { if (!signingOut) e.currentTarget.style.color = STEEL; }}
+          onMouseEnter={e => {
+            if (!signingOut) {
+              e.currentTarget.style.color = "#FF4757";
+              e.currentTarget.style.background = HOVER_BG;
+            }
+          }}
+          onMouseLeave={e => {
+            if (!signingOut) {
+              e.currentTarget.style.color = STEEL;
+              e.currentTarget.style.background = "transparent";
+            }
+          }}
         >
-          <span style={{ fontSize: 15 }}>→</span> {signingOut ? "Signing out…" : "Sign out"}
+          <LogOut size={18} strokeWidth={1.75} style={{ flexShrink: 0, display: "block" }} />
+          {signingOut ? "Signing out…" : "Sign out"}
         </button>
       </div>
     </aside>
