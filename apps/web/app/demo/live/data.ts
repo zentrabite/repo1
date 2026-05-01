@@ -846,3 +846,46 @@ export const rosterRoleLabel: Record<RosterRole, { label: string; color: string;
 
 export const rosterDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+// ─── Reviews ─────────────────────────────────────────────────────────────────
+// Customer feedback aggregated from Google, Uber Eats, DoorDash, Yelp, and the
+// merchant's own storefront. The Reviews page lets the owner reply inline.
+
+export type ReviewPlatform = "Google" | "Uber Eats" | "DoorDash" | "Yelp" | "Direct";
+
+export type DemoReview = {
+  id: string;
+  customerName: string;
+  platform: ReviewPlatform;
+  rating: 1 | 2 | 3 | 4 | 5;
+  comment: string;
+  createdAt: string;
+  replied: boolean;
+  replyText?: string;
+};
+
+export const reviews: DemoReview[] = [
+  { id: "rv01", customerName: "Olivia Martin",    platform: "Google",     rating: 5, comment: "Best margherita in Adelaide, hands down. Crust is perfect every time and delivery is always quick. Olivia at the counter is a gem.", createdAt: "2026-04-17T20:14:00", replied: true,  replyText: "Thanks so much Olivia! See you again soon 🍕" },
+  { id: "rv02", customerName: "James Kim",        platform: "Uber Eats",  rating: 5, comment: "Pepperoni was loaded with toppings and arrived hot. Will absolutely order again.", createdAt: "2026-04-17T19:42:00", replied: false },
+  { id: "rv03", customerName: "Priya Sharma",     platform: "Direct",     rating: 4, comment: "Quattro formaggi was lovely but the garlic bread was a bit underdone. Still a great meal overall.", createdAt: "2026-04-16T20:05:00", replied: false },
+  { id: "rv04", customerName: "Sofia De Luca",    platform: "Google",     rating: 5, comment: "We've been ordering from Nonna's for over a year. Quality has actually gotten better, not worse — rare for a busy place. The tiramisu is incredible.", createdAt: "2026-04-15T21:18:00", replied: true,  replyText: "Sofia, you're the best. Tell Marco we said hi!" },
+  { id: "rv05", customerName: "Daniel O'Brien",   platform: "DoorDash",   rating: 2, comment: "Wagyu burger arrived cold and the bun was soggy. Disappointed for the price.", createdAt: "2026-04-14T20:31:00", replied: false },
+  { id: "rv06", customerName: "Hana Tanaka",      platform: "Google",     rating: 5, comment: "The Saturday lunch combo is incredible value. Caesar salad was crisp and the margherita was amazing.", createdAt: "2026-04-13T13:46:00", replied: true,  replyText: "Glad you loved it Hana — see you next Saturday!" },
+  { id: "rv07", customerName: "Ethan Wright",     platform: "Uber Eats",  rating: 4, comment: "Solid pizza, slightly slow on a Friday night but understandable. Wings were fantastic.", createdAt: "2026-04-12T20:55:00", replied: false },
+  { id: "rv08", customerName: "Mia Novak",        platform: "Yelp",       rating: 3, comment: "Pizza was fine. Hawaiian could use more pineapple. Service was friendly though.", createdAt: "2026-04-10T19:22:00", replied: false },
+  { id: "rv09", customerName: "Noah Thompson",    platform: "Google",     rating: 5, comment: "Pepperoni again, two weeks running. It's that good. Marco the driver always greets us by name.", createdAt: "2026-04-09T19:40:00", replied: true,  replyText: "Cheers Noah — Marco appreciates the shoutout!" },
+  { id: "rv10", customerName: "Zara Ahmed",       platform: "Direct",     rating: 5, comment: "Veggie supreme is genuinely the best vegetarian pizza I've had in Adelaide. Generous toppings, fresh produce.", createdAt: "2026-04-08T20:10:00", replied: false },
+  { id: "rv11", customerName: "Lachlan Park",     platform: "Uber Eats",  rating: 1, comment: "Order was missing the wings I paid for. Tried to call but couldn't get through.", createdAt: "2026-04-06T19:55:00", replied: true,  replyText: "Lachlan, so sorry about that — we've refunded the wings and added a $10 credit to your account. Please give us another go." },
+  { id: "rv12", customerName: "Amelia Rossi",     platform: "Google",     rating: 4, comment: "Quattro stagioni was lovely. Was disappointed it was sold out my first visit but worth waiting for.", createdAt: "2026-04-05T20:34:00", replied: false },
+  { id: "rv13", customerName: "Henry Fitzgerald", platform: "DoorDash",   rating: 5, comment: "Margherita was incredible. Fresh basil, perfect char on the crust. Felt like Naples.", createdAt: "2026-04-04T19:20:00", replied: true,  replyText: "Thanks Henry! Made fresh in our wood-fired oven every night." },
+  { id: "rv14", customerName: "Max Bennett",      platform: "Google",     rating: 3, comment: "Wagyu burger was good but pricey for what you get. Pizzas are better value.", createdAt: "2026-04-02T19:48:00", replied: false },
+  { id: "rv15", customerName: "Eva Petrov",       platform: "Direct",     rating: 5, comment: "Ordered through the app and earned points instantly. Margherita arrived in 22 minutes. Couldn't be happier.", createdAt: "2026-04-01T19:35:00", replied: true,  replyText: "That's what we love to hear, Eva! Thanks for ordering direct." },
+];
+
+export const reviewPlatformColor: Record<ReviewPlatform, { color: string; bg: string }> = {
+  Google:      { color: "#FBBC05", bg: "rgba(251,188,5,0.14)" },
+  "Uber Eats": { color: "#06C167", bg: "rgba(6,193,103,0.14)" },
+  DoorDash:    { color: "#FF3008", bg: "rgba(255,48,8,0.14)" },
+  Yelp:        { color: "#D32323", bg: "rgba(211,35,35,0.14)" },
+  Direct:      { color: "#00B67A", bg: "rgba(0,182,122,0.14)" },
+};
+
