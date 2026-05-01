@@ -10,7 +10,6 @@ import { V4Background } from "./components/v4/v4-background";
 import { V4Effects } from "./components/v4/v4-effects";
 import { V4Hero } from "./components/v4/v4-hero";
 import { V4Macbook } from "./components/v4/v4-macbook";
-import { V4Statsbar } from "./components/v4/v4-statsbar";
 import { V4Journey } from "./components/v4/v4-journey";
 import { V4Modules } from "./components/v4/v4-modules";
 import { V4Storytelling } from "./components/v4/v4-storytelling";
@@ -41,7 +40,6 @@ export default function Home() {
         <main style={{ position: "relative", zIndex: 1 }}>
           <V4Hero />
           <V4Macbook />
-          <V4Statsbar />
           <V4Journey />
           <V4Modules />
           <V4Storytelling />
