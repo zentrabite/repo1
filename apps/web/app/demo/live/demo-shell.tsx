@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, ShoppingBag, PackageCheck, Monitor, UtensilsCrossed,
-  Package, Bot, UserCog, Star, Users, Gift, RotateCcw, Zap, BarChart3,
+  Package, Bot, Truck, UserCog, Star, Users, Gift, RotateCcw, Zap, BarChart3,
   DollarSign, Calendar, Settings, type LucideIcon,
 } from "lucide-react";
 import { business } from "./data";
@@ -17,6 +17,7 @@ const NAV: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/demo/live/menu",        label: "Menu",        icon: UtensilsCrossed },
   { href: "/demo/live/stock",       label: "Stock",       icon: Package },
   { href: "/demo/live/ai-calls",    label: "AI calls",    icon: Bot },
+  { href: "/demo/live/delivery",    label: "Delivery",    icon: Truck },
   { href: "/demo/live/drivers",     label: "Drivers",     icon: UserCog },
   { href: "/demo/live/reviews",     label: "Reviews",     icon: Star },
   { href: "/demo/live/customers",   label: "Customers",   icon: Users },
