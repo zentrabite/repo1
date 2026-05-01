@@ -176,13 +176,7 @@ export default function DemoPage() {
                 Pick any — they each open in this tab. Use the back button to return.
               </div>
             </div>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-                gap: 14,
-              }}
-            >
+            <div className="demo-card-grid">
               {DEMOS.map((d) => (
                 <DemoCardLink key={d.href} demo={d} />
               ))}
