@@ -215,3 +215,9 @@ img, svg, video, canvas, iframe { max-width: 100%; height: auto; }
     radial-gradient(circle at 20% -10%, rgba(0, 182, 122, 0.15), transparent 40%),
     radial-gradient(circle at 80% 10%, rgba(255, 107, 53, 0.08), transparent 40%);
 }
+
+/* ── /demo cards hover ── */
+.demo-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(0, 182, 122, 0.55);
+}

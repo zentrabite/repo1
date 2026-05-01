@@ -1,63 +1,64 @@
-"use client";
-
-import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Logo } from "../components/logo";
-import { slides } from "./slides";
-import { SlideVisual } from "./slide-visual";
+
+type DemoCard = {
+  href: string;
+  emoji: string;
+  title: string;
+  description: string;
+  cta: string;
+  badge?: string;
+  primary?: boolean;
+};
+
+const DEMOS: DemoCard[] = [
+  {
+    href: "/demo/live",
+    emoji: "🧠",
+    title: "Run the merchant CRM sandbox",
+    description:
+      "The full merchant operating system, pre-loaded with a working pizzeria. Click through orders, AI calls, smart delivery routing, stock, rewards, automations and more — every page is real and interactive.",
+    cta: "Open the CRM →",
+    badge: "Most popular",
+    primary: true,
+  },
+  {
+    href: "/demo/merchant",
+    emoji: "🛒",
+    title: "See the customer storefront",
+    description:
+      "What your customers see when they order from you — branded site, menu, cart and checkout. Your storefront sits on your own domain, no aggregator commissions.",
+    cta: "Open the storefront →",
+  },
+  {
+    href: "/demo/super-admin",
+    emoji: "🔐",
+    title: "See the platform super admin",
+    description:
+      "How ZentraBite operates the platform — multi-tenant control plane, module flags, impersonation, billing health, and rollout gates across every business.",
+    cta: "Open super admin →",
+  },
+  {
+    href: "/contact",
+    emoji: "✨",
+    title: "Start your 1-month free trial",
+    description:
+      "Spin up your own ZentraBite tenant in under five minutes. Card details only required at the end of the trial — no commitment, cancel any time.",
+    cta: "Talk to us →",
+  },
+];
+
+const STATS = [
+  { value: "5+", label: "tools replaced", sub: "POS, CRM, marketing, delivery, analytics" },
+  { value: "30 sec", label: "to a working tenant", sub: "Sign up, pick modules, go live" },
+  { value: "0%", label: "aggregator fees on direct orders", sub: "Storefront + app are yours" },
+  { value: "24/7", label: "AI phone agent", sub: "Books, takes orders, answers questions" },
+];
 
 export default function DemoPage() {
-  const [index, setIndex] = useState(0);
-  const [autoplay, setAutoplay] = useState(false);
-  const total = slides.length;
-
-  const next = useCallback(() => setIndex((i) => Math.min(i + 1, total - 1)), [total]);
-  const prev = useCallback(() => setIndex((i) => Math.max(i - 1, 0)), []);
-  const goto = useCallback((i: number) => setIndex(Math.max(0, Math.min(i, total - 1))), [total]);
-
-  // Keyboard nav
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight" || e.key === " ") {
-        e.preventDefault();
-        next();
-      } else if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        prev();
-      } else if (e.key === "Home") {
-        goto(0);
-      } else if (e.key === "End") {
-        goto(total - 1);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [next, prev, goto, total]);
-
-  // Autoplay
-  useEffect(() => {
-    if (!autoplay) return;
-    if (index >= total - 1) {
-      setAutoplay(false);
-      return;
-    }
-    const t = setTimeout(() => next(), 7000);
-    return () => clearTimeout(t);
-  }, [autoplay, index, next, total]);
-
-  const slide = slides[index]!;
-  const isLast = index === total - 1;
-
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        background: "var(--near-black)",
-      }}
-    >
-      {/* Top bar */}
+    <div style={{ minHeight: "100vh", background: "var(--near-black)", color: "var(--cloud)" }}>
+      {/* Header */}
       <header
         style={{
           position: "sticky",
@@ -70,291 +71,208 @@ export default function DemoPage() {
       >
         <div
           className="container"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            height: 64,
-          }}
+          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 64 }}
         >
-          <Link href="/">
+          <Link href="/" aria-label="ZentraBite home">
             <Logo size={32} />
           </Link>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ color: "var(--steel)", fontSize: 13, fontFamily: "var(--font-mono)" }}>
-              {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
-            </span>
-            <button
-              onClick={() => setAutoplay((v) => !v)}
-              className="btn-ghost"
-              style={{ padding: "8px 14px", fontSize: 13 }}
-              aria-label="Toggle autoplay"
-            >
-              {autoplay ? "⏸ Pause" : "▶ Auto-play"}
-            </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <Link href="/contact" className="btn-ghost" style={{ padding: "8px 14px", fontSize: 13 }}>
+              Book a call
+            </Link>
             <Link href="/" className="btn-ghost" style={{ padding: "8px 14px", fontSize: 13 }}>
               Exit
             </Link>
           </div>
         </div>
-        {/* Progress bar */}
-        <div style={{ height: 3, background: "var(--mist-6)" }}>
-          <div
-            style={{
-              height: "100%",
-              width: `${((index + 1) / total) * 100}%`,
-              background: "var(--green)",
-              transition: "width 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
-            }}
-          />
-        </div>
       </header>
 
-      {/* Slide stage */}
-      <main
-        style={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          padding: "48px 24px",
-        }}
-        className="grid-bg"
-      >
-        <div
-          className="container"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 56,
-            alignItems: "center",
-            maxWidth: 1200,
-          }}
-          key={slide.id}
-        >
-          <div className="fade-up">
-            <div className="eyebrow" style={{ marginBottom: 18 }}>
-              {slide.eyebrow}
+      <main className="grid-bg" style={{ padding: "56px 24px 80px" }}>
+        <div className="container" style={{ maxWidth: 1080 }}>
+          {/* Hero */}
+          <section style={{ textAlign: "center", marginBottom: 56 }}>
+            <div className="eyebrow" style={{ marginBottom: 14 }}>
+              ZentraBite · Live demo
             </div>
             <h1
               style={{
-                fontSize: "clamp(28px, 4vw, 44px)",
-                margin: "0 0 18px",
+                fontSize: "clamp(32px, 4.5vw, 52px)",
+                lineHeight: 1.08,
+                margin: "0 auto 18px",
                 color: "var(--cloud)",
-                lineHeight: 1.1,
+                maxWidth: 820,
               }}
             >
-              {slide.title}
+              See ZentraBite from every angle.
             </h1>
             <p
               style={{
                 fontSize: 17,
                 color: "var(--steel)",
                 lineHeight: 1.65,
-                marginBottom: 24,
+                maxWidth: 680,
+                margin: "0 auto",
               }}
             >
-              {slide.body}
+              Three interactive demos, no signup, nothing saved. Explore the merchant CRM, the
+              customer-facing storefront, and the platform super admin — exactly as a real operator,
+              customer, or our team would use them.
             </p>
+          </section>
 
-            <ul
-              style={{
-                listStyle: "none",
-                display: "grid",
-                gap: 10,
-                marginBottom: 32,
-              }}
-            >
-              {slide.bullets.map((b) => (
-                <li
-                  key={b}
+          {/* Impact stats */}
+          <section
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gap: 12,
+              marginBottom: 64,
+            }}
+          >
+            {STATS.map((s) => (
+              <div
+                key={s.label}
+                style={{
+                  padding: "18px 20px",
+                  borderRadius: 14,
+                  background: "var(--navy-40)",
+                  border: "1px solid var(--mist-6)",
+                }}
+              >
+                <div
                   style={{
-                    display: "flex",
-                    gap: 12,
-                    alignItems: "flex-start",
-                    fontSize: 15,
-                    color: "var(--cloud)",
+                    fontFamily: "var(--font-outfit)",
+                    fontWeight: 800,
+                    fontSize: 28,
+                    color: "var(--green)",
+                    lineHeight: 1.1,
                   }}
                 >
-                  <span
-                    style={{
-                      width: 22,
-                      height: 22,
-                      borderRadius: 999,
-                      background: "var(--green-15)",
-                      color: "var(--green)",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 13,
-                      flexShrink: 0,
-                      marginTop: 2,
-                    }}
-                  >
-                    ✓
-                  </span>
-                  {b}
-                </li>
-              ))}
-            </ul>
+                  {s.value}
+                </div>
+                <div style={{ fontSize: 13, color: "var(--cloud)", marginTop: 6, fontWeight: 600 }}>
+                  {s.label}
+                </div>
+                <div style={{ fontSize: 12, color: "var(--steel)", marginTop: 4, lineHeight: 1.45 }}>
+                  {s.sub}
+                </div>
+              </div>
+            ))}
+          </section>
 
-            {/* Impact tiles */}
+          {/* Four ways to dig in */}
+          <section>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "baseline",
+                gap: 14,
+                marginBottom: 18,
+                flexWrap: "wrap",
+              }}
+            >
+              <div className="eyebrow">Four ways to dig in</div>
+              <div style={{ fontSize: 13, color: "var(--steel)" }}>
+                Pick any — they each open in this tab. Use the back button to return.
+              </div>
+            </div>
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gap: 12,
+                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                gap: 14,
               }}
-              className="impact-tiles"
             >
-              {slide.impact.map((m) => (
-                <div
-                  key={m.metric}
-                  style={{
-                    padding: 14,
-                    borderRadius: 12,
-                    background: "var(--navy-40)",
-                    border: "1px solid var(--mist-6)",
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 10,
-                      color: "var(--steel)",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.08em",
-                      fontWeight: 600,
-                    }}
-                  >
-                    {m.metric}
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: "var(--font-outfit)",
-                      fontWeight: 800,
-                      fontSize: 22,
-                      color: "var(--green)",
-                      marginTop: 4,
-                    }}
-                  >
-                    {m.value}
-                  </div>
-                  <div style={{ fontSize: 11, color: "var(--steel)", marginTop: 2 }}>{m.sub}</div>
-                </div>
+              {DEMOS.map((d) => (
+                <DemoCardLink key={d.href} demo={d} />
               ))}
             </div>
+          </section>
 
-            {isLast && (
-              <div
-                style={{
-                  display: "grid",
-                  gap: 10,
-                  marginTop: 32,
-                }}
-              >
-                <div style={{ fontSize: 12, color: "var(--steel)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600 }}>
-                  Four ways to dig in
-                </div>
-                <Link href="/demo/live" className="btn-primary" style={{ padding: "12px 20px", fontSize: 14, justifyContent: "flex-start" }}>
-                  🧠 Run the merchant CRM sandbox →
-                </Link>
-                <Link href="/demo/merchant" className="btn-secondary" style={{ padding: "12px 20px", fontSize: 14, justifyContent: "flex-start" }}>
-                  🛒 See the customer storefront →
-                </Link>
-                <Link href="/demo/super-admin" className="btn-secondary" style={{ padding: "12px 20px", fontSize: 14, justifyContent: "flex-start" }}>
-                  🔐 See the platform super admin →
-                </Link>
-                <Link href="/contact" className="btn-ghost" style={{ padding: "12px 20px", fontSize: 14, justifyContent: "flex-start", marginTop: 6 }}>
-                  → Start my 1-month free trial
-                </Link>
-              </div>
-            )}
-          </div>
-
-          <div
-            className="fade-up"
-            style={{ display: "flex", justifyContent: "center", alignItems: "center" }}
-          >
-            <SlideVisual kind={slide.visual} />
-          </div>
+          {/* Footer note */}
+          <section style={{ marginTop: 56, textAlign: "center" }}>
+            <p style={{ fontSize: 13, color: "var(--steel)", margin: 0 }}>
+              Want a guided tour?{" "}
+              <Link href="/contact" style={{ color: "var(--green)", fontWeight: 600 }}>
+                Book a 15-minute call →
+              </Link>
+            </p>
+          </section>
         </div>
       </main>
+    </div>
+  );
+}
 
-      {/* Bottom controls */}
-      <footer
-        style={{
-          padding: "20px 24px",
-          borderTop: "1px solid var(--mist-9)",
-          background: "rgba(15,25,42,0.6)",
-          backdropFilter: "blur(14px)",
-        }}
-      >
+function DemoCardLink({ demo }: { demo: DemoCard }) {
+  const isPrimary = !!demo.primary;
+  return (
+    <Link
+      href={demo.href}
+      style={{
+        position: "relative",
+        display: "flex",
+        flexDirection: "column",
+        gap: 10,
+        padding: "22px 22px 20px",
+        borderRadius: 16,
+        background: isPrimary
+          ? "linear-gradient(160deg, rgba(0,182,122,0.18), rgba(0,182,122,0.04))"
+          : "var(--navy-40)",
+        border: `1px solid ${isPrimary ? "rgba(0,182,122,0.45)" : "var(--mist-6)"}`,
+        textDecoration: "none",
+        color: "var(--cloud)",
+        transition: "transform 0.18s ease, border-color 0.18s ease, background 0.18s ease",
+      }}
+      className="demo-card"
+    >
+      {demo.badge && (
         <div
-          className="container"
           style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 24,
+            position: "absolute",
+            top: 14,
+            right: 14,
+            fontSize: 10.5,
+            fontWeight: 700,
+            color: "var(--green)",
+            background: "rgba(0,182,122,0.16)",
+            border: "1px solid rgba(0,182,122,0.35)",
+            padding: "3px 8px",
+            borderRadius: 999,
+            textTransform: "uppercase",
+            letterSpacing: "0.06em",
           }}
         >
-          <button
-            onClick={prev}
-            disabled={index === 0}
-            className="btn-secondary"
-            style={{
-              padding: "10px 18px",
-              fontSize: 14,
-              opacity: index === 0 ? 0.4 : 1,
-              cursor: index === 0 ? "not-allowed" : "pointer",
-            }}
-          >
-            ← Previous
-          </button>
-
-          <div
-            style={{
-              display: "flex",
-              gap: 6,
-              flexWrap: "wrap",
-              justifyContent: "center",
-              flex: 1,
-              maxWidth: 600,
-            }}
-          >
-            {slides.map((s, i) => (
-              <button
-                key={s.id}
-                onClick={() => goto(i)}
-                aria-label={`Go to slide ${i + 1}: ${s.title}`}
-                style={{
-                  width: i === index ? 28 : 8,
-                  height: 8,
-                  borderRadius: 999,
-                  background: i === index ? "var(--green)" : "var(--mist-12)",
-                  border: "none",
-                  cursor: "pointer",
-                  transition: "width 0.25s, background 0.2s",
-                  padding: 0,
-                }}
-              />
-            ))}
-          </div>
-
-          {isLast ? (
-            <Link
-              href="/contact"
-              className="btn-primary"
-              style={{ padding: "10px 18px", fontSize: 14 }}
-            >
-              Book a call →
-            </Link>
-          ) : (
-            <button onClick={next} className="btn-primary" style={{ padding: "10px 18px", fontSize: 14 }}>
-              Next →
-            </button>
-          )}
+          {demo.badge}
         </div>
-      </footer>
-    </div>
+      )}
+      <div style={{ fontSize: 28, lineHeight: 1 }} aria-hidden>
+        {demo.emoji}
+      </div>
+      <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 19, color: "var(--cloud)" }}>
+        {demo.title}
+      </div>
+      <p
+        style={{
+          fontSize: 13.5,
+          color: "var(--steel)",
+          lineHeight: 1.6,
+          margin: "0 0 6px",
+          flex: 1,
+        }}
+      >
+        {demo.description}
+      </p>
+      <div
+        style={{
+          fontSize: 14,
+          fontWeight: 700,
+          color: isPrimary ? "var(--green)" : "var(--cloud)",
+          marginTop: 6,
+        }}
+      >
+        {demo.cta}
+      </div>
+    </Link>
   );
 }
