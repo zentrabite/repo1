@@ -889,3 +889,161 @@ export const reviewPlatformColor: Record<ReviewPlatform, { color: string; bg: st
   Direct:      { color: "#00B67A", bg: "rgba(0,182,122,0.14)" },
 };
 
+// ─── Smart Delivery Routing ──────────────────────────────────────────────────
+// The Delivery page is the merchant's dispatch tool: it queries every
+// configured 3rd-party courier in parallel, picks the cheapest viable one
+// after applying margin rules, and falls back to in-house drivers. This
+// demo seeds a deterministic, plausible-looking dataset for all four tabs.
+
+export type DeliveryProviderId = "uber_direct" | "doordash" | "sherpa" | "zoom2u" | "gopeople";
+
+export type DeliveryProviderMeta = {
+  label: string;
+  color: string;
+  emoji: string;
+};
+
+export const deliveryProviderMeta: Record<DeliveryProviderId, DeliveryProviderMeta> = {
+  uber_direct: { label: "Uber Direct",    color: "#3B82F6", emoji: "🚗" },
+  doordash:    { label: "DoorDash Drive", color: "#FF3008", emoji: "🔴" },
+  sherpa:      { label: "Sherpa",         color: "#7C3AED", emoji: "📦" },
+  zoom2u:      { label: "Zoom2u",         color: "#10B981", emoji: "⚡" },
+  gopeople:    { label: "GoPeople",       color: "#F59E0B", emoji: "🏃" },
+};
+
+export type DemoProviderQuote = {
+  provider: DeliveryProviderId;
+  available: boolean;
+  cost: number;
+  pickupEtaMin: number;
+  deliveryEtaMin: number;
+  unavailableReason?: string;
+};
+
+export type DemoRoutingExample = {
+  pickup: string;
+  dropoff: string;
+  distanceKm: number;
+  orderValue: number;
+  tier: "standard" | "priority";
+  conditions: { peak: boolean; highDemand: boolean; badWeather: boolean };
+  selected: DeliveryProviderId;
+  rationale: string;
+  customerFee: number;
+  serviceFee: number;
+  providerCost: number;
+  margin: number;
+  pickupEtaMin: number;
+  deliveryEtaMin: number;
+  quotes: DemoProviderQuote[];
+};
+
+// Pre-baked example route — used as the default when the page loads.
+export const deliveryExampleRoute: DemoRoutingExample = {
+  pickup:    "Nonna's Kitchen, 142 Hutt St, Adelaide SA 5000",
+  dropoff:   "8 Grenfell St, Adelaide SA 5000",
+  distanceKm: 4.2,
+  orderValue: 48.78,
+  tier: "standard",
+  conditions: { peak: true, highDemand: false, badWeather: false },
+  selected: "uber_direct",
+  rationale: "Cheapest available option · pickup ETA under 6 min · margin positive at +$2.18",
+  customerFee:  6.50,
+  serviceFee:   2.50,
+  providerCost: 6.82,
+  margin:       2.18,
+  pickupEtaMin:    5,
+  deliveryEtaMin: 22,
+  quotes: [
+    { provider: "uber_direct", available: true,  cost: 6.82,  pickupEtaMin: 5,  deliveryEtaMin: 22 },
+    { provider: "doordash",    available: true,  cost: 8.40,  pickupEtaMin: 8,  deliveryEtaMin: 26 },
+    { provider: "sherpa",      available: true,  cost: 9.20,  pickupEtaMin: 12, deliveryEtaMin: 31 },
+    { provider: "zoom2u",      available: true,  cost: 7.50,  pickupEtaMin: 9,  deliveryEtaMin: 25 },
+    { provider: "gopeople",    available: false, cost: 0,     pickupEtaMin: 0,  deliveryEtaMin: 0, unavailableReason: "No driver in coverage area" },
+  ],
+};
+
+export type DemoDailyPlan = {
+  dayLabel: string;       // "Mon", "Tue"…
+  dateLabel: string;      // "21 Apr"
+  isToday: boolean;
+  predictedVolume: number;
+  recommendation: {
+    provider: "uber_direct" | "in_house_mix" | "in_house" | "none";
+    label: string;
+    estimatedCost: number;
+    taskersNeeded: number;
+  };
+};
+
+export const deliveryWeekPlan: DemoDailyPlan[] = [
+  { dayLabel: "Today", dateLabel: "18 Apr", isToday: true,  predictedVolume: 28, recommendation: { provider: "in_house_mix", label: "3× Driver + Uber overflow", estimatedCost: 142, taskersNeeded: 3 } },
+  { dayLabel: "Sun",   dateLabel: "19 Apr", isToday: false, predictedVolume: 22, recommendation: { provider: "in_house",     label: "2× Driver",                 estimatedCost: 96,  taskersNeeded: 2 } },
+  { dayLabel: "Mon",   dateLabel: "20 Apr", isToday: false, predictedVolume: 14, recommendation: { provider: "uber_direct",  label: "Uber Direct only",          estimatedCost: 88,  taskersNeeded: 0 } },
+  { dayLabel: "Tue",   dateLabel: "21 Apr", isToday: false, predictedVolume: 16, recommendation: { provider: "uber_direct",  label: "Uber Direct only",          estimatedCost: 102, taskersNeeded: 0 } },
+  { dayLabel: "Wed",   dateLabel: "22 Apr", isToday: false, predictedVolume: 18, recommendation: { provider: "in_house",     label: "1× Driver",                 estimatedCost: 76,  taskersNeeded: 1 } },
+  { dayLabel: "Thu",   dateLabel: "23 Apr", isToday: false, predictedVolume: 21, recommendation: { provider: "in_house",     label: "2× Driver",                 estimatedCost: 92,  taskersNeeded: 2 } },
+  { dayLabel: "Fri",   dateLabel: "24 Apr", isToday: false, predictedVolume: 32, recommendation: { provider: "in_house_mix", label: "3× Driver + Uber overflow", estimatedCost: 168, taskersNeeded: 3 } },
+];
+
+export type DeliveryProviderShare = {
+  provider: DeliveryProviderId | "in_house";
+  count: number;
+  share: number;       // 0..1
+  avgCost: number;
+  avgEtaMin: number;
+};
+
+export const deliveryAnalytics30d = {
+  totalJobs:    684,
+  successRate:  0.96,
+  totalMargin:  1_492.40,
+  avgMargin:    2.18,
+  avgDeliveryMin: 27,
+  providerBreakdown: [
+    { provider: "in_house"    as const, count: 412, share: 0.60, avgCost: 4.80, avgEtaMin: 24 },
+    { provider: "uber_direct" as const, count: 168, share: 0.25, avgCost: 7.20, avgEtaMin: 28 },
+    { provider: "doordash"    as const, count: 68,  share: 0.10, avgCost: 8.40, avgEtaMin: 31 },
+    { provider: "zoom2u"      as const, count: 24,  share: 0.04, avgCost: 7.50, avgEtaMin: 26 },
+    { provider: "sherpa"      as const, count: 12,  share: 0.01, avgCost: 9.20, avgEtaMin: 33 },
+  ] satisfies DeliveryProviderShare[],
+};
+
+export type DemoDeliveryJob = {
+  id: string;
+  provider: DeliveryProviderId | "in_house";
+  dropoffAddress: string;
+  tier: "standard" | "priority";
+  providerCost: number;
+  customerFee: number;
+  margin: number;
+  etaMin: number;
+  status: "delivered" | "in_transit" | "picking_up" | "failed";
+  createdAt: string;
+};
+
+export const deliveryRecentJobs: DemoDeliveryJob[] = [
+  { id: "dj-2014", provider: "uber_direct", dropoffAddress: "8 Grenfell St, Adelaide",       tier: "standard", providerCost: 6.82, customerFee: 6.50, margin:  2.18, etaMin: 22, status: "in_transit", createdAt: "2026-04-18T13:14:00" },
+  { id: "dj-2013", provider: "in_house",    dropoffAddress: "41 Hutt St, Adelaide",          tier: "standard", providerCost: 4.20, customerFee: 5.00, margin:  3.30, etaMin: 19, status: "delivered",  createdAt: "2026-04-18T13:02:00" },
+  { id: "dj-2012", provider: "in_house",    dropoffAddress: "3 The Parade, Norwood",         tier: "priority", providerCost: 5.40, customerFee: 8.50, margin:  5.60, etaMin: 24, status: "delivered",  createdAt: "2026-04-18T12:48:00" },
+  { id: "dj-2011", provider: "uber_direct", dropoffAddress: "212 Port Rd, Hindmarsh",        tier: "standard", providerCost: 7.40, customerFee: 6.50, margin:  1.60, etaMin: 28, status: "delivered",  createdAt: "2026-04-18T12:31:00" },
+  { id: "dj-2010", provider: "doordash",    dropoffAddress: "16 Semaphore Rd, Semaphore",    tier: "priority", providerCost: 9.80, customerFee: 8.50, margin:  1.20, etaMin: 34, status: "delivered",  createdAt: "2026-04-18T12:14:00" },
+  { id: "dj-2009", provider: "in_house",    dropoffAddress: "12 King William St, Adelaide",  tier: "standard", providerCost: 4.20, customerFee: 5.00, margin:  3.30, etaMin: 17, status: "delivered",  createdAt: "2026-04-18T11:55:00" },
+  { id: "dj-2008", provider: "uber_direct", dropoffAddress: "7 Portrush Rd, Glenunga",       tier: "standard", providerCost: 7.20, customerFee: 6.50, margin:  1.80, etaMin: 26, status: "delivered",  createdAt: "2026-04-18T11:34:00" },
+  { id: "dj-2007", provider: "in_house",    dropoffAddress: "44 The Parade, Norwood",        tier: "standard", providerCost: 4.40, customerFee: 5.00, margin:  3.10, etaMin: 21, status: "delivered",  createdAt: "2026-04-18T11:08:00" },
+  { id: "dj-2006", provider: "zoom2u",      dropoffAddress: "104 Magill Rd, Stepney",        tier: "priority", providerCost: 7.50, customerFee: 8.50, margin:  3.50, etaMin: 25, status: "delivered",  createdAt: "2026-04-18T10:52:00" },
+  { id: "dj-2005", provider: "in_house",    dropoffAddress: "29 Halifax St, Adelaide",        tier: "standard", providerCost: 4.20, customerFee: 5.00, margin:  3.30, etaMin: 18, status: "delivered",  createdAt: "2026-04-18T10:34:00" },
+  { id: "dj-2004", provider: "doordash",    dropoffAddress: "55 Wakefield St, Adelaide",      tier: "standard", providerCost: 8.40, customerFee: 6.50, margin: -0.40, etaMin: 30, status: "failed",     createdAt: "2026-04-18T10:18:00" },
+  { id: "dj-2003", provider: "in_house",    dropoffAddress: "61 Carrington St, Adelaide",     tier: "standard", providerCost: 4.20, customerFee: 5.00, margin:  3.30, etaMin: 20, status: "delivered",  createdAt: "2026-04-18T10:01:00" },
+  { id: "dj-2002", provider: "uber_direct", dropoffAddress: "180 Greenhill Rd, Parkside",     tier: "priority", providerCost: 8.20, customerFee: 8.50, margin:  2.80, etaMin: 27, status: "delivered",  createdAt: "2026-04-18T09:46:00" },
+  { id: "dj-2001", provider: "sherpa",      dropoffAddress: "12 Goodwood Rd, Wayville",       tier: "standard", providerCost: 9.20, customerFee: 6.50, margin: -1.20, etaMin: 33, status: "delivered",  createdAt: "2026-04-18T09:28:00" },
+  { id: "dj-2000", provider: "in_house",    dropoffAddress: "94 Unley Rd, Unley",             tier: "standard", providerCost: 4.20, customerFee: 5.00, margin:  3.30, etaMin: 19, status: "delivered",  createdAt: "2026-04-18T09:12:00" },
+];
+
+export const deliveryStatusLabel: Record<DemoDeliveryJob["status"], { label: string; color: string; bg: string }> = {
+  delivered:   { label: "Delivered",  color: "#9CA8BD", bg: "rgba(156,168,189,0.14)" },
+  in_transit:  { label: "In transit", color: "#6BB1FF", bg: "rgba(107,177,255,0.14)" },
+  picking_up:  { label: "Picking up", color: "#FFC14B", bg: "rgba(255,193,75,0.14)" },
+  failed:      { label: "Failed",     color: "#FF5A5A", bg: "rgba(255,90,90,0.14)" },
+};
+
