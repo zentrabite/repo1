@@ -100,7 +100,7 @@ For the marketing site, use these Vercel build settings:
 Run this in the Supabase SQL editor once auth is set up:
 
 ```sql
-UPDATE users SET is_super_admin = true WHERE email = 'liam@zentrabite.com.au';
+UPDATE users SET is_super_admin = true WHERE email = '<your-owner-email>';
 ```
 
 This unlocks the `/admin` panel (platform control, tenant management, module toggles, impersonation).
@@ -152,5 +152,3 @@ These are features where the UI exists but the backend isn't wired up yet. None 
 ---
 
 Let me know if you have any questions on any of the above. Happy to jump on a call.
-
-Liam
