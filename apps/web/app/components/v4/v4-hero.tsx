@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function V4Hero() {
   return (
     <section id="v4-hero">
@@ -22,6 +24,9 @@ export function V4Hero() {
         <a href="#ai-chat" className="btn-lg s">
           <span aria-hidden>✨</span> Ask the AI
         </a>
+        <Link href="/demo" className="btn-lg p">
+          See the demo →
+        </Link>
       </div>
       <p className="hero-trust reveal d3">
         <span>✓ No credit card</span>
