@@ -166,4 +166,4 @@ alter table analytics_daily  enable row level security;
 
 
 -- ─── Done ─────────────────────────────────────────────────────────────────────
--- All 8 tables created. Go to /api/test-db to confirm Supabase is connected.
+-- All 8 tables created.
