@@ -2,25 +2,30 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  LayoutDashboard, ShoppingBag, PackageCheck, Monitor, UtensilsCrossed,
+  Package, Bot, UserCog, Users, Gift, RotateCcw, Zap, BarChart3,
+  DollarSign, Calendar, Settings, type LucideIcon,
+} from "lucide-react";
 import { business } from "./data";
 
-const NAV = [
-  { href: "/demo/live",             label: "Dashboard",   emoji: "📊" },
-  { href: "/demo/live/orders",      label: "Orders",      emoji: "📋" },
-  { href: "/demo/live/fulfillment", label: "Fulfillment", emoji: "📦" },
-  { href: "/demo/live/pos",         label: "POS",         emoji: "🧾" },
-  { href: "/demo/live/menu",        label: "Menu",        emoji: "🍕" },
-  { href: "/demo/live/stock",       label: "Stock",       emoji: "🥫" },
-  { href: "/demo/live/ai-calls",    label: "AI calls",    emoji: "📞" },
-  { href: "/demo/live/drivers",     label: "Drivers",     emoji: "🛵" },
-  { href: "/demo/live/customers",   label: "Customers",   emoji: "👥" },
-  { href: "/demo/live/rewards",     label: "Rewards",     emoji: "🏆" },
-  { href: "/demo/live/winback",     label: "Winback",     emoji: "🔁" },
-  { href: "/demo/live/automations", label: "Automations", emoji: "⚙️" },
-  { href: "/demo/live/analytics",   label: "Analytics",   emoji: "📈" },
-  { href: "/demo/live/financials",  label: "Financials",  emoji: "💰" },
-  { href: "/demo/live/rostering",   label: "Rostering",   emoji: "🗓️" },
-  { href: "/demo/live/settings",    label: "Settings",    emoji: "🔧" },
+const NAV: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: "/demo/live",             label: "Dashboard",   icon: LayoutDashboard },
+  { href: "/demo/live/orders",      label: "Orders",      icon: ShoppingBag },
+  { href: "/demo/live/fulfillment", label: "Fulfillment", icon: PackageCheck },
+  { href: "/demo/live/pos",         label: "POS",         icon: Monitor },
+  { href: "/demo/live/menu",        label: "Menu",        icon: UtensilsCrossed },
+  { href: "/demo/live/stock",       label: "Stock",       icon: Package },
+  { href: "/demo/live/ai-calls",    label: "AI calls",    icon: Bot },
+  { href: "/demo/live/drivers",     label: "Drivers",     icon: UserCog },
+  { href: "/demo/live/customers",   label: "Customers",   icon: Users },
+  { href: "/demo/live/rewards",     label: "Rewards",     icon: Gift },
+  { href: "/demo/live/winback",     label: "Winback",     icon: RotateCcw },
+  { href: "/demo/live/automations", label: "Automations", icon: Zap },
+  { href: "/demo/live/analytics",   label: "Analytics",   icon: BarChart3 },
+  { href: "/demo/live/financials",  label: "Financials",  icon: DollarSign },
+  { href: "/demo/live/rostering",   label: "Rostering",   icon: Calendar },
+  { href: "/demo/live/settings",    label: "Settings",    icon: Settings },
 ];
 
 export function DemoShell({ children }: { children: React.ReactNode }) {
@@ -125,7 +130,6 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
 
         {/* Business block */}
         <div style={{ padding: "14px 18px 12px", borderBottom: "1px solid var(--mist-9)" }}>
-          <div style={{ fontSize: 22, marginBottom: 4 }}>{business.logo}</div>
           <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 14, color: "var(--cloud)" }}>
             {business.name}
           </div>
@@ -136,6 +140,8 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
         <nav style={{ flex: 1, padding: "10px 8px", overflowY: "auto" }}>
           {NAV.map((item) => {
             const active = pathname === item.href || (item.href !== "/demo/live" && pathname.startsWith(item.href));
+            const Icon = item.icon;
+            const color = active ? "var(--green)" : "var(--steel)";
             return (
               <Link
                 key={item.href}
@@ -143,20 +149,20 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 10,
+                  gap: 12,
                   padding: "10px 12px",
                   borderRadius: 10,
                   marginBottom: 2,
                   fontSize: 14,
                   fontWeight: active ? 600 : 500,
-                  color: active ? "var(--green)" : "var(--steel)",
+                  color,
                   background: active ? "rgba(0,182,122,0.11)" : "transparent",
                   borderLeft: `2px solid ${active ? "var(--green)" : "transparent"}`,
                   textDecoration: "none",
                   transition: "all 0.15s",
                 }}
               >
-                <span style={{ fontSize: 15 }}>{item.emoji}</span>
+                <Icon size={18} strokeWidth={1.75} color={color} style={{ flexShrink: 0, display: "block" }} />
                 {item.label}
               </Link>
             );
