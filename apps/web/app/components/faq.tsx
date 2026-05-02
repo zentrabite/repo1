@@ -17,7 +17,7 @@ const items = [
   },
   {
     q: "Can I still use Uber Eats / DoorDash alongside?",
-    a: "Absolutely. Many merchants run us parallel to the aggregators and funnel repeat customers to their ZentraBite storefront over time using our Zentra Rewards SMS flows. Our delivery engine can even dispatch to Uber Direct and DoorDash Drive when your own driver is busy.",
+    a: "Absolutely. Many merchants run us parallel to the aggregators and funnel repeat customers to their ZentraBite storefront over time using our SMS win-back flows. Our delivery engine can even dispatch to Uber Direct and DoorDash Drive when your own driver is busy.",
   },
   {
     q: "What payment methods do customers have?",

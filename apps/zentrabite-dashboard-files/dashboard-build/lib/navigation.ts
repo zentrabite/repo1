@@ -45,7 +45,7 @@ export const navigation: NavItem[] = [
     label: "Campaigns",
     href: "/campaigns",
     icon: MessageSquare,
-    description: "SMS campaigns and Zentra Rewards engine",
+    description: "SMS campaigns and win-back engine",
   },
   {
     label: "Analytics",
