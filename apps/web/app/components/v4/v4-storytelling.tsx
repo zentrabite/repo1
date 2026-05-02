@@ -42,7 +42,7 @@ export function V4Storytelling() {
             />
             <NavItem
               panel="campaigns"
-              title="Campaigns & Winback"
+              title="Campaigns & Zentra Rewards"
               sub="SMS · email · AI calls"
             />
           </div>
@@ -549,7 +549,7 @@ function CampaignsPanel() {
     <div className="story-panel" data-panel="campaigns">
       <div className="story-panel-inner">
         <div className="story-panel-header">
-          <div className="story-panel-eyebrow">📣 Campaigns & Winback</div>
+          <div className="story-panel-eyebrow">📣 Campaigns & Zentra Rewards</div>
           <h3 className="story-panel-title">
             Automated campaigns that
             <br />
@@ -584,7 +584,7 @@ function CampaignsPanel() {
           <div className="s-body">
             <div className="screen-campaigns">
               <Campaign
-                name="Win-back: 21-day lapse"
+                name="Zentra Rewards: 21-day lapse"
                 meta="AI voice call → SMS fallback · Auto-trigger"
                 statusColor="#00b67a"
                 statusBg="rgba(0,182,122,0.12)"

@@ -53,7 +53,7 @@ export default function WinbackPage() {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         <div>
           <h1 style={{ fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 28, color: "var(--cloud)", margin: 0 }}>
-            Winback engine
+            Zentra Rewards
           </h1>
           <p style={{ color: "var(--steel)", fontSize: 14, marginTop: 4, marginBottom: 0 }}>
             Automated campaigns that bring customers back. Powered by AI personalisation.

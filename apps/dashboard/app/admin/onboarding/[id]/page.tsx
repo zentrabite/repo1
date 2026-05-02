@@ -599,7 +599,7 @@ function StepDelivery({ biz, save }: { biz: Biz; save: SaveFn }) {
   );
 }
 
-// ─── Step 7: Notifications + BiteBack defaults ────────────────────────────
+// ─── Step 7: Notifications + Zentra Rewards defaults ────────────────────────────
 function StepNotifications({ biz, save, show }: { biz: Biz; save: SaveFn; show: (m: string) => void }) {
   const [notifyEmail, setNotifyEmail] = useState<string>(biz.settings?.notify_email ?? "");
   const [notifyPhone, setNotifyPhone] = useState<string>(biz.settings?.notify_phone ?? "");
@@ -623,7 +623,7 @@ function StepNotifications({ biz, save, show }: { biz: Biz; save: SaveFn; show: 
   }
 
   return (
-    <Section title="Notifications & BiteBack" subtitle="Where order alerts go, and default winback rules so automations work day 1.">
+    <Section title="Notifications & Zentra Rewards" subtitle="Where order alerts go, and default Zentra Rewards rules so automations work day 1.">
       <Grid>
         <Field label="Order alert email"><input value={notifyEmail} onChange={e => setNotifyEmail(e.target.value)} placeholder="orders@business.com" /></Field>
         <Field label="Order alert phone"><input value={notifyPhone} onChange={e => setNotifyPhone(e.target.value)} placeholder="+61..." /></Field>
@@ -633,9 +633,9 @@ function StepNotifications({ biz, save, show }: { biz: Biz; save: SaveFn; show: 
       <div style={{ background: C.bg, border: `1px solid ${C.mist}`, borderRadius: 10, padding: 14, marginTop: 16 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
           <div>
-            <div style={{ fontWeight: 600, color: C.cl, fontSize: 13 }}>Default BiteBack rules</div>
+            <div style={{ fontWeight: 600, color: C.cl, fontSize: 13 }}>Default Zentra Rewards rules</div>
             <div style={{ fontSize: 12, color: C.st, marginTop: 3 }}>
-              Creates a 30-day (10% off) and 60-day (20% off) SMS winback. Owner can edit anytime in BiteBack.
+              Creates a 30-day (10% off) and 60-day (20% off) SMS campaign. Owner can edit anytime in Zentra Rewards.
             </div>
           </div>
           <button onClick={seedRules} disabled={seeding} className="bp" style={{ padding: "9px 14px", whiteSpace: "nowrap" }}>

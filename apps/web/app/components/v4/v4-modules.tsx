@@ -43,7 +43,7 @@ const MODULES: Mod[] = [
     icon: "🤖",
     name: "AI Co-pilot",
     detail:
-      "Daily 7 AM brief. AI voice win-back calls. Menu, stock & staffing recommendations from real data.",
+      "Daily 7 AM brief. AI voice Zentra Rewards calls. Menu, stock & staffing recommendations from real data.",
     badge: "ai",
     badgeLabel: "✦ AI",
   },
@@ -105,7 +105,7 @@ const MODULES: Mod[] = [
   },
   {
     icon: "🔔",
-    name: "Win-back Automations",
+    name: "Zentra Rewards Automations",
     detail:
       "Day-14 lapse trigger: AI call → SMS → $5 off. Fully automated. Avg $4,280/mo recovered.",
     badge: "ai",

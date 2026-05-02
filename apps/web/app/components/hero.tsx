@@ -118,7 +118,7 @@ export function Hero() {
                   { label: "Orders", active: true },
                   { label: "Customers", active: false },
                   { label: "Menu", active: false },
-                  { label: "Winback", active: false },
+                  { label: "Zentra Rewards", active: false },
                   { label: "Financials", active: false },
                 ].map((i) => (
                   <div

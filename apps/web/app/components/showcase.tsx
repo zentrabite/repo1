@@ -32,11 +32,11 @@ const showcases = [
     eyebrow: "Growth",
     title: "Turn one visit into ten with built-in CRM.",
     body:
-      "Every buyer auto-saves as a customer. The Winback engine awards points on every order, tiers customers by spend, and sends birthday deals automatically. It fires winback SMS the moment someone goes quiet.",
+      "Every buyer auto-saves as a customer. Zentra Rewards awards points on every order, tiers customers by spend, and sends birthday deals automatically. It fires re-engagement SMS the moment someone goes quiet.",
     bullets: [
-      "Winback engine tiers: Bronze, Silver, Gold, VIP",
+      "Zentra Rewards tiers: Bronze, Silver, Gold, VIP",
       "Points redeem at checkout — no extra app required",
-      "Abandoned-cart and win-back automations out of the box",
+      "Abandoned-cart and Zentra Rewards automations out of the box",
       "Segment by lifetime value, channel, or last-order date",
     ],
     side: "growth",
@@ -175,7 +175,7 @@ function SideVisual({ kind }: { kind: string }) {
       <div style={{ height: 1, background: "var(--mist-9)", marginBottom: 18 }} />
       {[
         { icon: "🎂", label: "Birthday reward sent", sub: "to Olivia M. · +250 pts bonus" },
-        { icon: "📩", label: "Win-back SMS triggered", sub: "23 customers · avg $34 recovered" },
+        { icon: "📩", label: "Zentra Rewards SMS triggered", sub: "23 customers · avg $34 recovered" },
         { icon: "🏆", label: "Tier upgrade", sub: "James K. → Gold tier" },
       ].map((e) => (
         <div key={e.label} style={{ display: "flex", gap: 12, padding: "10px 0", alignItems: "flex-start" }}>

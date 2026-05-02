@@ -15,7 +15,7 @@ type ModuleId =
 const MODULE_CATALOGUE: { id: ModuleId; label: string; desc: string; cost: number }[] = [
   { id: "orders",          label: "Orders & POS",            cost: 29, desc: "Storefront, order board, KDS, payments" },
   { id: "loyalty",         label: "Loyalty & rewards",       cost: 19, desc: "Points, tiers, redemptions" },
-  { id: "campaigns",       label: "Campaigns & winback",     cost: 29, desc: "Automated SMS/email with attribution" },
+  { id: "campaigns",       label: "Campaigns & Zentra Rewards", cost: 29, desc: "Automated SMS/email with attribution" },
   { id: "ai_calls",        label: "AI phone ordering",       cost: 29, desc: "Twilio + AI voice agent (credit-metered)" },
   { id: "driver_dispatch", label: "Driver dispatch",         cost: 19, desc: "Internal roster + Uber/DoorDash fallback" },
   { id: "stock",           label: "Stock & AI ordering",     cost: 19, desc: "Par levels, expiry, reorder suggestions" },

@@ -97,13 +97,13 @@ export const features: Feature[] = [
       "Native iOS + Android (React Native under the hood)",
       "Push notifications for order status and promos",
       "Saved cards, Apple Pay, Google Pay",
-      "Winback engine and reward redemption in-app",
+      "Zentra Rewards and reward redemption in-app",
       "Order history, reorder in one tap",
       "You own the app listings and Apple/Google accounts",
     ],
     whoItsFor:
       "Restaurants with a repeat customer base who want to move them off aggregator apps. Single locations and chains alike.",
-    relatedSlugs: ["custom-website", "winback", "storefronts"],
+    relatedSlugs: ["custom-website", "zentra-rewards", "storefronts"],
   },
   {
     slug: "custom-website",
@@ -275,16 +275,16 @@ export const features: Feature[] = [
     relatedSlugs: ["custom-website", "custom-mobile-app", "live-orders"],
   },
   {
-    slug: "winback",
+    slug: "zentra-rewards",
     icon: "🔁",
-    title: "Winback engine",
+    title: "Zentra Rewards",
     tagline: "Built-in points and tiers that bring quiet customers back — automatically.",
     summary:
-      "Points, tiers, and automated winback flows that re-engage lapsed customers the moment they go quiet. Zero extra plugins.",
+      "Points, tiers, and automated Zentra Rewards flows that re-engage lapsed customers the moment they go quiet. Zero extra plugins.",
     eyebrow: "Growth",
     overview: [
-      "The Winback engine is a full rewards + reactivation program built directly into ZentraBite — no separate plugin, no integration fees, no reconciliation drama. Every order automatically earns points, every customer is tiered by 12-month spend, and the moment someone goes quiet the engine fires a targeted winback offer.",
-      "Because the data lives in the same database as your orders and customer CRM, you can trigger things other loyalty tools can't: Gold-tier-only winback campaigns, birthday auto-rewards, and tier-upgrade SMS the moment someone crosses a threshold.",
+      "Zentra Rewards is a full rewards + reactivation program built directly into ZentraBite — no separate plugin, no integration fees, no reconciliation drama. Every order automatically earns points, every customer is tiered by 12-month spend, and the moment someone goes quiet the engine fires a targeted offer.",
+      "Because the data lives in the same database as your orders and customer CRM, you can trigger things other loyalty tools can't: Gold-tier-only Zentra Rewards campaigns, birthday auto-rewards, and tier-upgrade SMS the moment someone crosses a threshold.",
     ],
     howItWorks: [
       {
@@ -301,7 +301,7 @@ export const features: Feature[] = [
       },
       {
         title: "Automated rewards",
-        body: "Birthday bonus points, tier-up celebration SMS, win-back offers — all fire automatically based on customer state.",
+        body: "Birthday bonus points, tier-up celebration SMS, Zentra Rewards offers — all fire automatically based on customer state.",
       },
     ],
     bullets: [
@@ -398,7 +398,7 @@ export const features: Feature[] = [
     ],
     whoItsFor:
       "Restaurants with at least a few hundred opted-in customers. Automations commonly recover 4-8% of lapsed customers per month.",
-    relatedSlugs: ["crm", "winback", "custom-mobile-app"],
+    relatedSlugs: ["crm", "zentra-rewards", "custom-mobile-app"],
   },
   {
     slug: "stripe-payouts",
@@ -524,7 +524,7 @@ export const features: Feature[] = [
     ],
     whoItsFor:
       "Restaurants that want to stop renting their customer list from Uber Eats. After 3-6 months on ZentraBite you'll have a real, exportable database of people who've bought from you.",
-    relatedSlugs: ["winback", "sms-email", "live-orders"],
+    relatedSlugs: ["zentra-rewards", "sms-email", "live-orders"],
   },
   {
     slug: "stock-take",

@@ -65,7 +65,7 @@ export async function POST(req: Request) {
     async start(controller) {
       try {
         const messageStream = client.messages.stream({
-          model: "claude-opus-4-7",
+          model: "claude-haiku-4-5",
           max_tokens: 2048,
           system: [
             {
