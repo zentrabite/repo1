@@ -526,14 +526,14 @@ function SettingsContent() {
             </button>
           </div>
 
-          {/* Win-Back pointer */}
+          {/* Zentra Rewards pointer */}
           <div className="gc" style={{ padding:24 }}>
-            <SectionTitle>Win-Back rules</SectionTitle>
+            <SectionTitle>Zentra Rewards rules</SectionTitle>
             <p style={{ fontFamily:"var(--font-inter)", fontSize:12, color:C.st, marginBottom:12, lineHeight:1.6 }}>
-              Inactivity triggers, discount amounts and message templates now live on the Win-Back page — one rule per trigger so you can run several in parallel.
+              Inactivity triggers, discount amounts and message templates now live on the Zentra Rewards page — one rule per trigger so you can run several in parallel.
             </p>
-            <a href="/biteback" className="bp" style={{ textDecoration:"none", display:"inline-block" }}>
-              Open Win-Back →
+            <a href="/zentra-rewards" className="bp" style={{ textDecoration:"none", display:"inline-block" }}>
+              Open Zentra Rewards →
             </a>
           </div>
         </div>
@@ -655,7 +655,7 @@ function SettingsContent() {
                     <span style={{ fontFamily:"var(--font-inter)", fontSize:12, color:C.st }}>/month AUD</span>
                   </div>
                   <div style={{ fontFamily:"var(--font-inter)", fontSize:12, color:C.st }}>
-                    All features · SMS credits · AI calls · BiteBack network
+                    All features · SMS credits · AI calls · Zentra Rewards network
                   </div>
                 </div>
                 <button

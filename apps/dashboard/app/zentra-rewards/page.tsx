@@ -106,7 +106,7 @@ export default function WinBackPage() {
     <div>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
         <div>
-          <h2 style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:19, color:"#fff" }}>Win-Back Engine</h2>
+          <h2 style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:19, color:"#fff" }}>Zentra Rewards</h2>
           <p style={{ color:C.st, fontSize:11 }}>Automated retention offers sent to customers who go quiet</p>
         </div>
         <button className="bp" onClick={() => { reset(); window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }); }}>+ New rule</button>
@@ -125,7 +125,7 @@ export default function WinBackPage() {
           <div className="gc" style={{ padding:16, color:C.st, fontSize:12 }}>Loading…</div>
         ) : rules.length === 0 ? (
           <div className="gc" style={{ padding:20, color:C.st, fontSize:12, textAlign:"center" }}>
-            No win-back rules yet. Create one below — a common first rule is &ldquo;SMS 20% off after 14 days of no orders&rdquo;.
+            No Zentra Rewards rules yet. Create one below — a common first rule is &ldquo;SMS 20% off after 14 days of no orders&rdquo;.
           </div>
         ) : rules.map(r => (
           <div key={r.id} className="gc" style={{ padding:16 }}>
@@ -172,7 +172,7 @@ export default function WinBackPage() {
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
           <div>
             <label style={{ display:"block", fontSize:10, color:C.st, marginBottom:3 }}>Rule name</label>
-            <input value={form.name} onChange={e=>setForm(f=>({...f, name:e.target.value}))} placeholder="e.g. 14-day lapsed customer win-back" />
+            <input value={form.name} onChange={e=>setForm(f=>({...f, name:e.target.value}))} placeholder="e.g. 14-day lapsed customer re-engagement" />
           </div>
           <div>
             <label style={{ display:"block", fontSize:10, color:C.st, marginBottom:3 }}>Channel</label>

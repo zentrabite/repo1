@@ -75,7 +75,7 @@ const ROW_B: Step[] = [
   {
     num: "Step 06",
     icon: "📣",
-    label: "Win-back Campaign",
+    label: "Zentra Rewards Campaign",
     desc: "At day 14 of silence: AI voice call → SMS fallback → $5 off offer. $4,280 avg recovered/mo.",
     tag: { kind: "win", label: "Day 14 auto" },
   },
@@ -114,7 +114,7 @@ export function V4Journey() {
 
           <div className="j-corner">
             <div className="j-corner-line" />
-            <div className="j-corner-label">↓ Goes quiet? Trigger win-back ↓</div>
+            <div className="j-corner-label">↓ Goes quiet? Trigger Zentra Rewards ↓</div>
           </div>
 
           <div className="j-row j-row-b">

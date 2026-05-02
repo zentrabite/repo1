@@ -26,7 +26,7 @@ export const navigation: NavItem[] = [
   { label: "Reviews",     href: "/reviews",     icon: Star,             emoji: "⭐", description: "Monitor and respond to customer reviews" },
   { label: "Customers",   href: "/customers",   icon: Users,            emoji: "👥", description: "CRM database with lifecycle tracking" },
   { label: "Rewards",     href: "/rewards",     icon: Gift,             emoji: "⭐", description: "Points, tiers, pay-with-points" },
-  { label: "Win-Back",    href: "/biteback",    icon: RotateCcw,        emoji: "🎫", description: "Retention rules for lapsed customers" },
+  { label: "Zentra Rewards", href: "/zentra-rewards", icon: RotateCcw,     emoji: "🎫", description: "Retention rules for lapsed customers" },
   { label: "Automations", href: "/automations", icon: Zap,              emoji: "⚡", description: "Triggers, rules & attribution" },
   { label: "Analytics",   href: "/analytics",   icon: BarChart3,        emoji: "📈", description: "Top items, retention, channel mix" },
   { label: "Financials",  href: "/financials",  icon: DollarSign,       emoji: "💰", description: "Revenue, margins & ROI" },

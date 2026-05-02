@@ -75,10 +75,10 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Win-Back Engine panel */}
+        {/* Zentra Rewards panel */}
         <div className="rounded-2xl border border-white/[0.07] bg-[#1c2d48]/45 p-6 backdrop-blur-xl">
           <h3 className="mb-4 font-heading text-sm font-semibold text-white">
-            Win-Back Engine
+            Zentra Rewards
           </h3>
           <p className="font-heading text-3xl font-bold text-[#00B67A]">
             $8,460

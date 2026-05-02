@@ -10,7 +10,7 @@
 //        POST /api/automations/run   header: Authorization: Bearer $CRON_SECRET
 //      Iterates EVERY business with active rules. Rejects without the secret.
 //
-// The runner processes `winback_rules` (BiteBack rules from the dashboard) AND
+// The runner processes `winback_rules` (Zentra Rewards rules from the dashboard) AND
 // the legacy `campaigns` table so old data keeps working while we migrate.
 // Channel dispatch:
 //   • sms   → Twilio REST

@@ -7,7 +7,7 @@ const CATEGORIES = [
     tagline: "Orders, kitchen, delivery, loyalty — all in one.",
     types: ["Restaurants", "Cafes", "Takeaway", "Ghost kitchens", "Food trucks", "Bakeries", "Dessert shops"],
     whatChanges: "Menu builder, live orders, kitchen display, delivery routing.",
-    whatStays: "CRM, winback, loyalty, AI reports, stock intelligence.",
+    whatStays: "CRM, Zentra Rewards, loyalty, AI reports, stock intelligence.",
     outcome: "Cut aggregator commissions, win back lapsed regulars, slash food waste.",
   },
   {
@@ -25,7 +25,7 @@ const CATEGORIES = [
     tagline: "Memberships, classes, and retention — on rails.",
     types: ["Gyms", "Fitness studios", "Yoga studios", "Pilates", "Sports coaching"],
     whatChanges: "Bookings for classes, memberships, session packs, attendance tracking.",
-    whatStays: "CRM, churn detection, winback, loyalty, daily AI report.",
+    whatStays: "CRM, churn detection, Zentra Rewards, loyalty, daily AI report.",
     outcome: "Spot at-risk members before they leave. Drive referrals and renewals.",
   },
   {
@@ -34,7 +34,7 @@ const CATEGORIES = [
     tagline: "Every SKU, every customer, one dashboard.",
     types: ["Small retail", "Clothing", "Sneakers", "Vape shops", "Convenience stores", "Etsy & Shopify sellers"],
     whatChanges: "Products + SKUs, stock by variant, online store + in-store POS.",
-    whatStays: "CRM, segmentation, loyalty, winback, inventory AI, reporting.",
+    whatStays: "CRM, segmentation, loyalty, Zentra Rewards, inventory AI, reporting.",
     outcome: "Reorder on AI, clear dead stock, turn one-time buyers into repeat customers.",
   },
   {
@@ -43,7 +43,7 @@ const CATEGORIES = [
     tagline: "Jobs, quotes, invoices, follow-ups — handled.",
     types: ["Car detailers", "Mechanics", "Auto service", "Cleaners", "Mobile services", "Electricians & plumbers"],
     whatChanges: "Jobs and quotes replace orders. Scheduling, invoicing, job status.",
-    whatStays: "CRM, review requests, winback, reporting, automations.",
+    whatStays: "CRM, review requests, Zentra Rewards, reporting, automations.",
     outcome: "More repeat jobs, faster invoices, no customer forgotten.",
   },
   {

@@ -20,7 +20,7 @@ export default function DemoDashboardPage() {
   const stats = [
     { label: "Today's revenue",  value: formatAUD(financials.today.revenue), sub: `${financials.today.orders} orders · avg ${formatAUD(financials.today.avgTicket)}`, color: "var(--green)" },
     { label: "Live orders",      value: String(live.length),                  sub: "right now in the kitchen", color: "var(--cloud)" },
-    { label: "Recovered (30d)",  value: formatAUD(recoveredRevenue),          sub: "from winback automations", color: "var(--green)" },
+    { label: "Recovered (30d)",  value: formatAUD(recoveredRevenue),          sub: "from Zentra Rewards automations", color: "var(--green)" },
     { label: "Repeat-customer rate", value: `${Math.round(financials.last30.repeatRate * 100)}%`, sub: "of last-30-day orders", color: "var(--cloud)" },
   ];
 
@@ -267,7 +267,7 @@ export default function DemoDashboardPage() {
           }}
         >
           <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 15, color: "var(--cloud)", marginBottom: 4 }}>
-            Winback engine · 30 days
+            Zentra Rewards · 30 days
           </div>
           <div style={{ fontSize: 12.5, color: "var(--steel)", marginBottom: 14 }}>
             Automated SMS + email recovering lapsed customers.
@@ -292,7 +292,7 @@ export default function DemoDashboardPage() {
             </div>
           ))}
           <Link
-            href="/demo/live/winback"
+            href="/demo/live/zentra-rewards"
             style={{
               display: "block",
               textAlign: "center",
@@ -303,7 +303,7 @@ export default function DemoDashboardPage() {
               textDecoration: "none",
             }}
           >
-            Open Winback engine →
+            Open Zentra Rewards →
           </Link>
         </div>
       </div>

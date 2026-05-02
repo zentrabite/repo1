@@ -2,60 +2,46 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const ANSWERS: Record<string, string> = {
-  "who are my top customers":
-    `Your <strong>top 5 by lifetime value</strong> this month:\n\n1. <strong>Priya S.</strong> — $482 · Gold · 11 orders · 2 days ago\n2. <strong>James K.</strong> — $371 · Silver · 9 orders · 4 days ago\n3. <strong>Olivia M.</strong> — $344 · Silver · 8 orders · today\n4. <strong>Nathan C.</strong> — $298 · Bronze · 7 orders · 6 days ago\n5. <strong>Aisha R.</strong> — $261 · Bronze · 6 orders · 3 days ago\n\n<strong>💡 Tip:</strong> Priya is 160pts from Platinum. A "you're almost there" SMS tonight could lock in her loyalty for Q2.`,
-  "why is revenue down":
-    `Revenue is <strong>down 14% vs. last week</strong> ($8,240 vs $9,580). Three root causes:\n\n📉 <strong>Thursday dropped 31%</strong> — storm + 3 driver no-shows\n🍔 <strong>Burger stock ran out</strong> Tuesday 7 PM — 90-min 86 of your #1 item\n📡 <strong>Uber Eats outage</strong> Wed 11 AM–2 PM — est. $320 lost\n\n<strong>💡 Actions:</strong> Raise burger par 40% Tue/Wed · Add backup Thursday drivers · Enable direct ordering fallback.`,
-  "what should i promote":
-    `Top 3 items by margin + opportunity:\n\n🥇 <strong>Wagyu Burger</strong> — $18.50 margin · 94% sell-through · only in 32% of orders. Banner = ~$460/wk extra.\n🥈 <strong>Garlic Prawn Pasta</strong> — $14.20 margin · 4.8★ · almost entirely dinner. A lunch promo opens a new slot.\n🥉 <strong>Mango Lassi</strong> — $9.80 margin · pairs with 60% of curry orders but only added 22% of the time. Checkout prompt = easy money.\n\n<strong>💡</strong> Want me to draft the SMS campaign now?`,
-  "how do i reduce churn":
-    `Your 30-day churn is <strong>18%</strong>, up from 13% last month. Here's the fix:\n\n🔄 <strong>42 customers</strong> 21+ days lapsed — AI win-back calls at 10 AM today\n📬 <strong>First-order retention is 44%</strong> — customers who got a post-order SMS were 2.3× more likely to return\n🎁 <strong>68 members</strong> have unredeemed rewards — a reminder SMS recovers ~22% within 7 days\n\n<strong>💡 Take all 3 actions:</strong> ZentraBite estimates ~$1,100 recovered this month.`,
-};
-
-const FOLLOWUPS: Record<string, string[]> = {
-  "who are my top customers": [
-    "Send Priya a tier upgrade SMS",
-    "Who's at risk of churning?",
-    "Show my Gold tier members",
-  ],
-  "why is revenue down": [
-    "Fix my burger stock levels",
-    "Set up driver backup",
-    "Show week vs week comparison",
-  ],
-  "what should i promote": [
-    "Draft the SMS campaign",
-    "What's my highest margin item?",
-    "Schedule a Tuesday promo",
-  ],
-  "how do i reduce churn": [
-    "Start AI win-back calls now",
-    "Set up post-order SMS",
-    "Show the 42 at-risk customers",
-  ],
-};
-
-const DEFAULT_FOLLOWUPS = [
-  "What's my best day?",
-  "Should I run a campaign?",
-  "How are my rewards performing?",
+const INITIAL_SUGS = [
+  "How does the AI co-pilot work?",
+  "What does smart delivery routing do?",
+  "How is this different from Square?",
+  "What's included in the 1-month trial?",
 ];
 
-const INITIAL_SUGS = [
-  "Who are my top customers?",
-  "Why is revenue down?",
-  "What should I promote?",
-  "How do I reduce churn?",
+const FOLLOWUPS_AFTER_REPLY = [
+  "Show me the demo",
+  "What's in the 1-month trial?",
+  "Which integrations are supported?",
+  "How do you compare to Toast?",
 ];
 
 type Msg = { role: "u" | "b"; html: string };
+
+// Tiny, safe-by-default Markdown → HTML for chat output:
+//   - escapes any HTML in the source first
+//   - then re-introduces a small whitelist: **bold**, _italic_, `code`,
+//     - bullets, line breaks
+// The AI is told (in the system prompt) to stick to simple Markdown.
+function renderMarkdown(raw: string): string {
+  let html = raw
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  html = html.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
+  html = html.replace(/(^|[^\w])_([^_\n]+)_/g, "$1<em>$2</em>");
+  html = html.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+  html = html.replace(/^\s*[-*]\s+(.+)$/gm, "• $1");
+  html = html.replace(/\n/g, "<br>");
+  return html;
+}
 
 export function V4AiChat() {
   const [messages, setMessages] = useState<Msg[]>([
     {
       role: "b",
-      html: "👋 Hey! I'm your ZentraBite AI. I have access to your orders, customers, stock, and financials. What would you like to know?",
+      html:
+        "👋 Hey! Ask me anything about ZentraBite — features, pricing, integrations, or how it compares to other tools. What would you like to know?",
     },
   ]);
   const [sugs, setSugs] = useState<string[]>(INITIAL_SUGS);
@@ -64,46 +50,84 @@ export function V4AiChat() {
   const [streaming, setStreaming] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages, typing, streaming]);
 
-  function send(text?: string) {
+  // Cancel any in-flight stream when the component unmounts.
+  useEffect(() => {
+    return () => abortRef.current?.abort();
+  }, []);
+
+  async function send(text?: string) {
     if (busy) return;
     const q = (text ?? input).trim();
     if (!q) return;
     setInput("");
     setSugs([]);
     setBusy(true);
-    setMessages((m) => [...m, { role: "u", html: q }]);
-    const key = q.toLowerCase().replace(/[?!.]/g, "").trim();
-    const answer =
-      ANSWERS[key] ||
-      `In a live ZentraBite account, I'd analyse your real orders, customers, and financials to answer: "<strong>${q}</strong>".\n\nI'd surface the top 2–3 actions ranked by revenue impact — specific to your data.\n\n<strong>Start your free trial</strong> to ask this with real, personalised answers.`;
-
     setTyping(true);
-    setTimeout(() => {
-      setTyping(false);
-      // Stream the answer word-by-word into a streaming bubble.
-      const words = answer.split(/(?<=\s)/);
-      let i = 0;
-      let built = "";
-      setStreaming("");
-      const next = () => {
-        if (i < words.length) {
-          built += words[i++];
-          setStreaming(built);
-          setTimeout(next, 14 + Math.random() * 16);
-        } else {
-          setStreaming(null);
-          setMessages((m) => [...m, { role: "b", html: built }]);
-          setBusy(false);
-          setSugs(FOLLOWUPS[key] || DEFAULT_FOLLOWUPS);
+
+    // Snapshot the conversation we're sending — strips local-only fields.
+    const history = [...messages, { role: "u" as const, html: q }].map((m) => ({
+      role: m.role === "u" ? "user" : "assistant",
+      content: m.html,
+    }));
+
+    setMessages((m) => [...m, { role: "u", html: q }]);
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    let received = "";
+    let firstToken = false;
+    try {
+      const res = await fetch("/api/ai-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: history }),
+        signal: controller.signal,
+      });
+
+      if (!res.ok || !res.body) {
+        const errorText = await res.text().catch(() => "");
+        throw new Error(errorText || `HTTP ${res.status}`);
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        if (!chunk) continue;
+        if (!firstToken) {
+          firstToken = true;
+          setTyping(false);
+          setStreaming("");
         }
-      };
-      next();
-    }, 850 + Math.random() * 500);
+        received += chunk;
+        setStreaming(received);
+      }
+    } catch (err) {
+      if (controller.signal.aborted) return;
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Sorry — I hit an unexpected error. Try again in a moment.";
+      received =
+        received ||
+        `**Couldn't reach the AI.** ${msg}\n\nIf this keeps happening, book a 15-min call at /contact and a human can answer.`;
+    } finally {
+      setTyping(false);
+      setStreaming(null);
+      setMessages((m) => [...m, { role: "b", html: received }]);
+      setBusy(false);
+      setSugs(FOLLOWUPS_AFTER_REPLY);
+      abortRef.current = null;
+    }
   }
 
   return (
@@ -119,9 +143,10 @@ export function V4AiChat() {
             <span style={{ color: "var(--g)" }}>on autopilot.</span>
           </h2>
           <p>
-            Ask questions about your business in plain English. ZentraBite
-            knows your orders, customers, stock, and financials — and tells you
-            exactly what to do next.
+            Ask anything about ZentraBite in plain English — features, pricing,
+            integrations, comparisons. Inside a real account, the same co-pilot
+            also reads your orders, customers, stock, and financials, and tells
+            you exactly what to do next.
           </p>
           <div className="ai-bullets">
             <Bullet icon="📊">
@@ -156,7 +181,7 @@ export function V4AiChat() {
                 <div className="chat-nm">ZentraBite AI</div>
                 <div className="chat-st">
                   <span className="chat-st-dot" />
-                  Online · analysing your data
+                  Online · ready to answer
                 </div>
               </div>
             </div>
@@ -165,7 +190,9 @@ export function V4AiChat() {
                 <div key={i} className={`msg ${m.role}`}>
                   <div
                     className="msg-bub"
-                    dangerouslySetInnerHTML={{ __html: m.html.replace(/\n/g, "<br>") }}
+                    dangerouslySetInnerHTML={{
+                      __html: m.role === "b" ? renderMarkdown(m.html) : m.html.replace(/\n/g, "<br>"),
+                    }}
                   />
                   <div className="msg-t">Just now</div>
                 </div>
@@ -185,7 +212,7 @@ export function V4AiChat() {
                     className="msg-bub"
                     dangerouslySetInnerHTML={{
                       __html:
-                        streaming.replace(/\n/g, "<br>") +
+                        renderMarkdown(streaming) +
                         '<span style="display:inline-block;width:2px;height:11px;background:var(--g);animation:v4-blink .7s infinite;margin-left:1px;vertical-align:middle;border-radius:1px;"></span>',
                     }}
                   />
@@ -202,7 +229,7 @@ export function V4AiChat() {
             <div className="chat-in-row">
               <input
                 className="chat-inp"
-                placeholder="Ask anything about your business…"
+                placeholder="Ask anything about ZentraBite…"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {

@@ -27,11 +27,11 @@ const STYLES: Record<string, { bg: string; color: string }> = {
   Loyal:            { bg: "rgba(0,182,122,.12)",     color: "#00B67A" },
   Inactive:         { bg: "rgba(220,53,69,.12)",     color: "#FF4757" },
   "Direct User":    { bg: "rgba(99,130,246,.14)",    color: "#818CF8" },
-  "BiteBack Active":{ bg: "rgba(99,179,255,.14)",    color: "#63B3FF" },
+  "Zentra Rewards Active":{ bg: "rgba(99,179,255,.14)",    color: "#63B3FF" },
   Discount:         { bg: "rgba(0,182,122,.12)",     color: "#00B67A" },
   Freebie:          { bg: "rgba(245,158,11,.14)",    color: "#F59E0B" },
   Welcome:          { bg: "rgba(99,130,246,.14)",    color: "#818CF8" },
-  "BiteBack Active_net": { bg: "rgba(99,179,255,.14)", color: "#63B3FF" },
+  "Zentra Rewards Active_net": { bg: "rgba(99,179,255,.14)", color: "#63B3FF" },
 };
 
 export default function Badge({ type, children }: { type: string; children: React.ReactNode }) {

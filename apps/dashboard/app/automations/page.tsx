@@ -149,7 +149,7 @@ export default function AutomationsPage() {
 
       <Modal open={!!editing} onClose={() => setEditing(null)} title={isNew ? "New Automation" : `Edit: ${editing?.name ?? editing?.type}`} wide>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
-          <div><label>Name</label><input value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="e.g. Win-Back" /></div>
+          <div><label>Name</label><input value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="e.g. Zentra Rewards" /></div>
           <div><label>Type</label><select value={form.type} onChange={e=>setForm(f=>({...f,type:e.target.value}))}><option>SMS</option><option>Email</option></select></div>
         </div>
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>

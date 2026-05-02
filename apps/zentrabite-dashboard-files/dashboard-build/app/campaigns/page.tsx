@@ -6,7 +6,7 @@
 import PageHeader from "@/components/page-header";
 
 const CAMPAIGNS = [
-  { name: "Win-Back", trigger: "14 days inactive", sent: 312, converted: 94, rate: "30%", revenue: "$8,460", status: "active" },
+  { name: "Zentra Rewards", trigger: "14 days inactive", sent: 312, converted: 94, rate: "30%", revenue: "$8,460", status: "active" },
   { name: "Birthday Offer", trigger: "3 days before birthday", sent: 47, converted: 32, rate: "68%", revenue: "$2,880", status: "active" },
   { name: "Re-engage Uber", trigger: "Uber Eats order detected", sent: 156, converted: 64, rate: "41%", revenue: "$5,120", status: "active" },
   { name: "Order Confirm", trigger: "Order placed", sent: 1842, converted: null, rate: "—", revenue: "—", status: "active" },

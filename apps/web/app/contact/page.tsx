@@ -35,7 +35,7 @@ const CATEGORIES = [
 const MODULES = [
   { id: "orders", label: "Orders & POS" },
   { id: "loyalty", label: "Loyalty & rewards" },
-  { id: "campaigns", label: "Campaigns & winback" },
+  { id: "campaigns", label: "Campaigns & Zentra Rewards" },
   { id: "ai_calls", label: "AI phone ordering" },
   { id: "driver_dispatch", label: "Driver dispatch" },
   { id: "stock", label: "Stock / inventory" },
@@ -225,7 +225,7 @@ export default function ContactPage() {
                   <textarea
                     value={form.goals}
                     onChange={(e) => setForm({ ...form, goals: e.target.value })}
-                    placeholder="e.g. Cut third-party marketplace dependency. Lift repeat orders by 20%. Automate winback."
+                    placeholder="e.g. Cut third-party marketplace dependency. Lift repeat orders by 20%. Automate Zentra Rewards."
                     rows={4}
                     style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit" }}
                   />
