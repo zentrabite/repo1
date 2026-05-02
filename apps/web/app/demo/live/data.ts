@@ -102,11 +102,11 @@ export const orders: DemoOrder[] = [
 export const ordersByRecent = [...orders].sort((a, b) => (a.placedAt < b.placedAt ? 1 : -1));
 export const orderById: Record<string, DemoOrder> = Object.fromEntries(orders.map((o) => [o.id, o]));
 
-// ---- Zentra Rewards campaigns ----
+// ---- Win-Back campaigns ----
 export const campaigns: DemoCampaign[] = [
   {
     id: "wb01",
-    name: "30-day silent Zentra Rewards",
+    name: "30-day silent winback",
     channel: "sms",
     trigger: "Customer has not ordered in 30 days",
     status: "live",

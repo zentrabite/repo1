@@ -409,7 +409,7 @@ export async function getTopCustomer(businessId: string) {
   return (data ?? [])[0] ?? null;
 }
 
-// Top 3 Zentra Rewards rules by revenue recovered.
+// Top 3 win-back rules by revenue recovered.
 export async function getTopWinbacks(businessId: string, limit = 3) {
   const { data, error } = await supabase
     .from("winback_rules")

@@ -35,9 +35,9 @@ export default function SettingsPage() {
         </div>
 
         <div className="flex flex-col gap-4">
-          {/* ── ZENTRA REWARDS CONFIG ── */}
+          {/* ── WIN-BACK CONFIG ── */}
           <div className="rounded-2xl border border-white/[0.07] bg-[#1c2d48]/45 p-6 backdrop-blur-xl">
-            <h3 className="mb-5 font-heading text-[15px] font-semibold text-white">Zentra Rewards Config</h3>
+            <h3 className="mb-5 font-heading text-[15px] font-semibold text-white">Win-Back Config</h3>
             {[
               ["Engine Status", "✅ Active"],
               ["Inactivity Trigger", "14 days"],

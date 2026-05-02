@@ -22,7 +22,7 @@ const NAV: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/demo/live/reviews",     label: "Reviews",     icon: Star },
   { href: "/demo/live/customers",   label: "Customers",   icon: Users },
   { href: "/demo/live/rewards",     label: "Rewards",     icon: Gift },
-  { href: "/demo/live/zentra-rewards", label: "Zentra Rewards", icon: RotateCcw },
+  { href: "/demo/live/winback",        label: "Win-Back",      icon: RotateCcw },
   { href: "/demo/live/automations", label: "Automations", icon: Zap },
   { href: "/demo/live/analytics",   label: "Analytics",   icon: BarChart3 },
   { href: "/demo/live/financials",  label: "Financials",  icon: DollarSign },

@@ -21,7 +21,7 @@ const ALL_MODULES = [
   { key:"ai_calls",           label:"AI Voice Calls",       icon:"📞", price:79,  desc:"Inbound IVR + AI-handled calls via Twilio",              deps:[] },
   { key:"driver_dispatch",    label:"Driver Dispatch",      icon:"🛵", price:39,  desc:"In-house drivers, shift scheduling, live tracking",       deps:[] },
   { key:"stock",              label:"Stock & Inventory",    icon:"📦", price:29,  desc:"Par levels, expiry alerts, AI reorder suggestions",       deps:[] },
-  { key:"campaigns",          label:"Campaigns & Zentra Rewards", icon:"🎯", price:49,  desc:"Automated SMS/email retention rules",                deps:["loyalty"] },
+  { key:"campaigns",          label:"Campaigns & Win-Back", icon:"🎯", price:49,  desc:"Automated SMS/email retention rules",                     deps:["loyalty"] },
   { key:"sms",                label:"SMS",                  icon:"💬", price:19,  desc:"Twilio SMS send / receive",                              deps:[] },
   { key:"email",              label:"Email",                icon:"📧", price:14,  desc:"Resend transactional + marketing email",                  deps:[] },
   { key:"reviews",            label:"Reviews",              icon:"⭐", price:0,   desc:"Monitor and respond to customer reviews",                 deps:[] },

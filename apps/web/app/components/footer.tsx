@@ -10,7 +10,7 @@ export function Footer() {
         { label: "Features", href: "#features" },
         { label: "Demo", href: "/demo" },
         { label: "Storefronts", href: "#showcase" },
-        { label: "Zentra Rewards", href: "/features/zentra-rewards" },
+        { label: "Winback engine", href: "/features/winback" },
         { label: "Delivery routing", href: "#features" },
       ],
     },

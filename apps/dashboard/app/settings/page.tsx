@@ -526,14 +526,14 @@ function SettingsContent() {
             </button>
           </div>
 
-          {/* Zentra Rewards pointer */}
+          {/* Win-Back pointer */}
           <div className="gc" style={{ padding:24 }}>
-            <SectionTitle>Zentra Rewards rules</SectionTitle>
+            <SectionTitle>Win-Back rules</SectionTitle>
             <p style={{ fontFamily:"var(--font-inter)", fontSize:12, color:C.st, marginBottom:12, lineHeight:1.6 }}>
-              Inactivity triggers, discount amounts and message templates now live on the Zentra Rewards page — one rule per trigger so you can run several in parallel.
+              Inactivity triggers, discount amounts and message templates now live on the Win-Back page — one rule per trigger so you can run several in parallel.
             </p>
             <a href="/zentra-rewards" className="bp" style={{ textDecoration:"none", display:"inline-block" }}>
-              Open Zentra Rewards →
+              Open Win-Back →
             </a>
           </div>
         </div>

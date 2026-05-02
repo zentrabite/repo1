@@ -368,7 +368,7 @@ function CustomerDrawer({ customerId, onClose }: { customerId: string; onClose: 
           <div style={{ display: "grid", gap: 8 }}>
             <ActionButton label="Send personalised SMS" icon="💬" />
             <ActionButton label="Add to a campaign segment" icon="🎯" />
-            <ActionButton label="Send Zentra Rewards offer (20% off)" icon="🔁" />
+            <ActionButton label="Send winback offer (20% off)" icon="🔁" />
           </div>
 
           {/* Order history */}

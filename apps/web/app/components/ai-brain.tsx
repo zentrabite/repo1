@@ -80,7 +80,7 @@ export function AIBrain() {
                 {[
                   {
                     tone: "win",
-                    title: "Zentra Rewards recovered $840 last week",
+                    title: "Winback recovered $840 last week",
                     body: "Your lapsed-customer SMS flow brought 22 orders back. Want to boost it to weekly?",
                   },
                   {
@@ -91,7 +91,7 @@ export function AIBrain() {
                   {
                     tone: "alert",
                     title: "5 high-value customers haven't ordered in 21 days",
-                    body: "Combined LTV: $4,120. Send a personalised Zentra Rewards offer? One click.",
+                    body: "Combined LTV: $4,120. Send a personalised winback? One click.",
                   },
                   {
                     tone: "opportunity",
@@ -178,8 +178,8 @@ export function AIBrain() {
               {
                 icon: "🎯",
                 title: "One-click actions",
-                short: "Run a Zentra Rewards campaign, order stock, tweak the menu.",
-                body: "One-click execution: run a Zentra Rewards campaign, order stock, tweak a menu item, boost a campaign.",
+                short: "Run a winback, order stock, tweak the menu.",
+                body: "One-click execution: run a winback, order stock, tweak a menu item, boost a campaign.",
               },
             ].map((f) => (
               <div

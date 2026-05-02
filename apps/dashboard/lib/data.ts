@@ -46,7 +46,7 @@ export const CUSTOMERS: {
 // These are the product's built-in campaign types.
 // Stats (sent/conv/rev) come from Supabase once Twilio is wired up.
 export const CAMPAIGNS = [
-  { name:"Zentra Rewards",   trigger:"14 days inactive",       template:"Hey {name}, we miss you! $10 off your next order: {link}", type:"SMS",   status:"inactive", sent:0, conv:0, rev:0 },
+  { name:"Win-Back",         trigger:"14 days inactive",       template:"Hey {name}, we miss you! $10 off your next order: {link}", type:"SMS",   status:"inactive", sent:0, conv:0, rev:0 },
   { name:"Birthday",         trigger:"3 days before birthday", template:"Happy birthday {name}! Here's 15% off: {link}",           type:"SMS",   status:"inactive", sent:0, conv:0, rev:0 },
   { name:"Welcome",          trigger:"First order placed",     template:"Welcome {name}! 10% off your next order: {link}",         type:"Email", status:"inactive", sent:0, conv:0, rev:0 },
   { name:"Loyalty Milestone",trigger:"Customer hits 500 pts",  template:"You've unlocked Silver tier! $15 off: {link}",            type:"SMS",   status:"inactive", sent:0, conv:0, rev:0 },

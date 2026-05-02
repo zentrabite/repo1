@@ -31,7 +31,7 @@ Every module is wired together — orders inform automations, automations feed a
 10. **Reviews** — aggregated from Google, Uber Eats, DoorDash, Yelp, and the merchant's direct storefront. Reply inline, escalate bad ones to automations
 11. **Customers** — CRM database with full lifecycle tracking — first order, last order, lifetime value, tier, postcode, status (active / lapsing / lapsed)
 12. **Rewards** — Bronze / Silver / Gold / VIP loyalty tiers. Points-per-dollar, multipliers, free delivery thresholds, pay-with-points, birthday bonuses
-13. **Zentra Rewards** — automated SMS / email campaigns for lapsed customers. Cohort triggers (30-day silent, 60-day last chance), revenue attribution
+13. **Win-Back** — automated SMS / email campaigns for lapsed customers. Cohort triggers (30-day silent, 60-day last chance), revenue attribution
 14. **Automations** — trigger / action rules across the system (e.g. "review ≤ 3★ → manager Slack + auto-credit $10", "VIP places order → notify floor manager")
 15. **Analytics** — top items, channel mix, retention cohorts, postcode heatmap, hourly demand curves
 16. **Financials** — revenue, margins, fees, payouts, ROI per channel. Xero export (Phase 2)
@@ -47,7 +47,7 @@ Every module is wired together — orders inform automations, automations feed a
 
 # How it differs from common alternatives
 
-- **vs. Square** — Square is POS-first; ZentraBite is operations-first. Square doesn't have AI calls, smart delivery routing, or Zentra Rewards automations.
+- **vs. Square** — Square is POS-first; ZentraBite is operations-first. Square doesn't have AI calls, smart delivery routing, or customer win-back automations.
 - **vs. Toast** — Toast is restaurant-only and US-focused. ZentraBite is industry-agnostic, AU-built, multi-tenant from day one.
 - **vs. Shopify** — Shopify is great for retail e-commerce. ZentraBite covers retail too, but adds in-store POS, AI calls, delivery dispatch, rostering — the operations side Shopify doesn't touch.
 - **vs. Lightspeed / Vend** — Similar POS feature set, but ZentraBite's AI co-pilot, delivery routing, and direct-storefront play are unique.

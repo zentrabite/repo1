@@ -76,7 +76,7 @@ export default function SettingsPage() {
               onToggle={() => setSmsNotif((v) => !v)}
             />
             <Toggle
-              label="Zentra Rewards"
+              label="Winback engine"
               sub="Auto-send recovery offers"
               on={winbackOn}
               onToggle={() => setWinbackOn((v) => !v)}

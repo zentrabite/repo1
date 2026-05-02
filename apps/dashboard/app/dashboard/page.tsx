@@ -127,7 +127,7 @@ export default function DashboardPage() {
       <div style={{ display:"flex", gap:10, flexWrap:"wrap", marginBottom:14 }}>
         <StatCard label="Today's Revenue"      value={stats ? `$${stats.todayRevenue.toLocaleString()}` : "—"} accent icon="💰" />
         <StatCard label="Today's Orders"       value={stats ? String(stats.todayOrders) : "—"} icon="📋" delay={50} />
-        <StatCard label="Recovered (30d)"      value={recoveredRevenue ? `$${Math.round(recoveredRevenue).toLocaleString()}` : "—"} subtitle="Zentra Rewards revenue" icon="↩️" delay={100} />
+        <StatCard label="Recovered (30d)"      value={recoveredRevenue ? `$${Math.round(recoveredRevenue).toLocaleString()}` : "—"} subtitle="Win-back revenue" icon="↩️" delay={100} />
         <StatCard label="Repeat rate (30d)"    value={`${repeat.repeatRate}%`} subtitle={`${repeat.repeatCustomers}/${repeat.totalCustomers} customers`} icon="🔁" delay={150} accent={repeat.repeatRate > 30} />
         <StatCard label="Direct %"             value={stats?.directPct ? `${stats.directPct}%` : "—"} accent={stats ? stats.directPct > 60 : false} icon="📊" delay={200} />
       </div>
@@ -233,9 +233,9 @@ export default function DashboardPage() {
         </div>
 
         <div className="gc" style={{ padding:18 }}>
-          <div style={{ fontSize:11, color:C.st, textTransform:"uppercase", letterSpacing:.5, marginBottom:10 }}>Top Zentra Rewards campaigns</div>
+          <div style={{ fontSize:11, color:C.st, textTransform:"uppercase", letterSpacing:.5, marginBottom:10 }}>Top win-back campaigns</div>
           {topWinbacks.length === 0 ? (
-            <p style={{ fontSize:12, color:"rgba(255,255,255,.2)" }}>No Zentra Rewards rules configured</p>
+            <p style={{ fontSize:12, color:"rgba(255,255,255,.2)" }}>No win-back rules configured</p>
           ) : topWinbacks.map((w, i) => (
             <div key={w.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"8px 0", borderBottom: i < topWinbacks.length-1 ? "1px solid rgba(255,255,255,.05)" : undefined }}>
               <div>
