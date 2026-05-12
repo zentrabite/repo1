@@ -51,9 +51,9 @@ export async function POST(req: Request) {
           quantity: 1,
         },
       ],
-      // 14-day free trial — remove if you don't want a trial
+      // 1-month free trial
       subscription_data: {
-        trial_period_days: 14,
+        trial_period_days: 30,
         metadata: {
           zentrabite_business_id: business_id,
         },

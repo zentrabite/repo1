@@ -7,9 +7,39 @@ import {
 
 export const runtime = "nodejs";
 
+// ── In-memory rate limiter ────────────────────────────────────────────────────
+// 10 requests per IP per hour. Resets on server restart (fine for edge/serverless).
+const RATE_LIMIT = 10;
+const WINDOW_MS = 60 * 60 * 1000; // 1 hour
+
+const ipMap = new Map<string, { count: number; windowStart: number }>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = ipMap.get(ip);
+  if (!entry || now - entry.windowStart > WINDOW_MS) {
+    ipMap.set(ip, { count: 1, windowStart: now });
+    return false;
+  }
+  if (entry.count >= RATE_LIMIT) return true;
+  entry.count++;
+  return false;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 type IncomingMessage = { role: "user" | "assistant"; content: string };
 
 export async function POST(req: Request) {
+  // Rate limit by IP
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  if (isRateLimited(ip)) {
+    return new Response(
+      JSON.stringify({ error: "Too many requests. Please try again later." }),
+      { status: 429, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return new Response(
@@ -66,7 +96,7 @@ export async function POST(req: Request) {
       try {
         const messageStream = client.messages.stream({
           model: "claude-haiku-4-5",
-          max_tokens: 2048,
+          max_tokens: 512,
           system: [
             {
               type: "text",
