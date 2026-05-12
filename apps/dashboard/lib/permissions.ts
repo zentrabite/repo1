@@ -23,6 +23,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
   // Staff floor / kitchen — see their work, not the numbers.
   Staff: [
     "/dashboard",
+    "/copilot",
     "/orders",
     "/fulfillment",
     "/menu",

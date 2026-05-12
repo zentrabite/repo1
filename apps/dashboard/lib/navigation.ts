@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, ShoppingBag, Users, Zap,
   UtensilsCrossed, Package, DollarSign, Star, Gift, RotateCcw, Settings, Monitor, Truck,
-  Bot, Calendar, BarChart3, PackageCheck, UserCog,
+  Bot, Calendar, BarChart3, PackageCheck, UserCog, Sparkles,
   type LucideIcon,
 } from "lucide-react";
 
@@ -15,6 +15,7 @@ export interface NavItem {
 
 export const navigation: NavItem[] = [
   { label: "Dashboard",   href: "/dashboard",   icon: LayoutDashboard,  emoji: "📊", description: "Today's snapshot and key metrics" },
+  { label: "AI Copilot",  href: "/copilot",     icon: Sparkles,         emoji: "✨", description: "Ask your business anything — live data + AI" },
   { label: "Orders",      href: "/orders",      icon: ShoppingBag,      emoji: "📋", description: "Live order board & order history" },
   { label: "Fulfillment", href: "/fulfillment", icon: PackageCheck,     emoji: "📦", description: "Pick, pack, ship & track e-commerce orders" },
   { label: "POS",         href: "/pos",         icon: Monitor,          emoji: "🖥️", description: "Point of sale · take orders at the counter" },
