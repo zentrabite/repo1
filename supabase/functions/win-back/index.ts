@@ -141,12 +141,13 @@ serve(async () => {
             channel:     rule.channel ?? "sms",
           });
 
-          // 6. Log to campaign_events for attribution tracking on /biteback
+          // 6. Log to campaign_events for attribution tracking
           await db.from("campaign_events").insert({
-            business_id: business.id,
-            customer_id: customer.id,
-            event_type:  "win_back_sent",
-            metadata:    { rule_id: rule.id, rule_name: rule.name, offer_type: rule.offer_type },
+            business_id:     business.id,
+            customer_id:     customer.id,
+            winback_rule_id: rule.id,
+            event_type:      "sent",
+            coupon_code:     discountCode,
           });
 
           results.sent++;

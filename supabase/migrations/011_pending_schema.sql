@@ -221,27 +221,33 @@ ALTER TABLE business_members   ENABLE ROW LEVEL SECURITY;
 
 -- Helper: resolve business_id for the current user
 -- (re-uses the pattern from existing migrations)
-CREATE POLICY IF NOT EXISTS "Tenant: loyalty_events"
+DROP POLICY IF EXISTS "Tenant: loyalty_events" ON loyalty_events;
+CREATE POLICY "Tenant: loyalty_events"
   ON loyalty_events FOR ALL
   USING (business_id = (SELECT business_id FROM users WHERE id = auth.uid()));
 
-CREATE POLICY IF NOT EXISTS "Tenant: rewards_catalogue"
+DROP POLICY IF EXISTS "Tenant: rewards_catalogue" ON rewards_catalogue;
+CREATE POLICY "Tenant: rewards_catalogue"
   ON rewards_catalogue FOR ALL
   USING (business_id = (SELECT business_id FROM users WHERE id = auth.uid()));
 
-CREATE POLICY IF NOT EXISTS "Tenant: reward_redemptions"
+DROP POLICY IF EXISTS "Tenant: reward_redemptions" ON reward_redemptions;
+CREATE POLICY "Tenant: reward_redemptions"
   ON reward_redemptions FOR ALL
   USING (business_id = (SELECT business_id FROM users WHERE id = auth.uid()));
 
-CREATE POLICY IF NOT EXISTS "Tenant: reviews"
+DROP POLICY IF EXISTS "Tenant: reviews" ON reviews;
+CREATE POLICY "Tenant: reviews"
   ON reviews FOR ALL
   USING (business_id = (SELECT business_id FROM users WHERE id = auth.uid()));
 
-CREATE POLICY IF NOT EXISTS "Tenant: drivers"
+DROP POLICY IF EXISTS "Tenant: drivers" ON drivers;
+CREATE POLICY "Tenant: drivers"
   ON drivers FOR ALL
   USING (business_id = (SELECT business_id FROM users WHERE id = auth.uid()));
 
-CREATE POLICY IF NOT EXISTS "Tenant: business_members"
+DROP POLICY IF EXISTS "Tenant: business_members" ON business_members;
+CREATE POLICY "Tenant: business_members"
   ON business_members FOR ALL
   USING (business_id = (SELECT business_id FROM users WHERE id = auth.uid()));
 
@@ -253,15 +259,18 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('business-logos', 'business-logos', true)
 ON CONFLICT (id) DO NOTHING;
 
-CREATE POLICY IF NOT EXISTS "Public logo read"
+DROP POLICY IF EXISTS "Public logo read" ON storage.objects;
+CREATE POLICY "Public logo read"
   ON storage.objects FOR SELECT
   USING (bucket_id = 'business-logos');
 
-CREATE POLICY IF NOT EXISTS "Auth logo write"
+DROP POLICY IF EXISTS "Auth logo write" ON storage.objects;
+CREATE POLICY "Auth logo write"
   ON storage.objects FOR INSERT
   WITH CHECK (bucket_id = 'business-logos' AND auth.role() = 'authenticated');
 
-CREATE POLICY IF NOT EXISTS "Auth logo update"
+DROP POLICY IF EXISTS "Auth logo update" ON storage.objects;
+CREATE POLICY "Auth logo update"
   ON storage.objects FOR UPDATE
   USING (bucket_id = 'business-logos' AND auth.role() = 'authenticated');
 
@@ -276,7 +285,7 @@ SELECT cron.schedule(
   '0 16 * * *',
   $$SELECT net.http_post(
     url     := 'https://ojwzberovbhgnwfpgaoh.supabase.co/functions/v1/nightly-analytics',
-    headers := '{"Authorization":"Bearer YOUR_ANON_KEY"}'::jsonb
+    headers := '{"Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qd3piZXJvdmJoZ253ZnBnYW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMDUwNTQsImV4cCI6MjA5MTc4MTA1NH0.SZB_MG8eMjZQUI9xwvWPaxTbv6CX2_tjaKKozGjfm8c"}'::jsonb
   )$$
 );
 
@@ -286,7 +295,7 @@ SELECT cron.schedule(
   '0 23 * * *',
   $$SELECT net.http_post(
     url     := 'https://ojwzberovbhgnwfpgaoh.supabase.co/functions/v1/win-back',
-    headers := '{"Authorization":"Bearer YOUR_ANON_KEY"}'::jsonb
+    headers := '{"Authorization":"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qd3piZXJvdmJoZ253ZnBnYW9oIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMDUwNTQsImV4cCI6MjA5MTc4MTA1NH0.SZB_MG8eMjZQUI9xwvWPaxTbv6CX2_tjaKKozGjfm8c"}'::jsonb
   )$$
 );
 

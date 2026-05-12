@@ -87,45 +87,35 @@ ALTER TABLE delivery_quotes ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "delivery_jobs_tenant_select" ON delivery_jobs
   FOR SELECT USING (
     business_id IN (
-      SELECT business_id FROM business_members WHERE user_id = auth.uid()
-      UNION
-      SELECT id FROM businesses WHERE owner_id = auth.uid()
+      SELECT business_id FROM users WHERE id = auth.uid()
     )
   );
 
 CREATE POLICY "delivery_jobs_tenant_insert" ON delivery_jobs
   FOR INSERT WITH CHECK (
     business_id IN (
-      SELECT business_id FROM business_members WHERE user_id = auth.uid()
-      UNION
-      SELECT id FROM businesses WHERE owner_id = auth.uid()
+      SELECT business_id FROM users WHERE id = auth.uid()
     )
   );
 
 CREATE POLICY "delivery_jobs_tenant_update" ON delivery_jobs
   FOR UPDATE USING (
     business_id IN (
-      SELECT business_id FROM business_members WHERE user_id = auth.uid()
-      UNION
-      SELECT id FROM businesses WHERE owner_id = auth.uid()
+      SELECT business_id FROM users WHERE id = auth.uid()
     )
   );
 
 CREATE POLICY "delivery_quotes_tenant_select" ON delivery_quotes
   FOR SELECT USING (
     business_id IN (
-      SELECT business_id FROM business_members WHERE user_id = auth.uid()
-      UNION
-      SELECT id FROM businesses WHERE owner_id = auth.uid()
+      SELECT business_id FROM users WHERE id = auth.uid()
     )
   );
 
 CREATE POLICY "delivery_quotes_tenant_insert" ON delivery_quotes
   FOR INSERT WITH CHECK (
     business_id IN (
-      SELECT business_id FROM business_members WHERE user_id = auth.uid()
-      UNION
-      SELECT id FROM businesses WHERE owner_id = auth.uid()
+      SELECT business_id FROM users WHERE id = auth.uid()
     )
   );
 
