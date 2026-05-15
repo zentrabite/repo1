@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
 import { getMenu } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
+import { getLoyaltySettings, pointsForOrder, awardPoints } from "@/lib/loyalty";
 import type { MenuItem } from "@/lib/database.types";
 import type { DeliveryFeeBreakdown } from "@/lib/delivery-types";
 
@@ -159,11 +160,11 @@ export default function POSPage() {
 
       await supabase.from("orders").insert(orderRecord);
 
-      // Update customer stats
+      // Update customer stats + award loyalty points via the central engine
       if (customerId) {
         const { data: cust } = await supabase
           .from("customers")
-          .select("total_orders, total_spent, points_balance")
+          .select("total_orders, total_spent")
           .eq("id", customerId)
           .single();
         if (cust) {
@@ -171,8 +172,19 @@ export default function POSPage() {
             last_order_date: new Date().toISOString(),
             total_orders:    cust.total_orders + 1,
             total_spent:     Number(cust.total_spent) + grandTotal,
-            points_balance:  cust.points_balance + Math.round(grandTotal * 10),
           }).eq("id", customerId);
+
+          // POS orders are always "direct" channel
+          const settings = await getLoyaltySettings(businessId);
+          const { points, multiplier } = pointsForOrder(grandTotal, "direct", settings);
+          await awardPoints({
+            businessId,
+            customerId,
+            points,
+            multiplier,
+            eventType: "order",
+            source:    "pos",
+          });
         }
       }
 
