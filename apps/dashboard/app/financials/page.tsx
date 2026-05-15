@@ -145,19 +145,29 @@ export default function FinancialsPage() {
         </div>
       </div>
 
-      {/* Xero — coming soon */}
+      {/* Xero export */}
       <div className="gc" style={{ padding:22, marginBottom:12 }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
           <div style={{ display:"flex", gap:10, alignItems:"center" }}>
             <span style={{ fontSize:22 }}>📗</span>
             <div>
               <div style={{ fontWeight:600, color:"#fff", fontSize:14 }}>Xero Accounting</div>
-              <div style={{ fontSize:11, color:C.st, marginTop:2 }}>Auto-export revenue reports to Xero — coming soon</div>
+              <div style={{ fontSize:11, color:C.st, marginTop:2 }}>Download a CSV of the last 30 days of orders, ready to import into Xero</div>
             </div>
           </div>
-          <span style={{ padding:"4px 12px", borderRadius:999, background:"rgba(107,124,147,.14)", color:C.st, fontSize:11, fontWeight:600, fontFamily:"var(--font-outfit)", border:"1px solid rgba(107,124,147,.2)" }}>
-            Coming Soon
-          </span>
+          <a
+            href="/api/export/xero"
+            download
+            style={{
+              padding:"8px 16px", borderRadius:8,
+              background:"rgba(0,182,122,.12)", color:C.g,
+              fontSize:12, fontWeight:600, fontFamily:"var(--font-outfit)",
+              border:"1px solid rgba(0,182,122,.25)",
+              textDecoration:"none", whiteSpace:"nowrap",
+            }}
+          >
+            Download CSV →
+          </a>
         </div>
       </div>
 

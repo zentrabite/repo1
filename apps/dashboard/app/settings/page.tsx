@@ -674,7 +674,23 @@ function SettingsContent() {
                     {subscriptionStatus === "trialing" ? "✓ Free trial active — 1 month remaining" : "✓ Subscription active"}
                   </div>
                 </div>
-                <button className="bg-btn" style={{ width:"100%", justifyContent:"center" }} onClick={() => window.open("https://dashboard.stripe.com/subscriptions", "_blank")}>
+                <button
+                  className="bg-btn"
+                  style={{ width:"100%", justifyContent:"center" }}
+                  onClick={async () => {
+                    try {
+                      const res = await fetch("/api/stripe/portal", { method: "POST" });
+                      const data = await res.json();
+                      if (data.url) {
+                        window.location.href = data.url;
+                      } else {
+                        show(data.error ?? "Could not open billing portal");
+                      }
+                    } catch {
+                      show("Could not open billing portal");
+                    }
+                  }}
+                >
                   Manage Subscription ↗
                 </button>
               </div>
