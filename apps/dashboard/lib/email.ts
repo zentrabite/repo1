@@ -3,7 +3,7 @@
 //
 // ENV:
 //   RESEND_API_KEY          — pk/sk from resend.com
-//   RESEND_FROM_EMAIL       — optional; defaults to "ZentraBite <hello@zentrabite.com.au>"
+//   RESEND_FROM_EMAIL       — optional; defaults to "ZentraBite <hello@zentrabite.com>"
 //   NEXT_PUBLIC_APP_URL     — used for links in templates
 //
 // If RESEND_API_KEY is unset the helper no-ops — useful for local dev so you
@@ -29,7 +29,7 @@ export async function sendEmail(input: SendEmailInput): Promise<EmailResult> {
     return { ok: false, error: "RESEND_API_KEY not set", skipped: true };
   }
 
-  const from = input.from ?? process.env.RESEND_FROM_EMAIL ?? "ZentraBite <hello@zentrabite.com.au>";
+  const from = input.from ?? process.env.RESEND_FROM_EMAIL ?? "ZentraBite <hello@zentrabite.com>";
   const html = input.html ?? `<pre style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;line-height:1.6;color:#0F1F2D;white-space:pre-wrap">${escapeHtml(input.text)}</pre>`;
 
   try {

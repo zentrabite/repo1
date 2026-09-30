@@ -78,18 +78,18 @@ async function handlePaymentSucceeded(pi: Stripe.PaymentIntent) {
     // Try to find existing customer by phone
     const { data: existing } = await db
       .from("customers")
-      .select("id, total_orders, total_spent")
+      .select("id, total_orders, total_spent, points_balance")
       .eq("business_id", business_id)
       .eq("phone", customer_phone)
-      .single();
+      .maybeSingle();
 
     if (existing) {
       // Update existing customer
       await db.from("customers").update({
         last_order_date: new Date().toISOString(),
         total_orders:    existing.total_orders + 1,
-        total_spent:     existing.total_spent + (pi.amount / 100),
-        points_balance:  existing.points_balance + Math.round(pi.amount / 10), // 10 pts per $1
+        total_spent:     Number(existing.total_spent ?? 0) + (pi.amount / 100),
+        points_balance:  Number(existing.points_balance ?? 0) + Math.round(pi.amount / 10), // 10 pts per $1
       }).eq("id", existing.id);
       customerId = existing.id;
     } else {
@@ -150,16 +150,43 @@ async function handlePaymentSucceeded(pi: Stripe.PaymentIntent) {
 }
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+  const meta = session.metadata ?? {};
   const {
     business_id, customer_name, customer_phone, customer_email, items, source,
-    fulfillment_type, delivery_address, delivery_fee, delivery_tier,
-  } = session.metadata ?? {};
+    fulfillment_type, delivery_address, delivery_fee,
+  } = meta;
   if (!business_id || source !== "storefront") return;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = createServerClient() as any;
   const amount = (session.amount_total ?? 0) / 100;
-  const parsedItems = items ? JSON.parse(items) : [];
+  const marketingOptIn = meta.marketing_opt_in === "1";
+
+  // Idempotency: Stripe can deliver the same event more than once.
+  if (session.payment_intent) {
+    const { data: already } = await db.from("orders").select("id")
+      .eq("stripe_payment_id", session.payment_intent as string).maybeSingle();
+    if (already) return;
+  }
+
+  // Items: new checkouts send compact [{id, qty}] split over items_0, items_1…
+  // (Stripe metadata values max out at 500 chars). Names and prices are read
+  // back from the menu. Older sessions sent full items in "items".
+  const chunkKeys = Object.keys(meta).filter(k => /^items_\d+$/.test(k))
+    .sort((a, b) => Number(a.slice(6)) - Number(b.slice(6)));
+  let parsedItems: unknown[] = [];
+  if (chunkKeys.length > 0) {
+    const compact = JSON.parse(chunkKeys.map(k => meta[k]).join("")) as { id: string; qty: number }[];
+    const { data: menuRows } = await db.from("menu_items").select("id, name, price")
+      .eq("business_id", business_id).in("id", compact.map(c => c.id));
+    const byId = new Map((menuRows ?? []).map((m: { id: string; name: string; price: number }) => [m.id, m]));
+    parsedItems = compact.map(c => {
+      const m = byId.get(c.id) as { name: string; price: number } | undefined;
+      return { id: c.id, name: m?.name ?? "Item", price: Number(m?.price ?? 0), qty: c.qty };
+    });
+  } else if (items) {
+    parsedItems = JSON.parse(items);
+  }
 
   // Upsert customer
   let customerId: string | null = null;
@@ -168,12 +195,19 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     const matchValue = customer_phone || customer_email;
     const { data: existing } = await db.from("customers").select("id, total_orders, total_spent, points_balance").eq("business_id", business_id).eq(matchField, matchValue).maybeSingle();
 
+    // Consent is only ever switched ON here, and only from the tick box.
+    // Withdrawing consent happens through STOP or the unsubscribe link.
+    const consent = marketingOptIn
+      ? { marketing_opt_in: true, marketing_opt_in_at: new Date().toISOString(), marketing_opt_in_source: "checkout" }
+      : {};
+
     if (existing) {
       await db.from("customers").update({
         last_order_date: new Date().toISOString(),
-        total_orders:    existing.total_orders + 1,
-        total_spent:     Number(existing.total_spent) + amount,
-        points_balance:  existing.points_balance + Math.round(amount * 10),
+        total_orders:    Number(existing.total_orders ?? 0) + 1,
+        total_spent:     Number(existing.total_spent ?? 0) + amount,
+        points_balance:  Number(existing.points_balance ?? 0) + Math.round(amount * 10),
+        ...consent,
       }).eq("id", existing.id);
       customerId = existing.id;
     } else {
@@ -183,6 +217,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         source: "direct", segment: "New",
         first_order: new Date().toISOString(), last_order_date: new Date().toISOString(),
         total_orders: 1, total_spent: amount, points_balance: Math.round(amount * 10),
+        ...consent,
       }).select("id").single();
       customerId = newCust?.id ?? null;
     }

@@ -17,22 +17,58 @@
 //                                  testing without a full voice stack.
 
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase-server";
+import { createAdminClient } from "@/lib/supabase-server";
+import { requireBusiness } from "@/lib/request-business";
+
+// Outbound calls cost real money and fall under telemarketing rules, so they
+// are tightly limited per business.
+const CALLS_PER_MINUTE = 3;
+const CALLS_PER_DAY    = 50;
 
 export async function POST(req: Request) {
   try {
-    const { businessId, customerId, phone, reason } = await req.json() as {
-      businessId: string;
+    const { businessId: requestedBusinessId, customerId, reason } = await req.json() as {
+      businessId?: string;
       customerId?: string;
-      phone:      string;
-      reason?:    string;
+      phone?:      string;
+      reason?:     string;
     };
 
-    if (!businessId || !phone) {
-      return NextResponse.json(
-        { error: "businessId and phone are required" },
-        { status: 400 }
-      );
+    // Business comes from the login, never from the request body.
+    const auth = await requireBusiness(requestedBusinessId);
+    if (!auth.ok) return auth.response;
+    const { businessId } = auth;
+
+    // Only call customers of this business, on their saved number.
+    if (!customerId) {
+      return NextResponse.json({ error: "customerId is required" }, { status: 400 });
+    }
+    const db = createAdminClient();
+    const { data: customer } = await db
+      .from("customers")
+      .select("id, phone, opted_out")
+      .eq("id", customerId)
+      .eq("business_id", businessId)
+      .maybeSingle();
+    if (!customer) return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+    if (customer.opted_out) return NextResponse.json({ error: "This customer has opted out of marketing contact" }, { status: 409 });
+    if (!customer.phone) return NextResponse.json({ error: "This customer has no phone number" }, { status: 400 });
+    const phone = customer.phone as string;
+
+    // Rate limits, counted from the call log.
+    const now = Date.now();
+    const [minuteRes, dayRes] = await Promise.all([
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (db.from("campaign_events") as any).select("id", { count: "exact", head: true })
+        .eq("business_id", businessId).eq("event_type", "ai_call_started")
+        .gte("created_at", new Date(now - 60_000).toISOString()),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (db.from("campaign_events") as any).select("id", { count: "exact", head: true })
+        .eq("business_id", businessId).eq("event_type", "ai_call_started")
+        .gte("created_at", new Date(now - 86_400_000).toISOString()),
+    ]);
+    if ((minuteRes.count ?? 0) >= CALLS_PER_MINUTE || (dayRes.count ?? 0) >= CALLS_PER_DAY) {
+      return NextResponse.json({ error: "Call limit reached. Try again later." }, { status: 429 });
     }
 
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -47,7 +83,6 @@ export async function POST(req: Request) {
     }
 
     // Load the business's AI profile so the voice provider can personalise the call.
-    const db = createServerClient();
     const { data: profile } = await db
       .from("ai_call_profiles")
       .select("enabled, voice, personality, greeting, faq_context, escalation_phone, take_orders, take_bookings, send_followup_sms")
@@ -114,8 +149,9 @@ export async function POST(req: Request) {
       business_id:    businessId,
       customer_id:    customerId ?? null,
       event_type:     "ai_call_started",
-      channel:        "voice",
-      reference_id:   data.sid,
+      // Only real campaign_events columns here. The old insert also sent
+      // channel and reference_id, which don't exist, so every insert failed
+      // silently and nothing was logged. The rate limit above counts these rows.
     }).then(() => undefined, () => undefined);
 
     return NextResponse.json({ success: true, callSid: data.sid, status: data.status });

@@ -120,7 +120,7 @@ export default function NewOnboardingPage() {
               placeholder="joes-pizza"
             />
             <div style={{ fontSize: 11, color: C.st, marginTop: 4 }}>
-              {subdomain ? `${subdomain}.shop.zentrabite.com.au` : "Auto-suggested from the name"}
+              {subdomain ? `${subdomain}.shop.zentrabite.com` : "Auto-suggested from the name"}
             </div>
           </Field>
         </div>

@@ -15,19 +15,21 @@
 
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
-import { createServerClient } from "@/lib/supabase-server";
+import { createAdminClient } from "@/lib/supabase-server";
+import { requireBusiness } from "@/lib/request-business";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const { business_id: requestedBusinessId } = body as { business_id?: string };
 
-    const { business_id } = body as { business_id: string };
+    // Business comes from the login. Super admins can act for the business
+    // they're onboarding; merchants only for their own.
+    const auth = await requireBusiness(requestedBusinessId);
+    if (!auth.ok) return auth.response;
+    const business_id = auth.businessId;
 
-    if (!business_id) {
-      return NextResponse.json({ error: "business_id is required" }, { status: 400 });
-    }
-
-    const db = createServerClient();
+    const db = createAdminClient();
 
     // ── Step 1: Check for an existing Stripe account on this business ─────
     const { data: biz } = await db

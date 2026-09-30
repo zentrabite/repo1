@@ -1,6 +1,9 @@
 // ═══════════════════════════════════════════════════════════════════════════
 // ZentraBite — Win-Back Edge Function
 // Runs daily at 9:00 AM ACST via Supabase cron (scheduled in migration 011).
+// Only texts customers with marketing_opt_in = true and opted_out = false
+// (columns added in migration 015). Redeploy after merging:
+//   supabase functions deploy win-back
 //
 // Deploy: supabase functions deploy win-back
 //
@@ -28,6 +31,23 @@ function generateDiscountCode(businessName: string): string {
 
 function buildSMS(template: string, vars: Record<string, string>): string {
   return template.replace(/\{(\w+)\}/g, (_, key) => vars[key] ?? `{${key}}`);
+}
+
+// Spam Act: name the sender and give a working opt-out on every text.
+// STOP replies are handled by the dashboard's /api/sms/inbound route.
+function withSenderAndOptOut(message: string, businessName: string): string {
+  let text = message.trim();
+  if (businessName && !text.toLowerCase().includes(businessName.toLowerCase())) text = `${businessName}: ${text}`;
+  if (!/reply\s+stop/i.test(text)) text = `${text} Reply STOP to opt out`;
+  return text;
+}
+
+// Ordering page link. Wildcard subdomains once STOREFRONT_HOST is set,
+// otherwise the working /store page on the CRM domain.
+const STOREFRONT_HOST = Deno.env.get("STOREFRONT_HOST");
+const APP_URL = (Deno.env.get("APP_URL") ?? "https://dashboard.zentrabite.com").replace(/\/$/, "");
+function storefrontUrl(subdomain: string): string {
+  return STOREFRONT_HOST ? `https://${subdomain}.${STOREFRONT_HOST}` : `${APP_URL}/store/${subdomain}`;
 }
 
 async function sendSMS(to: string, body: string): Promise<string> {
@@ -79,6 +99,7 @@ serve(async () => {
         .select("id, name, phone, opted_out")
         .eq("business_id", business.id)
         .eq("opted_out", false)
+        .eq("marketing_opt_in", true)   // only customers who ticked the consent box
         .lte("last_order_date", triggerDate.toISOString())
         .not("phone", "is", null);
 
@@ -106,7 +127,7 @@ serve(async () => {
         results.processed++;
         try {
           const discountCode = generateDiscountCode(business.name);
-          const storefront   = `https://${business.subdomain}.zentrabite.com.au`;
+          const storefront   = storefrontUrl(business.subdomain);
           const linkWithCode = `${storefront}?code=${discountCode}`;
 
           const offerLabel =
@@ -116,7 +137,7 @@ serve(async () => {
             rule.offer_type === "free_item"      ? "a free item"                    :
             `${rule.offer_value} off`;
 
-          const smsBody = buildSMS(
+          const smsBody = withSenderAndOptOut(buildSMS(
             rule.template ?? "Hey {name}, we miss you at {business}! Here's {offer} on your next order: {link}",
             {
               name:     customer.name.split(" ")[0],
@@ -125,7 +146,7 @@ serve(async () => {
               link:     linkWithCode,
               amount:   String(rule.offer_value),
             }
-          );
+          ), business.name);
 
           const twilioSid = await sendSMS(customer.phone, smsBody);
 

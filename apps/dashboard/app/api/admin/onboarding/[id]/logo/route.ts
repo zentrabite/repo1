@@ -6,6 +6,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import { assertSuperAdmin } from "@/lib/admin-auth";
+import { checkImage } from "@/lib/image-check";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,18 +25,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!file) return NextResponse.json({ error: "No file" }, { status: 400 });
   if (file.size > MAX_BYTES) return NextResponse.json({ error: "File too large (max 5 MB)" }, { status: 400 });
 
-  const ext = (file.name.split(".").pop() || "png").toLowerCase();
-  if (!["png", "jpg", "jpeg", "webp", "svg"].includes(ext)) {
-    return NextResponse.json({ error: "Unsupported file type" }, { status: 400 });
-  }
-
+  // Real file type from the bytes. SVG is refused because it can carry scripts.
   const buffer = Buffer.from(await file.arrayBuffer());
-  const path = `logos/${businessId}/${Date.now()}.${ext}`;
+  const image = checkImage(buffer, ["png", "jpg", "webp"]);
+  if (!image.ok) return NextResponse.json({ error: image.error }, { status: 400 });
+
+  const path = `logos/${businessId}/${Date.now()}.${image.kind}`;
   const db = createAdminClient();
 
   const { error: uploadErr } = await db.storage.from(BUCKET).upload(path, buffer, {
-    contentType: file.type,
-    upsert: true,
+    contentType: image.contentType,
+    upsert: false,
   });
   if (uploadErr) return NextResponse.json({ error: uploadErr.message }, { status: 500 });
 

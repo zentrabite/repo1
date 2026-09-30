@@ -130,7 +130,7 @@ async function buildBusinessContext(businessId: string): Promise<string> {
 === BUSINESS SNAPSHOT (live data — ${new Date().toLocaleString("en-AU")}) ===
 
 Business: ${biz?.name ?? "Unknown"} (${biz?.type ?? "—"})
-Storefront: ${biz?.subdomain ? `https://${biz.subdomain}.zentrabite.com.au` : "not set"}
+Storefront: ${biz?.subdomain ? `https://${biz.subdomain}.zentrabite.com` : "not set"}
 
 TODAY:
 - Orders: ${todayOrders.length} (${newStatus} new awaiting action)
