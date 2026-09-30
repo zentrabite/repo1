@@ -65,7 +65,26 @@ export async function POST(req: Request) {
     if (!business) return NextResponse.json({ error: "Business not found" }, { status: 404 });
 
     const connectedAccount = business.stripe_account_id as string | null;
-    if (!connectedAccount || !business.stripe_charges_enabled) {
+    let chargesEnabled = Boolean(business.stripe_charges_enabled);
+
+    // The flag is normally kept fresh by the account.updated webhook, which
+    // needs a Connect webhook endpoint in Stripe. If it's still false, ask
+    // Stripe directly and save the answer.
+    if (connectedAccount && !chargesEnabled) {
+      try {
+        const acct = await stripe.accounts.retrieve(connectedAccount);
+        chargesEnabled = Boolean(acct.charges_enabled);
+        await db.from("businesses").update({
+          stripe_charges_enabled:   acct.charges_enabled ?? false,
+          stripe_payouts_enabled:   acct.payouts_enabled ?? false,
+          stripe_details_submitted: acct.details_submitted ?? false,
+        }).eq("id", business.id);
+      } catch (err) {
+        console.error("[store/checkout] account check failed", err instanceof Error ? err.message : err);
+      }
+    }
+
+    if (!connectedAccount || !chargesEnabled) {
       return NextResponse.json(
         { error: "This restaurant isn't taking online payments yet. Please order by phone." },
         { status: 409 },
@@ -105,6 +124,9 @@ export async function POST(req: Request) {
       })),
       mode: "payment",
       customer_email: clip(customer?.email) || undefined,
+      // No application fee yet, so Stripe's processing fee on each order is
+      // taken from ZentraBite's platform balance. Decide before launch whether
+      // to add application_fee_amount here to pass it on.
       // Money goes to the restaurant's Stripe account, not ZentraBite's.
       payment_intent_data: {
         on_behalf_of:  connectedAccount,

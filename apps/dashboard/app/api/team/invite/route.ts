@@ -32,7 +32,10 @@ type InviteBody = {
 
 export async function POST(req: Request) {
   try {
-    const { email, businessId: requestedBusinessId, role = "Staff" } = (await req.json()) as InviteBody;
+    const body = (await req.json()) as InviteBody;
+    const { businessId: requestedBusinessId, role = "Staff" } = body;
+    // Stored lowercase so it matches the login email later.
+    const email = (body.email ?? "").trim().toLowerCase();
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json({ error: "Valid email required" }, { status: 400 });
@@ -58,23 +61,7 @@ export async function POST(req: Request) {
 
     // Only owners, managers and super admins can invite. Only owners and
     // super admins can create another Owner.
-    let inviterRole = "Staff";
-    if (auth.isSuperAdmin) {
-      inviterRole = "Owner";
-    } else {
-      const { data: me } = await admin.from("users").select("business_id").eq("id", inviter.id).maybeSingle();
-      if (me?.business_id === businessId) {
-        inviterRole = "Owner";
-      } else if (inviter.email) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: member } = await (admin.from("business_members") as any)
-          .select("role")
-          .eq("business_id", businessId)
-          .in("email", [...new Set([inviter.email, inviter.email.toLowerCase()])])
-          .maybeSingle();
-        inviterRole = member?.role ?? "Staff";
-      }
-    }
+    const inviterRole = auth.role;
     if (inviterRole !== "Owner" && inviterRole !== "Manager") {
       return NextResponse.json({ error: "Only owners and managers can invite team members" }, { status: 403 });
     }

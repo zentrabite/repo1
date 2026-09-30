@@ -20,7 +20,7 @@
 import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
-import { isStartKeyword, isStopKeyword, normaliseAuPhone } from "@/lib/sms";
+import { isStartKeyword, isStopKeyword, normaliseAuPhone, phoneVariants } from "@/lib/sms";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -59,9 +59,8 @@ export async function POST(req: Request) {
   const body = params.Body ?? "";
   if (!from) return twiml();
 
-  // Customer phones may be saved as 04xx, +614xx or 614xx. Match all forms.
-  const local = from.startsWith("+61") ? `0${from.slice(3)}` : from;
-  const variants = [...new Set([from, local, from.replace(/^\+/, "")])];
+  // Customer phones may be saved as 04xx, +614xx, 614xx or with spaces.
+  const variants = phoneVariants(from);
 
   const db = createAdminClient();
 

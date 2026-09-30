@@ -19,7 +19,7 @@
 import { NextResponse } from "next/server";
 import { stripe, PRICES } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase-server";
-import { requireBusiness } from "@/lib/request-business";
+import { MANAGER_ROLES, requireBusiness } from "@/lib/request-business";
 
 const TRIAL_DAYS = 30;
 
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({}));
     const { business_id: requestedBusinessId } = body as { business_id?: string };
 
-    const auth = await requireBusiness(requestedBusinessId);
+    const auth = await requireBusiness(requestedBusinessId, { roles: MANAGER_ROLES });
     if (!auth.ok) return auth.response;
     const { businessId, email } = auth;
 

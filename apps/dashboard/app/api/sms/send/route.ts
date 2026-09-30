@@ -11,8 +11,8 @@
 
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
-import { requireBusiness } from "@/lib/request-business";
-import { checkSmsAllowance, sendTwilioSms, withSenderAndOptOut } from "@/lib/sms";
+import { MANAGER_ROLES, requireBusiness } from "@/lib/request-business";
+import { checkSmsAllowance, phoneVariants, sendTwilioSms, withSenderAndOptOut } from "@/lib/sms";
 
 export async function POST(req: Request) {
   try {
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
       campaignId?: string;
     };
 
-    const auth = await requireBusiness(requestedBusinessId);
+    const auth = await requireBusiness(requestedBusinessId, { roles: MANAGER_ROLES });
     if (!auth.ok) return auth.response;
     const { businessId } = auth;
 
@@ -62,7 +62,7 @@ export async function POST(req: Request) {
         .from("customers")
         .select("id")
         .eq("business_id", businessId)
-        .eq("phone", recipient)
+        .in("phone", phoneVariants(recipient))
         .eq("opted_out", true)
         .limit(1);
       if (optedOut && optedOut.length > 0) {

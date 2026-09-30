@@ -18,7 +18,7 @@
 
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
-import { requireBusiness } from "@/lib/request-business";
+import { MANAGER_ROLES, requireBusiness } from "@/lib/request-business";
 
 // Outbound calls cost real money and fall under telemarketing rules, so they
 // are tightly limited per business.
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     };
 
     // Business comes from the login, never from the request body.
-    const auth = await requireBusiness(requestedBusinessId);
+    const auth = await requireBusiness(requestedBusinessId, { roles: MANAGER_ROLES });
     if (!auth.ok) return auth.response;
     const { businessId } = auth;
 
@@ -46,12 +46,13 @@ export async function POST(req: Request) {
     const db = createAdminClient();
     const { data: customer } = await db
       .from("customers")
-      .select("id, phone, opted_out")
+      .select("id, phone, opted_out, marketing_opt_in")
       .eq("id", customerId)
       .eq("business_id", businessId)
       .maybeSingle();
     if (!customer) return NextResponse.json({ error: "Customer not found" }, { status: 404 });
     if (customer.opted_out) return NextResponse.json({ error: "This customer has opted out of marketing contact" }, { status: 409 });
+    if (!customer.marketing_opt_in) return NextResponse.json({ error: "This customer hasn't agreed to marketing contact" }, { status: 409 });
     if (!customer.phone) return NextResponse.json({ error: "This customer has no phone number" }, { status: 400 });
     const phone = customer.phone as string;
 

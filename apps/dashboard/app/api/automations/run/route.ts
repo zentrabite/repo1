@@ -23,7 +23,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import { sendEmail } from "@/lib/email";
-import { requireBusiness } from "@/lib/request-business";
+import { MANAGER_ROLES, requireBusiness } from "@/lib/request-business";
 import { checkSmsAllowance, sendTwilioSms, withSenderAndOptOut } from "@/lib/sms";
 
 export const runtime = "nodejs";
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
 
     let manualBusinessId: string | null = null;
     if (!isCron) {
-      const auth = await requireBusiness(body.businessId);
+      const auth = await requireBusiness(body.businessId, { roles: MANAGER_ROLES });
       if (!auth.ok) return auth.response;
       manualBusinessId = auth.businessId;
     }
@@ -201,7 +201,7 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
 
       let finalMessage = message;
       if (channel === "sms") {
-        const allowance = await checkSmsAllowance(db, businessId, settings);
+        const allowance = await checkSmsAllowance(db, businessId, settings, { skipRate: true });
         if (!allowance.ok) {
           console.warn(`[automations/run] ${businessId} ${allowance.reason}`);
           break;
@@ -266,7 +266,7 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
         if (daysSinceLast < (campaign.cooldown_days ?? 30)) continue;
       }
 
-      const allowance = await checkSmsAllowance(db, businessId, settings);
+      const allowance = await checkSmsAllowance(db, businessId, settings, { skipRate: true });
       if (!allowance.ok) {
         console.warn(`[automations/run] ${businessId} ${allowance.reason}`);
         break;

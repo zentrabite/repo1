@@ -33,12 +33,6 @@ function isPublicApi(pathname: string): boolean {
 const HASH_RESCUE_PATHS = ["/"];
 
 export async function proxy(req: NextRequest) {
-  // Outside callers (Stripe, Twilio, cron, customers) skip the session work
-  // entirely. Each of these routes authenticates the request itself.
-  if (isPublicApi(req.nextUrl.pathname)) {
-    return NextResponse.next();
-  }
-
   // Start with a pass-through response so cookie mutations are forwarded.
   let res = NextResponse.next({ request: { headers: req.headers } });
 
@@ -71,7 +65,9 @@ export async function proxy(req: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession();
 
   const { pathname } = req.nextUrl;
-  const isPublic     = PUBLIC_PATHS.some(p => pathname.startsWith(p));
+  // Public API routes still get the session refresh above (so a logged-in
+  // "Run now" on automations keeps working), they just never get redirected.
+  const isPublic     = PUBLIC_PATHS.some(p => pathname.startsWith(p)) || isPublicApi(pathname);
   const isHashRescue = HASH_RESCUE_PATHS.includes(pathname);
 
   // 1. No session + protected route → send to login

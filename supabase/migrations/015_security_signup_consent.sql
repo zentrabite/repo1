@@ -36,18 +36,28 @@ declare
                                   'help','support','status','docs','blog','demo','test','staging','zentrabite'];
 begin
   if v_business_name is not null then
-    v_base := trim(both '-' from regexp_replace(lower(v_business_name), '[^a-z0-9]+', '-', 'g'));
+    v_base := trim(both '-' from left(regexp_replace(lower(v_business_name), '[^a-z0-9]+', '-', 'g'), 40));
+    v_base := trim(both '-' from v_base);
     if v_base = '' then v_base := 'shop'; end if;
-    v_base := left(v_base, 40);
     v_sub  := v_base;
-    while v_sub = any(v_reserved) or exists (select 1 from public.businesses where subdomain = v_sub) loop
-      v_n   := v_n + 1;
-      v_sub := v_base || '-' || v_n;
-    end loop;
 
-    insert into public.businesses (name, type, subdomain)
-    values (left(v_business_name, 120), 'Restaurant', v_sub)
-    returning id into v_business_id;
+    -- Pick a free subdomain. The retry loop also covers two people signing up
+    -- with the same business name at the same moment.
+    loop
+      while v_sub = any(v_reserved) or exists (select 1 from public.businesses where subdomain = v_sub) loop
+        v_n   := v_n + 1;
+        v_sub := v_base || '-' || v_n;
+      end loop;
+      begin
+        insert into public.businesses (name, type, subdomain)
+        values (left(v_business_name, 120), 'Restaurant', v_sub)
+        returning id into v_business_id;
+        exit;
+      exception when unique_violation then
+        v_n   := v_n + 1;
+        v_sub := v_base || '-' || v_n;
+      end;
+    end loop;
 
     perform public.create_default_campaigns(v_business_id);
   end if;
@@ -124,3 +134,79 @@ update storage.buckets
 -- daily with CRON_SECRET, so this Supabase job isn't needed.
 select cron.unschedule('automations-nightly')
  where exists (select 1 from cron.job where jobname = 'automations-nightly');
+
+
+-- ─── 7. Nobody can promote themselves or move to another business ──────────
+-- The old users_update rules let any logged-in browser change its own
+-- is_super_admin and business_id. The app never edits users from the
+-- browser, so browser roles lose write access to this table entirely.
+-- Server routes use the service role and are unaffected.
+revoke insert, update, delete on public.users from anon, authenticated;
+
+
+-- ─── 8. Protect billing and platform fields on businesses ───────────────────
+-- Owners can still edit their business from Settings (name, logo, hours,
+-- notification settings, delivery settings). They can no longer change
+-- Stripe ids and flags, their plan or text limits, subscription status or
+-- which modules are switched on. Super admins and the server are unaffected.
+revoke insert, delete on public.businesses from anon, authenticated;
+revoke update on public.businesses from anon;
+
+create or replace function public.protect_business_fields()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_role text   := coalesce(auth.role(), '');
+  v_keys text[] := array['billing_plan','sms_monthly_cap','sms_per_minute',
+                         'subscription_status','subscription_period_end','modules'];
+  k      text;
+begin
+  -- Service role, SQL editor and super admins can change anything.
+  if v_role not in ('authenticated', 'anon') or public.is_super_admin() then
+    return new;
+  end if;
+
+  new.stripe_account_id        := old.stripe_account_id;
+  new.stripe_customer_id       := old.stripe_customer_id;
+  new.stripe_charges_enabled   := old.stripe_charges_enabled;
+  new.stripe_payouts_enabled   := old.stripe_payouts_enabled;
+  new.stripe_details_submitted := old.stripe_details_submitted;
+
+  new.settings := coalesce(new.settings, '{}'::jsonb) - v_keys;
+  foreach k in array v_keys loop
+    if coalesce(old.settings, '{}'::jsonb) ? k then
+      new.settings := new.settings || jsonb_build_object(k, old.settings -> k);
+    end if;
+  end loop;
+
+  return new;
+end;
+$$;
+
+revoke execute on function public.protect_business_fields() from public, anon, authenticated;
+
+drop trigger if exists protect_business_fields on public.businesses;
+create trigger protect_business_fields
+  before update on public.businesses
+  for each row execute function public.protect_business_fields();
+
+-- Anyone (even logged out) could read every column of every business,
+-- including Stripe ids and settings. The ordering page loads business
+-- details through /api/store/[subdomain] with the server key, so this
+-- public read rule isn't needed.
+drop policy if exists "businesses_public_select" on public.businesses;
+
+
+-- ─── 9. One order per Stripe payment ────────────────────────────────────────
+-- Lets the webhook ignore Stripe's repeat deliveries safely.
+create unique index if not exists orders_stripe_payment_id_key
+  on public.orders (stripe_payment_id)
+  where stripe_payment_id is not null;
+
+
+-- ─── 10. Team member emails in lowercase ────────────────────────────────────
+-- Logins compare lowercase emails, so stored invites must match.
+update public.business_members set email = lower(email) where email <> lower(email);

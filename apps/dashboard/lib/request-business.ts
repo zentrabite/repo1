@@ -6,7 +6,7 @@
 //
 // Usage in a route:
 //
-//   const auth = await requireBusiness(body.businessId);
+//   const auth = await requireBusiness(body.businessId, { roles: MANAGER_ROLES });
 //   if (!auth.ok) return auth.response;
 //   const { businessId } = auth;
 //
@@ -15,12 +15,18 @@
 //   • Super admin                          → may act on any existing business
 //                                             (requested id, else the
 //                                             impersonation cookie, else own)
-//   • Owner (users.business_id)            → that business only
-//   • Team member (business_members.email) → the businesses they belong to
+//   • Owner (users.business_id)            → that business, role "Owner"
+//   • Team member (business_members.email) → the businesses they belong to,
+//                                             with their member role. Only
+//                                             counts once the login's email
+//                                             is confirmed, so nobody can
+//                                             claim an invite by signing up
+//                                             with someone else's address.
 //   • Requested id not in the allowed set  → 403
+//   • Role not in options.roles            → 403
 //
-// The requested id is optional. Existing UI keeps sending businessId, which is
-// now checked rather than trusted.
+// users.is_super_admin and users.business_id are protected from browser
+// writes by migration 015. Don't loosen those grants without revisiting this.
 
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
@@ -28,12 +34,16 @@ import { createAdminClient, createSessionClient } from "@/lib/supabase-server";
 
 const IMPERSONATE_COOKIE = "zb_impersonate";
 
+/** Roles allowed to spend money or change billing and team settings. */
+export const MANAGER_ROLES = ["Owner", "Manager"] as const;
+
 export type BusinessAuth =
   | {
       ok: true;
       userId: string;
       email: string | null;
       businessId: string;
+      role: string;
       isSuperAdmin: boolean;
     }
   | { ok: false; response: NextResponse };
@@ -42,7 +52,10 @@ function deny(status: 401 | 403 | 404, error: string): BusinessAuth {
   return { ok: false, response: NextResponse.json({ error }, { status }) };
 }
 
-export async function requireBusiness(requestedId?: string | null): Promise<BusinessAuth> {
+export async function requireBusiness(
+  requestedId?: string | null,
+  options: { roles?: readonly string[] } = {},
+): Promise<BusinessAuth> {
   const session = await createSessionClient();
   const { data: { user } } = await session.auth.getUser();
   if (!user) return deny(401, "Not authenticated");
@@ -54,7 +67,7 @@ export async function requireBusiness(requestedId?: string | null): Promise<Busi
     .eq("id", user.id)
     .maybeSingle();
 
-  const email = user.email ?? null;
+  const email = user.email ? user.email.toLowerCase() : null;
   const isSuperAdmin = Boolean(userRow?.is_super_admin);
   const requested = typeof requestedId === "string" && requestedId.length > 0 ? requestedId : null;
 
@@ -68,32 +81,39 @@ export async function requireBusiness(requestedId?: string | null): Promise<Busi
     const { data: biz } = await admin.from("businesses").select("id").eq("id", target).maybeSingle();
     if (!biz) return deny(404, "Business not found");
 
-    return { ok: true, userId: user.id, email, businessId: target, isSuperAdmin: true };
+    return { ok: true, userId: user.id, email, businessId: target, role: "Owner", isSuperAdmin: true };
   }
 
-  // ── Everyone else: own business plus team memberships ───────────────────
-  const allowed = new Set<string>();
-  if (userRow?.business_id) allowed.add(userRow.business_id as string);
+  // ── Everyone else: own business plus confirmed team memberships ─────────
+  const roles = new Map<string, string>();
+  if (userRow?.business_id) roles.set(userRow.business_id as string, "Owner");
 
-  if (email) {
+  const emailConfirmed = Boolean(user.email_confirmed_at);
+  if (email && emailConfirmed) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: memberships } = await (admin.from("business_members") as any)
-      .select("business_id, status")
-      .in("email", [...new Set([email, email.toLowerCase()])]);
-    for (const m of (memberships ?? []) as { business_id: string; status: string | null }[]) {
-      // Invited-but-never-joined rows still count once the person has an
-      // account with that email, which is how invites are accepted today.
-      if (m.status !== "removed" && m.status !== "revoked") allowed.add(m.business_id);
+      .select("business_id, role, status")
+      .in("email", [...new Set([email, user.email!])]);
+    for (const m of (memberships ?? []) as { business_id: string; role: string | null; status: string | null }[]) {
+      if (m.status === "removed" || m.status === "revoked") continue;
+      if (!roles.has(m.business_id)) roles.set(m.business_id, m.role ?? "Staff");
     }
   }
 
-  if (allowed.size === 0) return deny(403, "No business linked to this account");
+  if (roles.size === 0) return deny(403, "No business linked to this account");
 
+  let businessId: string;
   if (requested) {
-    if (!allowed.has(requested)) return deny(403, "Not allowed for this business");
-    return { ok: true, userId: user.id, email, businessId: requested, isSuperAdmin: false };
+    if (!roles.has(requested)) return deny(403, "Not allowed for this business");
+    businessId = requested;
+  } else {
+    businessId = (userRow?.business_id as string | null) ?? [...roles.keys()][0]!;
   }
 
-  const businessId = (userRow?.business_id as string | null) ?? [...allowed][0]!;
-  return { ok: true, userId: user.id, email, businessId, isSuperAdmin: false };
+  const role = roles.get(businessId)!;
+  if (options.roles && !options.roles.includes(role)) {
+    return deny(403, "Your role can't do this. Ask the owner or a manager.");
+  }
+
+  return { ok: true, userId: user.id, email, businessId, role, isSuperAdmin: false };
 }

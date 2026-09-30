@@ -16,7 +16,7 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase-server";
-import { requireBusiness } from "@/lib/request-business";
+import { MANAGER_ROLES, requireBusiness } from "@/lib/request-business";
 
 export async function POST(req: Request) {
   try {
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
 
     // Business comes from the login. Super admins can act for the business
     // they're onboarding; merchants only for their own.
-    const auth = await requireBusiness(requestedBusinessId);
+    const auth = await requireBusiness(requestedBusinessId, { roles: MANAGER_ROLES });
     if (!auth.ok) return auth.response;
     const business_id = auth.businessId;
 

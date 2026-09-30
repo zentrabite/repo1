@@ -53,13 +53,31 @@ export function normaliseAuPhone(raw: string): string {
   return digits;
 }
 
+/**
+ * The different ways one Australian number may have been saved:
+ * +61412345678, 0412345678, 61412345678, 0412 345 678, 0412-345-678.
+ * Used to match STOP replies and opt-outs against stored phones.
+ */
+export function phoneVariants(raw: string): string[] {
+  const e164 = normaliseAuPhone(raw);
+  const local = e164.startsWith("+61") ? `0${e164.slice(3)}` : e164;
+  const spaced = /^0\d{9}$/.test(local) ? `${local.slice(0, 4)} ${local.slice(4, 7)} ${local.slice(7)}` : local;
+  const dashed = spaced.replace(/ /g, "-");
+  return [...new Set([raw.trim(), e164, local, e164.replace(/^\+/, ""), spaced, dashed])];
+}
+
 export type AllowanceResult = { ok: true } | { ok: false; reason: string; status: 429 };
 
 /**
  * Checks the per-minute rate limit and the monthly cap for a business,
  * counting rows already in sms_logs. Call before every send.
  */
-export async function checkSmsAllowance(db: Db, businessId: string, settings?: Record<string, unknown> | null): Promise<AllowanceResult> {
+export async function checkSmsAllowance(
+  db: Db,
+  businessId: string,
+  settings?: Record<string, unknown> | null,
+  options: { skipRate?: boolean } = {},
+): Promise<AllowanceResult> {
   const monthlyCap = Number(settings?.sms_monthly_cap ?? DEFAULT_SMS_MONTHLY_CAP);
   const perMinute  = Number(settings?.sms_per_minute  ?? DEFAULT_SMS_PER_MINUTE);
 
@@ -74,7 +92,9 @@ export async function checkSmsAllowance(db: Db, businessId: string, settings?: R
       .eq("business_id", businessId).eq("channel", "sms").eq("status", "sent").gte("sent_at", monthStart),
   ]);
 
-  if ((minuteRes.count ?? 0) >= perMinute) {
+  // The nightly batch sends many texts inside a minute on purpose, so it
+  // skips the per-minute limit and only respects the monthly cap.
+  if (!options.skipRate && (minuteRes.count ?? 0) >= perMinute) {
     return { ok: false, status: 429, reason: "Too many texts in the last minute. Try again shortly." };
   }
   if ((monthRes.count ?? 0) >= monthlyCap) {
