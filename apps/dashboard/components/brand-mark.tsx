@@ -1,15 +1,16 @@
-// The ZentraBite ZB mark (the newer logo, Oct 2026). The image lives in
-// public/brand/zentrabite-mark.png and is about 1.3 times wider than tall.
+// The ZentraBite app icon: green rounded square, white ZB, navy dot.
+// Used instead of the bare mark because the mark's navy dot disappears on
+// the dark shell. Source and other variants: docs/reference/brand/logo/.
 
 /* eslint-disable @next/next/no-img-element */
 export default function BrandMark({ size = 40, style }: { size?: number; style?: React.CSSProperties }) {
   return (
     <img
-      src="/brand/zentrabite-mark.png"
+      src="/brand/zentrabite-icon.svg"
       alt="ZentraBite"
-      width={Math.round(size * 1.3)}
+      width={size}
       height={size}
-      style={{ display: "block", height: size, width: "auto", flexShrink: 0, ...style }}
+      style={{ display: "block", width: size, height: size, flexShrink: 0, ...style }}
     />
   );
 }

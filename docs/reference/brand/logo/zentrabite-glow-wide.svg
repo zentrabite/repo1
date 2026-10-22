@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1536 1024" width="1536" height="1024"><title>ZentraBite mark, glow on dark, 3:2</title><defs>
+<radialGradient id="bg" cx="50%" cy="48%" r="75%">
+<stop offset="0" stop-color="#0E2A23"/><stop offset="0.45" stop-color="#0A1A18"/><stop offset="1" stop-color="#05090D"/>
+</radialGradient>
+<linearGradient id="gl" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#22D9A0"/><stop offset="1" stop-color="#00B67A"/>
+</linearGradient>
+<filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+<feGaussianBlur in="SourceGraphic" stdDeviation="11.1" result="b1"/>
+<feGaussianBlur in="SourceGraphic" stdDeviation="37.8" result="b2"/>
+<feComponentTransfer in="b2" result="b2s"><feFuncA type="linear" slope="0.55"/></feComponentTransfer>
+<feMerge><feMergeNode in="b2s"/><feMergeNode in="b1"/><feMergeNode in="SourceGraphic"/></feMerge>
+</filter>
+<filter id="halo" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="100.0"/></filter>
+</defs><rect width="1536" height="1024" fill="url(#bg)"/><ellipse cx="768" cy="512" rx="361.9" ry="290.6" fill="#00B67A" opacity="0.28" filter="url(#halo)"/><g filter="url(#glow)"><path d="M886.01 317.63L810.54 317.63A13.33 13.33 0 0 0 799.73 323.16L757.88 381.21A3.33 3.33 0 0 0 760.59 386.49L886.01 386.49A41.1 41.1 0 0 1 927.11 427.59A41.1 41.1 0 0 1 886.01 468.68L812.71 468.68L812.71 415.37A3.33 3.33 0 0 0 809.37 412.04L748.28 412.04A3.33 3.33 0 0 0 744.95 415.37L744.95 577.53A24.44 24.44 0 0 0 769.39 601.97L809.37 601.97A3.33 3.33 0 0 0 812.71 598.64L812.71 531.99L894.9 531.99A51.09 51.09 0 0 1 945.99 583.09A51.09 51.09 0 0 1 894.9 634.18L768.48 634.18A11.11 11.11 0 0 1 762.06 632.14L741.17 617.34A11.11 11.11 0 0 0 734.75 615.3L567.45 615.3A2.22 2.22 0 0 1 565.64 611.78L773.26 323.79A8.89 8.89 0 0 0 774.94 318.59L774.94 288.75A11.11 11.11 0 0 0 763.83 277.64L498.37 277.64A11.11 11.11 0 0 0 487.27 288.75L487.27 335.4A11.11 11.11 0 0 0 498.37 346.5L667.65 346.5A2.22 2.22 0 0 1 669.45 350.02L477 616.98A4.44 4.44 0 0 0 476.16 619.58L476.16 670.83A13.33 13.33 0 0 0 489.49 684.16L713.65 684.16A11.11 11.11 0 0 1 720.07 686.2L740.96 701A11.11 11.11 0 0 0 747.38 703.04L894.9 703.04A119.96 119.96 0 0 0 1014.86 583.09A99.77 99.77 0 0 0 958.21 493.12A75.74 75.74 0 0 0 995.97 427.59A109.96 109.96 0 0 0 886.01 317.63Z" fill="url(#gl)"/><circle cx="1028.18" cy="714.71" r="31.66" fill="#2D55B0"/></g></svg>
