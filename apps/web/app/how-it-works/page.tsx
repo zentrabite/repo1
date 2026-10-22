@@ -1,7 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Nav } from "../components/nav";
 import { Footer } from "../components/footer";
 import { Expandable } from "../components/expandable";
+
+export const metadata: Metadata = {
+  title: "How it works",
+  description:
+    "How ZentraBite connects your website, ordering, customer list, rewards and win-back texts, so each one feeds the next.",
+  alternates: { canonical: "/how-it-works" },
+};
 
 type FlowNode = { id: string; label: string; sub?: string; color?: string };
 type FlowEdge = { from: string; to: string; label?: string };

@@ -31,7 +31,7 @@ const showcases = [
   },
   {
     eyebrow: "Growth",
-    title: "Turn one visit into ten with built-in CRM.",
+    title: "Bring customers back with a built-in CRM.",
     body:
       "Every buyer auto-saves as a customer. The Winback engine awards points on every order, tiers customers by spend, and sends birthday deals automatically. It fires winback SMS the moment someone goes quiet.",
     bullets: [
