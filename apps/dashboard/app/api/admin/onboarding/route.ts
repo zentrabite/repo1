@@ -12,7 +12,15 @@
 //     ownerName?: string,
 //     ownerEmail: string,
 //     sendInvite?: boolean,        // default true
+//     address?: string,
+//     website?: string,
+//     import?: ImportResult,       // draft from POST /api/admin/onboarding/import
+//     importPermission?: true,     // owner agreed we can copy their website
 //   }
+//
+// When an import is sent, its hours, brand colour and website go straight
+// onto the business, and the rest (menu, logo choices, photos, "Check this"
+// notes) is kept on settings.import for the later wizard steps.
 //
 // Returns: { businessId, inviteLink?: string }
 
@@ -20,6 +28,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import { assertSuperAdmin } from "@/lib/admin-auth";
 import { sendEmail } from "@/lib/email";
+import { toStoredImport } from "@/lib/import/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,7 +44,29 @@ type CreateBody = {
   ownerEmail:   string;
   ownerPhone?:  string;
   sendInvite?:  boolean;
+  address?:     string;
+  website?:     string;
+  import?:      unknown;
+  importPermission?: boolean;
 };
+
+const DEFAULT_HOURS = {
+  mon: { open: "09:00", close: "21:00", closed: false },
+  tue: { open: "09:00", close: "21:00", closed: false },
+  wed: { open: "09:00", close: "21:00", closed: false },
+  thu: { open: "09:00", close: "21:00", closed: false },
+  fri: { open: "09:00", close: "22:00", closed: false },
+  sat: { open: "09:00", close: "22:00", closed: false },
+  sun: { open: "09:00", close: "21:00", closed: false },
+};
+
+function cleanWebsite(v: string | undefined): string | null {
+  if (!v?.trim()) return null;
+  try {
+    const u = new URL(/^https?:\/\//i.test(v.trim()) ? v.trim() : `https://${v.trim()}`);
+    return u.protocol === "https:" || u.protocol === "http:" ? u.toString() : null;
+  } catch { return null; }
+}
 
 function slugify(input: string): string {
   return input.toLowerCase()
@@ -55,6 +86,10 @@ export async function POST(req: Request) {
   if (!ownerEmail?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ownerEmail)) {
     return NextResponse.json({ error: "Valid owner email required" }, { status: 400 });
   }
+
+  // Only keep an import when the rep confirmed the owner's permission.
+  const stored = body.import && body.importPermission === true ? toStoredImport(body.import, user.id) : null;
+  const website = cleanWebsite(body.website) ?? stored?.final_url ?? null;
 
   const db = createAdminClient();
   const wantSlug = (body.subdomain?.trim() || slugify(name));
@@ -83,6 +118,8 @@ export async function POST(req: Request) {
       description:   description?.trim()   || null,
       contact_phone: contactPhone?.trim()  || null,
       contact_email: ownerEmail?.trim()    || null, // default to owner email; editable later
+      address:       body.address?.trim().slice(0, 300) || null,
+      website,
       settings: {
         onboarding: {
           step:          1,           // next step the rep should see
@@ -92,16 +129,14 @@ export async function POST(req: Request) {
           owner_email:   ownerEmail,
           owner_phone:   ownerPhone ?? "",
         },
-        // Sensible defaults so a fresh tenant isn't broken:
-        hours: {
-          mon: { open: "09:00", close: "21:00", closed: false },
-          tue: { open: "09:00", close: "21:00", closed: false },
-          wed: { open: "09:00", close: "21:00", closed: false },
-          thu: { open: "09:00", close: "21:00", closed: false },
-          fri: { open: "09:00", close: "22:00", closed: false },
-          sat: { open: "09:00", close: "22:00", closed: false },
-          sun: { open: "09:00", close: "21:00", closed: false },
-        },
+        // Imported hours if we have them, else sensible defaults so a fresh
+        // tenant isn't broken. The Hours step shows the import's notes.
+        hours:         stored?.hours?.week ?? DEFAULT_HOURS,
+        ...(contactPhone?.trim() ? { phone: contactPhone.trim() } : {}),
+        ...(website ? { website } : {}),
+        ...(stored?.colours ? { branding: { accent_color: stored.colours.suggested } } : {}),
+        ...(stored && Object.keys(stored.social).length ? { social: stored.social } : {}),
+        ...(stored ? { import: stored } : {}),
         gst_rate:      10,      // AU GST
         tip_options:   [5, 10, 15],
         service_fee_rate: 0,

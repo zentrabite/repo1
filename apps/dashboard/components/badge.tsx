@@ -32,6 +32,8 @@ const STYLES: Record<string, { bg: string; color: string }> = {
   Freebie:          { bg: "rgba(245,158,11,.14)",    color: "#F59E0B" },
   Welcome:          { bg: "rgba(99,130,246,.14)",    color: "#818CF8" },
   "Zentra Rewards Active_net": { bg: "rgba(99,179,255,.14)", color: "#63B3FF" },
+  "Check this":     { bg: "rgba(255,193,75,.14)",    color: "#FFC14B" },
+  Imported:         { bg: "rgba(0,182,122,.12)",     color: "#00B67A" },
 };
 
 export default function Badge({ type, children }: { type: string; children: React.ReactNode }) {

@@ -5,6 +5,8 @@ export const dynamic = "force-dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useBusiness } from "@/hooks/use-business";
+import ImportCheck from "@/components/import-check";
+import type { ImportedMenuCategory, StoredImport } from "@/lib/import/types";
 
 // ─── Theme ────────────────────────────────────────────────────────────────
 const C = {
@@ -40,6 +42,8 @@ type Biz = {
   suburb:     string | null;
   subdomain:  string | null;
   logo_url:   string | null;
+  address?:   string | null;
+  website?:   string | null;
   stripe_account_id: string | null;
   stripe_charges_enabled:  boolean | null;
   stripe_payouts_enabled:  boolean | null;
@@ -276,25 +280,35 @@ export default function OnboardingWizard() {
 // ─── Step 1: Basics ───────────────────────────────────────────────────────
 type SaveFn = (patch: Record<string, unknown>, opts?: { advance?: boolean; silent?: boolean }) => Promise<boolean>;
 
+// The website import's saved draft and its "Check this" notes, if there was one.
+function importOf(biz: Biz): StoredImport | null {
+  const imp = biz.settings?.import;
+  return imp && typeof imp === "object" && imp.source_url ? (imp as StoredImport) : null;
+}
+
 function StepBasics({ biz, save }: { biz: Biz; save: SaveFn }) {
+  const imp = importOf(biz);
   const [name,      setName]      = useState(biz.name);
+  const [address,   setAddress]   = useState(biz.address ?? "");
   const [type,      setType]      = useState(biz.type);
   const [subdomain, setSubdomain] = useState(biz.subdomain ?? "");
   const [suburb,    setSuburb]    = useState(biz.suburb ?? "");
   const [abn,       setAbn]       = useState<string>(biz.settings?.abn ?? "");
   const [phone,     setPhone]     = useState<string>(biz.settings?.phone ?? "");
-  const [website,   setWebsite]   = useState<string>(biz.settings?.website ?? "");
+  const [website,   setWebsite]   = useState<string>(biz.settings?.website ?? biz.website ?? "");
   const [tz,        setTz]        = useState<string>(biz.settings?.timezone ?? "Australia/Sydney");
 
   return (
     <Section title="Business basics" subtitle="Confirm what you collected and add details for receipts.">
+      {imp && <ImportBanner imp={imp} />}
       <Grid>
-        <Field label="Business name"><input value={name}      onChange={e => setName(e.target.value)} /></Field>
-        <Field label="Type">          <input value={type}      onChange={e => setType(e.target.value)} /></Field>
-        <Field label="Suburb">        <input value={suburb}    onChange={e => setSuburb(e.target.value)} /></Field>
+        <Field label="Business name"><input value={name}      onChange={e => setName(e.target.value)} /><ImportCheck note={imp?.checks.name} /></Field>
+        <Field label="Type">          <input value={type}      onChange={e => setType(e.target.value)} /><ImportCheck note={imp?.checks.type} /></Field>
+        <Field label="Suburb">        <input value={suburb}    onChange={e => setSuburb(e.target.value)} /><ImportCheck note={imp?.checks.suburb} /></Field>
         <Field label="Subdomain">     <input value={subdomain} onChange={e => setSubdomain(e.target.value)} /></Field>
         <Field label="ABN">           <input value={abn}       onChange={e => setAbn(e.target.value)} placeholder="11 digits" /></Field>
-        <Field label="Business phone"><input value={phone}     onChange={e => setPhone(e.target.value)} placeholder="+61 ..." /></Field>
+        <Field label="Business phone"><input value={phone}     onChange={e => setPhone(e.target.value)} placeholder="+61 ..." /><ImportCheck note={imp?.checks.phone} /></Field>
+        <Field label="Street address"><input value={address}   onChange={e => setAddress(e.target.value)} placeholder="12 King William St, Adelaide SA 5000" /><ImportCheck note={imp?.checks.address} /></Field>
         <Field label="Website">       <input value={website}   onChange={e => setWebsite(e.target.value)} placeholder="https://..." /></Field>
         <Field label="Timezone">
           <select value={tz} onChange={e => setTz(e.target.value)}>
@@ -305,7 +319,7 @@ function StepBasics({ biz, save }: { biz: Biz; save: SaveFn }) {
 
       <SaveBar
         onSave={() => save({
-          name, type, subdomain, suburb,
+          name, type, subdomain, suburb, address,
           settings: { abn, phone, website, timezone: tz },
         }, { advance: true })}
       />
@@ -315,6 +329,7 @@ function StepBasics({ biz, save }: { biz: Biz; save: SaveFn }) {
 
 // ─── Step 2: Hours ────────────────────────────────────────────────────────
 function StepHours({ biz, save }: { biz: Biz; save: SaveFn }) {
+  const imp = importOf(biz);
   const initial = biz.settings?.hours ?? {};
   const [hours, setHours] = useState<Record<string, { open: string; close: string; closed: boolean }>>(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -335,6 +350,24 @@ function StepHours({ biz, save }: { biz: Biz; save: SaveFn }) {
 
   return (
     <Section title="Operating hours" subtitle="These show on the storefront and drive AI-call routing.">
+      {imp && (imp.hours || imp.checks.hours) && (
+        <div style={importBox}>
+          <div style={{ fontWeight: 600, color: C.cl, fontSize: 13 }}>
+            {imp.hours ? "Filled in from their website" : "Hours weren't found on their website"}
+          </div>
+          {imp.hours && Object.keys(imp.hours.sessions).length > 0 && (
+            <div style={{ fontSize: 12, color: C.st, marginTop: 6, lineHeight: 1.6 }}>
+              {DAYS.filter(([k]) => imp.hours?.sessions[k]?.length).map(([k, dayLabel]) => (
+                <div key={k}>
+                  <strong style={{ color: C.cl }}>{dayLabel}</strong>{" "}
+                  {imp.hours!.sessions[k]!.map(sn => `${sn.label ? `${sn.label} ` : ""}${sn.open}–${sn.close}`).join(", ")}
+                </div>
+              ))}
+            </div>
+          )}
+          <ImportCheck note={imp.checks.hours} />
+        </div>
+      )}
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 10 }}>
         <button onClick={copyMondayToAll} style={ghostBtn}>Copy Monday to all days</button>
       </div>
@@ -361,7 +394,22 @@ function StepHours({ biz, save }: { biz: Biz; save: SaveFn }) {
 
 // ─── Step 3: Branding ─────────────────────────────────────────────────────
 function StepBranding({ biz, save, show }: { biz: Biz; save: SaveFn; show: (m: string) => void }) {
+  const imp = importOf(biz);
   const [logo, setLogo]   = useState<string | null>(biz.logo_url);
+  const [pulling, setPulling] = useState<string | null>(null);
+
+  async function pickImportedLogo(url: string) {
+    setPulling(url);
+    try {
+      const res = await fetch(`/api/admin/onboarding/${biz.id}/logo`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { show(`Couldn't use that logo: ${data.error ?? res.status}`); return; }
+      setLogo(data.logo_url);
+      show("Logo saved ✓");
+    } finally { setPulling(null); }
+  }
   const [color, setColor] = useState<string>(biz.settings?.branding?.accent_color ?? "#00B67A");
   const [uploading, setUploading] = useState(false);
 
@@ -395,6 +443,27 @@ function StepBranding({ biz, save, show }: { biz: Biz; save: SaveFn; show: (m: s
             {uploading ? "Uploading…" : "Upload image"}
             <input type="file" accept="image/*" style={{ display: "none" }} onChange={e => { const f = e.target.files?.[0]; if (f) handleLogo(f); }} />
           </label>
+          {imp && imp.logo_candidates.length > 0 && (
+            <div style={{ marginTop: 16 }}>
+              <div style={label}>From their website</div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 6 }}>
+                {imp.logo_candidates.map(u => (
+                  <button
+                    key={u}
+                    onClick={() => pickImportedLogo(u)}
+                    disabled={Boolean(pulling)}
+                    title="Use this logo"
+                    style={{ width: 84, height: 84, borderRadius: 10, background: "#fff", border: `1px solid ${C.mist}`, padding: 6, cursor: "pointer", opacity: pulling && pulling !== u ? 0.5 : 1 }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={u} alt="" referrerPolicy="no-referrer" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                  </button>
+                ))}
+              </div>
+              <div style={{ fontSize: 11, color: C.st, marginTop: 6 }}>{pulling ? "Saving…" : "Click one to use it as their logo."}</div>
+            </div>
+          )}
+          <ImportCheck note={imp?.checks.logo} />
         </div>
         <div>
           <Field label="Accent color">
@@ -403,6 +472,22 @@ function StepBranding({ biz, save, show }: { biz: Biz; save: SaveFn; show: (m: s
               <input value={color} onChange={e => setColor(e.target.value)} style={{ flex: 1 }} />
             </div>
           </Field>
+          {imp?.colours && (
+            <div style={{ marginTop: 12 }}>
+              <div style={label}>Colours on their website</div>
+              <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+                {imp.colours.swatches.map(c => (
+                  <button
+                    key={c}
+                    onClick={() => setColor(c)}
+                    title={c}
+                    style={{ width: 34, height: 34, borderRadius: 8, background: c, border: color.toLowerCase() === c ? `2px solid ${C.cl}` : `1px solid ${C.mist}`, cursor: "pointer", padding: 0 }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+          <ImportCheck note={imp?.checks.colours} />
           <div style={{ marginTop: 16, padding: 12, background: C.bg, borderRadius: 10, border: `1px solid ${C.mist}` }}>
             <div style={{ fontSize: 11, color: C.st, marginBottom: 6, fontWeight: 600 }}>Preview</div>
             <button style={{ background: color, color: "#fff", border: "none", borderRadius: 8, padding: "10px 18px", fontWeight: 600, fontSize: 14 }}>
@@ -417,10 +502,30 @@ function StepBranding({ biz, save, show }: { biz: Biz; save: SaveFn; show: (m: s
 }
 
 // ─── Step 4: Menu seed ────────────────────────────────────────────────────
-type MenuDraft = { name: string; items: { name: string; price: number; description?: string }[] };
+type MenuDraft = { name: string; items: { name: string; price: number; description?: string; dietary_tags?: string[]; check?: string | null }[] };
+
+// Imported menu → editable draft. Sizes go into the description because
+// items have one price; anything without a price starts at 0 and is flagged.
+function draftFromImport(menu: ImportedMenuCategory[]): MenuDraft[] {
+  return menu.map(c => ({
+    name: c.name,
+    items: c.items.map(i => {
+      const sizes = i.variants?.length ? `Sizes: ${i.variants.map(v => `${v.name} $${v.price.toFixed(2)}`).join(" · ")}` : "";
+      return {
+        name:         i.name,
+        price:        i.price ?? 0,
+        description:  [i.description, sizes].filter(Boolean).join(" ") || undefined,
+        dietary_tags: i.dietary_tags ?? [],
+        check:        i.check ?? null,
+      };
+    }),
+  }));
+}
 
 function StepMenu({ biz, show }: { biz: Biz; show: (m: string) => void }) {
-  const [cats, setCats] = useState<MenuDraft[]>(DEFAULT_MENU);
+  const imp = importOf(biz);
+  const importedMenu = imp?.menu?.length ? imp.menu : null;
+  const [cats, setCats] = useState<MenuDraft[]>(() => importedMenu ? draftFromImport(importedMenu) : DEFAULT_MENU);
   const [seeded, setSeeded] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -436,6 +541,13 @@ function StepMenu({ biz, show }: { biz: Biz; show: (m: string) => void }) {
       if (!res.ok) { show(`Seed failed: ${data.error}`); return; }
       show(`Seeded ${data.categories} categories, ${data.items} items ✓`);
       setSeeded(true);
+      // The imported draft has done its job; drop it so settings stay small.
+      if (importedMenu) {
+        await fetch(`/api/admin/onboarding/${biz.id}`, {
+          method: "PATCH", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ settings: { import: { menu: null, menu_seeded_at: new Date().toISOString() } } }),
+        });
+      }
     } finally { setBusy(false); }
   }
 
@@ -444,7 +556,21 @@ function StepMenu({ biz, show }: { biz: Biz; show: (m: string) => void }) {
   function updateCategory(i: number, next: MenuDraft) { setCats(cats.map((c, idx) => idx === i ? next : c)); }
 
   return (
-    <Section title="Starter menu" subtitle="Seeds categories + items the owner can rename in Menu. Skip this step if they'll upload their own.">
+    <Section title={importedMenu ? "Menu from their website" : "Starter menu"} subtitle={importedMenu ? "Check names and prices with the owner, then seed. They can edit everything later in Menu." : "Seeds categories + items the owner can rename in Menu. Skip this step if they'll upload their own."}>
+      {importedMenu && !seeded && (
+        <div style={importBox}>
+          <ImportCheck note={imp?.checks.menu} imported />
+          {imp?.surcharges && imp.surcharges.length > 0 && (
+            <div style={{ fontSize: 12, color: C.st, marginTop: 8 }}>
+              Fees kept out of the menu: {imp.surcharges.join(" · ")}
+            </div>
+          )}
+        </div>
+      )}
+      {!importedMenu && imp?.menu_seeded_at && (
+        <div style={{ ...importBox, fontSize: 13, color: C.st }}>The imported menu was already seeded. Edit it in Menu.</div>
+      )}
+      {!importedMenu && !imp?.menu_seeded_at && imp?.checks.menu && <div style={importBox}><ImportCheck note={imp.checks.menu} /></div>}
       {seeded && (
         <div style={{ padding: 10, background: "rgba(0,182,122,.08)", border: "1px solid rgba(0,182,122,.25)", borderRadius: 8, color: C.g, fontSize: 13, marginBottom: 16 }}>
           ✓ Menu seeded. Advance to the next step when ready.
@@ -459,10 +585,18 @@ function StepMenu({ biz, show }: { biz: Biz; show: (m: string) => void }) {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {cat.items.map((it, j) => (
-                <div key={j} style={{ display: "grid", gridTemplateColumns: "1fr 110px 32px", gap: 6 }}>
-                  <input value={it.name} onChange={e => updateCategory(i, { ...cat, items: cat.items.map((x, k) => k === j ? { ...x, name: e.target.value } : x) })} placeholder="Item name" />
-                  <input type="number" step="0.5" value={it.price} onChange={e => updateCategory(i, { ...cat, items: cat.items.map((x, k) => k === j ? { ...x, price: Number(e.target.value) } : x) })} />
-                  <button onClick={() => updateCategory(i, { ...cat, items: cat.items.filter((_, k) => k !== j) })} style={{ ...ghostBtn, padding: "4px 6px" }}>×</button>
+                <div key={j}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 110px 32px", gap: 6 }}>
+                    <input value={it.name} onChange={e => updateCategory(i, { ...cat, items: cat.items.map((x, k) => k === j ? { ...x, name: e.target.value } : x) })} placeholder="Item name" />
+                    <input type="number" step="0.5" value={it.price} onChange={e => updateCategory(i, { ...cat, items: cat.items.map((x, k) => k === j ? { ...x, price: Number(e.target.value), check: null } : x) })} />
+                    <button onClick={() => updateCategory(i, { ...cat, items: cat.items.filter((_, k) => k !== j) })} style={{ ...ghostBtn, padding: "4px 6px" }}>×</button>
+                  </div>
+                  {(it.description || it.dietary_tags?.length) ? (
+                    <div style={{ fontSize: 11, color: C.st, margin: "4px 2px 0" }}>
+                      {it.dietary_tags?.length ? `${it.dietary_tags.join(" · ")}${it.description ? " — " : ""}` : ""}{it.description}
+                    </div>
+                  ) : null}
+                  {it.check && <ImportCheck note={it.check} />}
                 </div>
               ))}
               <button onClick={() => updateCategory(i, { ...cat, items: [...cat.items, { name: "", price: 0 }] })} style={{ ...ghostBtn, alignSelf: "flex-start", marginTop: 4 }}>+ item</button>
@@ -801,6 +935,35 @@ const ghostBtn: React.CSSProperties = {
   fontFamily: "var(--font-inter)",
   cursor: "pointer",
 };
+
+const importBox: React.CSSProperties = {
+  background: "rgba(255,193,75,.05)",
+  border: "1px solid rgba(255,193,75,.2)",
+  borderRadius: 10,
+  padding: 12,
+  marginBottom: 16,
+};
+
+// Where the import came from and anything to raise with the owner.
+function ImportBanner({ imp }: { imp: StoredImport }) {
+  const host = imp.final_url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+  return (
+    <div style={importBox}>
+      <div style={{ fontSize: 13, color: C.cl, fontWeight: 600 }}>
+        Imported from {host} on {new Date(imp.fetched_at).toLocaleDateString("en-AU")}
+        {imp.ai_used ? "" : " (pattern scan only)"}
+      </div>
+      <div style={{ fontSize: 12, color: C.st, marginTop: 4 }}>
+        Go through anything marked &ldquo;Check this&rdquo; with the owner before the store goes live.
+      </div>
+      {imp.warnings.length > 0 && (
+        <ul style={{ margin: "8px 0 0", paddingLeft: 18, color: C.y, fontSize: 12, lineHeight: 1.5 }}>
+          {imp.warnings.map((w, i) => <li key={i}>{w}</li>)}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 const pill: React.CSSProperties = {
   padding: "3px 10px",

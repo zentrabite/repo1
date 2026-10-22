@@ -10,6 +10,7 @@
 //     subdomain?: string,
 //     suburb?:    string,
 //     logo_url?:  string,
+//     address?:   string,
 //     settings?:  object,     // merged onto existing settings
 //   }
 //
@@ -69,6 +70,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (typeof body.subdomain === "string") update.subdomain = body.subdomain.trim();
   if (typeof body.suburb    === "string") update.suburb    = body.suburb.trim() || null;
   if (typeof body.logo_url  === "string") update.logo_url  = body.logo_url;
+  if (typeof body.address   === "string") update.address   = body.address.trim().slice(0, 300) || null;
 
   if (body.settings && typeof body.settings === "object") {
     const { data: current } = await db.from("businesses").select("settings").eq("id", id).single();
