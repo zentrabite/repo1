@@ -19,10 +19,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const f = getFeature(slug);
-  if (!f) return { title: "Feature not found — ZentraBite" };
+  if (!f) return { title: "Feature not found" };
   return {
-    title: `${f.title} — ZentraBite`,
+    title: f.title,
     description: f.tagline,
+    alternates: { canonical: `/features/${slug}` },
   };
 }
 

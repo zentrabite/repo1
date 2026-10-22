@@ -5,31 +5,31 @@ import { useState } from "react";
 const items = [
   {
     q: "How long does it take to go live?",
-    a: "Most restaurants are fully onboarded in under 48 hours. Upload your menu, connect Stripe, set your delivery radius, and you're taking orders. Our team handles the setup call free of charge.",
+    a: "We do most of the setup for you. Your details, hours, menu and logo are pulled in from your current website, then you check them, connect Stripe and you're ready to take orders.",
   },
   {
     q: "Do I keep all my customer data?",
-    a: "Yes. Every customer that orders through your storefront is yours — full contact details, order history, and preferences. If you ever leave ZentraBite you walk out the door with a CSV of everyone.",
+    a: "Yes. Every customer who orders through your page is yours, with their contact details, order history and preferences. If you ever leave ZentraBite, you take a CSV of all of them with you.",
   },
   {
-    q: "What does 'commission-free' actually mean?",
-    a: "You pay our flat monthly fee plus Stripe's standard card processing (1.75% + 30c in AU). That's it. No per-order take, no delivery markup, no hidden fees. Uber Eats charges 15–30% per order — we charge zero.",
+    q: "What does 'commission-free' mean?",
+    a: "You pay a monthly fee and Stripe's standard card fees. ZentraBite takes nothing from each order and adds nothing to delivery. Delivery apps take a commission on every order instead.",
   },
   {
     q: "Can I still use Uber Eats / DoorDash alongside?",
-    a: "Absolutely. Many merchants run us parallel to the aggregators and funnel repeat customers to their ZentraBite storefront over time using our SMS win-back flows. Our delivery engine can even dispatch to Uber Direct and DoorDash Drive when your own driver is busy.",
+    a: "Yes. You can keep the delivery apps running and move your regulars to your own ordering page over time with win-back texts. Delivery can go through Uber Direct or DoorDash Drive when your own driver is busy.",
   },
   {
     q: "What payment methods do customers have?",
-    a: "Cards (Visa, Mastercard, Amex), Apple Pay, Google Pay, and Link. All processed through Stripe, money lands in your bank daily.",
+    a: "Cards (Visa, Mastercard, Amex), Apple Pay and Google Pay, all through Stripe. Stripe pays the money into your bank account.",
   },
   {
     q: "Do I need a POS already?",
-    a: "No — ZentraBite includes a built-in POS for in-store orders so a single screen runs dine-in, takeaway, and online. If you have an existing POS you like, we can integrate with it — ask us for a tailored quote.",
+    a: "No. ZentraBite has a built-in POS, so one screen runs dine-in, takeaway and online orders. If you already have a POS you like, ask us and we'll talk through your options.",
   },
   {
     q: "What about GST and accounting?",
-    a: "Every report is GST-ready. Export to Xero or download a reconciled CSV for your accountant at the end of the month. Payouts, fees, refunds, and tips all line up.",
+    a: "Reports show GST, and you can export a CSV for Xero or your accountant at the end of each month.",
   },
 ];
 

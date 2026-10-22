@@ -1,27 +1,23 @@
 import Link from "next/link";
 import { Logo } from "./logo";
 import { LOGIN_URL } from "../../lib/config";
-import { Icon } from "./zb-icon";
 
 export function Footer() {
   const cols = [
     {
       title: "Product",
       links: [
-        { label: "Features", href: "#features" },
+        { label: "Features", href: "/#features" },
+        { label: "How it works", href: "/how-it-works" },
+        { label: "Pricing", href: "/pricing" },
         { label: "Demo", href: "/demo" },
-        { label: "Storefronts", href: "#showcase" },
-        { label: "Winback engine", href: "/features/winback" },
-        { label: "Delivery routing", href: "#features" },
       ],
     },
     {
       title: "Company",
       links: [
-        { label: "About", href: "#" },
-        { label: "Contact", href: "mailto:hello@zentrabite.com" },
-        { label: "Careers", href: "#" },
-        { label: "Press", href: "#" },
+        { label: "Contact", href: "/contact" },
+        { label: "Email us", href: "mailto:hello@zentrabite.com" },
       ],
     },
     {
@@ -32,14 +28,6 @@ export function Footer() {
         { label: "Book a demo", href: "mailto:hello@zentrabite.com?subject=Demo" },
       ],
     },
-    {
-      title: "Legal",
-      links: [
-        { label: "Terms", href: "/terms" },
-        { label: "Privacy", href: "/privacy" },
-        { label: "Acceptable use", href: "/acceptable-use" },
-      ],
-    },
   ];
 
   return (
@@ -48,7 +36,7 @@ export function Footer() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1.6fr repeat(4, 1fr)",
+            gridTemplateColumns: "1.6fr repeat(3, 1fr)",
             gap: 48,
           }}
           className="footer-grid"
@@ -56,10 +44,10 @@ export function Footer() {
           <div>
             <Logo />
             <p style={{ color: "var(--steel)", fontSize: 14, lineHeight: 1.6, marginTop: 16, maxWidth: 280 }}>
-              The all-in-one restaurant platform. Own your customers. Own your margins.
+              Website, online ordering, customer list and rewards for small businesses.
             </p>
             <div style={{ color: "var(--steel)", fontSize: 13, marginTop: 16 }}>
-              Built in Adelaide · Used around Australia
+              Built in Adelaide
             </div>
           </div>
 
@@ -108,7 +96,6 @@ export function Footer() {
           }}
         >
           <div>© {new Date().getFullYear()} ZentraBite. All rights reserved.</div>
-          <div>ABN coming soon · GST registered · Made with <Icon name="heart" size={12} style={{ margin: "0 2px", verticalAlign: "-1px" }} /> for restaurants</div>
         </div>
       </div>
 

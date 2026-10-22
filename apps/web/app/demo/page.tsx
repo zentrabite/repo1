@@ -1,6 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "../components/logo";
 import { Icon, type IconName } from "../components/zb-icon";
+
+export const metadata: Metadata = {
+  title: "Demo",
+  description:
+    "Click through ZentraBite with made-up data. Try the business owner's CRM, the customer ordering page and the admin view. No sign-up needed.",
+  alternates: { canonical: "/demo" },
+};
 
 type DemoCard = {
   href: string;

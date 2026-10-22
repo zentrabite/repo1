@@ -8,9 +8,10 @@ import { Expandable } from "../components/expandable";
 // click-to-expand so the page stays calm on first load.
 
 export const metadata = {
-  title: "Pricing — ZentraBite",
+  title: "Pricing",
   description:
-    "Every business is different. Book a call and we'll build a plan priced to what you actually need.",
+    "Pricing is set to your business and the modules you use. Book a call and we'll work out a plan that fits.",
+  alternates: { canonical: "/pricing" },
 };
 
 export default function PricingPage() {
