@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { Nav } from "../components/nav";
 import { Footer } from "../components/footer";
-import { Icon } from "../components/zb-icon";
 
 type FormState = {
   name: string;
@@ -13,49 +12,44 @@ type FormState = {
   businessName: string;
   category: string;
   locations: string;
-  volume: string;
   stack: string;
   modules: string[];
-  goals: string;
+  notes: string;
 };
 
 const CATEGORIES = [
-  "Restaurant / takeaway",
-  "Café / bakery",
-  "Bar / pub",
-  "Cloud kitchen / ghost kitchen",
-  "Personal trainer / coach",
-  "Fitness studio / gym",
-  "Retail (physical store)",
-  "E-commerce / online store",
-  "Service business (salon / spa / trades)",
-  "Appointment-based (clinic / professional)",
-  "Other",
+  "Restaurant or takeaway",
+  "Café or bakery",
+  "Bar or pub",
+  "Food truck",
+  "Shop or online store",
+  "Hair, beauty or barber",
+  "Gym, studio or personal trainer",
+  "Trade or home service",
+  "Something else",
 ];
 
 const MODULES = [
-  { id: "orders", label: "Orders & POS" },
-  { id: "loyalty", label: "Loyalty & rewards" },
-  { id: "campaigns", label: "Campaigns & winback" },
-  { id: "ai_calls", label: "AI phone ordering" },
-  { id: "driver_dispatch", label: "Driver dispatch" },
-  { id: "stock", label: "Stock / inventory" },
-  { id: "reviews", label: "Reviews & feedback" },
-  { id: "analytics", label: "Advanced analytics" },
-  { id: "ordering_app", label: "Branded customer app" },
-  { id: "custom_website", label: "Custom ordering website" },
+  { id: "website", label: "Website" },
+  { id: "ordering", label: "Online ordering" },
+  { id: "bookings", label: "Bookings" },
+  { id: "pos", label: "POS" },
+  { id: "loyalty", label: "Rewards" },
+  { id: "campaigns", label: "Win-back texts and emails" },
+  { id: "reviews", label: "Reviews" },
+  { id: "stock", label: "Stock" },
+  { id: "driver_dispatch", label: "Delivery" },
+  { id: "ai_calls", label: "AI phone calls" },
 ];
 
-const VOLUME_BANDS = [
-  "Under 100 orders / month",
-  "100 – 500 orders / month",
-  "500 – 2,000 orders / month",
-  "2,000 – 10,000 orders / month",
-  "10,000+ orders / month",
-  "Not sure yet",
-];
+const LOCATIONS_OPTIONS = ["1", "2", "3 to 5", "6 or more"];
 
-const LOCATIONS_OPTIONS = ["1", "2", "3 – 5", "6 – 20", "20+"];
+const NEXT_STEPS = [
+  "We read what you've sent.",
+  "We get in touch to find a time for a quick call.",
+  "On the call we show you how ZentraBite would work for your business.",
+  "You'll be one of the first to know when sign-ups open.",
+];
 
 export default function ContactPage() {
   const [form, setForm] = useState<FormState>({
@@ -65,10 +59,9 @@ export default function ContactPage() {
     businessName: "",
     category: CATEGORIES[0]!,
     locations: LOCATIONS_OPTIONS[0]!,
-    volume: VOLUME_BANDS[0]!,
     stack: "",
     modules: [],
-    goals: "",
+    notes: "",
   });
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -83,333 +76,205 @@ export default function ContactPage() {
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
-    // Demo mode — fake the submit. In production this posts to /api/contact.
+    // TODO: not sent anywhere yet. Enquiries need saving (see the PR that
+    // follows the redesign).
     setTimeout(() => {
       setSubmitting(false);
       setSubmitted(true);
     }, 650);
   }
 
-  const required = form.name && form.email && form.businessName;
+  const ready = form.name && form.email && form.businessName;
 
   return (
     <>
       <Nav />
-      <main style={{ paddingTop: 120, paddingBottom: 120, background: "var(--near-black)" }} className="grid-bg">
-        <div className="container contact-layout" style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 48, alignItems: "flex-start", maxWidth: 1180 }}>
+      <main className="page-top" style={{ paddingBottom: 96 }}>
+        <div className="container contact-grid">
           <div>
-            <div className="eyebrow" style={{ marginBottom: 18 }}>Book a call</div>
-            <h1 style={{ fontSize: "clamp(32px, 5vw, 52px)", margin: "0 0 14px", lineHeight: 1.08 }}>
-              Tell us about your business.
-            </h1>
-            <p style={{ fontSize: 16, color: "var(--steel)", lineHeight: 1.6, marginBottom: 24, maxWidth: 520 }}>
-              We'll reply inside one business day with a tailored quote.
+            <span className="label">Book a call</span>
+            <h1 className="h-page">Tell us about your business.</h1>
+            <p className="lead" style={{ marginTop: 16, marginBottom: 36 }}>
+              A few details help us show you the parts that matter to you.
             </p>
 
             {submitted ? (
-              <SuccessCard form={form} />
+              <Thanks form={form} />
             ) : (
-              <form onSubmit={onSubmit} className="glass" style={{ padding: 28, display: "grid", gap: 18 }}>
-                <Row>
-                  <Field label="Your name *">
+              <form onSubmit={onSubmit} className="contact-form">
+                <div className="form-row">
+                  <label className="field">
+                    <span>Your name</span>
                     <input
+                      className="input"
                       value={form.name}
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
                       required
-                      placeholder="Alex Chen"
-                      style={inputStyle}
+                      autoComplete="name"
                     />
-                  </Field>
-                  <Field label="Email *">
+                  </label>
+                  <label className="field">
+                    <span>Email</span>
                     <input
+                      className="input"
                       type="email"
                       value={form.email}
                       onChange={(e) => setForm({ ...form, email: e.target.value })}
                       required
-                      placeholder="you@business.com"
-                      style={inputStyle}
+                      autoComplete="email"
                     />
-                  </Field>
-                </Row>
+                  </label>
+                </div>
 
-                <Row>
-                  <Field label="Phone (optional)">
+                <div className="form-row">
+                  <label className="field">
+                    <span>Phone (optional)</span>
                     <input
+                      className="input"
+                      type="tel"
                       value={form.phone}
                       onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                      placeholder="+61 4xx xxx xxx"
-                      style={inputStyle}
+                      autoComplete="tel"
                     />
-                  </Field>
-                  <Field label="Business name *">
+                  </label>
+                  <label className="field">
+                    <span>Business name</span>
                     <input
+                      className="input"
                       value={form.businessName}
                       onChange={(e) => setForm({ ...form, businessName: e.target.value })}
                       required
-                      placeholder="Harbour Lane Pizza Co"
-                      style={inputStyle}
+                      autoComplete="organization"
                     />
-                  </Field>
-                </Row>
+                  </label>
+                </div>
 
-                <Row>
-                  <Field label="Category">
+                <div className="form-row">
+                  <label className="field">
+                    <span>Type of business</span>
                     <select
+                      className="input"
                       value={form.category}
                       onChange={(e) => setForm({ ...form, category: e.target.value })}
-                      style={inputStyle}
                     >
-                      {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                      {CATEGORIES.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
                     </select>
-                  </Field>
-                  <Field label="Locations">
+                  </label>
+                  <label className="field">
+                    <span>Locations</span>
                     <select
+                      className="input"
                       value={form.locations}
                       onChange={(e) => setForm({ ...form, locations: e.target.value })}
-                      style={inputStyle}
                     >
-                      {LOCATIONS_OPTIONS.map((l) => <option key={l} value={l}>{l}</option>)}
+                      {LOCATIONS_OPTIONS.map((l) => (
+                        <option key={l} value={l}>
+                          {l}
+                        </option>
+                      ))}
                     </select>
-                  </Field>
-                </Row>
+                  </label>
+                </div>
 
-                <Field label="Monthly order volume">
-                  <select
-                    value={form.volume}
-                    onChange={(e) => setForm({ ...form, volume: e.target.value })}
-                    style={inputStyle}
-                  >
-                    {VOLUME_BANDS.map((v) => <option key={v} value={v}>{v}</option>)}
-                  </select>
-                </Field>
-
-                <Field label="What you're using now (optional)">
+                <label className="field">
+                  <span>What you use now (optional)</span>
                   <input
+                    className="input"
                     value={form.stack}
                     onChange={(e) => setForm({ ...form, stack: e.target.value })}
-                    placeholder="e.g. Square POS + Mailchimp + nothing for loyalty"
-                    style={inputStyle}
+                    placeholder="For example Square, Uber Eats and paper loyalty cards"
                   />
-                </Field>
+                </label>
 
-                <Field label="Which modules are you interested in?">
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 8, marginTop: 6 }}>
+                <fieldset className="field" style={{ border: 0 }}>
+                  <span>What are you interested in?</span>
+                  <div className="chip-grid">
                     {MODULES.map((m) => {
-                      const active = form.modules.includes(m.id);
+                      const on = form.modules.includes(m.id);
                       return (
                         <button
                           type="button"
                           key={m.id}
+                          className="chip"
+                          aria-pressed={on}
                           onClick={() => toggleModule(m.id)}
-                          style={{
-                            padding: "10px 12px",
-                            borderRadius: 10,
-                            background: active ? "rgba(0,182,122,0.14)" : "var(--navy-40)",
-                            border: `1px solid ${active ? "var(--green)" : "var(--mist-9)"}`,
-                            color: active ? "var(--green)" : "var(--cloud)",
-                            fontSize: 13,
-                            fontWeight: 600,
-                            textAlign: "left",
-                            cursor: "pointer",
-                            transition: "all 0.12s",
-                          }}
                         >
-                          <span style={{ marginRight: 6 }}>{active ? "✓" : "+"}</span>
                           {m.label}
                         </button>
                       );
                     })}
                   </div>
-                </Field>
+                </fieldset>
 
-                <Field label="What would success look like in 90 days?">
+                <label className="field">
+                  <span>Anything else we should know? (optional)</span>
                   <textarea
-                    value={form.goals}
-                    onChange={(e) => setForm({ ...form, goals: e.target.value })}
-                    placeholder="e.g. Cut third-party marketplace dependency. Lift repeat orders by 20%. Automate winback."
+                    className="input"
                     rows={4}
-                    style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit" }}
+                    value={form.notes}
+                    onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                    placeholder="For example, we're on Uber Eats and want more people ordering direct."
                   />
-                </Field>
+                </label>
 
-                <button
-                  type="submit"
-                  disabled={!required || submitting}
-                  className="btn-primary"
-                  style={{
-                    padding: "14px 22px",
-                    fontSize: 15,
-                    justifyContent: "center",
-                    opacity: !required || submitting ? 0.55 : 1,
-                    cursor: !required || submitting ? "not-allowed" : "pointer",
-                  }}
-                >
-                  {submitting ? "Sending…" : "Book my call →"}
-                </button>
-
-                <div style={{ fontSize: 12, color: "var(--steel)", textAlign: "center" }}>
-                  No credit card. We reply inside 1 business day. Your info stays private.
+                <div>
+                  <button type="submit" disabled={!ready || submitting} className="btn-primary btn-lg">
+                    {submitting ? "Sending…" : "Send"}
+                  </button>
                 </div>
               </form>
             )}
           </div>
 
-          {/* Sidebar */}
-          <aside className="contact-sidebar" style={{ display: "grid", gap: 20, position: "sticky", top: 100 }}>
-            <TrialCard />
-            <NextSteps />
-            <BookDemoCard />
-            <DirectContact />
+          <aside className="aside-box" style={{ marginTop: 8 }}>
+            <h2 className="h-card" style={{ marginBottom: 14 }}>
+              What happens next
+            </h2>
+            <ol className="muted" style={{ paddingLeft: 20, display: "grid", gap: 10, marginBottom: 28 }}>
+              {NEXT_STEPS.map((s) => (
+                <li key={s}>{s}</li>
+              ))}
+            </ol>
+            <p className="muted">
+              Rather email?{" "}
+              <a href="mailto:hello@zentrabite.com" className="text-link">
+                hello@zentrabite.com
+              </a>
+            </p>
+            <p className="muted" style={{ marginTop: 10 }}>
+              Or{" "}
+              <Link href="/demo" className="text-link">
+                try the demo
+              </Link>{" "}
+              with made-up data.
+            </p>
           </aside>
         </div>
       </main>
       <Footer />
-
-      <style>{`
-        @media (max-width: 960px) {
-          .contact-layout { grid-template-columns: 1fr !important; }
-          .contact-sidebar { position: static !important; top: auto !important; }
-        }
-        @media (max-width: 560px) { .contact-row { grid-template-columns: 1fr !important; } }
-      `}</style>
     </>
   );
 }
 
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "11px 14px",
-  borderRadius: 10,
-  background: "var(--navy-40)",
-  border: "1px solid var(--mist-9)",
-  color: "var(--cloud)",
-  fontSize: 14,
-  fontFamily: "inherit",
-  outline: "none",
-  transition: "border-color 0.15s",
-};
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Thanks({ form }: { form: FormState }) {
   return (
-    <label style={{ display: "grid", gap: 6 }}>
-      <span style={{ fontSize: 12, color: "var(--steel)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-        {label}
-      </span>
-      {children}
-    </label>
-  );
-}
-
-function Row({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }} className="contact-row">
-      {children}
-    </div>
-  );
-}
-
-function TrialCard() {
-  return (
-    <div
-      className="glass"
-      style={{
-        padding: 22,
-        background: "linear-gradient(135deg, rgba(0,182,122,0.18), rgba(28,45,72,0.6))",
-        border: "1px solid rgba(0,182,122,0.35)",
-      }}
-    >
-      <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 20, color: "var(--cloud)" }}>
-        1 month free. No card.
-      </div>
-      <div style={{ color: "var(--steel)", fontSize: 13.5, marginTop: 6, lineHeight: 1.55 }}>
-        Full platform, full onboarding, real support. We only charge once you're
-        convinced.
-      </div>
-    </div>
-  );
-}
-
-function NextSteps() {
-  const steps = [
-    "You send the form",
-    "We reply in 1 business day",
-    "20-min call to scope it",
-    "Tailored quote + free trial",
-  ];
-  return (
-    <div className="glass" style={{ padding: 22 }}>
-      <div className="eyebrow" style={{ marginBottom: 14 }}>What happens next</div>
-      <ol style={{ listStyle: "none", display: "grid", gap: 10, padding: 0, margin: 0 }}>
-        {steps.map((s, i) => (
-          <li key={s} style={{ display: "grid", gridTemplateColumns: "22px 1fr", gap: 10, alignItems: "center" }}>
-            <div
-              style={{
-                width: 22,
-                height: 22,
-                borderRadius: 999,
-                background: "var(--green)",
-                color: "var(--navy)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 12,
-                fontWeight: 800,
-              }}
-            >
-              {i + 1}
-            </div>
-            <div style={{ color: "var(--cloud)", fontSize: 13.5 }}>{s}</div>
-          </li>
-        ))}
-      </ol>
-    </div>
-  );
-}
-
-function BookDemoCard() {
-  return null;
-}
-
-function DirectContact() {
-  return (
-    <div style={{ color: "var(--steel)", fontSize: 13, padding: "0 4px", lineHeight: 1.7 }}>
-      <div style={{ marginBottom: 4 }}>Prefer direct?</div>
-      <div>
-        <a href="mailto:hello@zentrabite.com" style={{ color: "var(--cloud)" }}>hello@zentrabite.com</a>
-      </div>
-      <div style={{ marginTop: 8 }}>
-        <Link href="/demo" style={{ color: "var(--green)" }}>Or poke around the live demo →</Link>
-      </div>
-    </div>
-  );
-}
-
-function SuccessCard({ form }: { form: FormState }) {
-  return (
-    <div
-      className="glass"
-      style={{
-        padding: 36,
-        textAlign: "center",
-        background: "linear-gradient(135deg, rgba(0,182,122,0.14), rgba(28,45,72,0.55))",
-        border: "1px solid rgba(0,182,122,0.35)",
-      }}
-    >
-      <div style={{ marginBottom: 12, display: "flex", justifyContent: "center", color: "var(--cloud)" }}><Icon name="done" size={48} /></div>
-      <h2 style={{ fontSize: 26, margin: "0 0 10px", color: "var(--cloud)" }}>
-        Got it, {form.name.split(" ")[0] || "there"}.
+    <div className="aside-box" role="status">
+      <h2 className="h-section" style={{ marginBottom: 10 }}>
+        Thanks, {form.name.split(" ")[0] || "there"}.
       </h2>
-      <p style={{ color: "var(--steel)", fontSize: 15, lineHeight: 1.6, maxWidth: 440, margin: "0 auto 20px" }}>
-        We've queued up a tailored setup for <strong style={{ color: "var(--cloud)" }}>{form.businessName}</strong>.
-        You'll hear from a real human at <strong style={{ color: "var(--cloud)" }}>{form.email}</strong> inside
-        one business day.
+      <p>
+        We&apos;ll be in touch at <strong>{form.email}</strong> about {form.businessName}.
       </p>
-      <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginTop: 16 }}>
-        <Link href="/demo/live" className="btn-primary" style={{ padding: "12px 20px", fontSize: 14 }}>
-          Play with the CRM while you wait →
+      <div className="btn-row" style={{ marginTop: 24 }}>
+        <Link href="/demo/live" className="btn-primary">
+          Try the CRM demo
         </Link>
-        <Link href="/" className="btn-secondary" style={{ padding: "12px 20px", fontSize: 14 }}>
-          Back home
+        <Link href="/" className="btn-secondary">
+          Back to the homepage
         </Link>
       </div>
     </div>

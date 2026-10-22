@@ -1,9 +1,8 @@
-import type { Metadata } from "next";
-import { Outfit, Inter, JetBrains_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Outfit, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit", display: "swap" });
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" });
 
 const SITE_URL = "https://zentrabite.com";
@@ -29,6 +28,13 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image" },
 };
 
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F8FAFB" },
+    { media: "(prefers-color-scheme: dark)", color: "#0F1F2D" },
+  ],
+};
+
 // Structured data so search engines know who we are.
 const JSON_LD = {
   "@context": "https://schema.org",
@@ -51,11 +57,18 @@ const JSON_LD = {
   ],
 };
 
+// Sets the saved light or dark choice before the page draws, so there's no
+// flash of the wrong theme. With no saved choice the CSS follows the device.
+const THEME_SCRIPT = `try{var t=localStorage.getItem("zb-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}`;
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${outfit.variable} ${inter.variable} ${mono.variable}`}>
+    <html lang="en-AU" className={`${outfit.variable} ${mono.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
         {children}

@@ -1,51 +1,31 @@
+import Link from "next/link";
 
-export function CTABanner() {
+// The call to action at the bottom of most pages.
+export function CTABanner({
+  title = "Want to see it for your business?",
+  body = "Book a 15-minute call. We'll show you how ZentraBite would work for your business and which parts you'd switch on.",
+}: {
+  title?: string;
+  body?: string;
+}) {
   return (
-    <section className="section" style={{ paddingBottom: 120 }}>
+    <section className="section tight">
       <div className="container">
-        <div
-          className="glass cta-banner-card"
-          style={{
-            padding: "64px 48px",
-            textAlign: "center",
-            background:
-              "linear-gradient(135deg, rgba(0,182,122,0.22) 0%, rgba(28,45,72,0.55) 70%)",
-            border: "1px solid rgba(0,182,122,0.35)",
-            maxWidth: 900,
-            margin: "0 auto",
-          }}
-        >
-          <h2 style={{ fontSize: "clamp(28px, 4vw, 40px)", marginBottom: 18 }}>
-            Let's build it around your business.
-          </h2>
-          <p style={{ fontSize: 16, color: "var(--cloud)", opacity: 0.85, maxWidth: 520, margin: "0 auto 28px" }}>
-            Pricing is tailored to what you actually need. 20-minute call to scope it.
-          </p>
-          <div
-            style={{
-              display: "flex",
-              gap: 12,
-              justifyContent: "center",
-              flexWrap: "wrap",
-            }}
-          >
-            <a href="/contact" className="btn-primary" style={{ padding: "15px 30px", fontSize: 16 }}>
+        <div className="cta-band">
+          <div>
+            <h2 className="h-section">{title}</h2>
+            <p>{body}</p>
+          </div>
+          <div className="btn-row">
+            <Link href="/contact" className="btn-primary btn-lg">
               Book a call
-              <span aria-hidden>→</span>
-            </a>
-            <a href="/demo" className="btn-secondary" style={{ padding: "14px 28px", fontSize: 16 }}>
-              See the demo
-            </a>
+            </Link>
+            <Link href="/demo" className="btn-secondary btn-lg">
+              Try the demo
+            </Link>
           </div>
         </div>
       </div>
-      <style>{`
-        @media (max-width: 640px) {
-          .cta-banner-card { padding: 40px 24px !important; }
-        }
-      `}</style>
     </section>
   );
 }
-
-
