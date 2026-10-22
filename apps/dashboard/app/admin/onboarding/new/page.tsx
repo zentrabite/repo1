@@ -17,6 +17,7 @@ const C = { g:"#00B67A", st:"#6B7C93", cl:"#F8FAFB", y:"#FFC14B", mist:"rgba(226
 
 function slugify(input: string): string {
   return input.toLowerCase()
+    .replace(/['\u2019]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 40);
@@ -286,7 +287,7 @@ export default function NewOnboardingPage() {
             </Field>
           </div>
           <label style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, fontSize: 13, color: C.cl, fontFamily: "var(--font-inter)" }}>
-            <input type="checkbox" checked={sendInvite} onChange={e => setSendInvite(e.target.checked)} />
+            <input type="checkbox" checked={sendInvite} onChange={e => setSendInvite(e.target.checked)} style={{ width: 16, height: 16, flex: "none", padding: 0 }} />
             Send magic-link invite email now
           </label>
         </div>

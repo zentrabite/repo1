@@ -280,7 +280,7 @@ export async function runImport(inputUrl: string, opts: { deadlineMs: number }):
   } else {
     const items = uniq([...okMenuPages, home]).flatMap(p => menuItemsByPattern(p.text)).slice(0, 150);
     menu = items.length
-      ? field([{ name: "Menu", items: items.map(i => ({ ...i, check: "Read by pattern matching. Check the name and price." })) }], "pattern scan of their pages", "low",
+      ? field([{ name: "Menu", items }], "pattern scan of their pages", "low",
           "Found by pattern matching only, so names, prices and sections need checking.")
       : field<ImportedMenuCategory[]>(null, null, "none", okPdfs.length || okImages.length
           ? "Their menu is a PDF or image that couldn't be read. Type it in or ask the owner for it."

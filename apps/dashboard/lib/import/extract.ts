@@ -569,7 +569,8 @@ export function logoCandidates(p: ParsedPage): { url: string; score: number; why
     // .ico files and the builders' own default icons are never the venue's logo
     .filter(c => !/\.ico(\?|$)|pfavico|static\.parastorage\.com\/client|squarespace\.com\/universal|\/favicon/i.test(c.url))
     .sort((a, b) => b.score - a.score)
-    .filter(c => !seen.has(c.url) && Boolean(seen.add(c.url)))
+    // the same image at different sizes is one candidate
+    .filter(c => { const k = c.url.split("?")[0]!; return !seen.has(k) && Boolean(seen.add(k)); })
     .slice(0, 6);
 }
 
@@ -671,7 +672,7 @@ export function menuItemsByPattern(text: string): ImportedMenuItem[] {
   for (let i = 0; i < raw.length; i++) {
     if (raw[i] === "$" && i + 1 < raw.length) { lines.push(`$${raw[i + 1]}`); i++; } else lines.push(raw[i]!);
   }
-  const TAG = /^(?:\(?[A-Z]{1,4}\)?(?:\s*[,/]\s*\(?[A-Z]{1,4}\)?)*|\(?[A-Z][a-z]{0,2}\)?|[a-z][a-z ]{0,15}|[Ss]tarts at|[Ff]rom|[Ee]ach|[Nn]ew|\d+\s*(?:[Pp]cs?|pieces)|\/pp|[Oo]pt\..*)$/;
+  const TAG = /^(?:\(?[A-Z]{1,4}\)?(?:\s*[,/]\s*\(?[A-Z]{1,4}\)?)*|\(?[A-Z][a-z]{0,2}\)?|[a-z][a-z ]{0,15}|[Ss]tarts at|[Ff]rom|[Ee]ach|[Nn]ew|[Tt]eam favourite|[Pp]opular|[Cc]hef'?s (?:pick|special)|\d+\s*(?:[Pp]cs?|pieces)|\/pp|[Oo]pt\..*)$/;
   const items: ImportedMenuItem[] = [];
   for (let i = 0; i < lines.length; i++) {
     const ln = lines[i]!;

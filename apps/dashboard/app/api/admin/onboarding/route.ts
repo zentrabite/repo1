@@ -70,6 +70,7 @@ function cleanWebsite(v: string | undefined): string | null {
 
 function slugify(input: string): string {
   return input.toLowerCase()
+    .replace(/['\u2019]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 40);
