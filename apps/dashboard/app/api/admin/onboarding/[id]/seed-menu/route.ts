@@ -1,15 +1,17 @@
 // ─── POST /api/admin/onboarding/[id]/seed-menu ──────────────────────────────
-// Body: { categories: [{ name, sort_order, items: [{ name, price, description? }] }] }
+// Body: { categories: [{ name, sort_order, items: [{ name, price, description?, dietary_tags? }] }] }
 // Creates the categories + items for the business in one shot.
 
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import { assertSuperAdmin } from "@/lib/admin-auth";
+import { DIETARY_TAGS } from "@/lib/import/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type SeedItem     = { name: string; price: number; description?: string };
+type SeedItem     = { name: string; price: number; description?: string; dietary_tags?: string[] };
+const TAGS = new Set<string>(DIETARY_TAGS);
 type SeedCategory = { name: string; sort_order?: number; items: SeedItem[] };
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -46,7 +48,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         description:  it.description?.trim() || null,
         price:        Number(it.price) || 0,
         available:    true,
-        dietary_tags: [] as string[],
+        dietary_tags: Array.isArray(it.dietary_tags) ? it.dietary_tags.filter(t => TAGS.has(t)) : [],
         sort_order:   j,
       }));
 
