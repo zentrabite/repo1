@@ -20,7 +20,7 @@ Before making any changes:
 
 ## Rules when working in this repo
 
-- **Extend existing code, don't rebuild.** The monorepo already contains a working CRM (`apps/dashboard`), marketing site (`apps/web`), storefront (`apps/storefront`), shared UI (`packages/ui`), and a Supabase schema with 10 applied migrations. Match existing patterns — don't invent parallel ones.
+- **Extend existing code, don't rebuild.** The monorepo already contains a working CRM (`apps/dashboard`), marketing site (`apps/web`), storefront (`apps/storefront`), and a Supabase schema with 10 applied migrations. Match existing patterns — don't invent parallel ones.
 - **Follow the architecture.** Tenant scoping (`business_id` + RLS), module flags (`businesses.settings.modules`), server routes that verify session → `business_id`. See `system-architecture.md` §4–§7.
 - **Follow the design system.** Reuse components from `apps/dashboard/components/` (shell, sidebar, topbar, stat-card, page-header, empty-state, modal, toast, badge). Match the look in `apps/zentrabite-dashboard-files/dashboard-build/`. Dark premium shell, green accent, glass-morphism cards.
 - **Treat `docs/context/` as logic/architecture guidance** — when in doubt about *what should happen*, read context first, don't guess.
@@ -42,8 +42,7 @@ Before making any changes:
 apps/web              Marketing site + demo sandboxes
 apps/dashboard        Production merchant CRM (Supabase-backed)
 apps/storefront       Tenant storefront build
-apps/docs             Docs app (scaffolded)
-packages/ui           Shared React components
+packages/*-config     Shared eslint and TypeScript settings
 supabase/migrations   001 → 010 schema
 supabase/functions    Edge functions (nightly-analytics, win-back)
 docs/context          System logic + architecture (start here)
