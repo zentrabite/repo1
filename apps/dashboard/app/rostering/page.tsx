@@ -173,10 +173,10 @@ export default function RosteringPage() {
       </div>
 
       <div style={{ display:"flex", gap:10, flexWrap:"wrap", marginBottom:14 }}>
-        <StatCard label="Shifts this week"   value={String(shifts.length)} icon="🗓️" />
-        <StatCard label="Total hours"        value={totalHours.toFixed(1)} icon="⏱️" delay={50} />
-        <StatCard label="Labour cost"        value={`$${Math.round(totalLabour).toLocaleString()}`} accent icon="💵" delay={100} />
-        <StatCard label="Avg shifts/day"     value={(shifts.length/7).toFixed(1)} icon="👥" delay={150} />
+        <StatCard label="Shifts this week"   value={String(shifts.length)} icon="rostering" />
+        <StatCard label="Total hours"        value={totalHours.toFixed(1)} icon="hours" delay={50} />
+        <StatCard label="Labour cost"        value={`$${Math.round(totalLabour).toLocaleString()}`} accent icon="cash" delay={100} />
+        <StatCard label="Avg shifts/day"     value={(shifts.length/7).toFixed(1)} icon="users" delay={150} />
       </div>
 
       {/* Week grid */}

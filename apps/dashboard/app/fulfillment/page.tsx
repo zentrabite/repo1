@@ -25,6 +25,7 @@ import {
   type FulfillmentStage,
 } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
+import { Icon, type IconName } from "@/components/zb-icon";
 import type { Order } from "@/lib/database.types";
 
 const C = { g: "#00B67A", o: "#FF6B35", r: "#DC3545", st: "#6B7C93", mist: "#E2E8F0" };
@@ -37,12 +38,12 @@ const STAGE_LABEL: Record<FulfillmentStage, string> = {
   delivered: "Delivered",
 };
 
-const STAGE_EMOJI: Record<FulfillmentStage, string> = {
-  placed:    "🧾",
-  picked:    "🛒",
-  packed:    "📦",
-  shipped:   "🚚",
-  delivered: "✅",
+const STAGE_ICON: Record<FulfillmentStage, IconName> = {
+  placed:    "receipt",
+  picked:    "storefront",
+  packed:    "package",
+  shipped:   "delivery",
+  delivered: "done",
 };
 
 const NEXT_STAGE: Record<FulfillmentStage, FulfillmentStage | null> = {
@@ -215,22 +216,22 @@ export default function FulfillmentPage() {
       {/* Stage stat cards — clicking filters the list */}
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
         <div onClick={() => setStageFilter("open")} style={{ cursor: "pointer" }}>
-          <StatCard label="Open" value={String(stats.placed + stats.picked + stats.packed + stats.shipped)} icon="🟢" accent />
+          <StatCard label="Open" value={String(stats.placed + stats.picked + stats.packed + stats.shipped)} icon="dot" accent />
         </div>
         <div onClick={() => setStageFilter("placed")} style={{ cursor: "pointer" }}>
-          <StatCard label="To pick" value={String(stats.placed)} icon="🧾" delay={50} />
+          <StatCard label="To pick" value={String(stats.placed)} icon="receipt" delay={50} />
         </div>
         <div onClick={() => setStageFilter("picked")} style={{ cursor: "pointer" }}>
-          <StatCard label="To pack" value={String(stats.picked)} icon="🛒" delay={100} />
+          <StatCard label="To pack" value={String(stats.picked)} icon="storefront" delay={100} />
         </div>
         <div onClick={() => setStageFilter("packed")} style={{ cursor: "pointer" }}>
-          <StatCard label="To ship" value={String(stats.packed)} icon="📦" delay={150} />
+          <StatCard label="To ship" value={String(stats.packed)} icon="package" delay={150} />
         </div>
         <div onClick={() => setStageFilter("shipped")} style={{ cursor: "pointer" }}>
-          <StatCard label="In transit" value={String(stats.shipped)} icon="🚚" delay={200} />
+          <StatCard label="In transit" value={String(stats.shipped)} icon="delivery" delay={200} />
         </div>
         <div onClick={() => setStageFilter("delivered")} style={{ cursor: "pointer" }}>
-          <StatCard label="Delivered" value={String(stats.delivered)} icon="✅" delay={250} />
+          <StatCard label="Delivered" value={String(stats.delivered)} icon="done" delay={250} />
         </div>
       </div>
 
@@ -244,7 +245,7 @@ export default function FulfillmentPage() {
         </button>
         {FULFILLMENT_STAGES.map((s) => (
           <button key={s} className={`bg-btn ${stageFilter === s ? "on" : ""}`} onClick={() => setStageFilter(s)}>
-            {STAGE_EMOJI[s]} {STAGE_LABEL[s]}
+            <Icon name={STAGE_ICON[s]} size={14} />{STAGE_LABEL[s]}
           </button>
         ))}
       </div>
@@ -422,7 +423,7 @@ export default function FulfillmentPage() {
                           flexShrink: 0,
                         }}
                       >
-                        {on ? "✓" : STAGE_EMOJI[s]}
+                        {on ? "✓" : <Icon name={STAGE_ICON[s]} size={14} />}
                       </span>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 13, color: "#fff", fontWeight: 600 }}>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo } from "./logo";
 import { LOGIN_URL } from "../../lib/config";
+import { Icon } from "./zb-icon";
 
 export function Footer() {
   const cols = [
@@ -107,7 +108,7 @@ export function Footer() {
           }}
         >
           <div>© {new Date().getFullYear()} ZentraBite. All rights reserved.</div>
-          <div>ABN coming soon · GST registered · Made with ❤️ for restaurants</div>
+          <div>ABN coming soon · GST registered · Made with <Icon name="heart" size={12} style={{ margin: "0 2px", verticalAlign: "-1px" }} /> for restaurants</div>
         </div>
       </div>
 

@@ -7,6 +7,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useBusiness } from "@/hooks/use-business";
 import ImportCheck from "@/components/import-check";
 import PasswordInput from "@/components/password-input";
+import { Icon, type IconName } from "@/components/zb-icon";
 import type { ImportedMenuCategory, StoredImport } from "@/lib/import/types";
 
 // ─── Theme ────────────────────────────────────────────────────────────────
@@ -23,16 +24,16 @@ const C = {
 
 // ─── Step definitions ─────────────────────────────────────────────────────
 const STEPS = [
-  { id: 1, label: "Basics",       icon: "🏪" },
-  { id: 2, label: "Hours",        icon: "🕒" },
-  { id: 3, label: "Branding",     icon: "🎨" },
-  { id: 4, label: "Menu",         icon: "📋" },
-  { id: 5, label: "Payments",     icon: "💳" },
-  { id: 6, label: "Delivery",     icon: "🚚" },
-  { id: 7, label: "Notifications",icon: "📣" },
-  { id: 8, label: "Website",      icon: "🌐" },
-  { id: 9, label: "Team",         icon: "👥" },
-] as const;
+  { id: 1, label: "Basics",       icon: "business" },
+  { id: 2, label: "Hours",        icon: "hours" },
+  { id: 3, label: "Branding",     icon: "branding" },
+  { id: 4, label: "Menu",         icon: "menu" },
+  { id: 5, label: "Payments",     icon: "card" },
+  { id: 6, label: "Delivery",     icon: "delivery" },
+  { id: 7, label: "Notifications",icon: "notifications" },
+  { id: 8, label: "Website",      icon: "website" },
+  { id: 9, label: "Team",         icon: "users" },
+] as const satisfies readonly { id: number; label: string; icon: IconName }[];
 const LAST_STEP = STEPS.length as StepId;
 
 type StepId = (typeof STEPS)[number]["id"];
@@ -229,7 +230,7 @@ export default function OnboardingWizard() {
                   gap: 2,
                 }}
               >
-                <span style={{ fontSize: 16 }}>{done ? "✓" : s.icon}</span>
+                <span style={{ fontSize: 16 }}>{done ? "✓" : <Icon name={s.icon} size={16} />}</span>
                 <span style={{ whiteSpace: "nowrap" }}>{s.label}</span>
               </button>
             );
@@ -946,7 +947,7 @@ function StepTeam({ biz, router, show }: { biz: Biz; router: any; show: (m: stri
       )}
 
       <div style={{ marginTop: 24, padding: 16, background: "rgba(0,182,122,.06)", border: "1px solid rgba(0,182,122,.25)", borderRadius: 10 }}>
-        <div style={{ fontWeight: 600, color: C.g, fontSize: 14, marginBottom: 6 }}>🎉 Onboarding complete</div>
+        <div style={{ fontWeight: 600, color: C.g, fontSize: 14, marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}><Icon name="done" size={16} />Onboarding complete</div>
         <div style={{ fontSize: 13, color: C.cl, lineHeight: 1.55 }}>
           The owner has a magic link in their inbox. You can impersonate them from the admin panel to verify
           everything looks right, or hand it over and move on to your next sale.

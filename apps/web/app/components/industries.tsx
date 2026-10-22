@@ -1,8 +1,9 @@
 import { Expandable } from "./expandable";
+import { Icon, type IconName } from "./zb-icon";
 
 const CATEGORIES = [
   {
-    icon: "🍽️",
+    icon: "menu" as IconName,
     title: "Food & Hospitality",
     tagline: "Orders, kitchen, delivery, loyalty — all in one.",
     types: ["Restaurants", "Cafes", "Takeaway", "Ghost kitchens", "Food trucks", "Bakeries", "Dessert shops"],
@@ -11,7 +12,7 @@ const CATEGORIES = [
     outcome: "Cut aggregator commissions, win back lapsed regulars, slash food waste.",
   },
   {
-    icon: "✂️",
+    icon: "salon" as IconName,
     title: "Personal Services",
     tagline: "Chairs, rooms, and regulars — fully booked.",
     types: ["Barbers", "Hair salons", "Beauty salons", "Nail techs", "Massage therapists", "Personal trainers"],
@@ -20,7 +21,7 @@ const CATEGORIES = [
     outcome: "Fill empty slots, rebook lapsed clients, sell packages on autopilot.",
   },
   {
-    icon: "💪",
+    icon: "gym" as IconName,
     title: "Fitness & Health",
     tagline: "Memberships, classes, and retention — on rails.",
     types: ["Gyms", "Fitness studios", "Yoga studios", "Pilates", "Sports coaching"],
@@ -29,7 +30,7 @@ const CATEGORIES = [
     outcome: "Spot at-risk members before they leave. Drive referrals and renewals.",
   },
   {
-    icon: "🛍️",
+    icon: "storefront" as IconName,
     title: "Retail & E-commerce",
     tagline: "Every SKU, every customer, one dashboard.",
     types: ["Small retail", "Clothing", "Sneakers", "Vape shops", "Convenience stores", "Etsy & Shopify sellers"],
@@ -38,7 +39,7 @@ const CATEGORIES = [
     outcome: "Reorder on AI, clear dead stock, turn one-time buyers into repeat customers.",
   },
   {
-    icon: "🔧",
+    icon: "trades" as IconName,
     title: "Service-Based Businesses",
     tagline: "Jobs, quotes, invoices, follow-ups — handled.",
     types: ["Car detailers", "Mechanics", "Auto service", "Cleaners", "Mobile services", "Electricians & plumbers"],
@@ -47,7 +48,7 @@ const CATEGORIES = [
     outcome: "More repeat jobs, faster invoices, no customer forgotten.",
   },
   {
-    icon: "📅",
+    icon: "bookings" as IconName,
     title: "Appointment-Based",
     tagline: "Calendars, reminders, and lifetime value.",
     types: ["Consultants", "Photographers", "Tutors", "Coaches", "Therapists", "Real estate agents"],
@@ -103,7 +104,7 @@ export function Industries() {
                   }}
                   aria-hidden
                 >
-                  {c.icon}
+                  <Icon name={c.icon} size={26} />
                 </div>
                 <div>
                   <h3 style={{ fontSize: 18, margin: 0, color: "var(--cloud)" }}>{c.title}</h3>

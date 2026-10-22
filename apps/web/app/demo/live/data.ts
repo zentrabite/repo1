@@ -1,6 +1,8 @@
 // Fake data for the interactive demo at /demo/live.
 // Deterministic (no Math.random in render path) so hydration stays stable.
 
+import type { IconName } from "../../components/zb-icon";
+
 export type OrderStatus = "new" | "cooking" | "ready" | "out" | "delivered" | "cancelled";
 export type OrderChannel = "storefront" | "pos" | "app" | "uber" | "doordash";
 
@@ -113,7 +115,7 @@ export const campaigns: DemoCampaign[] = [
     sent30d: 184,
     recovered30d: 22,
     revenue30d: 1_188.40,
-    template: "Hey {name}, we miss you 🍕 Here's 20% off your next order with us. Code: COMEBACK20",
+    template: "Hey {name}, we miss you. Here's 20% off your next order with us. Code: COMEBACK20",
   },
   {
     id: "wb02",
@@ -124,7 +126,7 @@ export const campaigns: DemoCampaign[] = [
     sent30d: 12,
     recovered30d: 9,
     revenue30d: 428.00,
-    template: "Happy early birthday {name}! 🎂 Enjoy +250 bonus points this week — on us.",
+    template: "Happy early birthday {name}! Enjoy +250 bonus points this week — on us.",
   },
   {
     id: "wb03",
@@ -146,7 +148,7 @@ export const campaigns: DemoCampaign[] = [
     sent30d: 48,
     recovered30d: 4,
     revenue30d: 168.80,
-    template: "{name}, it's been a while 👋 One free garlic bread with your next order. Code: WELCOME",
+    template: "{name}, it's been a while. One free garlic bread with your next order. Code: WELCOME",
   },
   {
     id: "wb05",
@@ -168,7 +170,7 @@ export const campaigns: DemoCampaign[] = [
     sent30d: 0,
     recovered30d: 0,
     revenue30d: 0,
-    template: "Welcome to Gold, {name} ⭐ You now earn 1.5× points and get free delivery under $30.",
+    template: "Welcome to Gold, {name}. You now earn 1.5× points and get free delivery under $30.",
   },
 ];
 
@@ -772,12 +774,12 @@ export function shipmentCurrentStage(s: DemoShipment): FulfillmentStage {
   return "placed";
 }
 
-export const fulfillmentStageLabel: Record<FulfillmentStage, { label: string; emoji: string; color: string }> = {
-  placed:    { label: "Placed",    emoji: "🧾", color: "#818CF8" },
-  picked:    { label: "Picked",    emoji: "🛒", color: "#63B3FF" },
-  packed:    { label: "Packed",    emoji: "📦", color: "#F59E0B" },
-  shipped:   { label: "In transit", emoji: "🚚", color: "#00B67A" },
-  delivered: { label: "Delivered", emoji: "✅", color: "#6B7C93" },
+export const fulfillmentStageLabel: Record<FulfillmentStage, { label: string; icon: IconName; color: string }> = {
+  placed:    { label: "Placed",    icon: "receipt", color: "#818CF8" },
+  picked:    { label: "Picked",    icon: "bag", color: "#63B3FF" },
+  packed:    { label: "Packed",    icon: "package", color: "#F59E0B" },
+  shipped:   { label: "In transit", icon: "delivery", color: "#00B67A" },
+  delivered: { label: "Delivered", icon: "done", color: "#6B7C93" },
 };
 
 // ─── Rostering (staff shifts) ────────────────────────────────────────────────
@@ -837,11 +839,11 @@ export const rosterShifts: DemoShift[] = [
   { id: "rs28", employeeName: "Chloe Wilson",  role: "front",   dayOfWeek: 6, start: "16:00", end: "22:00", hourlyRate: 28, status: "scheduled" },
 ];
 
-export const rosterRoleLabel: Record<RosterRole, { label: string; color: string; bg: string; emoji: string }> = {
-  kitchen: { label: "Kitchen", color: "#FF6B35", bg: "rgba(255,107,53,0.12)",  emoji: "🍳" },
-  front:   { label: "Front",   color: "#63B3FF", bg: "rgba(99,179,255,0.12)",  emoji: "👋" },
-  driver:  { label: "Driver",  color: "#A855F7", bg: "rgba(168,85,247,0.12)",  emoji: "🛵" },
-  manager: { label: "Manager", color: "#00B67A", bg: "rgba(0,182,122,0.12)",   emoji: "🎩" },
+export const rosterRoleLabel: Record<RosterRole, { label: string; color: string; bg: string; icon: IconName }> = {
+  kitchen: { label: "Kitchen", color: "#FF6B35", bg: "rgba(255,107,53,0.12)",  icon: "kitchen" },
+  front:   { label: "Front",   color: "#63B3FF", bg: "rgba(99,179,255,0.12)",  icon: "user" },
+  driver:  { label: "Driver",  color: "#A855F7", bg: "rgba(168,85,247,0.12)",  icon: "drivers" },
+  manager: { label: "Manager", color: "#00B67A", bg: "rgba(0,182,122,0.12)",   icon: "key" },
 };
 
 export const rosterDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -864,7 +866,7 @@ export type DemoReview = {
 };
 
 export const reviews: DemoReview[] = [
-  { id: "rv01", customerName: "Olivia Martin",    platform: "Google",     rating: 5, comment: "Best margherita in Adelaide, hands down. Crust is perfect every time and delivery is always quick. Olivia at the counter is a gem.", createdAt: "2026-04-17T20:14:00", replied: true,  replyText: "Thanks so much Olivia! See you again soon 🍕" },
+  { id: "rv01", customerName: "Olivia Martin",    platform: "Google",     rating: 5, comment: "Best margherita in Adelaide, hands down. Crust is perfect every time and delivery is always quick. Olivia at the counter is a gem.", createdAt: "2026-04-17T20:14:00", replied: true,  replyText: "Thanks so much Olivia! See you again soon" },
   { id: "rv02", customerName: "James Kim",        platform: "Uber Eats",  rating: 5, comment: "Pepperoni was loaded with toppings and arrived hot. Will absolutely order again.", createdAt: "2026-04-17T19:42:00", replied: false },
   { id: "rv03", customerName: "Priya Sharma",     platform: "Direct",     rating: 4, comment: "Quattro formaggi was lovely but the garlic bread was a bit underdone. Still a great meal overall.", createdAt: "2026-04-16T20:05:00", replied: false },
   { id: "rv04", customerName: "Sofia De Luca",    platform: "Google",     rating: 5, comment: "We've been ordering from Nonna's for over a year. Quality has actually gotten better, not worse — rare for a busy place. The tiramisu is incredible.", createdAt: "2026-04-15T21:18:00", replied: true,  replyText: "Sofia, you're the best. Tell Marco we said hi!" },
@@ -900,15 +902,17 @@ export type DeliveryProviderId = "uber_direct" | "doordash" | "sherpa" | "zoom2u
 export type DeliveryProviderMeta = {
   label: string;
   color: string;
-  emoji: string;
+  icon: IconName;
+  /** Accent for the icon when it needs its own colour (the DoorDash dot). */
+  accent?: string;
 };
 
 export const deliveryProviderMeta: Record<DeliveryProviderId, DeliveryProviderMeta> = {
-  uber_direct: { label: "Uber Direct",    color: "#3B82F6", emoji: "🚗" },
-  doordash:    { label: "DoorDash Drive", color: "#FF3008", emoji: "🔴" },
-  sherpa:      { label: "Sherpa",         color: "#7C3AED", emoji: "📦" },
-  zoom2u:      { label: "Zoom2u",         color: "#10B981", emoji: "⚡" },
-  gopeople:    { label: "GoPeople",       color: "#F59E0B", emoji: "🏃" },
+  uber_direct: { label: "Uber Direct",    color: "#3B82F6", icon: "car" },
+  doordash:    { label: "DoorDash Drive", color: "#FF3008", icon: "dot", accent: "#FF4757" },
+  sherpa:      { label: "Sherpa",         color: "#7C3AED", icon: "package" },
+  zoom2u:      { label: "Zoom2u",         color: "#10B981", icon: "fast" },
+  gopeople:    { label: "GoPeople",       color: "#F59E0B", icon: "delivery" },
 };
 
 export type DemoProviderQuote = {

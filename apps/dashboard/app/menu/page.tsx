@@ -4,13 +4,14 @@ import { useState, useEffect, useRef } from "react";
 import Toast from "@/components/toast";
 import Modal from "@/components/modal";
 import EmptyState from "@/components/empty-state";
-import { UtensilsCrossed } from "lucide-react";
+import { Icon, iconComponent } from "@/components/zb-icon";
 import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
 import { getMenu, toggleMenuItemAvailability, updateMenuItem, createMenuItem, createMenuCategory, deleteMenuItem } from "@/lib/queries";
 import type { MenuCategory, MenuItem } from "@/lib/database.types";
 
 const C = { g:"#00B67A", st:"#6B7C93", r:"#FF4757", mist:"rgba(255,255,255,.07)" };
+const MenuIcon = iconComponent("menu");
 
 type MenuSection = MenuCategory & { items: MenuItem[] };
 
@@ -59,7 +60,7 @@ function ImageUploadField({ imageUrl, onUrl, businessId }: { imageUrl: string; o
           <img src={imageUrl} alt="menu item" style={{ width:"100%", height:"100%", objectFit:"cover", borderRadius:10 }} />
         ) : (
           <div style={{ textAlign:"center", color:C.st, fontSize:12, lineHeight:1.6 }}>
-            <div style={{ fontSize:24, marginBottom:4 }}>📷</div>
+            <div style={{ fontSize:24, marginBottom:4 }}><Icon name="photo" size={24} /></div>
             {uploading ? "Uploading…" : "Click to upload photo"}
             <div style={{ fontSize:10, marginTop:2 }}>JPG, PNG, WEBP · max 5 MB</div>
           </div>
@@ -194,7 +195,7 @@ export default function MenuPage() {
       {loading ? (
         <div style={{ textAlign:"center", color:"rgba(255,255,255,.2)", padding:48 }}>Loading…</div>
       ) : menu.length === 0 ? (
-        <EmptyState icon={UtensilsCrossed} title="No menu items yet" description="Add categories and items to build your menu. Changes publish to your storefront instantly." />
+        <EmptyState icon={MenuIcon} title="No menu items yet" description="Add categories and items to build your menu. Changes publish to your storefront instantly." />
       ) : menu.map((section, si) => (
         <div key={si} style={{ marginBottom:20 }}>
           <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:14, color:"#fff", marginBottom:8, display:"flex", alignItems:"center", gap:6 }}>
@@ -210,7 +211,7 @@ export default function MenuPage() {
                   {(item as any).image_url ? (
                     <img src={(item as any).image_url} alt={item.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
                   ) : (
-                    <span style={{ fontSize:20 }}>🍽️</span>
+                    <Icon name="menu" size={20} />
                   )}
                 </div>
                 <div style={{ flex:1 }}>

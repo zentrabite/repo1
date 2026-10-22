@@ -113,10 +113,10 @@ export default function WinBackPage() {
       </div>
 
       <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:14 }}>
-        <StatCard label="Active rules"       value={String(active)} accent icon="🎫" />
-        <StatCard label="Redemptions"        value={String(redemptions)} icon="🎁" delay={50} />
-        <StatCard label="Revenue recovered"  value={`$${Math.round(revenue).toLocaleString()}`} accent icon="💰" delay={100} />
-        <StatCard label="Rules total"        value={String(rules.length)} icon="📋" delay={150} />
+        <StatCard label="Active rules"       value={String(active)} accent icon="return" />
+        <StatCard label="Redemptions"        value={String(redemptions)} icon="rewards" delay={50} />
+        <StatCard label="Revenue recovered"  value={`$${Math.round(revenue).toLocaleString()}`} accent icon="money" delay={100} />
+        <StatCard label="Rules total"        value={String(rules.length)} icon="receipt" delay={150} />
       </div>
 
       <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:13, color:"#fff", marginBottom:10 }}>Rules</div>

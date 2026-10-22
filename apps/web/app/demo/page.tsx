@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { Logo } from "../components/logo";
+import { Icon, type IconName } from "../components/zb-icon";
 
 type DemoCard = {
   href: string;
-  emoji: string;
+  icon: IconName;
   title: string;
   description: string;
   cta: string;
@@ -14,7 +15,7 @@ type DemoCard = {
 const DEMOS: DemoCard[] = [
   {
     href: "/demo/live",
-    emoji: "🧠",
+    icon: "ai",
     title: "Run the merchant CRM sandbox",
     description:
       "The full merchant operating system, pre-loaded with a working pizzeria. Click through orders, AI calls, smart delivery routing, stock, rewards, automations and more — every page is real and interactive.",
@@ -24,7 +25,7 @@ const DEMOS: DemoCard[] = [
   },
   {
     href: "/demo/merchant",
-    emoji: "🛒",
+    icon: "storefront",
     title: "See the customer storefront",
     description:
       "What your customers see when they order from you — branded site, menu, cart and checkout. Your storefront sits on your own domain, no aggregator commissions.",
@@ -32,7 +33,7 @@ const DEMOS: DemoCard[] = [
   },
   {
     href: "/demo/super-admin",
-    emoji: "🔐",
+    icon: "lock",
     title: "See the platform super admin",
     description:
       "How ZentraBite operates the platform — multi-tenant control plane, module flags, impersonation, billing health, and rollout gates across every business.",
@@ -40,7 +41,7 @@ const DEMOS: DemoCard[] = [
   },
   {
     href: "/contact",
-    emoji: "✨",
+    icon: "sparkle",
     title: "Start your 1-month free trial",
     description:
       "Spin up your own ZentraBite tenant in under five minutes. Card details only required at the end of the trial — no commitment, cancel any time.",
@@ -241,7 +242,7 @@ function DemoCardLink({ demo }: { demo: DemoCard }) {
         </div>
       )}
       <div style={{ fontSize: 28, lineHeight: 1 }} aria-hidden>
-        {demo.emoji}
+        <Icon name={demo.icon} size={28} style={{ display: "block" }} />
       </div>
       <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 19, color: "var(--cloud)" }}>
         {demo.title}

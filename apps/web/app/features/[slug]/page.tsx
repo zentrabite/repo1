@@ -6,6 +6,7 @@ import { Footer } from "../../components/footer";
 import { CTABanner } from "../../components/cta-banner";
 import { Expandable } from "../../components/expandable";
 import { features, getFeature, getRelated } from "../data";
+import { Icon } from "../../components/zb-icon";
 
 export async function generateStaticParams() {
   return features.map((f) => ({ slug: f.slug }));
@@ -87,7 +88,7 @@ export default async function FeaturePage({
                 }}
                 aria-hidden
               >
-                {f.icon}
+                <Icon name={f.icon} size={38} />
               </div>
               <h1
                 style={{
@@ -347,7 +348,7 @@ export default async function FeaturePage({
                       }}
                       aria-hidden
                     >
-                      {r.icon}
+                      <Icon name={r.icon} size={21} />
                     </div>
                     <div
                       style={{

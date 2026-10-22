@@ -11,8 +11,10 @@ import {
   formatAUD,
   formatTime,
   type DeliveryProviderId,
+  type DeliveryProviderMeta,
   type DemoProviderQuote,
 } from "../data";
+import { Icon } from "../../../components/zb-icon";
 
 type Tab = "route" | "plan" | "analytics" | "jobs";
 
@@ -251,7 +253,7 @@ function DecisionBanner({ decision }: { decision: typeof deliveryExampleRoute })
         <div>
           <div className="eyebrow">Selected provider</div>
           <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 22, color: "var(--cloud)", marginTop: 4 }}>
-            {meta.emoji} {meta.label}
+            <Icon name={meta.icon} size={22} accent={meta.accent} style={{ marginRight: 6 }} />{meta.label}
           </div>
           <div style={{ fontSize: 12.5, color: "var(--steel)", marginTop: 4 }}>{decision.rationale}</div>
         </div>
@@ -323,7 +325,7 @@ function QuoteCard({ q, selected }: { q: DemoProviderQuote; selected: boolean })
           SELECTED
         </div>
       )}
-      <div style={{ fontSize: 18, marginBottom: 4 }}>{meta.emoji}</div>
+      <div style={{ fontSize: 18, marginBottom: 4 }}><Icon name={meta.icon} size={18} accent={meta.accent} /></div>
       <div style={{ fontWeight: 700, fontSize: 13, color: "var(--cloud)", marginBottom: 4 }}>{meta.label}</div>
       {!q.available ? (
         <div style={{ fontSize: 11, color: "var(--steel)" }}>{q.unavailableReason ?? "Unavailable"}</div>
@@ -441,8 +443,8 @@ function Analytics() {
         <div style={panelHeading}>Provider breakdown</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10, marginTop: 12 }}>
           {a.providerBreakdown.map((p) => {
-            const meta = p.provider === "in_house"
-              ? { label: "In-house drivers", color: "#00B67A", emoji: "🛵" }
+            const meta: DeliveryProviderMeta = p.provider === "in_house"
+              ? { label: "In-house drivers", color: "#00B67A", icon: "drivers" }
               : deliveryProviderMeta[p.provider];
             return (
               <div
@@ -454,7 +456,7 @@ function Analytics() {
                   border: "1px solid var(--mist-9)",
                 }}
               >
-                <div style={{ fontSize: 18, marginBottom: 4 }}>{meta.emoji}</div>
+                <div style={{ fontSize: 18, marginBottom: 4 }}><Icon name={meta.icon} size={18} accent={meta.accent} /></div>
                 <div style={{ fontWeight: 700, fontSize: 13, color: "var(--cloud)" }}>{meta.label}</div>
                 <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 18, color: meta.color, margin: "4px 0" }}>
                   {Math.round(p.share * 100)}%{" "}
@@ -503,8 +505,8 @@ function RecentJobs() {
         <div>Time</div>
       </div>
       {deliveryRecentJobs.map((j, i) => {
-        const meta = j.provider === "in_house"
-          ? { label: "In-house", color: "#00B67A", emoji: "🛵" }
+        const meta: DeliveryProviderMeta = j.provider === "in_house"
+          ? { label: "In-house", color: "#00B67A", icon: "drivers" }
           : deliveryProviderMeta[j.provider];
         const status = deliveryStatusLabel[j.status];
         return (
@@ -523,7 +525,7 @@ function RecentJobs() {
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 14 }}>{meta.emoji}</span>
+              <Icon name={meta.icon} size={14} accent={meta.accent} />
               <span style={{ color: meta.color, fontWeight: 600, fontSize: 12.5 }}>{meta.label}</span>
             </div>
             <div style={{ fontSize: 12.5, color: "var(--steel)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useBusiness } from "@/hooks/use-business";
 import ImportCheck from "@/components/import-check";
+import { Icon } from "@/components/zb-icon";
 import type { ImportResult } from "@/lib/import/types";
 
 const BIZ_TYPES = [
@@ -166,7 +167,7 @@ export default function NewOnboardingPage() {
 
       <div style={{ marginBottom: 28 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-          <span style={{ fontSize: 22 }}>🎯</span>
+          <Icon name="goal" size={22} />
           <h2 style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 22, color: C.cl }}>
             New Business Onboarding
           </h2>

@@ -13,6 +13,7 @@ import {
   getTopWinbacks, getRecommendations, dismissRecommendation,
 } from "@/lib/queries";
 import type { Order, AiRecommendation } from "@/lib/database.types";
+import { Icon } from "@/components/zb-icon";
 
 const C = { g:"#00B67A", o:"#FF6B35", am:"#F59E0B", st:"#6B7C93", r:"#DC3545", b:"#63B3FF" };
 
@@ -125,11 +126,11 @@ export default function DashboardPage() {
 
       {/* Row 1 — headline stats */}
       <div style={{ display:"flex", gap:10, flexWrap:"wrap", marginBottom:14 }}>
-        <StatCard label="Today's Revenue"      value={stats ? `$${stats.todayRevenue.toLocaleString()}` : "—"} accent icon="💰" />
-        <StatCard label="Today's Orders"       value={stats ? String(stats.todayOrders) : "—"} icon="📋" delay={50} />
-        <StatCard label="Recovered (30d)"      value={recoveredRevenue ? `$${Math.round(recoveredRevenue).toLocaleString()}` : "—"} subtitle="Win-back revenue" icon="↩️" delay={100} />
-        <StatCard label="Repeat rate (30d)"    value={`${repeat.repeatRate}%`} subtitle={`${repeat.repeatCustomers}/${repeat.totalCustomers} customers`} icon="🔁" delay={150} accent={repeat.repeatRate > 30} />
-        <StatCard label="Direct %"             value={stats?.directPct ? `${stats.directPct}%` : "—"} accent={stats ? stats.directPct > 60 : false} icon="📊" delay={200} />
+        <StatCard label="Today's Revenue"      value={stats ? `$${stats.todayRevenue.toLocaleString()}` : "—"} accent icon="money" />
+        <StatCard label="Today's Orders"       value={stats ? String(stats.todayOrders) : "—"} icon="orders" delay={50} />
+        <StatCard label="Recovered (30d)"      value={recoveredRevenue ? `$${Math.round(recoveredRevenue).toLocaleString()}` : "—"} subtitle="Win-back revenue" icon="return" delay={100} />
+        <StatCard label="Repeat rate (30d)"    value={`${repeat.repeatRate}%`} subtitle={`${repeat.repeatCustomers}/${repeat.totalCustomers} customers`} icon="return" delay={150} accent={repeat.repeatRate > 30} />
+        <StatCard label="Direct %"             value={stats?.directPct ? `${stats.directPct}%` : "—"} accent={stats ? stats.directPct > 60 : false} icon="chart" delay={200} />
       </div>
 
       {/* Row 2 — Live kanban */}
@@ -273,7 +274,7 @@ export default function DashboardPage() {
       <div className="gc" style={{ padding:20, marginBottom:14, background:"linear-gradient(135deg,rgba(0,182,122,.04),rgba(99,179,255,.02))" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
           <div>
-            <div style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:14, color:"#fff" }}>🤖 AI copilot</div>
+            <div style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:14, color:"#fff", display:"flex", alignItems:"center", gap:6 }}><Icon name="copilot" size={16} />AI copilot</div>
             <div style={{ fontSize:11, color:C.st }}>{recs.length === 0 ? "All clear — nothing needs your attention." : `${recs.length} recommendation${recs.length === 1 ? "" : "s"}`}</div>
           </div>
           <Link href="/automations" className="bg-btn" style={{ textDecoration:"none" }}>Rules →</Link>

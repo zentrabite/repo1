@@ -7,6 +7,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import { Icon, type IconName } from "../../components/zb-icon";
 
 // ─── Design tokens (matching web app CSS vars) ────────────────────────────────
 const G   = "var(--green)";
@@ -16,19 +17,19 @@ const N40 = "var(--navy-40)";
 const M9  = "var(--mist-9)";
 
 // ─── Static data ──────────────────────────────────────────────────────────────
-const ALL_MODULES = [
-  { key:"loyalty",            label:"Rewards & Loyalty",    icon:"⭐", price:49,  desc:"Points, tiers, redemption catalogue",                    deps:[] },
-  { key:"ai_calls",           label:"AI Voice Calls",       icon:"📞", price:79,  desc:"Inbound IVR + AI-handled calls via Twilio",              deps:[] },
-  { key:"driver_dispatch",    label:"Driver Dispatch",      icon:"🛵", price:39,  desc:"In-house drivers, shift scheduling, live tracking",       deps:[] },
-  { key:"stock",              label:"Stock & Inventory",    icon:"📦", price:29,  desc:"Par levels, expiry alerts, AI reorder suggestions",       deps:[] },
-  { key:"campaigns",          label:"Campaigns & Win-Back", icon:"🎯", price:49,  desc:"Automated SMS/email retention rules",                     deps:["loyalty"] },
-  { key:"sms",                label:"SMS",                  icon:"💬", price:19,  desc:"Twilio SMS send / receive",                              deps:[] },
-  { key:"email",              label:"Email",                icon:"📧", price:14,  desc:"Resend transactional + marketing email",                  deps:[] },
-  { key:"reviews",            label:"Reviews",              icon:"⭐", price:0,   desc:"Monitor and respond to customer reviews",                 deps:[] },
-  { key:"custom_website",     label:"Custom Storefront",    icon:"🌐", price:59,  desc:"White-label ordering site on merchant subdomain",         deps:[] },
-  { key:"ordering_app",       label:"Mobile App",           icon:"📱", price:99,  desc:"Branded iOS/Android app for the merchant's customers",    deps:["custom_website"] },
-  { key:"advanced_analytics", label:"Advanced Analytics",   icon:"📊", price:39,  desc:"Cohorts, LTV modelling, channel attribution deep-dive",   deps:[] },
-  { key:"premium_support",    label:"Priority Support",     icon:"🛟", price:49,  desc:"Dedicated Slack channel, 4-hour SLA",                    deps:[] },
+const ALL_MODULES: { key: string; label: string; icon: IconName; price: number; desc: string; deps: string[] }[] = [
+  { key:"loyalty",            label:"Rewards & Loyalty",    icon:"loyalty", price:49,  desc:"Points, tiers, redemption catalogue",                    deps:[] },
+  { key:"ai_calls",           label:"AI Voice Calls",       icon:"ai-calls", price:79,  desc:"Inbound IVR + AI-handled calls via Twilio",              deps:[] },
+  { key:"driver_dispatch",    label:"Driver Dispatch",      icon:"drivers", price:39,  desc:"In-house drivers, shift scheduling, live tracking",       deps:[] },
+  { key:"stock",              label:"Stock & Inventory",    icon:"stock", price:29,  desc:"Par levels, expiry alerts, AI reorder suggestions",       deps:[] },
+  { key:"campaigns",          label:"Campaigns & Win-Back", icon:"campaigns", price:49,  desc:"Automated SMS/email retention rules",                     deps:["loyalty"] },
+  { key:"sms",                label:"SMS",                  icon:"sms", price:19,  desc:"Twilio SMS send / receive",                              deps:[] },
+  { key:"email",              label:"Email",                icon:"email", price:14,  desc:"Resend transactional + marketing email",                  deps:[] },
+  { key:"reviews",            label:"Reviews",              icon:"reviews", price:0,   desc:"Monitor and respond to customer reviews",                 deps:[] },
+  { key:"custom_website",     label:"Custom Storefront",    icon:"website", price:59,  desc:"White-label ordering site on merchant subdomain",         deps:[] },
+  { key:"ordering_app",       label:"Mobile App",           icon:"smartphone", price:99,  desc:"Branded iOS/Android app for the merchant's customers",    deps:["custom_website"] },
+  { key:"advanced_analytics", label:"Advanced Analytics",   icon:"analytics", price:39,  desc:"Cohorts, LTV modelling, channel attribution deep-dive",   deps:[] },
+  { key:"premium_support",    label:"Priority Support",     icon:"support", price:49,  desc:"Dedicated Slack channel, 4-hour SLA",                    deps:[] },
 ];
 
 type Modules = Record<string, boolean>;
@@ -192,12 +193,13 @@ export default function SuperAdminPage() {
           {/* Brand */}
           <div style={{ padding:"18px 16px 14px", borderBottom:`1px solid ${M9}` }}>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-              <div style={{ width:32, height:32, borderRadius:9, background:G, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"var(--font-outfit)", fontWeight:800, fontSize:13, color:"var(--navy)" }}>ZB</div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/brand/zentrabite-icon.svg" alt="" width={32} height={32} style={{ display: "block", flexShrink: 0 }} />
               <div style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:14 }}>
                 <span style={{ color:CL }}>Zentra</span><span style={{ color:G }}>Bite</span>
               </div>
             </div>
-            <div style={{ fontSize:11, color:"var(--green)", fontWeight:600, marginTop:8, padding:"3px 8px", borderRadius:6, background:"rgba(0,182,122,.12)", display:"inline-block" }}>🔐 Super Admin</div>
+            <div style={{ fontSize:11, color:"var(--green)", fontWeight:600, marginTop:8, padding:"3px 8px", borderRadius:6, background:"rgba(0,182,122,.12)", display:"inline-flex", alignItems:"center", gap:5 }}><Icon name="lock" size={14} />Super Admin</div>
           </div>
 
           {/* Platform stats */}
@@ -217,12 +219,12 @@ export default function SuperAdminPage() {
           {/* Nav */}
           <nav style={{ flex:1, padding:"10px 8px" }}>
             {([
-              { id:"list",      label:"Tenants",         emoji:"🏢" },
-              { id:"health",    label:"Platform Health", emoji:"📡" },
-              { id:"catalogue", label:"Module Catalogue",emoji:"🧩" },
+              { id:"list",      label:"Tenants",         icon:"business" },
+              { id:"health",    label:"Platform Health", icon:"health" },
+              { id:"catalogue", label:"Module Catalogue",icon:"modules" },
             ] as const).map(n => (
               <button key={n.id} onClick={() => setScreen(n.id)} style={{ display:"flex", alignItems:"center", gap:8, width:"100%", padding:"9px 11px", borderRadius:9, marginBottom:2, border:"none", cursor:"pointer", fontSize:13, fontWeight: screen===n.id ? 600 : 400, color: screen===n.id ? G : ST, background: screen===n.id ? "rgba(0,182,122,.11)" : "transparent", borderLeft:`2px solid ${screen===n.id ? G : "transparent"}`, textAlign:"left" }}>
-                <span style={{ fontSize:14 }}>{n.emoji}</span>{n.label}
+                <Icon name={n.icon} size={14} />{n.label}
               </button>
             ))}
           </nav>
@@ -333,11 +335,11 @@ export default function SuperAdminPage() {
               {/* Tabs */}
               <div style={{ display:"flex", gap:2, marginBottom:20, borderBottom:`1px solid ${M9}`, paddingBottom:0 }}>
                 {([
-                  { id:"modules", label:"📦 Modules & Plan" },
-                  { id:"usage",   label:"📊 Usage & Billing" },
-                  { id:"ops",     label:"🔧 Ops" },
+                  { id:"modules", label:"Modules & Plan",  icon:"package" },
+                  { id:"usage",   label:"Usage & Billing", icon:"chart" },
+                  { id:"ops",     label:"Ops",             icon:"ops" },
                 ] as const).map(t => (
-                  <button key={t.id} onClick={() => setDetailTab(t.id)} style={{ padding:"10px 18px", border:"none", borderRadius:"8px 8px 0 0", background:detailTab===t.id?"rgba(0,182,122,.12)":"transparent", color:detailTab===t.id?G:ST, fontSize:13.5, fontWeight:detailTab===t.id?700:400, cursor:"pointer", borderBottom:`2px solid ${detailTab===t.id?G:"transparent"}`, marginBottom:-1 }}>{t.label}</button>
+                  <button key={t.id} onClick={() => setDetailTab(t.id)} style={{ padding:"10px 18px", border:"none", borderRadius:"8px 8px 0 0", background:detailTab===t.id?"rgba(0,182,122,.12)":"transparent", color:detailTab===t.id?G:ST, fontSize:13.5, fontWeight:detailTab===t.id?700:400, cursor:"pointer", borderBottom:`2px solid ${detailTab===t.id?G:"transparent"}`, marginBottom:-1, display:"inline-flex", alignItems:"center", gap:6 }}><Icon name={t.icon} size={16} />{t.label}</button>
                 ))}
               </div>
 
@@ -355,7 +357,7 @@ export default function SuperAdminPage() {
                       return (
                         <div key={m.key} style={{ padding:"14px 16px", borderRadius:12, background:"rgba(255,255,255,.02)", border:`1px solid ${on?"rgba(0,182,122,.25)":M9}`, opacity: depBlocked ? 0.5 : 1 }}>
                           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
-                            <div style={{ fontSize:20, marginBottom:2 }}>{m.icon}</div>
+                            <div style={{ fontSize:20, marginBottom:2 }}><Icon name={m.icon} size={20} /></div>
                             {/* Toggle */}
                             <div onClick={() => !depBlocked && toggleModule(m.key)} style={{ width:40, height:22, borderRadius:11, background:on?"rgba(0,182,122,.3)":"rgba(255,255,255,.08)", cursor:depBlocked?"not-allowed":"pointer", position:"relative", border:`1px solid ${on?"rgba(0,182,122,.4)":"rgba(255,255,255,.06)"}`, flexShrink:0 }}>
                               <div style={{ width:16, height:16, borderRadius:"50%", background:on?G:ST, position:"absolute", top:2, left:on?20:2, transition:"all .2s" }} />
@@ -440,16 +442,16 @@ export default function SuperAdminPage() {
                       <div style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:14, color:CL, marginBottom:10 }}>Actions</div>
                       <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                         <button onClick={() => toast(`Impersonating ${tenant.name} (demo only)`)} style={{ padding:"10px 14px", borderRadius:9, background:"rgba(0,182,122,.10)", border:"1px solid rgba(0,182,122,.28)", color:G, fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left" }}>
-                          👤 Impersonate merchant →
+                          <Icon name="user" size={16} style={{ marginRight:6 }} />Impersonate merchant →
                         </button>
                         <button onClick={() => toast("Password reset email sent (demo only)")} style={{ padding:"10px 14px", borderRadius:9, background:N40, border:`1px solid ${M9}`, color:CL, fontSize:13, cursor:"pointer", textAlign:"left" }}>
-                          🔑 Send password reset
+                          <Icon name="key" size={16} style={{ marginRight:6 }} />Send password reset
                         </button>
                         <button onClick={() => toast("Support ticket opened (demo only)")} style={{ padding:"10px 14px", borderRadius:9, background:N40, border:`1px solid ${M9}`, color:CL, fontSize:13, cursor:"pointer", textAlign:"left" }}>
-                          🛟 Open support ticket
+                          <Icon name="support" size={16} style={{ marginRight:6 }} />Open support ticket
                         </button>
                         <button onClick={() => toast("Tenant suspended (demo only)")} style={{ padding:"10px 14px", borderRadius:9, background:"rgba(255,71,87,.06)", border:"1px solid rgba(255,71,87,.2)", color:"#FF4757", fontSize:13, cursor:"pointer", textAlign:"left" }}>
-                          ⚠️ Suspend account
+                          <Icon name="warning" size={16} accent="#FF4757" style={{ marginRight:6 }} />Suspend account
                         </button>
                       </div>
                     </div>
@@ -497,7 +499,7 @@ export default function SuperAdminPage() {
                 })}
               </div>
               <div style={{ padding:"14px 16px", borderRadius:12, background:"rgba(245,158,11,.06)", border:"1px solid rgba(245,158,11,.2)" }}>
-                <div style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:14, color:"#F59E0B", marginBottom:6 }}>⚠️ 2 Webhook failures — DoorDash integration</div>
+                <div style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:14, color:"#F59E0B", marginBottom:6, display:"flex", alignItems:"center", gap:6 }}><Icon name="warning" size={16} accent="#F59E0B" />2 Webhook failures — DoorDash integration</div>
                 <p style={{ fontSize:13, color:CL, margin:"0 0 8px" }}>DoorDash webhook endpoint returned 503 at 11:42 am and 11:43 am. Retried once automatically. No orders were dropped — fallback to Uber Direct succeeded. Investigate DoorDash API status.</p>
                 <button onClick={() => toast("Ticket opened with DoorDash (demo only)")} style={{ padding:"7px 14px", borderRadius:8, background:"rgba(245,158,11,.12)", border:"1px solid rgba(245,158,11,.3)", color:"#F59E0B", fontSize:12.5, fontWeight:600, cursor:"pointer" }}>Open incident ticket</button>
               </div>
@@ -517,7 +519,7 @@ export default function SuperAdminPage() {
                   return (
                     <div key={m.key} style={{ padding:"16px 18px", borderRadius:14, background:"rgba(255,255,255,.02)", border:`1px solid ${M9}` }}>
                       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
-                        <div style={{ fontSize:24 }}>{m.icon}</div>
+                        <div style={{ fontSize:24 }}><Icon name={m.icon} size={24} /></div>
                         <div style={{ textAlign:"right" }}>
                           <div style={{ fontSize:16, fontWeight:800, color:G, fontFamily:"var(--font-outfit)" }}>{m.price > 0 ? `+$${m.price}/mo` : "Included"}</div>
                           <div style={{ fontSize:11, color:ST }}>{stats.enabled} tenants enabled</div>

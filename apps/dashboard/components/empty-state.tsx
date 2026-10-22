@@ -1,12 +1,12 @@
-import { type LucideIcon } from "lucide-react";
+import { type IconComponent } from "@/components/zb-icon";
 
 // Brand spec:
 //   Title    → Outfit Medium 500, H3 scale
 //   Body     → Inter Regular 400, body size
-//   Icon     → Lucide, 24px, 1.5px stroke (active state = green fill bg)
+//   Icon     → ZentraBite icon (components/zb-icon), 24px, 1.5px stroke (active state = green fill bg)
 
 interface EmptyStateProps {
-  icon: LucideIcon;
+  icon: IconComponent;
   title: string;
   description: string;
 }
@@ -30,7 +30,7 @@ export default function EmptyState({ icon: Icon, title, description }: EmptyStat
         display: "flex", alignItems: "center", justifyContent: "center",
         marginBottom: 16,
       }}>
-        <Icon size={24} color="#00B67A" strokeWidth={1.5} />
+        <Icon size={24} strokeWidth={1.5} style={{ color: "#00B67A" }} />
       </div>
 
       {/* Title — Outfit H3 */}

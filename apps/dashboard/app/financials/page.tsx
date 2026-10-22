@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import StatCard from "@/components/stat-card";
+import { Icon } from "@/components/zb-icon";
 import Toast from "@/components/toast";
 import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
@@ -82,10 +83,10 @@ export default function FinancialsPage() {
 
       {/* Stat cards */}
       <div style={{ display:"flex", gap:10, flexWrap:"wrap", marginBottom:16 }}>
-        <StatCard label="Revenue (90d)"     value={totalRev > 0 ? `$${totalRev.toLocaleString()}` : "—"} accent icon="💰" />
-        <StatCard label="Aggregator Fees"   value={aggFees  > 0 ? `$${aggFees.toLocaleString()}`  : "—"} icon="🔴" delay={50} />
-        <StatCard label="Retained Margin"   value={margin   > 0 ? `$${margin.toLocaleString()}`   : "—"} accent icon="🛡️" delay={100} />
-        <StatCard label="Subscription"      value={subscriptionFee ? `$${subscriptionFee}/mo` : "—"} subtitle={subscriptionFee ? undefined : "Set in billing"} icon="📋" delay={150} />
+        <StatCard label="Revenue (90d)"     value={totalRev > 0 ? `$${totalRev.toLocaleString()}` : "—"} accent icon="money" />
+        <StatCard label="Aggregator Fees"   value={aggFees  > 0 ? `$${aggFees.toLocaleString()}`  : "—"} icon="decline" delay={50} />
+        <StatCard label="Retained Margin"   value={margin   > 0 ? `$${margin.toLocaleString()}`   : "—"} accent icon="security" delay={100} />
+        <StatCard label="Subscription"      value={subscriptionFee ? `$${subscriptionFee}/mo` : "—"} subtitle={subscriptionFee ? undefined : "Set in billing"} icon="receipt" delay={150} />
       </div>
 
       {/* Revenue breakdown + margin */}
@@ -124,8 +125,8 @@ export default function FinancialsPage() {
                 )}
               </div>
               <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:C.st, marginBottom:20 }}>
-                <span>🟢 Direct (full margin)</span>
-                <span>🟠 Aggregators (−30%)</span>
+                <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Icon name="dot" size={14} accent="#00B67A" />Direct (full margin)</span>
+                <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Icon name="dot" size={14} accent="#FF6B35" />Aggregators (−30%)</span>
               </div>
             </>
           ) : (
@@ -135,8 +136,8 @@ export default function FinancialsPage() {
           )}
 
           <div style={{ padding:"14px", background:"rgba(0,182,122,.06)", border:"1px solid rgba(0,182,122,.15)", borderRadius:10 }}>
-            <div style={{ fontSize:13, color:C.g, fontWeight:600, marginBottom:4 }}>
-              💡 Save ${aggFees > 0 ? aggFees.toLocaleString() : "—"} in fees
+            <div style={{ fontSize:13, color:C.g, fontWeight:600, marginBottom:4, display:"flex", alignItems:"center", gap:6 }}>
+              <Icon name="insight" size={16} />Save ${aggFees > 0 ? aggFees.toLocaleString() : "—"} in fees
             </div>
             <div style={{ fontSize:11, color:C.st }}>
               Moving aggregator orders to direct saves you ~30% in platform fees
@@ -149,7 +150,7 @@ export default function FinancialsPage() {
       <div className="gc" style={{ padding:22, marginBottom:12 }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
           <div style={{ display:"flex", gap:10, alignItems:"center" }}>
-            <span style={{ fontSize:22 }}>📗</span>
+            <Icon name="receipt" size={22} />
             <div>
               <div style={{ fontWeight:600, color:"#fff", fontSize:14 }}>Xero Accounting</div>
               <div style={{ fontSize:11, color:C.st, marginTop:2 }}>Download a CSV of the last 30 days of orders, ready to import into Xero</div>
@@ -173,7 +174,7 @@ export default function FinancialsPage() {
 
       {/* Export */}
       <button className="bg-btn" style={{ width:"100%", padding:"13px", fontSize:13, justifyContent:"center" }} onClick={exportCsv}>
-        📊 Export Full Financial Report (CSV)
+        <Icon name="chart" size={16} />Export Full Financial Report (CSV)
       </button>
 
       <Toast message={toast.message} visible={toast.visible} />

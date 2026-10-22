@@ -14,6 +14,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { Icon, type IconName } from "../../components/zb-icon";
 import {
   brand,
   menu,
@@ -139,7 +140,7 @@ export default function CustomerApp() {
     <div style={pageShell}>
       {/* Desktop backdrop */}
       <div style={desktopInfo}>
-        <div style={desktopInfoBadge}>📱 Customer app preview</div>
+        <div style={desktopInfoBadge}><Icon name="smartphone" size={14} accent={ORANGE} style={{ marginRight: 6 }} />Customer app preview</div>
         <h1 style={desktopTitle}>The {brand.name} app</h1>
         <p style={desktopSub}>
           The same brand, menu, deals and loyalty as the storefront — in your
@@ -251,7 +252,7 @@ function StatusBar() {
     >
       <span>9:41</span>
       <span style={{ letterSpacing: 2 }}>•••</span>
-      <span>🔋 87%</span>
+      <span>87%</span>
     </div>
   );
 }
@@ -265,13 +266,13 @@ function TabBar({
   setTab: (t: Tab) => void;
   cartCount: number;
 }) {
-  const items: { id: Tab; icon: string; label: string }[] = [
-    { id: "home", icon: "🏠", label: "Home" },
-    { id: "menu", icon: "🍕", label: "Menu" },
-    { id: "cart", icon: "🛒", label: "Cart" },
-    { id: "rewards", icon: "⭐", label: "Rewards" },
-    { id: "orders", icon: "📦", label: "Orders" },
-    { id: "profile", icon: "👤", label: "You" },
+  const items: { id: Tab; icon: IconName; label: string }[] = [
+    { id: "home", icon: "home", label: "Home" },
+    { id: "menu", icon: "menu", label: "Menu" },
+    { id: "cart", icon: "bag", label: "Cart" },
+    { id: "rewards", icon: "loyalty", label: "Rewards" },
+    { id: "orders", icon: "orders", label: "Orders" },
+    { id: "profile", icon: "user", label: "You" },
   ];
   return (
     <div
@@ -303,7 +304,7 @@ function TabBar({
             }}
           >
             <span style={{ fontSize: 18, lineHeight: 1, position: "relative" }}>
-              {it.icon}
+              <Icon name={it.icon} size={18} accent={ORANGE} style={{ display: "block" }} />
               {it.id === "cart" && cartCount > 0 && (
                 <span
                   style={{
@@ -365,7 +366,7 @@ function HomeTab({
       {/* Header: greeting + logo */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
         <div>
-          <div style={{ fontSize: 12, color: MUTED, fontWeight: 600 }}>G&apos;day, {CUSTOMER.name} 👋</div>
+          <div style={{ fontSize: 12, color: MUTED, fontWeight: 600 }}>G&apos;day, {CUSTOMER.name}</div>
           <div style={{ fontSize: 20, fontWeight: 800, color: INK }}>What are we having?</div>
         </div>
         <div
@@ -403,7 +404,7 @@ function HomeTab({
             gap: 12,
           }}
         >
-          <div style={{ fontSize: 28 }}>🛵</div>
+          <div style={{ fontSize: 28 }}><Icon name="delivery" size={28} accent={ORANGE} /></div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: ORANGE_DARK }}>
               {["Order received", "In the oven", "Out for delivery", "Delivered"][activeOrderStage]}
@@ -440,7 +441,7 @@ function HomeTab({
           <div style={{ fontSize: 11, opacity: 0.75, fontWeight: 700, letterSpacing: 1 }}>
             {loyalty.name.toUpperCase()} · {tier.name.toUpperCase()}
           </div>
-          <div style={{ fontSize: 11, opacity: 0.75 }}>⭐ {points} pts</div>
+          <div style={{ fontSize: 11, opacity: 0.75 }}><Icon name="loyalty" size={14} accent={ORANGE} style={{ marginRight: 4 }} />{points} pts</div>
         </div>
         <div style={{ marginTop: 10 }}>
           <div
@@ -563,7 +564,7 @@ function HomeTab({
 
       {/* Browse menu CTA */}
       <button onClick={onBrowse} style={ctaOutline}>
-        🍕 Browse full menu
+        <Icon name="menu" size={16} accent={ORANGE} style={{ marginRight: 6 }} />Browse full menu
       </button>
     </div>
   );
@@ -642,7 +643,7 @@ function MenuTab({
               boxSizing: "border-box",
             }}
           />
-          <span style={{ position: "absolute", left: 12, top: 10, fontSize: 14 }}>🔍</span>
+          <span style={{ position: "absolute", left: 12, top: 10, fontSize: 14 }}><Icon name="search" size={14} accent={ORANGE} /></span>
         </div>
       </div>
 
@@ -811,7 +812,7 @@ function CartTab({
   if (lines.length === 0) {
     return (
       <div style={{ padding: "60px 24px", textAlign: "center" }}>
-        <div style={{ fontSize: 54, marginBottom: 10 }}>🛒</div>
+        <div style={{ fontSize: 54, marginBottom: 10 }}><Icon name="bag" size={54} accent={ORANGE} /></div>
         <div style={{ fontSize: 16, fontWeight: 700, color: INK, marginBottom: 6 }}>
           Your cart&apos;s empty
         </div>
@@ -894,7 +895,7 @@ function CartTab({
           gap: 8,
         }}
       >
-        <span style={{ fontSize: 16 }}>⭐</span>
+        <Icon name="loyalty" size={16} accent={ORANGE} />
         This order earns you{" "}
         <strong style={{ color: FOREST }}>{pointsToEarn} Dough Club points</strong>
       </div>
@@ -912,7 +913,7 @@ function CartTab({
           gap: 10,
         }}
       >
-        <div style={{ fontSize: 20 }}>📍</div>
+        <div style={{ fontSize: 20 }}><Icon name="location" size={20} accent={ORANGE} /></div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 11, color: MUTED, fontWeight: 600 }}>Deliver to</div>
           <div style={{ fontSize: 13, fontWeight: 600, color: INK }}>{firstAddress.line}</div>
@@ -933,7 +934,7 @@ function CartTab({
           gap: 10,
         }}
       >
-        <div style={{ fontSize: 20 }}>💳</div>
+        <div style={{ fontSize: 20 }}><Icon name="card" size={20} accent={ORANGE} /></div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 11, color: MUTED, fontWeight: 600 }}>Paying with</div>
           <div style={{ fontSize: 13, fontWeight: 600, color: INK }}>
@@ -953,7 +954,7 @@ function CartTab({
         }}
       >
         <Row label="Subtotal" value={formatAUD(subtotal)} />
-        <Row label="Delivery" value={delivery === 0 ? "Free 🎉" : formatAUD(delivery)} />
+        <Row label="Delivery" value={delivery === 0 ? "Free" : formatAUD(delivery)} />
         <div
           style={{
             display: "flex",
@@ -1081,7 +1082,7 @@ function RewardsTab({ points }: { points: number }) {
                   justifyContent: "center",
                 }}
               >
-                🎁
+                <Icon name="rewards" size={22} accent={ORANGE} />
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: INK }}>{u.name}</div>
@@ -1169,7 +1170,7 @@ function OrdersTab({
     { label: "On the way", sub: "Driver heading to you" },
     { label: "Delivered", sub: "Enjoy!" },
   ];
-  const stageIcons = ["📝", "🔥", "🛵", "✅"];
+  const stageIcons: IconName[] = ["receipt", "flame", "delivery", "done"];
   const currentStage = stages[Math.min(activeStage, stages.length - 1)]!;
   return (
     <div style={{ padding: "12px 16px 20px" }}>
@@ -1202,7 +1203,7 @@ function OrdersTab({
               </div>
               <div style={{ fontSize: 12, color: MUTED }}>{currentStage.sub}</div>
             </div>
-            <div style={{ fontSize: 40 }}>{stageIcons[activeStage]}</div>
+            <div style={{ fontSize: 40 }}><Icon name={stageIcons[activeStage]!} size={40} accent={ORANGE} /></div>
           </div>
           <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
             {stages.map((_, i) => (
@@ -1228,7 +1229,7 @@ function OrdersTab({
               gap: 10,
             }}
           >
-            <div style={{ fontSize: 24 }}>🧑‍🍳</div>
+            <div style={{ fontSize: 24 }}><Icon name="kitchen" size={24} accent={ORANGE} /></div>
             <div style={{ flex: 1, fontSize: 12, color: INK }}>
               <strong>Marco</strong> is prepping your order
             </div>
@@ -1354,7 +1355,7 @@ function ProfileTab() {
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 15, fontWeight: 800, color: INK }}>{CUSTOMER.name} Potter</div>
           <div style={{ fontSize: 12, color: MUTED }}>
-            {CUSTOMER.tier} · ⭐ {CUSTOMER.points} pts
+            {CUSTOMER.tier} · <Icon name="loyalty" size={14} accent={ORANGE} style={{ marginRight: 4 }} />{CUSTOMER.points} pts
           </div>
         </div>
       </div>
@@ -1374,7 +1375,7 @@ function ProfileTab() {
               gap: 10,
             }}
           >
-            <div style={{ fontSize: 18 }}>📍</div>
+            <div style={{ fontSize: 18 }}><Icon name="location" size={18} accent={ORANGE} /></div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: INK }}>
                 {a.label}
@@ -1415,7 +1416,7 @@ function ProfileTab() {
               gap: 10,
             }}
           >
-            <div style={{ fontSize: 18 }}>💳</div>
+            <div style={{ fontSize: 18 }}><Icon name="card" size={18} accent={ORANGE} /></div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: INK }}>
                 {c.brand} ending {c.last4}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { automations as initialAutomations, type DemoAutomation } from "../data";
+import { Icon, type IconName } from "../../../components/zb-icon";
 
 function toast(text: string) {
   if (typeof document === "undefined") return;
@@ -18,11 +19,11 @@ function toast(text: string) {
   setTimeout(() => el.remove(), 2400);
 }
 
-const CATEGORY_COLORS: Record<DemoAutomation["category"], { color: string; bg: string; emoji: string; label: string }> = {
-  order:  { color: "#00B67A", bg: "rgba(0,182,122,0.14)",   emoji: "📋", label: "Orders" },
-  review: { color: "#C9A6FF", bg: "rgba(201,166,255,0.14)", emoji: "⭐", label: "Reviews" },
-  stock:  { color: "#FFC14B", bg: "rgba(255,193,75,0.14)",  emoji: "📦", label: "Stock" },
-  staff:  { color: "#6BB1FF", bg: "rgba(107,177,255,0.14)", emoji: "👥", label: "Staff" },
+const CATEGORY_COLORS: Record<DemoAutomation["category"], { color: string; bg: string; icon: IconName; label: string }> = {
+  order:  { color: "#00B67A", bg: "rgba(0,182,122,0.14)",   icon: "orders", label: "Orders" },
+  review: { color: "#C9A6FF", bg: "rgba(201,166,255,0.14)", icon: "reviews", label: "Reviews" },
+  stock:  { color: "#FFC14B", bg: "rgba(255,193,75,0.14)",  icon: "stock", label: "Stock" },
+  staff:  { color: "#6BB1FF", bg: "rgba(107,177,255,0.14)", icon: "users", label: "Staff" },
 };
 
 export default function AutomationsPage() {
@@ -136,7 +137,7 @@ export default function AutomationsPage() {
                   fontSize: 18,
                 }}
               >
-                {cat.emoji}
+                <Icon name={cat.icon} size={18} />
               </div>
 
               <div>
@@ -178,7 +179,11 @@ export default function AutomationsPage() {
                   whiteSpace: "nowrap",
                 }}
               >
-                {live ? "⏸ Pause" : "▶ Activate"}
+                {live ? (
+                  <><Icon name="pause" size={14} accent="currentColor" style={{ marginRight: 6 }} />Pause</>
+                ) : (
+                  <><Icon name="play" size={14} accent="currentColor" style={{ marginRight: 6 }} />Activate</>
+                )}
               </button>
             </div>
           );

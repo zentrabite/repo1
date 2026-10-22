@@ -11,6 +11,7 @@ import {
   type StockItem,
   type StockStatus,
 } from "../data";
+import { Icon } from "../../../components/zb-icon";
 
 function toast(text: string, tone: "ok" | "warn" = "ok") {
   if (typeof document === "undefined") return;
@@ -95,7 +96,7 @@ export default function StockPage() {
             onClick={() => toast("Voice stock count started — say item names to log (demo)")}
             style={btnGhost("#C9A6FF", "rgba(201,166,255,0.12)", "rgba(201,166,255,0.28)")}
           >
-            🎙 Voice count
+            <Icon name="voice" size={16} style={{ marginRight: 6 }} />Voice count
           </button>
           <button
             onClick={acceptAll}
@@ -106,7 +107,7 @@ export default function StockPage() {
               cursor: aiCart.length === 0 ? "not-allowed" : "pointer",
             }}
           >
-            ✨ Accept all AI orders ({aiCart.length}) · {formatAUD(aiCartValue)}
+            <Icon name="ai" size={16} accent="currentColor" style={{ marginRight: 6 }} />Accept all AI orders ({aiCart.length}) · {formatAUD(aiCartValue)}
           </button>
         </div>
       </div>
@@ -190,7 +191,7 @@ export default function StockPage() {
                       {i.name}
                       {i.expiresIn !== null && i.expiresIn <= 3 && (
                         <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 999, background: "rgba(254,188,46,0.15)", color: "#febc2e", fontWeight: 700 }}>
-                          ⏱ {i.expiresIn}d
+                          <Icon name="hours" size={14} accent="#febc2e" style={{ marginRight: 3 }} />{i.expiresIn}d
                         </span>
                       )}
                     </div>
@@ -309,7 +310,7 @@ export default function StockPage() {
           {/* AI insights */}
           <div className="glass" style={{ padding: 20 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: "var(--cloud)", marginBottom: 12 }}>
-              ✨ AI insights
+              <Icon name="insight" size={16} style={{ marginRight: 6 }} />AI insights
             </div>
             <div style={{ display: "grid", gap: 10, fontSize: 13, color: "var(--cloud)", lineHeight: 1.5 }}>
               <Insight
@@ -425,7 +426,7 @@ function StockDetail({
           }}
         >
           <div style={{ fontSize: 12, color: "var(--green)", fontWeight: 700, marginBottom: 6 }}>
-            ✨ AI suggests ordering
+            <Icon name="ai" size={14} style={{ marginRight: 6 }} />AI suggests ordering
           </div>
           <div style={{ fontSize: 15, color: "var(--cloud)", fontWeight: 600 }}>
             {item.aiSuggestOrder}{item.unit} · {formatAUD(reorderValue)} from {item.supplier}

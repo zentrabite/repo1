@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { customers, rewardTiers, earnRules, formatAUD, type DemoCustomer } from "../data";
+import { Icon, type IconName } from "../../../components/zb-icon";
 
 function toast(text: string) {
   if (typeof document === "undefined") return;
@@ -19,11 +20,11 @@ function toast(text: string) {
   setTimeout(() => el.remove(), 2400);
 }
 
-const TIER_COLORS: Record<DemoCustomer["tier"], { color: string; bg: string; emoji: string }> = {
-  VIP:    { color: "#C9A24A", bg: "rgba(201,162,74,0.14)",  emoji: "👑" },
-  Gold:   { color: "#FFC14B", bg: "rgba(255,193,75,0.14)",  emoji: "⭐" },
-  Silver: { color: "#B6C4D6", bg: "rgba(182,196,214,0.12)", emoji: "🥈" },
-  Bronze: { color: "#C28D5C", bg: "rgba(194,141,92,0.14)",  emoji: "🥉" },
+const TIER_COLORS: Record<DemoCustomer["tier"], { color: string; bg: string; icon: IconName; accent?: string }> = {
+  VIP:    { color: "#C9A24A", bg: "rgba(201,162,74,0.14)",  icon: "vip" },
+  Gold:   { color: "#FFC14B", bg: "rgba(255,193,75,0.14)",  icon: "tier", accent: "#F5B83D" },
+  Silver: { color: "#B6C4D6", bg: "rgba(182,196,214,0.12)", icon: "tier", accent: "#C0C7D1" },
+  Bronze: { color: "#C28D5C", bg: "rgba(194,141,92,0.14)",  icon: "tier", accent: "#C28D5C" },
 };
 
 type Redemption = {
@@ -117,7 +118,7 @@ export default function RewardsPage() {
                   border: `1px solid ${colors.color}33`,
                 }}
               >
-                <div style={{ fontSize: 24, marginBottom: 6 }}>{colors.emoji}</div>
+                <div style={{ fontSize: 24, marginBottom: 6 }}><Icon name={colors.icon} size={24} accent={colors.accent} /></div>
                 <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 18, color: colors.color }}>
                   {tier.name}
                 </div>
@@ -346,7 +347,7 @@ export default function RewardsPage() {
                 </div>
                 <div>
                   <span style={{ padding: "3px 10px", borderRadius: 999, background: colors.bg, color: colors.color, fontSize: 11.5, fontWeight: 700 }}>
-                    {colors.emoji} {c.tier}
+                    <Icon name={colors.icon} size={14} accent={colors.accent} style={{ marginRight: 4 }} />{c.tier}
                   </span>
                 </div>
                 <div style={{ textAlign: "right", fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 15, color: "var(--green)" }}>

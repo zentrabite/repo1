@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Nav } from "../components/nav";
 import { Footer } from "../components/footer";
+import { Icon } from "../components/zb-icon";
 
 type FormState = {
   name: string;
@@ -394,7 +395,7 @@ function SuccessCard({ form }: { form: FormState }) {
         border: "1px solid rgba(0,182,122,0.35)",
       }}
     >
-      <div style={{ fontSize: 48, marginBottom: 12 }}>🎉</div>
+      <div style={{ marginBottom: 12, display: "flex", justifyContent: "center", color: "var(--cloud)" }}><Icon name="done" size={48} /></div>
       <h2 style={{ fontSize: 26, margin: "0 0 10px", color: "var(--cloud)" }}>
         Got it, {form.name.split(" ")[0] || "there"}.
       </h2>

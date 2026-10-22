@@ -15,6 +15,7 @@ import {
   type FulfillmentStage,
   type FulfillmentType,
 } from "../data";
+import { Icon, type IconName } from "../../../components/zb-icon";
 
 const STAGES: FulfillmentStage[] = ["placed", "picked", "packed", "shipped", "delivered"];
 
@@ -113,12 +114,12 @@ export default function DemoFulfillmentPage() {
           gap: 10,
         }}
       >
-        <StatChip label="Open" value={stats.placed + stats.picked + stats.packed + stats.shipped} icon="🟢" onClick={() => setStageFilter("open")} active={stageFilter === "open"} accent />
-        <StatChip label="To pick" value={stats.placed} icon="🧾" onClick={() => setStageFilter("placed")} active={stageFilter === "placed"} />
-        <StatChip label="To pack" value={stats.picked} icon="🛒" onClick={() => setStageFilter("picked")} active={stageFilter === "picked"} />
-        <StatChip label="To ship" value={stats.packed} icon="📦" onClick={() => setStageFilter("packed")} active={stageFilter === "packed"} />
-        <StatChip label="In transit" value={stats.shipped} icon="🚚" onClick={() => setStageFilter("shipped")} active={stageFilter === "shipped"} />
-        <StatChip label="Delivered" value={stats.delivered} icon="✅" onClick={() => setStageFilter("delivered")} active={stageFilter === "delivered"} />
+        <StatChip label="Open" value={stats.placed + stats.picked + stats.packed + stats.shipped} icon="dot" onClick={() => setStageFilter("open")} active={stageFilter === "open"} accent />
+        <StatChip label="To pick" value={stats.placed} icon="receipt" onClick={() => setStageFilter("placed")} active={stageFilter === "placed"} />
+        <StatChip label="To pack" value={stats.picked} icon="bag" onClick={() => setStageFilter("picked")} active={stageFilter === "picked"} />
+        <StatChip label="To ship" value={stats.packed} icon="package" onClick={() => setStageFilter("packed")} active={stageFilter === "packed"} />
+        <StatChip label="In transit" value={stats.shipped} icon="delivery" onClick={() => setStageFilter("shipped")} active={stageFilter === "shipped"} />
+        <StatChip label="Delivered" value={stats.delivered} icon="done" onClick={() => setStageFilter("delivered")} active={stageFilter === "delivered"} />
       </div>
 
       {/* Secondary stage scope pills (mostly redundant with the stat cards, but
@@ -423,7 +424,7 @@ function ShipmentDrawer({
                         flexShrink: 0,
                       }}
                     >
-                      {on ? "✓" : label.emoji}
+                      {on ? "✓" : <Icon name={label.icon} size={14} />}
                     </span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13.5, color: "var(--cloud)", fontWeight: 700 }}>
@@ -502,8 +503,8 @@ function ShipmentDrawer({
                 → Mark {fulfillmentStageLabel[next].label}
               </button>
             )}
-            <DemoButton label="Email tracking link to customer" icon="📧" />
-            <DemoButton label="Print shipping label" icon="🖨️" />
+            <DemoButton label="Email tracking link to customer" icon="email" />
+            <DemoButton label="Print shipping label" icon="print" />
           </div>
         </div>
       </aside>
@@ -539,7 +540,7 @@ function StatChip({
 }: {
   label: string;
   value: number;
-  icon: string;
+  icon: IconName;
   active: boolean;
   accent?: boolean;
   onClick: () => void;
@@ -563,7 +564,7 @@ function StatChip({
         <div style={{ fontSize: 12, color: "var(--steel)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
           {label}
         </div>
-        <div style={{ fontSize: 14 }}>{icon}</div>
+        <div style={{ fontSize: 14, color: "var(--cloud)" }}><Icon name={icon} size={14} /></div>
       </div>
       <div
         style={{
@@ -619,7 +620,7 @@ function Row({ label, value, mono = false }: { label: string; value: string; mon
   );
 }
 
-function DemoButton({ label, icon }: { label: string; icon: string }) {
+function DemoButton({ label, icon }: { label: string; icon: IconName }) {
   return (
     <button
       onClick={() => {
@@ -648,7 +649,7 @@ function DemoButton({ label, icon }: { label: string; icon: string }) {
         width: "100%",
       }}
     >
-      <span>{icon}</span>
+      <Icon name={icon} size={16} />
       {label}
     </button>
   );

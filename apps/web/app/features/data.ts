@@ -2,11 +2,13 @@
 // The marketing-grid reads `summary` tiles; the /features/[slug] page
 // reads the richer fields (overview, steps, bullets, relatedSlugs).
 
+import type { IconName } from "../components/zb-icon";
+
 export type FeatureTag = "Done-for-you";
 
 export type Feature = {
   slug: string;
-  icon: string;
+  icon: IconName;
   title: string;
   tagline: string;          // short line, shown under the hero on the detail page
   summary: string;          // tile body on the homepage grid
@@ -22,7 +24,7 @@ export type Feature = {
 export const features: Feature[] = [
   {
     slug: "pos",
-    icon: "🖥️",
+    icon: "pos",
     title: "POS system",
     tagline: "One screen for dine-in, takeaway, and online — no separate terminal, no extra fees.",
     summary:
@@ -64,7 +66,7 @@ export const features: Feature[] = [
   },
   {
     slug: "custom-mobile-app",
-    icon: "📱",
+    icon: "smartphone",
     title: "Your own app",
     tag: "Done-for-you",
     tagline: "Your own branded iOS and Android app, designed and launched by our team.",
@@ -107,7 +109,7 @@ export const features: Feature[] = [
   },
   {
     slug: "custom-website",
-    icon: "🌐",
+    icon: "website",
     title: "Your own website",
     tag: "Done-for-you",
     tagline: "A beautiful, fast, SEO-ready restaurant site with ordering wired up on day one.",
@@ -150,7 +152,7 @@ export const features: Feature[] = [
   },
   {
     slug: "live-orders",
-    icon: "🧾",
+    icon: "orders",
     title: "Live orders",
     tagline: "Every order beeps, appears instantly, and auto-tracks from New to Delivered.",
     summary:
@@ -192,7 +194,7 @@ export const features: Feature[] = [
   },
   {
     slug: "fulfillment",
-    icon: "📦",
+    icon: "fulfillment",
     title: "Order fulfillment",
     tagline: "Pick, pack, ship, and track every e-commerce order on one checklist.",
     summary:
@@ -234,7 +236,7 @@ export const features: Feature[] = [
   },
   {
     slug: "storefronts",
-    icon: "🛍️",
+    icon: "storefront",
     title: "Online storefront",
     tagline: "Your own branded ordering page. Keep 100% of the revenue Uber would have taken.",
     summary:
@@ -276,7 +278,7 @@ export const features: Feature[] = [
   },
   {
     slug: "winback",
-    icon: "🔁",
+    icon: "return",
     title: "Winback engine",
     tagline: "Built-in points and tiers that bring quiet customers back — automatically.",
     summary:
@@ -318,7 +320,7 @@ export const features: Feature[] = [
   },
   {
     slug: "delivery-routing",
-    icon: "🚚",
+    icon: "delivery",
     title: "Delivery routing",
     tagline: "Auto-dispatch to whichever driver is cheapest right now — yours, Uber, or DoorDash.",
     summary:
@@ -360,7 +362,7 @@ export const features: Feature[] = [
   },
   {
     slug: "sms-email",
-    icon: "💬",
+    icon: "sms",
     title: "SMS & email",
     tagline: "Win-back, abandoned-cart, review asks, and birthday offers — firing automatically.",
     summary:
@@ -402,7 +404,7 @@ export const features: Feature[] = [
   },
   {
     slug: "stripe-payouts",
-    icon: "💳",
+    icon: "card",
     title: "Stripe payouts",
     tagline: "Daily payouts, full dispute handling, zero payment-integration headaches.",
     summary:
@@ -444,7 +446,7 @@ export const features: Feature[] = [
   },
   {
     slug: "financial-reporting",
-    icon: "📊",
+    icon: "analytics",
     title: "Financial reports",
     tagline: "Monthly reconciled reports, GST-ready, Xero-ready, your-accountant-ready.",
     summary:
@@ -486,7 +488,7 @@ export const features: Feature[] = [
   },
   {
     slug: "crm",
-    icon: "👥",
+    icon: "customers",
     title: "Customer CRM",
     tagline: "Every buyer is a saved contact with order history, LTV, favourites, and birthday.",
     summary:
@@ -528,7 +530,7 @@ export const features: Feature[] = [
   },
   {
     slug: "stock-take",
-    icon: "📦",
+    icon: "stock",
     title: "AI stock control",
     tagline: "Your ingredients count themselves, and the system reorders before you run out.",
     summary:

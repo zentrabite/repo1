@@ -10,6 +10,7 @@ import { useBusiness } from "@/hooks/use-business";
 import { getOrders, updateOrderStatus } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 import type { Order } from "@/lib/database.types";
+import { Icon, type IconName } from "@/components/zb-icon";
 
 const C = { g:"#00B67A", o:"#FF6B35", r:"#DC3545", st:"#6B7C93" };
 
@@ -20,6 +21,7 @@ const SOURCE_FILTERS: SourceFilter[] = ["All","direct","uber_eats","menulog","po
 const SOURCE_LABELS: Record<string, string> = {
   All:"All", direct:"Direct", uber_eats:"Uber Eats", menulog:"Menulog", pos:"POS",
 };
+const FULFILL_ICON: Record<string, IconName> = { delivery:"delivery", takeaway:"takeaway", dine_in:"dine-in" };
 
 export default function OrdersPage() {
   const { toast, show } = useToast();
@@ -71,7 +73,7 @@ export default function OrdersPage() {
           const newOrder = payload.new as Order;
           setOrders(prev => prev.some(o => o.id === newOrder.id) ? prev : [newOrder, ...prev]);
           playBeep();
-          show(`🔔 New order — $${newOrder.total}`);
+          show(`New order — $${newOrder.total}`);
           if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
             new Notification("New order", { body:`Order for $${newOrder.total}`, tag:newOrder.id });
           }
@@ -116,9 +118,9 @@ export default function OrdersPage() {
 
   // ── Helper: fulfilment badge ────────────────────────────────────────────
   function fulfillLabel(o: Order) {
-    if (o.fulfillment_type === "delivery") return "🛵 Delivery";
-    if (o.fulfillment_type === "takeaway") return "🥡 Takeaway";
-    if (o.fulfillment_type === "dine_in")  return "🪑 Dine-in";
+    if (o.fulfillment_type === "delivery") return "Delivery";
+    if (o.fulfillment_type === "takeaway") return "Takeaway";
+    if (o.fulfillment_type === "dine_in")  return "Dine-in";
     return null;
   }
 
@@ -148,20 +150,20 @@ export default function OrdersPage() {
           className={`bg-btn ${fulfillFilter==="delivery" ? "on" : ""}`}
           onClick={() => setFulfillFilter(f => f==="delivery" ? "All" : "delivery")}
         >
-          🛵 Delivery only ({orders.filter(o=>o.fulfillment_type==="delivery").length})
+          <Icon name="delivery" size={14} />Delivery only ({orders.filter(o=>o.fulfillment_type==="delivery").length})
         </button>
       </div>
 
       {/* ── Stat cards ──────────────────────────────────────────────────── */}
       <div style={{ display:"flex", gap:10, flexWrap:"wrap", marginBottom:12 }}>
-        <StatCard label="Orders"        value={String(totalOrders)}   icon="📋" />
-        <StatCard label="Revenue"       value={totalRev > 0 ? `$${totalRev.toLocaleString("en-AU", { minimumFractionDigits:2, maximumFractionDigits:2 })}` : "—"} accent icon="💰" delay={50} />
-        <StatCard label="Delivery Fees" value={totalFees > 0 ? `$${totalFees.toFixed(2)}` : "—"} icon="🛵" delay={100} />
+        <StatCard label="Orders"        value={String(totalOrders)}   icon="orders" />
+        <StatCard label="Revenue"       value={totalRev > 0 ? `$${totalRev.toLocaleString("en-AU", { minimumFractionDigits:2, maximumFractionDigits:2 })}` : "—"} accent icon="money" delay={50} />
+        <StatCard label="Delivery Fees" value={totalFees > 0 ? `$${totalFees.toFixed(2)}` : "—"} icon="delivery" delay={100} />
         <StatCard
           label="Net Revenue"
           value={(totalRev > 0) ? `$${(totalRev - totalFees).toLocaleString("en-AU", { minimumFractionDigits:2, maximumFractionDigits:2 })}` : "—"}
           accent
-          icon="✅"
+          icon="done"
           delay={150}
         />
       </div>
@@ -187,7 +189,9 @@ export default function OrdersPage() {
                 <td>{Array.isArray(o.items) ? `${(o.items as any[]).length} item(s)` : "—"}</td>
                 <td><Badge type={o.source}>{SOURCE_LABELS[o.source] ?? o.source}</Badge></td>
                 <td style={{ fontSize:12 }}>
-                  {fulfillLabel(o) ?? <span style={{ color:C.st }}>—</span>}
+                  {fulfillLabel(o)
+                    ? <span style={{ display:"inline-flex", alignItems:"center", gap:6 }}><Icon name={FULFILL_ICON[o.fulfillment_type ?? ""] ?? "delivery"} size={14} />{fulfillLabel(o)}</span>
+                    : <span style={{ color:C.st }}>—</span>}
                 </td>
                 <td style={{ fontWeight:600, color:"#fff" }}>${Number(o.total).toFixed(2)}</td>
                 <td style={{ fontSize:12, color: o.delivery_fee ? C.g : C.st }}>
@@ -223,7 +227,7 @@ export default function OrdersPage() {
             {/* Delivery breakdown (only for delivery orders with a fee) */}
             {selected.fulfillment_type === "delivery" && (
               <div style={{ background:"rgba(0,182,122,.06)", border:"1px solid rgba(0,182,122,.15)", borderRadius:10, padding:"12px 14px", marginBottom:14 }}>
-                <div style={{ fontSize:11, color:C.g, fontWeight:700, marginBottom:8, textTransform:"uppercase", letterSpacing:".4px" }}>🛵 Delivery</div>
+                <div style={{ fontSize:11, color:C.g, fontWeight:700, marginBottom:8, textTransform:"uppercase", letterSpacing:".4px", display:"flex", alignItems:"center", gap:6 }}><Icon name="delivery" size={14} />Delivery</div>
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
                   <div>
                     <div style={{ fontSize:10, color:C.st, marginBottom:2 }}>Address</div>

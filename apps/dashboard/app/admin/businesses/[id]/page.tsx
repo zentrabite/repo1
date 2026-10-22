@@ -13,6 +13,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import { Icon } from "@/components/zb-icon";
 import { useBusiness } from "@/hooks/use-business";
 
 const C = {
@@ -228,7 +229,7 @@ export default function AdminBusinessAboutPage() {
             fontSize: 32,
           }}
         >
-          {!biz.logo_url && "🏪"}
+          {!biz.logo_url && <Icon name="business" size={32} />}
         </div>
         <div>
           <div style={{ fontSize: 11, color: C.st, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>
@@ -257,7 +258,7 @@ export default function AdminBusinessAboutPage() {
                 fontFamily: "var(--font-inter)", textAlign: "center",
               }}
             >
-              📞 Call business
+              <Icon name="phone" size={16} style={{ marginRight: 6 }} />Call business
             </a>
           )}
           {form.owner_phone && (
@@ -270,7 +271,7 @@ export default function AdminBusinessAboutPage() {
                 fontFamily: "var(--font-inter)", textAlign: "center",
               }}
             >
-              📞 Call owner
+              <Icon name="phone" size={16} style={{ marginRight: 6 }} />Call owner
             </a>
           )}
           <button

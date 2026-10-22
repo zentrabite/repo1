@@ -12,6 +12,7 @@ import {
   timeAgo,
   type OrderStatus,
 } from "../data";
+import { Icon, type IconName } from "../../../components/zb-icon";
 
 const ALL_STATUSES: OrderStatus[] = ["new", "cooking", "ready", "out", "delivered"];
 
@@ -405,9 +406,9 @@ function OrderDrawer({ orderId, onClose }: { orderId: string; onClose: () => voi
 
           {/* Actions */}
           <div style={{ display: "grid", gap: 8 }}>
-            <DemoButton label="Send order-ready SMS" icon="💬" />
-            <DemoButton label="Print kitchen ticket" icon="🖨" />
-            <DemoButton label="Refund order" icon="↩" destructive />
+            <DemoButton label="Send order-ready SMS" icon="sms" />
+            <DemoButton label="Print kitchen ticket" icon="print" />
+            <DemoButton label="Refund order" icon="refresh" destructive />
           </div>
         </div>
       </aside>
@@ -447,7 +448,7 @@ function Row({
   );
 }
 
-function DemoButton({ label, icon, destructive = false }: { label: string; icon: string; destructive?: boolean }) {
+function DemoButton({ label, icon, destructive = false }: { label: string; icon: IconName; destructive?: boolean }) {
   return (
     <button
       onClick={() => {
@@ -477,7 +478,7 @@ function DemoButton({ label, icon, destructive = false }: { label: string; icon:
         width: "100%",
       }}
     >
-      <span>{icon}</span>
+      <Icon name={icon} size={16} accent={destructive ? "#FF5A5A" : undefined} />
       {label}
     </button>
   );

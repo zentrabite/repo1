@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { menu, formatAUD, type MenuItem } from "../data";
+import { Icon } from "../../../components/zb-icon";
 
 type CartLine = { item: MenuItem; qty: number };
 
@@ -222,9 +223,9 @@ export default function PosPage() {
           {/* Order type */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
             {([
-              { key: "dine_in",  label: "Dine-in",  emoji: "🍽️" },
-              { key: "takeaway", label: "Takeaway", emoji: "🥡" },
-              { key: "delivery", label: "Delivery", emoji: "🛵" },
+              { key: "dine_in",  label: "Dine-in",  icon: "dine-in" },
+              { key: "takeaway", label: "Takeaway", icon: "takeaway" },
+              { key: "delivery", label: "Delivery", icon: "delivery" },
             ] as const).map((t) => (
               <button
                 key={t.key}
@@ -245,7 +246,7 @@ export default function PosPage() {
                   gap: 2,
                 }}
               >
-                <span style={{ fontSize: 16 }}>{t.emoji}</span>
+                <Icon name={t.icon} size={16} />
                 {t.label}
               </button>
             ))}
@@ -337,9 +338,9 @@ export default function PosPage() {
           {/* Payment */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
             {([
-              { key: "card", label: "Card",  emoji: "💳" },
-              { key: "cash", label: "Cash",  emoji: "💵" },
-              { key: "app",  label: "App",   emoji: "📱" },
+              { key: "card", label: "Card",  icon: "card" },
+              { key: "cash", label: "Cash",  icon: "cash" },
+              { key: "app",  label: "App",   icon: "smartphone" },
             ] as const).map((p) => (
               <button
                 key={p.key}
@@ -360,7 +361,7 @@ export default function PosPage() {
                   gap: 2,
                 }}
               >
-                <span style={{ fontSize: 16 }}>{p.emoji}</span>
+                <Icon name={p.icon} size={16} />
                 {p.label}
               </button>
             ))}

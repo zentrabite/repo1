@@ -1,8 +1,11 @@
+import { Icon, isIconName, type IconName } from "@/components/zb-icon";
+
 interface StatCardProps {
   label: string;
   value: string;
   subtitle?: string;
-  icon?: string;
+  /** An icon name from components/zb-icon (plain text still works). */
+  icon?: IconName | string;
   accent?: boolean;
   delay?: number;
 }
@@ -35,7 +38,9 @@ export default function StatCard({ label, value, subtitle, icon, accent, delay =
         }}>
           {label}
         </span>
-        {icon && <span style={{ fontSize: 16, opacity: .38 }}>{icon}</span>}
+        {icon && (isIconName(icon)
+          ? <Icon name={icon} size={18} style={{ color: "#8FA0B5", opacity: .75 }} />
+          : <span style={{ fontSize: 16, opacity: .38 }}>{icon}</span>)}
       </div>
 
       {/* Value — accent only when there's real data */}

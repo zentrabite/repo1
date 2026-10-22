@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { campaigns, customers, formatAUD, type DemoCampaign } from "../data";
+import { Icon, type IconName } from "../../../components/zb-icon";
 
 const STATUS_COLORS: Record<DemoCampaign["status"], { color: string; bg: string; label: string }> = {
   live:   { color: "#00B67A", bg: "rgba(0,182,122,0.14)",  label: "Live" },
@@ -10,9 +11,9 @@ const STATUS_COLORS: Record<DemoCampaign["status"], { color: string; bg: string;
   draft:  { color: "#9CA8BD", bg: "rgba(156,168,189,0.14)", label: "Draft" },
 };
 
-const CHANNEL_COLORS: Record<DemoCampaign["channel"], { color: string; bg: string; label: string; emoji: string }> = {
-  sms:   { color: "#6BB1FF", bg: "rgba(107,177,255,0.14)", label: "SMS",   emoji: "💬" },
-  email: { color: "#C9A6FF", bg: "rgba(201,166,255,0.14)", label: "Email", emoji: "✉️" },
+const CHANNEL_COLORS: Record<DemoCampaign["channel"], { color: string; bg: string; label: string; icon: IconName }> = {
+  sms:   { color: "#6BB1FF", bg: "rgba(107,177,255,0.14)", label: "SMS",   icon: "sms" },
+  email: { color: "#C9A6FF", bg: "rgba(201,166,255,0.14)", label: "Email", icon: "email" },
 };
 
 function toast(text: string) {
@@ -210,7 +211,7 @@ export default function WinbackPage() {
                       fontWeight: 600,
                     }}
                   >
-                    <span aria-hidden>{ch.emoji}</span>
+                    <Icon name={ch.icon} size={14} />
                     {ch.label}
                   </span>
                 </div>
@@ -317,7 +318,7 @@ function CampaignDetail({
             fontWeight: 600,
           }}
         >
-          {ch.emoji} {ch.label}
+          <Icon name={ch.icon} size={14} style={{ marginRight: 6 }} />{ch.label}
         </span>
         <span
           style={{
@@ -409,7 +410,11 @@ function CampaignDetail({
             fontFamily: "var(--font-inter)",
           }}
         >
-          {live ? "⏸ Pause campaign" : "▶ Activate campaign"}
+          {live ? (
+            <><Icon name="pause" size={14} accent="currentColor" style={{ marginRight: 6 }} />Pause campaign</>
+          ) : (
+            <><Icon name="play" size={14} accent="currentColor" style={{ marginRight: 6 }} />Activate campaign</>
+          )}
         </button>
         <button
           onClick={() => toast("Test message sent to your number (demo)")}

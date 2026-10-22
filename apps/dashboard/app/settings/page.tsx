@@ -13,6 +13,7 @@ import { DEFAULT_ROLE_PERMISSIONS, NAV_HREFS } from "@/lib/permissions";
 import { orderUrl } from "@/lib/tenant";
 import BrandMark from "@/components/brand-mark";
 import PasswordInput from "@/components/password-input";
+import { Icon } from "@/components/zb-icon";
 
 const C = { g:"#00B67A", o:"#FF6B35", r:"#FF4757", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(226,232,240,.08)" };
 
@@ -767,7 +768,7 @@ function SettingsContent() {
 
             {/* Uber Direct */}
             <div style={{ marginBottom:18, paddingBottom:18, borderBottom:`1px solid ${C.mist}` }}>
-              <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:10 }}>🚗 Uber Direct</div>
+              <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:10, display:"flex", alignItems:"center", gap:6 }}><Icon name="car" size={14} />Uber Direct</div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
                 <Field label="API Key">
                   <PasswordInput label="key" placeholder="From developer.uber.com"
@@ -785,7 +786,7 @@ function SettingsContent() {
 
             {/* DoorDash Drive */}
             <div style={{ marginBottom:18, paddingBottom:18, borderBottom:`1px solid ${C.mist}` }}>
-              <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:10 }}>🔴 DoorDash Drive</div>
+              <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:10, display:"flex", alignItems:"center", gap:6 }}><Icon name="dot" size={14} accent="#FF4757" />DoorDash Drive</div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
                 <Field label="Developer ID">
                   <PasswordInput label="ID" placeholder="From developer.doordash.com"
@@ -808,7 +809,7 @@ function SettingsContent() {
 
             {/* Sherpa */}
             <div style={{ marginBottom:18, paddingBottom:18, borderBottom:`1px solid ${C.mist}` }}>
-              <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:10 }}>📦 Sherpa</div>
+              <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:10, display:"flex", alignItems:"center", gap:6 }}><Icon name="package" size={14} />Sherpa</div>
               <Field label="API Key">
                 <PasswordInput label="key" placeholder="From Sherpa developer portal"
                   value={deliverySettings.sherpa_api_key}
@@ -819,7 +820,7 @@ function SettingsContent() {
 
             {/* Zoom2u */}
             <div style={{ marginBottom:18, paddingBottom:18, borderBottom:`1px solid ${C.mist}` }}>
-              <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:10 }}>⚡ Zoom2u</div>
+              <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:10, display:"flex", alignItems:"center", gap:6 }}><Icon name="fast" size={14} />Zoom2u</div>
               <Field label="API Key">
                 <PasswordInput label="key" placeholder="From Zoom2u developer portal"
                   value={deliverySettings.zoom2u_api_key}
@@ -830,7 +831,7 @@ function SettingsContent() {
 
             {/* GoPeople */}
             <div style={{ marginBottom:18, paddingBottom:18, borderBottom:`1px solid ${C.mist}` }}>
-              <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:10 }}>🏃 GoPeople</div>
+              <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:10, display:"flex", alignItems:"center", gap:6 }}><Icon name="delivery" size={14} />GoPeople</div>
               <Field label="API Key">
                 <PasswordInput label="key" placeholder="From GoPeople developer portal"
                   value={deliverySettings.gopeople_api_key}
@@ -841,7 +842,7 @@ function SettingsContent() {
 
             {/* Legacy Tasker fields */}
             <div style={{ marginBottom:18 }}>
-              <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:10 }}>👷 In-house Drivers / Tasker (volume planning)</div>
+              <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:10, display:"flex", alignItems:"center", gap:6 }}><Icon name="drivers" size={14} />In-house Drivers / Tasker (volume planning)</div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
                 <Field label="Daily rate ($)">
                   <input type="number" placeholder="e.g. 180"
@@ -960,7 +961,7 @@ function SettingsContent() {
                             onChange={() => toggleRolePerm(role, nav.href)}
                             style={{ margin:0 }}
                           />
-                          <span style={{ fontSize:13 }}>{nav.emoji}</span>
+                          <nav.icon size={14} />
                           <span>{nav.label}</span>
                         </label>
                       );

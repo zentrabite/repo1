@@ -8,6 +8,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import BrandMark from "@/components/brand-mark";
 import PasswordInput from "@/components/password-input";
+import { Icon } from "@/components/zb-icon";
 
 const C = { g: "#00B67A", st: "#6B7C93", cl: "#F8FAFB", r: "#FF4757" };
 
@@ -139,7 +140,7 @@ function ResetForm() {
           </div>
         ) : done ? (
           <div className="gc" style={{ padding: 32, textAlign: "center" }}>
-            <div style={{ fontSize: 40, marginBottom: 16 }}>✅</div>
+            <div style={{ fontSize: 40, marginBottom: 16 }}><Icon name="done" size={40} /></div>
             <div style={{
               fontFamily: "var(--font-outfit)", fontWeight: 600, fontSize: 16,
               color: C.cl, marginBottom: 8,
@@ -152,7 +153,7 @@ function ResetForm() {
           </div>
         ) : !hasSession ? (
           <div className="gc" style={{ padding: 32, textAlign: "center" }}>
-            <div style={{ fontSize: 40, marginBottom: 16 }}>⚠️</div>
+            <div style={{ fontSize: 40, marginBottom: 16 }}><Icon name="warning" size={40} accent={C.r} /></div>
             <div style={{
               fontFamily: "var(--font-outfit)", fontWeight: 600, fontSize: 16,
               color: C.cl, marginBottom: 8,

@@ -1,5 +1,7 @@
+import { Icon, type IconName } from "../zb-icon";
+
 type Mod = {
-  icon: string;
+  icon: IconName;
   name: string;
   detail: string;
   badge: "live" | "ai";
@@ -8,7 +10,7 @@ type Mod = {
 
 const MODULES: Mod[] = [
   {
-    icon: "📦",
+    icon: "orders",
     name: "Order Management",
     detail:
       "Real-time board across POS, storefront & aggregators. Auto-updates kitchen, dispatch & stock.",
@@ -16,7 +18,7 @@ const MODULES: Mod[] = [
     badgeLabel: "● Live",
   },
   {
-    icon: "👥",
+    icon: "customers",
     name: "Customer CRM",
     detail:
       "Full profiles with LTV, visit frequency, churn risk score & auto-segments (VIP, at-risk, lapsed).",
@@ -24,7 +26,7 @@ const MODULES: Mod[] = [
     badgeLabel: "● Live",
   },
   {
-    icon: "⭐",
+    icon: "rewards",
     name: "Rewards Engine",
     detail:
       "Points-per-dollar, Bronze → Platinum tiers, free-item redemptions. Customers actually understand it.",
@@ -32,7 +34,7 @@ const MODULES: Mod[] = [
     badgeLabel: "● Live",
   },
   {
-    icon: "📣",
+    icon: "campaigns",
     name: "Campaigns",
     detail:
       "SMS, email & AI voice campaigns triggered by customer behaviour. Every send tracked to revenue.",
@@ -40,7 +42,7 @@ const MODULES: Mod[] = [
     badgeLabel: "● Live",
   },
   {
-    icon: "🤖",
+    icon: "copilot",
     name: "AI Co-pilot",
     detail:
       "Daily 7 AM brief. AI voice win-back calls. Menu, stock & staffing recommendations from real data.",
@@ -48,7 +50,7 @@ const MODULES: Mod[] = [
     badgeLabel: "✦ AI",
   },
   {
-    icon: "🏪",
+    icon: "pos",
     name: "POS",
     detail:
       "Table orders, walk-ins & split bills. Syncs instantly to the order board, stock & financials.",
@@ -56,7 +58,7 @@ const MODULES: Mod[] = [
     badgeLabel: "● Live",
   },
   {
-    icon: "🛍️",
+    icon: "storefront",
     name: "Online Storefront",
     detail:
       "Branded ordering page, no third-party fees. Direct orders captured into CRM automatically.",
@@ -64,7 +66,7 @@ const MODULES: Mod[] = [
     badgeLabel: "● Live",
   },
   {
-    icon: "🚚",
+    icon: "delivery",
     name: "Delivery & Dispatch",
     detail:
       "Driver assignment, live ETA tracking, and customer SMS notifications — all in one screen.",
@@ -72,7 +74,7 @@ const MODULES: Mod[] = [
     badgeLabel: "● Live",
   },
   {
-    icon: "📦",
+    icon: "stock",
     name: "Stock & Inventory",
     detail:
       "Par-level alerts, auto-deduction per order, supplier reorder suggestions. Never 86 an item again.",
@@ -80,7 +82,7 @@ const MODULES: Mod[] = [
     badgeLabel: "● Live",
   },
   {
-    icon: "💰",
+    icon: "financials",
     name: "Financials",
     detail:
       "Daily P&L, channel breakdown, cost-of-goods, and tax-ready exports. No separate accounting app needed.",
@@ -88,7 +90,7 @@ const MODULES: Mod[] = [
     badgeLabel: "● Live",
   },
   {
-    icon: "🍽️",
+    icon: "menu",
     name: "Menu Management",
     detail:
       "One menu, every channel. Update once and prices sync across POS, storefront & aggregators instantly.",
@@ -96,7 +98,7 @@ const MODULES: Mod[] = [
     badgeLabel: "● Live",
   },
   {
-    icon: "📊",
+    icon: "analytics",
     name: "Analytics",
     detail:
       "Revenue by hour, day & channel. Top items, table turns, repeat rate. Drill to any transaction.",
@@ -104,7 +106,7 @@ const MODULES: Mod[] = [
     badgeLabel: "● Live",
   },
   {
-    icon: "🔔",
+    icon: "return",
     name: "Win-back Automations",
     detail:
       "Day-14 lapse trigger: AI call → SMS → $5 off. Fully automated. Avg $4,280/mo recovered.",
@@ -112,7 +114,7 @@ const MODULES: Mod[] = [
     badgeLabel: "✦ AI",
   },
   {
-    icon: "📋",
+    icon: "kitchen",
     name: "Kitchen Display",
     detail:
       "Real-time ticket display for kitchen staff. Status updates flow back to dispatch and customer SMS.",
@@ -120,7 +122,7 @@ const MODULES: Mod[] = [
     badgeLabel: "● Live",
   },
   {
-    icon: "🔗",
+    icon: "integrations",
     name: "Aggregator Sync",
     detail:
       "Uber Eats, DoorDash & Menulog orders pull into one board. Compare channel profitability side-by-side.",
@@ -152,7 +154,7 @@ export function V4Modules() {
         <div className="mod-grid reveal">
           {MODULES.map((m) => (
             <div key={m.name} className="mod-card">
-              <div className="mod-ico">{m.icon}</div>
+              <div className="mod-ico"><Icon name={m.icon} size={22} /></div>
               <div className="mod-name">{m.name}</div>
               <div className="mod-detail">{m.detail}</div>
               <span className={`mod-badge ${m.badge}`}>{m.badgeLabel}</span>

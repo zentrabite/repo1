@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { features } from "../features/data";
+import { Icon } from "./zb-icon";
 
 export function FeaturesGrid() {
   return (
@@ -53,7 +54,7 @@ export function FeaturesGrid() {
                 }}
                 aria-hidden
               >
-                {f.icon}
+                <Icon name={f.icon} size={22} />
               </div>
               <h3
                 style={{
