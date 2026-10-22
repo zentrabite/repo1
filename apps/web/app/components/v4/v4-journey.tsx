@@ -37,7 +37,7 @@ const ROW_A: Step[] = [
     num: "Step 04",
     icon: "💬",
     label: '"How was it?" SMS',
-    desc: "Sent 2 hours after order. Includes a 50pt bonus for their next visit. 68% return rate.",
+    desc: "Sent 2 hours after order. Includes a 50pt bonus for their next visit.",
     tag: { kind: "auto", label: "Auto-sent" },
   },
   {
