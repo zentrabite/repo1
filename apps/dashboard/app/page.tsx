@@ -18,6 +18,7 @@
 
 import { useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import BrandMark from "@/components/brand-mark";
 
 export const dynamic = "force-dynamic";
 
@@ -57,15 +58,7 @@ export default function RootPage() {
       fontSize: 13,
     }}>
       <div style={{ textAlign: "center" }}>
-        <div style={{
-          width: 52, height: 52, borderRadius: 14,
-          background: "#00B67A",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 20,
-          color: "#1C2D48",
-          margin: "0 auto 16px",
-          boxShadow: "0 4px 20px rgba(0,182,122,.35)",
-        }}>ZB</div>
+        <BrandMark size={48} style={{ margin: "0 auto 16px" }} />
         Loading…
       </div>
     </div>

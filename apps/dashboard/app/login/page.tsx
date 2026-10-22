@@ -6,6 +6,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import BrandMark from "@/components/brand-mark";
 
 const C = { g: "#00B67A", st: "#6B7C93", cl: "#F8FAFB", r: "#FF4757" };
 
@@ -66,15 +67,7 @@ function LoginForm() {
     <>
       {/* Logo */}
       <div style={{ textAlign: "center", marginBottom: 40 }}>
-        <div style={{
-          width: 52, height: 52, borderRadius: 14,
-          background: C.g,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 20,
-          color: "#1C2D48",
-          margin: "0 auto 16px",
-          boxShadow: "0 4px 20px rgba(0,182,122,.35)",
-        }}>ZB</div>
+        <BrandMark size={48} style={{ margin: "0 auto 16px" }} />
         <h1 style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 26, color: C.cl }}>
           Zentra<span style={{ color: C.g }}>Bite</span>
         </h1>

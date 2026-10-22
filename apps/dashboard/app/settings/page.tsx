@@ -11,6 +11,7 @@ import { supabase } from "@/lib/supabase";
 import { navigation } from "@/lib/navigation";
 import { DEFAULT_ROLE_PERMISSIONS, NAV_HREFS } from "@/lib/permissions";
 import { orderUrl } from "@/lib/tenant";
+import BrandMark from "@/components/brand-mark";
 
 const C = { g:"#00B67A", o:"#FF6B35", r:"#FF4757", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(226,232,240,.08)" };
 
@@ -355,7 +356,7 @@ function SettingsContent() {
                 {logoUrl ? (
                   <img src={logoUrl} alt="logo" style={{ width:48, height:48, borderRadius:10, objectFit:"cover", border:"1px solid rgba(255,255,255,.1)", flexShrink:0 }} />
                 ) : (
-                  <div style={{ width:48, height:48, borderRadius:10, background:C.g, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, color:"#1C2D48", fontWeight:800, flexShrink:0 }}>ZB</div>
+                  <BrandMark size={40} />
                 )}
                 <label style={{ cursor:"pointer" }}>
                   <input

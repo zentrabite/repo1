@@ -1,25 +1,15 @@
+// ZentraBite logo: the ZB mark (public/brand/zentrabite-mark.png) plus the wordmark.
 export function Logo({ size = 36 }: { size?: number }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-      <div
-        style={{
-          width: size,
-          height: size,
-          borderRadius: 10,
-          background: "var(--green)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontFamily: "var(--font-outfit)",
-          fontWeight: 800,
-          fontSize: size * 0.42,
-          color: "var(--navy)",
-          flexShrink: 0,
-          boxShadow: "0 3px 14px rgba(0,182,122,.35)",
-        }}
-      >
-        ZB
-      </div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/brand/zentrabite-mark.png"
+        alt=""
+        width={Math.round(size * 1.3)}
+        height={size}
+        style={{ display: "block", height: size, width: "auto", flexShrink: 0 }}
+      />
       <div
         style={{
           fontFamily: "var(--font-outfit)",
