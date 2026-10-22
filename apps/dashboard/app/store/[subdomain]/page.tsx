@@ -121,7 +121,7 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
         <div style={{ maxWidth:720, margin:"0 auto", height:64, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
             {biz?.logo_url ? (
-              <img src={biz.logo_url} alt={biz.name} style={{ width:38, height:38, borderRadius:10, objectFit:"cover" }} />
+              <img src={biz.logo_url} alt={biz.name} style={{ height:38, maxWidth:120, borderRadius:8, objectFit:"contain" }} />
             ) : (
               <div style={{ width:38, height:38, borderRadius:10, background:C.g, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, fontSize:14, color:C.onG }}>
                 {biz?.name?.charAt(0) ?? "?"}
@@ -188,7 +188,7 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
                   </div>
                   <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:10 }}>
                     <div style={{ fontWeight:700, fontSize:15, color:C.g }}>${Number(item.price).toFixed(2)}</div>
-                    {inCart ? (
+                    {!biz?.taking_orders ? null : inCart ? (
                       <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                         <button onClick={() => updateQty(item.id, inCart.qty - 1)} style={{ width:28, height:28, borderRadius:7, background:"rgba(255,255,255,.1)", border:"none", color:C.cl, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center" }}>−</button>
                         <span style={{ fontWeight:700, fontSize:13, color:C.cl, minWidth:16, textAlign:"center" }}>{inCart.qty}</span>

@@ -87,13 +87,12 @@ function textOn(hex: string): string {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.45 ? "#111111" : "#FFFFFF";
 }
 
-/** "17:00" → "5pm", "17:30" → "5:30pm", "23:59" → "midnight" */
+/** "17:00" → "5pm", "17:30" → "5:30pm", "12:00" → "12pm", "23:59" → "midnight" */
 export function prettyTime(t: string): string {
   if (t === "23:59" || t === "00:00") return "midnight";
   const [hs, ms] = t.split(":");
   const h = Number(hs), m = Number(ms);
   if (!Number.isFinite(h) || !Number.isFinite(m)) return t;
-  if (h === 12 && m === 0) return "midday";
   const suffix = h < 12 ? "am" : "pm";
   const h12 = h % 12 === 0 ? 12 : h % 12;
   return m ? `${h12}:${String(m).padStart(2, "0")}${suffix}` : `${h12}${suffix}`;

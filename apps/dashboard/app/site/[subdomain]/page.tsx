@@ -98,9 +98,14 @@ export default async function RestaurantSite({ params }: Props) {
     );
   }
 
-  const mainCta = site.hasMenu
-    ? <a className="zs-btn" href={orderHref}>{site.takingOrders ? "Order online" : "See the menu"}</a>
+  // Online ordering if they take card payments. Otherwise the menu and a call button.
+  const mainCta = site.hasMenu && site.takingOrders
+    ? <a className="zs-btn" href={orderHref}>Order online</a>
+    : site.hasMenu ? <a className="zs-btn" href={site.menu.length ? "#menu" : orderHref}>See the menu</a>
     : phoneHref ? <a className="zs-btn" href={phoneHref}>Call us</a> : null;
+  const secondCta = site.hasMenu && site.takingOrders
+    ? <a className="zs-btn zs-glass" href="#menu">View menu</a>
+    : site.hasMenu && phoneHref ? <a className="zs-btn zs-glass" href={phoneHref}>Call to order</a> : null;
   const facts = [site.openNow, site.phone].filter(Boolean) as string[];
   const gallery = site.photos.length >= 3 ? site.photos.slice(2, 5) : [];
   if (gallery.length && gallery.length < 3) gallery.push(site.photos[0]!);
@@ -127,7 +132,7 @@ export default async function RestaurantSite({ params }: Props) {
           {site.tagline && <p className="zs-tag">{site.tagline}</p>}
           <div className="zs-cta">
             {mainCta}
-            {site.hasMenu && <a className="zs-btn zs-glass" href="#menu">View menu</a>}
+            {secondCta}
             {site.bookingUrl && <a className="zs-btn zs-glass" href={site.bookingUrl} rel="noopener" target="_blank">Book a table</a>}
           </div>
           {facts.length > 0 && <ul className="zs-facts">{facts.map(f => <li key={f}>{f}</li>)}</ul>}

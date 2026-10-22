@@ -57,6 +57,8 @@ function tenantResponse(req: NextRequest, tenant: string): NextResponse {
   if (pathname.startsWith("/api/store/") || pathname === "/api/delivery/fee") return NextResponse.next();
   url.pathname = "/";
   url.search = "";
+  const host = req.headers.get("host");
+  if (host) url.host = host;
   return NextResponse.redirect(url);
 }
 
