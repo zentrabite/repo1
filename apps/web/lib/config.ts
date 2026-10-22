@@ -1,5 +1,5 @@
 // Public config read by marketing-site components.
-// Swap NEXT_PUBLIC_DASHBOARD_URL in Vercel once dashboard.zentrabite.com.au is live.
+// NEXT_PUBLIC_DASHBOARD_URL in Vercel points at the live CRM (dashboard.zentrabite.com).
 export const DASHBOARD_URL =
   process.env.NEXT_PUBLIC_DASHBOARD_URL || "https://dashboard.zentrabite.com";
 

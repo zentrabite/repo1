@@ -289,7 +289,7 @@ export default function SuperAdminPage() {
                         >
                           <td style={{ padding:"12px 16px" }}>
                             <div style={{ fontWeight:700, fontSize:14, color:CL }}>{t.name}</div>
-                            <div style={{ fontSize:11, color:ST }}>{t.subdomain}.zentrabite.com.au</div>
+                            <div style={{ fontSize:11, color:ST }}>{t.subdomain}.zentrabite.com</div>
                           </td>
                           <td style={{ padding:"12px 16px", fontSize:13, color:ST }}>{t.type}</td>
                           <td style={{ padding:"12px 16px" }}><Pill color={pc.color} bg={pc.bg}>{t.plan}</Pill></td>
@@ -430,7 +430,7 @@ export default function SuperAdminPage() {
                       {[
                         ["Owner",     tenant.owner],
                         ["Email",     tenant.email],
-                        ["Subdomain", tenant.subdomain + ".zentrabite.com.au"],
+                        ["Subdomain", tenant.subdomain + ".zentrabite.com"],
                         ["Business",  tenant.type],
                       ].map(([l,v]) => (
                         <div key={l} style={{ display:"flex", justifyContent:"space-between", padding:"5px 0", fontSize:13 }}>

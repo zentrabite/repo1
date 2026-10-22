@@ -131,7 +131,7 @@ function OrdersPanel() {
           </div>
         </div>
         <div className="story-screen">
-          <Chrome url="dashboard.zentrabite.com.au/orders" />
+          <Chrome url="dashboard.zentrabite.com/orders" />
           <div className="s-body">
             <div className="screen-orders">
               <div
@@ -260,7 +260,7 @@ function CustomersPanel() {
           </div>
         </div>
         <div className="story-screen">
-          <Chrome url="dashboard.zentrabite.com.au/customers/priya-s" />
+          <Chrome url="dashboard.zentrabite.com/customers/priya-s" />
           <div className="s-body">
             <div className="screen-customers">
               <div className="cust-profile">
@@ -382,7 +382,7 @@ function AiPanel() {
           </div>
         </div>
         <div className="story-screen">
-          <Chrome url="dashboard.zentrabite.com.au/ai" />
+          <Chrome url="dashboard.zentrabite.com/ai" />
           <div className="s-body">
             <div className="ai-brief-card">
               <div className="ai-brief-head">
@@ -463,7 +463,7 @@ function RewardsPanel() {
           </div>
         </div>
         <div className="story-screen">
-          <Chrome url="dashboard.zentrabite.com.au/rewards" />
+          <Chrome url="dashboard.zentrabite.com/rewards" />
           <div className="s-body">
             <div className="screen-rewards">
               <div className="tier-card">
@@ -581,7 +581,7 @@ function CampaignsPanel() {
           </div>
         </div>
         <div className="story-screen">
-          <Chrome url="dashboard.zentrabite.com.au/campaigns" />
+          <Chrome url="dashboard.zentrabite.com/campaigns" />
           <div className="s-body">
             <div className="screen-campaigns">
               <Campaign

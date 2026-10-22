@@ -14,7 +14,7 @@ const FOLLOWUPS_AFTER_REPLY = [
   "Show me the demo",
   "What's in the 1-month trial?",
   "Which integrations are supported?",
-  "How do you compare to Toast?",
+  "Does it work for my type of business?",
 ];
 
 type Msg = { role: "u" | "b"; html: string };

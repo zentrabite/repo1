@@ -19,7 +19,7 @@ export function Footer() {
       title: "Company",
       links: [
         { label: "About", href: "#" },
-        { label: "Contact", href: "mailto:hello@zentrabite.com.au" },
+        { label: "Contact", href: "mailto:hello@zentrabite.com" },
         { label: "Careers", href: "#" },
         { label: "Press", href: "#" },
       ],
@@ -29,7 +29,7 @@ export function Footer() {
       links: [
         { label: "Log in", href: LOGIN_URL },
         { label: "Start 1-month free trial", href: "/contact" },
-        { label: "Book a demo", href: "mailto:hello@zentrabite.com.au?subject=Demo" },
+        { label: "Book a demo", href: "mailto:hello@zentrabite.com?subject=Demo" },
       ],
     },
     {
