@@ -1,79 +1,55 @@
 import Link from "next/link";
 import { Logo } from "./logo";
+import { ThemeChoicePicker } from "./theme-toggle";
 import { LOGIN_URL } from "../../lib/config";
 
-export function Footer() {
-  const cols = [
-    {
-      title: "Product",
-      links: [
-        { label: "Features", href: "/#features" },
-        { label: "How it works", href: "/how-it-works" },
-        { label: "Pricing", href: "/pricing" },
-        { label: "Demo", href: "/demo" },
-      ],
-    },
-    {
-      title: "Company",
-      links: [
-        { label: "Contact", href: "/contact" },
-        { label: "Email us", href: "mailto:hello@zentrabite.com" },
-      ],
-    },
-    {
-      title: "Account",
-      links: [
-        { label: "Log in", href: LOGIN_URL },
-        { label: "Start 1-month free trial", href: "/contact" },
-        { label: "Book a demo", href: "mailto:hello@zentrabite.com?subject=Demo" },
-      ],
-    },
-  ];
+const COLS = [
+  {
+    title: "Product",
+    links: [
+      { label: "What's inside", href: "/#features" },
+      { label: "How it works", href: "/how-it-works" },
+      { label: "Pricing", href: "/pricing" },
+      { label: "Demo", href: "/demo" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { label: "Contact", href: "/contact" },
+      { label: "Email us", href: "mailto:hello@zentrabite.com" },
+    ],
+  },
+  {
+    title: "Account",
+    links: [
+      { label: "Log in", href: LOGIN_URL },
+      { label: "Start 1-month free trial", href: "/contact" },
+      { label: "Book a demo", href: "mailto:hello@zentrabite.com?subject=Demo" },
+    ],
+  },
+];
 
+export function Footer() {
   return (
-    <footer style={{ borderTop: "1px solid var(--mist-9)", paddingTop: 56, paddingBottom: 32 }}>
+    <footer className="site-footer">
       <div className="container">
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1.6fr repeat(3, 1fr)",
-            gap: 48,
-          }}
-          className="footer-grid"
-        >
+        <div className="footer-grid">
           <div>
             <Logo />
-            <p style={{ color: "var(--steel)", fontSize: 14, lineHeight: 1.6, marginTop: 16, maxWidth: 280 }}>
+            <p className="muted" style={{ fontSize: 15, marginTop: 16, maxWidth: 300 }}>
               Website, online ordering, customer list and rewards for small businesses.
             </p>
-            <div style={{ color: "var(--steel)", fontSize: 13, marginTop: 16 }}>
-              Built in Adelaide
-            </div>
+            <p className="small" style={{ marginTop: 12 }}>Built in Adelaide</p>
           </div>
 
-          {cols.map((col) => (
+          {COLS.map((col) => (
             <div key={col.title}>
-              <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: "var(--cloud)",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.1em",
-                  marginBottom: 16,
-                }}
-              >
-                {col.title}
-              </div>
-              <ul style={{ listStyle: "none", display: "grid", gap: 10 }}>
+              <h2 className="footer-title">{col.title}</h2>
+              <ul className="footer-links">
                 {col.links.map((l) => (
                   <li key={l.label}>
-                    <Link
-                      href={l.href}
-                      style={{ color: "var(--steel)", fontSize: 14, transition: "color 0.15s" }}
-                    >
-                      {l.label}
-                    </Link>
+                    <Link href={l.href}>{l.label}</Link>
                   </li>
                 ))}
               </ul>
@@ -81,34 +57,11 @@ export function Footer() {
           ))}
         </div>
 
-        <div
-          style={{
-            marginTop: 48,
-            paddingTop: 24,
-            borderTop: "1px solid var(--mist-9)",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: 12,
-            fontSize: 13,
-            color: "var(--steel)",
-          }}
-        >
-          <div>© {new Date().getFullYear()} ZentraBite. All rights reserved.</div>
+        <div className="footer-base">
+          <div>© {new Date().getFullYear()} ZentraBite</div>
+          <ThemeChoicePicker />
         </div>
       </div>
-
-      <style>{`
-        @media (max-width: 880px) {
-          .footer-grid { grid-template-columns: 1fr 1fr !important; }
-        }
-        @media (max-width: 520px) {
-          .footer-grid { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
     </footer>
   );
 }
-
-

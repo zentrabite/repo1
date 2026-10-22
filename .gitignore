@@ -37,3 +37,7 @@ yarn-error.log*
 .DS_Store
 *.pem
 .npmrc
+
+# Python
+__pycache__/
+*.pyc

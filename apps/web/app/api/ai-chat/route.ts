@@ -125,7 +125,7 @@ export async function POST(req: Request) {
         console.error(message);
         controller.enqueue(
           encoder.encode(
-            "\n\n_Sorry — I hit an error talking to the model. Try again, or book a call at /contact and a human can help._",
+            "\n\n_Sorry, something went wrong on our end. Try again, or book a call at /contact and a person can help._",
           ),
         );
       } finally {

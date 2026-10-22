@@ -20,7 +20,7 @@ export function Logo({ size = 36 }: { size?: number }) {
           letterSpacing: "-0.01em",
         }}
       >
-        <span style={{ color: "var(--cloud)" }}>Zentra</span>
+        <span style={{ color: "var(--logo-zentra, var(--cloud))" }}>Zentra</span>
         <span style={{ color: "var(--green)" }}>Bite</span>
       </div>
     </div>
