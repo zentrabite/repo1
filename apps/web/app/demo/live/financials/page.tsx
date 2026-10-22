@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { financials, formatAUD } from "../data";
+import { Icon } from "../../../components/zb-icon";
 
 type Range = "today" | "wtd" | "mtd" | "last30";
 
@@ -286,7 +287,7 @@ export default function FinancialsPage() {
           lineHeight: 1.55,
         }}
       >
-        <strong style={{ color: "var(--orange)" }}>💡 Insight:</strong> You're paying{" "}
+        <strong style={{ color: "var(--orange)" }}><Icon name="insight" size={16} style={{ marginRight: 6 }} />Insight:</strong> You're paying{" "}
         <strong style={{ color: "var(--orange)" }}>{formatAUD(commissionTotal)}</strong> in aggregator commission this
         month. If you shifted 20% of those orders to your own storefront, you'd keep{" "}
         <strong style={{ color: "var(--green)" }}>{formatAUD(commissionTotal * 0.2)}</strong> more.

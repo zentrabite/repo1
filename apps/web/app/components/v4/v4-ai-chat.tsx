@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Icon, type IconName } from "../zb-icon";
 
 const INITIAL_SUGS = [
   "How does the AI co-pilot work?",
@@ -41,7 +42,7 @@ export function V4AiChat() {
     {
       role: "b",
       html:
-        "👋 Hey! Ask me anything about ZentraBite — features, pricing, integrations, or how it compares to other tools. What would you like to know?",
+        "Hey! Ask me anything about ZentraBite — features, pricing, integrations, or how it compares to other tools. What would you like to know?",
     },
   ]);
   const [sugs, setSugs] = useState<string[]>(INITIAL_SUGS);
@@ -149,22 +150,22 @@ export function V4AiChat() {
             you exactly what to do next.
           </p>
           <div className="ai-bullets">
-            <Bullet icon="📊">
+            <Bullet icon="brief">
               Daily brief with your top 5 actionable insights at 7 AM every
               morning
             </Bullet>
-            <Bullet icon="🤖">
+            <Bullet icon="ai-calls">
               AI voice calls lapsed customers and logs every conversation
               outcome
             </Bullet>
-            <Bullet icon="📣">
+            <Bullet icon="campaigns">
               Campaign recommendations based on live churn risk and revenue gaps
             </Bullet>
-            <Bullet icon="💡">
+            <Bullet icon="insight">
               Menu, stock, and staffing suggestions backed by your real sales
               data
             </Bullet>
-            <Bullet icon="🔍">
+            <Bullet icon="search">
               Revenue anomaly detection — flags dips and tells you the exact
               cause
             </Bullet>
@@ -176,7 +177,7 @@ export function V4AiChat() {
         <div className="reveal d1">
           <div className="chat-ui">
             <div className="chat-hdr">
-              <div className="chat-av">✨</div>
+              <div className="chat-av"><Icon name="ai" size={17} /></div>
               <div>
                 <div className="chat-nm">ZentraBite AI</div>
                 <div className="chat-st">
@@ -254,10 +255,10 @@ export function V4AiChat() {
   );
 }
 
-function Bullet({ icon, children }: { icon: string; children: React.ReactNode }) {
+function Bullet({ icon, children }: { icon: IconName; children: React.ReactNode }) {
   return (
     <div className="ai-b">
-      <div className="ai-b-ico">{icon}</div>
+      <div className="ai-b-ico"><Icon name={icon} size={12} /></div>
       <span>{children}</span>
     </div>
   );

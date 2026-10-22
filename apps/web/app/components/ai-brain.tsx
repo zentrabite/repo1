@@ -1,4 +1,5 @@
 import { Expandable } from "./expandable";
+import { Icon, type IconName } from "./zb-icon";
 
 export function AIBrain() {
   return (
@@ -158,25 +159,25 @@ export function AIBrain() {
           <div style={{ display: "grid", gap: 16, gridTemplateRows: "auto auto auto auto" }}>
             {[
               {
-                icon: "🧠",
+                icon: "ai" as IconName,
                 title: "Predictive insights",
                 short: "Forecasts sales and demand from your own data.",
                 body: "Forecasts next week's sales, demand per item, and staffing gaps — from your actual data, not guesswork.",
               },
               {
-                icon: "📦",
+                icon: "stock" as IconName,
                 title: "Stock intelligence",
                 short: "Predicts waste before it happens.",
                 body: "Tracks stock, expiry, deliveries, and reorder triggers. Predicts waste before it happens.",
               },
               {
-                icon: "📬",
+                icon: "email" as IconName,
                 title: "Daily brief at 7am",
                 short: "KPI summary and a short action list.",
                 body: "KPI summary, AI insights, and a short action list in your inbox every morning at 7am.",
               },
               {
-                icon: "🎯",
+                icon: "goal" as IconName,
                 title: "One-click actions",
                 short: "Run a winback, order stock, tweak the menu.",
                 body: "One-click execution: run a winback, order stock, tweak a menu item, boost a campaign.",
@@ -201,7 +202,7 @@ export function AIBrain() {
                   }}
                   aria-hidden
                 >
-                  {f.icon}
+                  <Icon name={f.icon} size={22} />
                 </div>
                 <div>
                   <div style={{ fontSize: 15.5, fontWeight: 700, color: "var(--cloud)", marginBottom: 4 }}>

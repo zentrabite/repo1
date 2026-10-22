@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
 import { getCustomers, getCustomerOrders, createCustomer } from "@/lib/queries";
 import type { Customer, Order } from "@/lib/database.types";
+import { Icon } from "@/components/zb-icon";
 
 const C = { g:"#00B67A", o:"#FF6B35", am:"#F59E0B", st:"#6B7C93" };
 const SEGS = ["All","VIP","Regular","New","At Risk"];
@@ -137,9 +138,9 @@ export default function CustomersPage() {
             <Badge type={selected.segment}>{selected.segment}</Badge>
           </div>
           <div style={{ fontSize:13, color:C.st, display:"flex", flexDirection:"column", gap:5, marginBottom:12 }}>
-            {selected.email && <div>📧 {selected.email}</div>}
-            {selected.phone && <div>📱 {selected.phone}</div>}
-            <div>⭐ {selected.points_balance} points</div>
+            {selected.email && <div style={{ display:"flex", alignItems:"center", gap:6 }}><Icon name="email" size={16} />{selected.email}</div>}
+            {selected.phone && <div style={{ display:"flex", alignItems:"center", gap:6 }}><Icon name="smartphone" size={16} />{selected.phone}</div>}
+            <div style={{ display:"flex", alignItems:"center", gap:6 }}><Icon name="loyalty" size={16} />{selected.points_balance} points</div>
           </div>
           <div style={{ borderTop:"1px solid rgba(255,255,255,.06)", paddingTop:12 }}>
             {[["Orders",selected.total_orders],["Lifetime Value",`$${selected.total_spent}`]].map(([l,v]) => (
@@ -150,7 +151,7 @@ export default function CustomersPage() {
           </div>
           <div style={{ display:"flex", gap:6, marginTop:14 }}>
             <button className="bp" style={{ flex:1, justifyContent:"center", fontSize:12, padding:"8px 0" }} onClick={() => { setSmsText(`Hi {name}, `); setSmsOpen(true); }} disabled={!selected.phone}>SMS</button>
-            <button className="bg-btn" style={{ flex:1, justifyContent:"center" }} onClick={startAiCall} disabled={!selected.phone || aiCalling}>{aiCalling ? "Calling…" : "🤖 Call"}</button>
+            <button className="bg-btn" style={{ flex:1, justifyContent:"center" }} onClick={startAiCall} disabled={!selected.phone || aiCalling}>{aiCalling ? "Calling…" : <><Icon name="ai-calls" size={14} />Call</>}</button>
           </div>
         </div>
         <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
@@ -211,7 +212,7 @@ export default function CustomersPage() {
           background:"rgba(245,158,11,.08)",
           border:"1px solid rgba(245,158,11,.2)",
         }}>
-          <span style={{ fontSize:16, flexShrink:0 }}>⚠️</span>
+          <Icon name="warning" size={16} accent="#F59E0B" style={{ color:"#F59E0B", flexShrink:0 }} />
           <div style={{ fontFamily:"var(--font-inter)", fontSize:12, color:"#F59E0B", lineHeight:1.6 }}>
             <strong>Segments haven&apos;t been calculated yet.</strong> The VIP, Regular, New, and At Risk filters
             won&apos;t work until the nightly analytics job runs. Make sure the{" "}

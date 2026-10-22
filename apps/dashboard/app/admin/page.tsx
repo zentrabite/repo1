@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useBusiness } from "@/hooks/use-business";
+import { Icon } from "@/components/zb-icon";
 
 // ── Module catalogue (shared across all tenants; no plan tiers) ──────────────
 type ModuleId =
@@ -171,7 +172,7 @@ export default function AdminPage() {
       <div style={{ marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-            <span style={{ fontSize: 22 }}>🔐</span>
+            <Icon name="lock" size={22} />
             <h2 style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 22, color: C.cl }}>Super Admin</h2>
             <span style={{ padding: "3px 10px", borderRadius: 999, background: "rgba(255,71,87,.12)", border: "1px solid rgba(255,71,87,.2)", fontSize: 11, fontWeight: 600, color: C.r, fontFamily: "var(--font-outfit)" }}>
               PLATFORM CONTROL

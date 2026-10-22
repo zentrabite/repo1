@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { customers, customerById, orders, formatAUD, formatDateTime, timeAgo } from "../data";
+import { Icon, type IconName } from "../../../components/zb-icon";
 
 type SortKey = "ltv" | "orders" | "lastOrder" | "name";
 
@@ -366,9 +367,9 @@ function CustomerDrawer({ customerId, onClose }: { customerId: string; onClose: 
 
           {/* Action buttons */}
           <div style={{ display: "grid", gap: 8 }}>
-            <ActionButton label="Send personalised SMS" icon="💬" />
-            <ActionButton label="Add to a campaign segment" icon="🎯" />
-            <ActionButton label="Send winback offer (20% off)" icon="🔁" />
+            <ActionButton label="Send personalised SMS" icon="sms" />
+            <ActionButton label="Add to a campaign segment" icon="campaigns" />
+            <ActionButton label="Send winback offer (20% off)" icon="return" />
           </div>
 
           {/* Order history */}
@@ -441,7 +442,7 @@ function StatBox({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ActionButton({ label, icon }: { label: string; icon: string }) {
+function ActionButton({ label, icon }: { label: string; icon: IconName }) {
   return (
     <button
       onClick={() => {
@@ -470,7 +471,7 @@ function ActionButton({ label, icon }: { label: string; icon: string }) {
         width: "100%",
       }}
     >
-      <span>{icon}</span>
+      <Icon name={icon} size={16} />
       {label}
     </button>
   );

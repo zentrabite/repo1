@@ -13,17 +13,18 @@ import Toast from "@/components/toast";
 import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
 import { supabase } from "@/lib/supabase";
+import { Icon, type IconName } from "@/components/zb-icon";
 import type { DeliveryPrediction, RoutingDecision, ProviderQuote, ProviderId } from "@/lib/delivery-types";
 
 const C = { g:"#00B67A", o:"#FF6B35", b:"#3B82F6", r:"#FF4757", am:"#F59E0B", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(255,255,255,.07)" };
 
-const PROVIDER_META: Record<string, { label:string; color:string; flag:string }> = {
-  uber_direct: { label:"Uber Direct",   color:"#3B82F6",  flag:"🚗" },
-  doordash:    { label:"DoorDash Drive", color:"#FF3008",  flag:"🔴" },
-  sherpa:      { label:"Sherpa",         color:"#7C3AED",  flag:"📦" },
-  zoom2u:      { label:"Zoom2u",         color:"#059669",  flag:"⚡" },
-  gopeople:    { label:"GoPeople",       color:"#F59E0B",  flag:"🏃" },
-  none:        { label:"No providers",   color:"#6B7C93",  flag:"⛔" },
+const PROVIDER_META: Record<string, { label:string; color:string; icon:IconName; accent?:string }> = {
+  uber_direct: { label:"Uber Direct",   color:"#3B82F6",  icon:"car" },
+  doordash:    { label:"DoorDash Drive", color:"#FF3008",  icon:"dot", accent:"#FF3008" },
+  sherpa:      { label:"Sherpa",         color:"#7C3AED",  icon:"package" },
+  zoom2u:      { label:"Zoom2u",         color:"#059669",  icon:"fast" },
+  gopeople:    { label:"GoPeople",       color:"#F59E0B",  icon:"delivery" },
+  none:        { label:"No providers",   color:"#6B7C93",  icon:"x" },
 };
 
 function QuoteCard({ q, selected }: { q: ProviderQuote; selected: boolean }) {
@@ -37,7 +38,7 @@ function QuoteCard({ q, selected }: { q: ProviderQuote; selected: boolean }) {
       position:"relative",
     }}>
       {selected && <div style={{ position:"absolute", top:8, right:8, fontSize:10, fontWeight:700, color:meta.color, background:`${meta.color}22`, padding:"2px 7px", borderRadius:999 }}>SELECTED</div>}
-      <div style={{ fontSize:18, marginBottom:4 }}>{meta.flag}</div>
+      <div style={{ fontSize:18, marginBottom:4 }}><Icon name={meta.icon} size={18} accent={meta.accent} /></div>
       <div style={{ fontWeight:700, fontSize:13, color:"#fff", marginBottom:3 }}>{meta.label}</div>
       {!q.available ? (
         <div style={{ fontSize:11, color:C.st }}>{q.error ?? "Unavailable"}</div>
@@ -209,7 +210,7 @@ export default function DeliveryPage() {
       <div style={{ display:"flex", gap:4, marginBottom:20 }}>
         {(["route","plan","analytics","jobs"] as const).map(t => (
           <button key={t} className={`bg-btn ${tab===t?"on":""}`} onClick={() => setTab(t)} style={{ textTransform:"capitalize" }}>
-            {{ route:"🔀 Route Test", plan:"📅 7-Day Plan", analytics:"📊 Analytics", jobs:"📋 Recent Jobs" }[t]}
+            {{ route:<><Icon name="automations" size={14} />Route Test</>, plan:<><Icon name="calendar" size={14} />7-Day Plan</>, analytics:<><Icon name="analytics" size={14} />Analytics</>, jobs:<><Icon name="receipt" size={14} />Recent Jobs</> }[t]}
           </button>
         ))}
       </div>
@@ -266,7 +267,7 @@ export default function DeliveryPage() {
             </div>
 
             <button className="bp" onClick={runRouting} disabled={routing} style={{ width:"100%", justifyContent:"center" }}>
-              {routing ? "Fetching quotes…" : "🔀 Get Optimal Route"}
+              {routing ? "Fetching quotes…" : <><Icon name="automations" size={16} accent="currentColor" />Get Optimal Route</>}
             </button>
             <div style={{ fontSize:11, color:C.st, marginTop:8, textAlign:"center" }}>Queries all providers · logs decision to analytics</div>
           </div>
@@ -275,7 +276,7 @@ export default function DeliveryPage() {
           <div>
             {!decision && !routing && (
               <div className="gc" style={{ padding:40, textAlign:"center" }}>
-                <div style={{ fontSize:40, marginBottom:10 }}>🔀</div>
+                <div style={{ fontSize:40, marginBottom:10 }}><Icon name="automations" size={40} /></div>
                 <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:16, color:"#fff", marginBottom:6 }}>Enter route details to test the engine</div>
                 <p style={{ fontSize:13, color:C.st, maxWidth:340, margin:"0 auto" }}>The engine will query all configured providers simultaneously, apply cost-vs-ETA logic, and return the optimal selection with full quote comparison.</p>
               </div>
@@ -292,8 +293,9 @@ export default function DeliveryPage() {
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
                     <div>
                       <div style={{ fontSize:11, color:C.st, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:4 }}>Selected provider</div>
-                      <div style={{ fontFamily:"var(--font-outfit)", fontWeight:800, fontSize:22, color:"#fff" }}>
-                        {PROVIDER_META[decision.selectedProvider]?.flag} {PROVIDER_META[decision.selectedProvider]?.label ?? decision.selectedProvider}
+                      <div style={{ fontFamily:"var(--font-outfit)", fontWeight:800, fontSize:22, color:"#fff", display:"flex", alignItems:"center", gap:8 }}>
+                        {PROVIDER_META[decision.selectedProvider] && <Icon name={PROVIDER_META[decision.selectedProvider]!.icon} size={22} accent={PROVIDER_META[decision.selectedProvider]!.accent} />}
+                        {PROVIDER_META[decision.selectedProvider]?.label ?? decision.selectedProvider}
                       </div>
                       <div style={{ fontSize:12, color:C.st, marginTop:4 }}>{decision.rationale}</div>
                     </div>
@@ -315,9 +317,9 @@ export default function DeliveryPage() {
                     ))}
                   </div>
                   <div style={{ display:"flex", gap:12, marginTop:10, fontSize:12, color:C.st }}>
-                    <span>🕐 Pickup in {decision.pickupEtaMin} min</span>
-                    <span>🏠 Delivery in {decision.deliveryEtaMin} min</span>
-                    <span>💰 Customer total: ${feeTotal?.toFixed(2)} (delivery + service fee)</span>
+                    <span style={{ display:"inline-flex", alignItems:"center", gap:6 }}><Icon name="hours" size={14} />Pickup in {decision.pickupEtaMin} min</span>
+                    <span style={{ display:"inline-flex", alignItems:"center", gap:6 }}><Icon name="home" size={14} />Delivery in {decision.deliveryEtaMin} min</span>
+                    <span style={{ display:"inline-flex", alignItems:"center", gap:6 }}><Icon name="money" size={14} />Customer total: ${feeTotal?.toFixed(2)} (delivery + service fee)</span>
                   </div>
                 </div>
 
@@ -375,7 +377,7 @@ export default function DeliveryPage() {
           {analyticsLoading && <div style={{ fontSize:13, color:C.st }}>Loading analytics…</div>}
           {!analyticsLoading && !analytics && (
             <div className="gc" style={{ padding:40, textAlign:"center" }}>
-              <div style={{ fontSize:32, marginBottom:10 }}>📊</div>
+              <div style={{ fontSize:32, marginBottom:10 }}><Icon name="analytics" size={32} /></div>
               <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:16, color:"#fff", marginBottom:6 }}>No routing data yet</div>
               <p style={{ fontSize:13, color:C.st, maxWidth:340, margin:"0 auto" }}>Analytics populate as you use the route test tool or as orders are dispatched via the routing engine. Run your first route to see data here.</p>
             </div>
@@ -402,7 +404,7 @@ export default function DeliveryPage() {
                     const meta = PROVIDER_META[p.provider] ?? PROVIDER_META.none!;
                     return (
                       <div key={p.provider} style={{ padding:"12px 14px", borderRadius:10, background:"rgba(255,255,255,.03)", border:`1px solid rgba(255,255,255,.08)` }}>
-                        <div style={{ fontSize:18, marginBottom:4 }}>{meta.flag}</div>
+                        <div style={{ fontSize:18, marginBottom:4 }}><Icon name={meta.icon} size={18} accent={meta.accent} /></div>
                         <div style={{ fontWeight:700, fontSize:13, color:"#fff" }}>{meta.label}</div>
                         <div style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:18, color:meta.color, margin:"4px 0" }}>{p.share}% <span style={{ fontSize:11, color:C.st }}>({p.count} jobs)</span></div>
                         <div style={{ fontSize:11, color:C.st }}>Avg ${p.avgCost.toFixed(2)} · {Math.round(p.avgEtaMin)} min avg ETA</div>
@@ -433,7 +435,7 @@ export default function DeliveryPage() {
                 const margin = Number(j.delivery_margin ?? 0);
                 return (
                   <tr key={i}>
-                    <td><span style={{ fontSize:13 }}>{meta.flag}</span> <span style={{ fontSize:12, color:meta.color, fontWeight:600 }}>{meta.label}</span></td>
+                    <td><Icon name={meta.icon} size={14} accent={meta.accent} /> <span style={{ fontSize:12, color:meta.color, fontWeight:600 }}>{meta.label}</span></td>
                     <td style={{ fontSize:11, color:C.st, maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{j.dropoff_address ?? "—"}</td>
                     <td><Badge type={j.delivery_tier}>{j.delivery_tier}</Badge></td>
                     <td style={{ fontSize:13, color:C.r, fontWeight:600 }}>${Number(j.provider_cost??0).toFixed(2)}</td>

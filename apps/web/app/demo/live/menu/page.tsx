@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { menu as initialMenu, formatAUD, type MenuCategory } from "../data";
+import { Icon } from "../../../components/zb-icon";
 
 function toast(text: string) {
   if (typeof document === "undefined") return;
@@ -52,7 +53,7 @@ export default function MenuPage() {
             onClick={() => toast("AI menu suggestions: 3 new items based on top sellers (demo)")}
             style={{ padding: "10px 14px", borderRadius: 10, background: "rgba(201,166,255,0.12)", color: "#C9A6FF", border: "1px solid rgba(201,166,255,0.28)", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: "var(--font-inter)" }}
           >
-            ✨ AI suggestions
+            <Icon name="ai" size={16} style={{ marginRight: 6 }} />AI suggestions
           </button>
           <button
             onClick={() => toast("Menu item editor would open (demo)")}

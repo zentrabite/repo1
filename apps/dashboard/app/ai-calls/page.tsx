@@ -82,10 +82,10 @@ export default function AICallsPage() {
       </div>
 
       <div style={{ display:"flex", gap:10, flexWrap:"wrap", marginBottom:14 }}>
-        <StatCard label="Status"        value={profile.enabled ? "ON" : "OFF"} accent={profile.enabled} icon={profile.enabled ? "🟢" : "⚪"} />
-        <StatCard label="Answer mode"   value={profile.answer_mode.replace("_"," ")} icon="⏰" delay={50} />
-        <StatCard label="Takes orders"  value={profile.take_orders ? "Yes" : "No"} icon="🛎️" delay={100} />
-        <StatCard label="Takes bookings" value={profile.take_bookings ? "Yes" : "No"} icon="📅" delay={150} />
+        <StatCard label="Status"        value={profile.enabled ? "ON" : "OFF"} accent={profile.enabled} icon={profile.enabled ? "dot" : "pause"} />
+        <StatCard label="Answer mode"   value={profile.answer_mode.replace("_"," ")} icon="hours" delay={50} />
+        <StatCard label="Takes orders"  value={profile.take_orders ? "Yes" : "No"} icon="orders" delay={100} />
+        <StatCard label="Takes bookings" value={profile.take_bookings ? "Yes" : "No"} icon="bookings" delay={150} />
       </div>
 
       {/* Enable panel */}

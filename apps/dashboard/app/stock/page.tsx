@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Package } from "lucide-react";
+import { iconComponent } from "@/components/zb-icon";
 import Modal from "@/components/modal";
 import Toast from "@/components/toast";
 import EmptyState from "@/components/empty-state";
@@ -17,6 +17,7 @@ import {
 } from "@/lib/stock-queries";
 
 const C = { g: "#00B67A", st: "#6B7C93", o: "#FF6B35", r: "#FF4757", mist: "rgba(255,255,255,.07)" };
+const StockIcon = iconComponent("stock");
 
 function statusFor(it: StockItem) {
   if (it.on_hand <= 0) return { label: "Out of stock", color: C.r };
@@ -157,7 +158,7 @@ export default function StockPage() {
       {loading ? (
         <div style={{ textAlign: "center", color: "rgba(255,255,255,.2)", padding: 48 }}>Loading</div>
       ) : items.length === 0 ? (
-        <EmptyState icon={Package} title="No stock items yet" description="Add your first stock item to start tracking par levels, reorder triggers and expiry dates." />
+        <EmptyState icon={StockIcon} title="No stock items yet" description="Add your first stock item to start tracking par levels, reorder triggers and expiry dates." />
       ) : (
         <div className="gs" style={{ padding: 0, overflow: "hidden" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1.5fr 90px 120px 120px 120px 100px", gap: 0, fontSize: 11, color: C.st, textTransform: "uppercase", letterSpacing: ".08em", fontWeight: 700, padding: "10px 16px", borderBottom: `1px solid ${C.mist}` }}>

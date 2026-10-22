@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useState, useEffect, use } from "react";
 import { useSearchParams } from "next/navigation";
+import { Icon } from "@/components/zb-icon";
 
 const C = { g:"#00B67A", st:"#8B9DB5", cl:"#F8FAFB", navy:"#0F1F2D", card:"#1C2D48", mist:"rgba(255,255,255,.08)" };
 
@@ -47,7 +48,7 @@ export default function StorefrontSuccessPage({ params }: { params: Promise<{ su
 
         {/* Animated tick */}
         <div style={{ width:72, height:72, borderRadius:"50%", background:"rgba(0,182,122,.15)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 20px", fontSize:32 }}>
-          ✅
+          <Icon name="check" size={32} />
         </div>
 
         <div style={{ fontWeight:800, fontSize:22, color:C.cl, marginBottom:8 }}>Order confirmed!</div>

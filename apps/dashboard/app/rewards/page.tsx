@@ -11,6 +11,7 @@ import Toast from "@/components/toast";
 import Modal from "@/components/modal";
 import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
+import { Icon } from "@/components/zb-icon";
 import {
   getCustomersByPoints,
   getRewardsCatalogue,
@@ -46,7 +47,7 @@ function Av({ n, sz=28 }: { n:string; sz?:number }) {
 function TierBar({ pts }: { pts: number }) {
   const next = pts < 300 ? 300 : pts < 1000 ? 1000 : null;
   const prev = pts < 300 ? 0   : pts < 1000 ? 300  : 1000;
-  if (!next) return <div style={{ fontSize:10, color:C.am }}>Max tier — Gold ✦</div>;
+  if (!next) return <div style={{ fontSize:10, color:C.am, display:"flex", alignItems:"center", gap:4 }}>Max tier — Gold<Icon name="vip" size={14} accent="#F5B83D" /></div>;
   const pct = Math.min(100, Math.round((pts - prev) / (next - prev) * 100));
   return (
     <div style={{ display:"flex", alignItems:"center", gap:6 }}>
@@ -179,13 +180,13 @@ export default function RewardsPage() {
       {/* ── Tier ladder ── */}
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:14 }}>
         {[
-          { icon:"🥉", label:"Bronze", count:bronzeCount, range:"0–299 pts",   perk:"5% off every order",         bg:"rgba(205,127,50,.06)",  bd:"rgba(205,127,50,.18)", col:"#CD7F32" },
-          { icon:"🥈", label:"Silver", count:silverCount, range:"300–999 pts", perk:"10% off + free delivery",    bg:"rgba(192,192,192,.06)", bd:"rgba(192,192,192,.18)",col:"#C0C0C0" },
-          { icon:"🥇", label:"Gold",   count:goldCount,   range:"1,000+ pts",  perk:"15% off + priority service", bg:"rgba(245,158,11,.06)",  bd:"rgba(245,158,11,.18)", col:C.am },
+          { icon:"tier" as const, accent:"#C28D5C", label:"Bronze", count:bronzeCount, range:"0–299 pts",   perk:"5% off every order",         bg:"rgba(205,127,50,.06)",  bd:"rgba(205,127,50,.18)", col:"#CD7F32" },
+          { icon:"tier" as const, accent:"#C0C7D1", label:"Silver", count:silverCount, range:"300–999 pts", perk:"10% off + free delivery",    bg:"rgba(192,192,192,.06)", bd:"rgba(192,192,192,.18)",col:"#C0C0C0" },
+          { icon:"tier" as const, accent:"#F5B83D", label:"Gold",   count:goldCount,   range:"1,000+ pts",  perk:"15% off + priority service", bg:"rgba(245,158,11,.06)",  bd:"rgba(245,158,11,.18)", col:C.am },
         ].map((t, i) => (
           <div key={i} className="gc" style={{ padding:"14px 16px", background:t.bg, borderColor:t.bd }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
-              <span style={{ fontSize:24 }}>{t.icon}</span>
+              <Icon name={t.icon} size={24} accent={t.accent} />
               <span style={{ fontSize:22, fontWeight:700, fontFamily:"var(--font-outfit)", color:t.col }}>{t.count}</span>
             </div>
             <div style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:14, color:t.col, marginBottom:2 }}>{t.label}</div>
@@ -200,15 +201,15 @@ export default function RewardsPage() {
         <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:8 }}>Earn Rules</div>
         <div style={{ display:"flex", gap:0, flexWrap:"wrap" }}>
           {[
-            { trigger:"Per $1 spent", points:"10 pts", icon:"🛍️" },
-            { trigger:"Leave a review", points:"50 pts", icon:"⭐" },
-            { trigger:"Refer a friend", points:"200 pts", icon:"🤝" },
-            { trigger:"Birthday order", points:"200 pts", icon:"🎂" },
-            { trigger:"Direct order", points:"×1.2 multiplier", icon:"📱" },
-            { trigger:"5-order streak", points:"100 bonus pts", icon:"🔥" },
+            { trigger:"Per $1 spent", points:"10 pts", icon:"storefront" as const },
+            { trigger:"Leave a review", points:"50 pts", icon:"reviews" as const },
+            { trigger:"Refer a friend", points:"200 pts", icon:"referral" as const },
+            { trigger:"Birthday order", points:"200 pts", icon:"birthday" as const },
+            { trigger:"Direct order", points:"×1.2 multiplier", icon:"smartphone" as const },
+            { trigger:"5-order streak", points:"100 bonus pts", icon:"streak" as const },
           ].map((r, i, arr) => (
             <div key={i} style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 16px 6px 0", borderRight: i<arr.length-1 ? "1px solid rgba(255,255,255,.06)" : "none", marginRight: i<arr.length-1 ? 16 : 0 }}>
-              <span style={{ fontSize:16 }}>{r.icon}</span>
+              <Icon name={r.icon} size={16} />
               <div>
                 <div style={{ fontSize:11, color:C.st }}>{r.trigger}</div>
                 <div style={{ fontSize:12, fontWeight:600, color:C.g }}>{r.points}</div>
@@ -266,7 +267,7 @@ export default function RewardsPage() {
         <div>
           {catalogue.length === 0 && !loading ? (
             <div className="gc" style={{ padding:32, textAlign:"center" }}>
-              <div style={{ fontSize:32, marginBottom:8 }}>🎁</div>
+              <div style={{ fontSize:32, marginBottom:8 }}><Icon name="rewards" size={32} /></div>
               <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:15, color:"#fff", marginBottom:6 }}>No rewards yet</div>
               <p style={{ fontSize:13, color:C.st, maxWidth:320, margin:"0 auto 16px" }}>Add rewards to the catalogue so customers know what they can unlock with their points.</p>
               <button className="bp" onClick={openAdd}>+ Add First Reward</button>

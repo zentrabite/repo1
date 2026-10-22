@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { calls, callsTodayStats, callOutcomeLabel, formatTime, formatAUD, type DemoCall } from "../data";
+import { Icon } from "../../../components/zb-icon";
 
 function toast(text: string) {
   if (typeof document === "undefined") return;
@@ -206,7 +207,7 @@ function CallDetail({ call }: { call: DemoCall }) {
             color: "var(--cloud)",
           }}
         >
-          ✅ <strong>Order created:</strong> {call.orderId} · {call.orderTotal ? formatAUD(call.orderTotal) : ""}
+          <Icon name="done" size={16} style={{ marginRight: 6 }} /><strong>Order created:</strong> {call.orderId} · {call.orderTotal ? formatAUD(call.orderTotal) : ""}
         </div>
       )}
 
@@ -253,7 +254,7 @@ function CallDetail({ call }: { call: DemoCall }) {
                   fontFamily: "var(--font-outfit)",
                 }}
               >
-                {isAi ? "AI" : "👤"}
+                {isAi ? "AI" : <Icon name="user" size={14} title="Customer" />}
               </div>
               <div
                 style={{
@@ -278,7 +279,7 @@ function CallDetail({ call }: { call: DemoCall }) {
           onClick={() => toast("Audio playback would start (demo)")}
           style={{ padding: "9px 12px", borderRadius: 10, background: "rgba(107,177,255,0.10)", color: "#6BB1FF", border: "1px solid rgba(107,177,255,0.28)", fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: "var(--font-inter)" }}
         >
-          ▶ Play recording
+          <Icon name="play" size={14} accent="#6BB1FF" style={{ marginRight: 6 }} />Play recording
         </button>
         <button
           onClick={() => toast("Sent to manager Slack (demo)")}

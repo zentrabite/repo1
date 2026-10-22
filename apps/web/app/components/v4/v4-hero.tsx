@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Icon } from "../zb-icon";
 
 export function V4Hero() {
   return (
@@ -22,7 +23,7 @@ export function V4Hero() {
           Start 1-month free trial →
         </a>
         <a href="#ai-chat" className="btn-lg s">
-          <span aria-hidden>✨</span> Ask the AI
+          <Icon name="ai" size={16} /> Ask the AI
         </a>
         <Link href="/demo" className="btn-lg p">
           See the demo →

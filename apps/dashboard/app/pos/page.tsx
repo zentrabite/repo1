@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Toast from "@/components/toast";
+import { Icon, type IconName } from "@/components/zb-icon";
 import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
 import { getMenu } from "@/lib/queries";
@@ -249,7 +250,7 @@ export default function POSPage() {
                       <img src={item.image_url} alt={item.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
                     </div>
                   ) : (
-                    <div style={{ width:"100%", height:80, borderRadius:8, background:"rgba(255,255,255,.04)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:28 }}>🍽️</div>
+                    <div style={{ width:"100%", height:80, borderRadius:8, background:"rgba(255,255,255,.04)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:28 }}><Icon name="menu" size={28} /></div>
                   )}
                   <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:13, color:C.cl, lineHeight:1.2 }}>{item.name}</div>
                   {item.description && <div style={{ fontSize:10, color:C.st, lineHeight:1.3 }}>{item.description}</div>}
@@ -271,10 +272,10 @@ export default function POSPage() {
           {/* Fulfilment mode selector */}
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:6 }}>
             {([
-              ["dine_in",  "🪑", "Dine-in"],
-              ["takeaway", "🥡", "Takeaway"],
-              ["delivery", "🛵", "Delivery"],
-            ] as [OrderMode, string, string][]).map(([m, emoji, label]) => (
+              ["dine_in",  "dine-in",  "Dine-in"],
+              ["takeaway", "takeaway", "Takeaway"],
+              ["delivery", "delivery", "Delivery"],
+            ] as [OrderMode, IconName, string][]).map(([m, icon, label]) => (
               <button
                 key={m}
                 onClick={() => setMode(m)}
@@ -286,7 +287,7 @@ export default function POSPage() {
                   cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", gap:2,
                 }}
               >
-                <span style={{ fontSize:16 }}>{emoji}</span>
+                <span style={{ fontSize:16 }}><Icon name={icon} size={16} /></span>
                 {label}
               </button>
             ))}
@@ -326,7 +327,7 @@ export default function POSPage() {
         {/* Delivery details (shown only in delivery mode) */}
         {mode === "delivery" && (
           <div style={{ padding:"12px 20px", borderTop:`1px solid ${C.mist}`, flexShrink:0, background:"rgba(0,182,122,.04)" }}>
-            <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:11, color:C.g, marginBottom:8, textTransform:"uppercase", letterSpacing:".5px" }}>🛵 Delivery Details</div>
+            <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:11, color:C.g, marginBottom:8, textTransform:"uppercase", letterSpacing:".5px", display:"flex", alignItems:"center", gap:6 }}><Icon name="delivery" size={14} />Delivery Details</div>
 
             {/* Address */}
             <input
@@ -361,7 +362,7 @@ export default function POSPage() {
             <div style={{ marginBottom:10 }}>
               <div style={{ fontSize:10, color:C.st, marginBottom:4 }}>Delivery tier</div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:5 }}>
-                {([["standard","⚡ Standard"],["priority","🚀 Priority"]] as [DelivTier, string][]).map(([t, label]) => (
+                {([["standard","delivery","Standard"],["priority","fast","Priority"]] as [DelivTier, IconName, string][]).map(([t, icon, label]) => (
                   <button
                     key={t}
                     onClick={() => setDelivTier(t)}
@@ -372,7 +373,7 @@ export default function POSPage() {
                       fontSize:11, fontFamily:"var(--font-outfit)", fontWeight:600, cursor:"pointer",
                     }}
                   >
-                    {label}
+                    <Icon name={icon} size={14} style={{ marginRight: 4 }} />{label}
                   </button>
                 ))}
               </div>
@@ -428,7 +429,7 @@ export default function POSPage() {
                 color: payMethod===m ? C.g : C.st,
                 fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:13, cursor:"pointer",
               }}>
-                {m === "cash" ? "💵 Cash" : "💳 Card"}
+                <Icon name={m === "cash" ? "cash" : "card"} size={16} style={{ marginRight: 6 }} />{m === "cash" ? "Cash" : "Card"}
               </button>
             ))}
           </div>

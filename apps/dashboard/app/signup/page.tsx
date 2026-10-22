@@ -8,6 +8,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import BrandMark from "@/components/brand-mark";
 import PasswordInput from "@/components/password-input";
+import { Icon } from "@/components/zb-icon";
 
 const C = { g:"#00B67A", st:"#6B7C93", cl:"#F8FAFB", r:"#FF4757" };
 
@@ -57,7 +58,7 @@ export default function SignupPage() {
   if (success) return (
     <div style={{ minHeight:"100vh", background:"#0F1F2D", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
       <div style={{ width:"100%", maxWidth:420, textAlign:"center" }}>
-        <div style={{ fontSize:48, marginBottom:16 }}>✅</div>
+        <div style={{ fontSize:48, marginBottom:16 }}><Icon name="done" size={48} /></div>
         <h2 style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:22, color:C.cl, marginBottom:8 }}>Check your email</h2>
         <p style={{ fontFamily:"var(--font-inter)", fontSize:14, color:C.st, lineHeight:1.6 }}>
           We&apos;ve sent a confirmation link to <strong style={{ color:C.cl }}>{email}</strong>.

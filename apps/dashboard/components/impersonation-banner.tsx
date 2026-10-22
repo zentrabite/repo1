@@ -1,6 +1,7 @@
 "use client";
 
 import { useBusiness, stopImpersonating } from "@/hooks/use-business";
+import { Icon } from "@/components/zb-icon";
 
 export default function ImpersonationBanner() {
   const { impersonatingBusinessId, business, loading } = useBusiness();
@@ -26,7 +27,7 @@ export default function ImpersonationBanner() {
       }}
     >
       <div>
-        👁️ Viewing CRM as <b>{business?.name ?? "business"}</b>
+        <Icon name="view" size={16} accent="currentColor" style={{ marginRight: 6 }} />Viewing CRM as <b>{business?.name ?? "business"}</b>
         <span style={{ opacity: 0.85, marginLeft: 8, fontWeight: 500 }}>
           — all actions write to this tenant's data
         </span>

@@ -2,32 +2,28 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard, ShoppingBag, PackageCheck, Monitor, UtensilsCrossed,
-  Package, Bot, Truck, UserCog, Star, Users, Gift, RotateCcw, Zap, BarChart3,
-  DollarSign, Calendar, Settings, type LucideIcon,
-} from "lucide-react";
+import { iconComponent, type IconComponent } from "../../components/zb-icon";
 import { business } from "./data";
 
-const NAV: { href: string; label: string; icon: LucideIcon }[] = [
-  { href: "/demo/live",             label: "Dashboard",   icon: LayoutDashboard },
-  { href: "/demo/live/orders",      label: "Orders",      icon: ShoppingBag },
-  { href: "/demo/live/fulfillment", label: "Fulfillment", icon: PackageCheck },
-  { href: "/demo/live/pos",         label: "POS",         icon: Monitor },
-  { href: "/demo/live/menu",        label: "Menu",        icon: UtensilsCrossed },
-  { href: "/demo/live/stock",       label: "Stock",       icon: Package },
-  { href: "/demo/live/ai-calls",    label: "AI calls",    icon: Bot },
-  { href: "/demo/live/delivery",    label: "Delivery",    icon: Truck },
-  { href: "/demo/live/drivers",     label: "Drivers",     icon: UserCog },
-  { href: "/demo/live/reviews",     label: "Reviews",     icon: Star },
-  { href: "/demo/live/customers",   label: "Customers",   icon: Users },
-  { href: "/demo/live/rewards",     label: "Rewards",     icon: Gift },
-  { href: "/demo/live/winback",        label: "Win-Back",      icon: RotateCcw },
-  { href: "/demo/live/automations", label: "Automations", icon: Zap },
-  { href: "/demo/live/analytics",   label: "Analytics",   icon: BarChart3 },
-  { href: "/demo/live/financials",  label: "Financials",  icon: DollarSign },
-  { href: "/demo/live/rostering",   label: "Rostering",   icon: Calendar },
-  { href: "/demo/live/settings",    label: "Settings",    icon: Settings },
+const NAV: { href: string; label: string; icon: IconComponent }[] = [
+  { href: "/demo/live",             label: "Dashboard",   icon: iconComponent("dashboard") },
+  { href: "/demo/live/orders",      label: "Orders",      icon: iconComponent("orders") },
+  { href: "/demo/live/fulfillment", label: "Fulfillment", icon: iconComponent("fulfillment") },
+  { href: "/demo/live/pos",         label: "POS",         icon: iconComponent("pos") },
+  { href: "/demo/live/menu",        label: "Menu",        icon: iconComponent("menu") },
+  { href: "/demo/live/stock",       label: "Stock",       icon: iconComponent("stock") },
+  { href: "/demo/live/ai-calls",    label: "AI calls",    icon: iconComponent("ai-calls") },
+  { href: "/demo/live/delivery",    label: "Delivery",    icon: iconComponent("delivery") },
+  { href: "/demo/live/drivers",     label: "Drivers",     icon: iconComponent("drivers") },
+  { href: "/demo/live/reviews",     label: "Reviews",     icon: iconComponent("reviews") },
+  { href: "/demo/live/customers",   label: "Customers",   icon: iconComponent("customers") },
+  { href: "/demo/live/rewards",     label: "Rewards",     icon: iconComponent("rewards") },
+  { href: "/demo/live/winback",        label: "Win-Back",      icon: iconComponent("return") },
+  { href: "/demo/live/automations", label: "Automations", icon: iconComponent("automations") },
+  { href: "/demo/live/analytics",   label: "Analytics",   icon: iconComponent("analytics") },
+  { href: "/demo/live/financials",  label: "Financials",  icon: iconComponent("financials") },
+  { href: "/demo/live/rostering",   label: "Rostering",   icon: iconComponent("rostering") },
+  { href: "/demo/live/settings",    label: "Settings",    icon: iconComponent("settings") },
 ];
 
 export function DemoShell({ children }: { children: React.ReactNode }) {
@@ -106,23 +102,8 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
         {/* Logo */}
         <div style={{ padding: "20px 18px 14px", borderBottom: "1px solid var(--mist-9)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                background: "var(--green)",
-                color: "var(--navy)",
-                fontFamily: "var(--font-outfit)",
-                fontWeight: 800,
-                fontSize: 14,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              ZB
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/zentrabite-icon.svg" alt="" width={36} height={36} style={{ display: "block", flexShrink: 0 }} />
             <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 15 }}>
               <span style={{ color: "var(--cloud)" }}>Zentra</span>
               <span style={{ color: "var(--green)" }}>Bite</span>
@@ -164,7 +145,7 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
                   transition: "all 0.15s",
                 }}
               >
-                <Icon size={18} strokeWidth={1.75} color={color} style={{ flexShrink: 0, display: "block" }} />
+                <Icon size={18} strokeWidth={1.75} style={{ color, flexShrink: 0, display: "block" }} />
                 {item.label}
               </Link>
             );

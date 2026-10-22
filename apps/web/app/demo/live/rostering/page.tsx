@@ -11,6 +11,7 @@ import {
   type DemoShift,
   type RosterRole,
 } from "../data";
+import { Icon, type IconName } from "../../../components/zb-icon";
 
 type RoleFilter = RosterRole | "all";
 
@@ -68,7 +69,8 @@ export default function DemoRosteringPage() {
           {(Object.keys(rosterRoleLabel) as RosterRole[]).map((r) => (
             <FilterChip
               key={r}
-              label={`${rosterRoleLabel[r].emoji} ${rosterRoleLabel[r].label}`}
+              label={rosterRoleLabel[r].label}
+              icon={rosterRoleLabel[r].icon}
               color={rosterRoleLabel[r].color}
               active={roleFilter === r}
               onClick={() => setRoleFilter(r)}
@@ -76,8 +78,8 @@ export default function DemoRosteringPage() {
           ))}
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          <DemoButton label="Suggest with AI" icon="✨" />
-          <DemoButton label="Export to payroll" icon="💸" />
+          <DemoButton label="Suggest with AI" icon="ai" />
+          <DemoButton label="Export to payroll" icon="cash" />
         </div>
       </div>
 
@@ -151,7 +153,7 @@ export default function DemoRosteringPage() {
                           {s.employeeName}
                         </span>
                         <span style={{ fontSize: 10, color: role.color, fontWeight: 700 }}>
-                          {role.emoji}
+                          <Icon name={role.icon} size={14} />
                         </span>
                       </div>
                       <div style={{ fontSize: 11, color: "var(--steel)", fontFamily: "var(--font-mono)" }}>
@@ -195,10 +197,10 @@ export default function DemoRosteringPage() {
           gap: 10,
         }}
       >
-        <SummaryCard label="Weekly hours"   value={`${weekTotals.hours.toFixed(1)}h`}      icon="⏱️" />
-        <SummaryCard label="Weekly wages"   value={`$${weekTotals.wages.toFixed(0)}`}      icon="💰" accent />
-        <SummaryCard label="Employees"      value={String(new Set(filtered.map((s) => s.employeeName)).size)} icon="👥" />
-        <SummaryCard label="Avg hourly rate" value={`$${avgRate(filtered).toFixed(2)}`}     icon="📈" />
+        <SummaryCard label="Weekly hours"   value={`${weekTotals.hours.toFixed(1)}h`}      icon="hours" />
+        <SummaryCard label="Weekly wages"   value={`$${weekTotals.wages.toFixed(0)}`}      icon="money" accent />
+        <SummaryCard label="Employees"      value={String(new Set(filtered.map((s) => s.employeeName)).size)} icon="users" />
+        <SummaryCard label="Avg hourly rate" value={`$${avgRate(filtered).toFixed(2)}`}     icon="growth" />
       </div>
 
       {selected && <ShiftDrawer shift={selected} onClose={() => setSelectedId(null)} onStatus={(s) => updateStatus(selected.id, s)} />}
@@ -230,9 +232,9 @@ function avgRate(list: DemoShift[]): number {
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
 function FilterChip({
-  label, active, color = "var(--steel)", onClick,
+  label, icon, active, color = "var(--steel)", onClick,
 }: {
-  label: string; active: boolean; color?: string; onClick: () => void;
+  label: string; icon?: IconName; active: boolean; color?: string; onClick: () => void;
 }) {
   return (
     <button
@@ -249,6 +251,7 @@ function FilterChip({
         fontFamily: "inherit",
       }}
     >
+      {icon && <Icon name={icon} size={14} accent={active ? "currentColor" : undefined} style={{ marginRight: 6 }} />}
       {label}
     </button>
   );
@@ -256,7 +259,7 @@ function FilterChip({
 
 function SummaryCard({
   label, value, icon, accent = false,
-}: { label: string; value: string; icon: string; accent?: boolean }) {
+}: { label: string; value: string; icon: IconName; accent?: boolean }) {
   return (
     <div
       style={{
@@ -270,7 +273,7 @@ function SummaryCard({
         <div style={{ fontSize: 12, color: "var(--steel)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
           {label}
         </div>
-        <div style={{ fontSize: 15 }}>{icon}</div>
+        <div style={{ fontSize: 15 }}><Icon name={icon} size={15} /></div>
       </div>
       <div
         style={{
@@ -348,7 +351,7 @@ function ShiftDrawer({
         >
           <div>
             <div style={{ fontSize: 11, color: role.color, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>
-              {role.emoji} {role.label}
+              <Icon name={role.icon} size={14} style={{ marginRight: 6 }} />{role.label}
             </div>
             <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 20, color: "var(--cloud)", marginTop: 2 }}>
               {shift.employeeName}
@@ -400,9 +403,9 @@ function ShiftDrawer({
           </div>
 
           <div style={{ display: "grid", gap: 8 }}>
-            <DemoButton label="Send SMS reminder"       icon="📱" />
-            <DemoButton label="Swap with another staff" icon="🔁" />
-            <DemoButton label="Delete shift"            icon="🗑️" />
+            <DemoButton label="Send SMS reminder"       icon="sms" />
+            <DemoButton label="Swap with another staff" icon="refresh" />
+            <DemoButton label="Delete shift"            icon="delete" />
           </div>
         </div>
       </aside>
@@ -430,7 +433,7 @@ function Row({
   );
 }
 
-function DemoButton({ label, icon }: { label: string; icon: string }) {
+function DemoButton({ label, icon }: { label: string; icon: IconName }) {
   return (
     <button
       onClick={() => {
@@ -458,7 +461,7 @@ function DemoButton({ label, icon }: { label: string; icon: string }) {
         fontFamily: "inherit",
       }}
     >
-      <span>{icon}</span>
+      <Icon name={icon} size={16} />
       {label}
     </button>
   );

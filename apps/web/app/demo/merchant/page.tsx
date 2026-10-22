@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { Icon } from "../../components/zb-icon";
 import {
   brand,
   categories,
@@ -113,7 +114,7 @@ function DemoBadge() {
         zIndex: 60,
       }}
     >
-      🍕 DEMO STOREFRONT — Harbour Lane is a fictional merchant powered by ZentraBite ·{" "}
+      <Icon name="storefront" size={16} accent="currentColor" style={{ marginRight: 6 }} />DEMO STOREFRONT — Harbour Lane is a fictional merchant powered by ZentraBite ·{" "}
       <Link href="/demo" style={{ color: "white", textDecoration: "underline" }}>
         Back to demo hub
       </Link>
@@ -187,7 +188,7 @@ function Topbar({ view, setView, cartCount }: { view: View; setView: (v: View) =
               gap: 6,
             }}
           >
-            🛒 Cart {cartCount > 0 && (
+            <Icon name="bag" size={16} accent={brand.primary} />Cart {cartCount > 0 && (
               <span
                 style={{
                   background: brand.primary,
@@ -258,7 +259,7 @@ function HomeView({ onShopNow, onTracker }: { onShopNow: () => void; onTracker: 
               </button>
             </div>
             <div style={{ marginTop: 18, fontSize: 13, color: "rgba(26,22,18,0.6)" }}>
-              📍 {brand.address} · 📞 {brand.phone}
+              <Icon name="location" size={16} accent={brand.primary} style={{ marginRight: 4 }} />{brand.address} · <Icon name="phone" size={16} accent={brand.primary} style={{ marginRight: 4 }} />{brand.phone}
             </div>
           </div>
 
@@ -346,7 +347,7 @@ function HomeView({ onShopNow, onTracker }: { onShopNow: () => void; onTracker: 
                 "Early access to new menu drops every Friday",
               ].map((p) => (
                 <li key={p} style={{ display: "flex", gap: 10, fontSize: 14.5 }}>
-                  <span style={{ color: brand.primary }}>✦</span>
+                  <span style={{ color: brand.primary }}><Icon name="sparkle" size={14} accent={brand.primary} /></span>
                   {p}
                 </li>
               ))}
@@ -464,7 +465,7 @@ function MenuView({
                     <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 16, display: "flex", gap: 6, alignItems: "center" }}>
                       {m.name}
                       {m.popular && <span style={{ fontSize: 10, padding: "1px 7px", borderRadius: 999, background: brand.primary, color: "white", fontWeight: 700 }}>POPULAR</span>}
-                      {m.vegetarian && <span style={{ fontSize: 11, color: brand.accent }}>🌿</span>}
+                      {m.vegetarian && <span style={{ fontSize: 11, color: brand.accent }}><Icon name="vegetarian" size={14} accent={brand.accent} title="Vegetarian" /></span>}
                     </div>
                   </div>
                   <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 18, color: brand.primary }}>
@@ -603,7 +604,7 @@ function TrackingView({ stage, cart }: { stage: number; cart: CartItem[] }) {
             Order #1289 · Confirmed
           </div>
           <h1 style={{ fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 32, margin: "6px 0 4px" }}>
-            {TRACKING_STAGES[stage] === "Delivered" ? "Delivered. Enjoy 🎉" : `${TRACKING_STAGES[stage]}…`}
+            {TRACKING_STAGES[stage] === "Delivered" ? "Delivered. Enjoy" : `${TRACKING_STAGES[stage]}…`}
           </h1>
           <p style={{ color: "rgba(26,22,18,0.65)" }}>
             ETA <strong>4:42 PM</strong> · Marco is firing your pizza. We'll text you when the rider grabs it.
@@ -665,7 +666,7 @@ function TrackingView({ stage, cart }: { stage: number; cart: CartItem[] }) {
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 700 }}>Jay T. is on the way</div>
-              <div style={{ fontSize: 13, color: "rgba(26,22,18,0.6)" }}>Internal driver · 5 mins away · 🛵</div>
+              <div style={{ fontSize: 13, color: "rgba(26,22,18,0.6)" }}>Internal driver · 5 mins away · <Icon name="delivery" size={16} accent={brand.primary} /></div>
             </div>
             <button style={{ padding: "8px 14px", borderRadius: 8, background: brand.ink, color: brand.cream, border: "none", fontWeight: 700, fontSize: 12.5, cursor: "pointer" }}>
               Call rider
@@ -686,7 +687,7 @@ function TrackingView({ stage, cart }: { stage: number; cart: CartItem[] }) {
         </div>
 
         <div style={{ marginTop: 18, padding: 18, borderRadius: 14, background: `linear-gradient(135deg, ${brand.primary}22, transparent)`, border: `1px dashed ${brand.primary}55`, fontSize: 13, color: brand.ink }}>
-          🔄 Live tracking is powered by ZentraBite's realtime engine — the merchant CRM sees this same status update at the same instant.
+          <Icon name="refresh" size={16} accent={brand.primary} style={{ marginRight: 6 }} />Live tracking is powered by ZentraBite's realtime engine — the merchant CRM sees this same status update at the same instant.
         </div>
       </div>
     </main>
@@ -718,7 +719,7 @@ function RewardsView() {
           <div>
             <div style={{ fontSize: 12, opacity: 0.85, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>Your balance</div>
             <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 56, lineHeight: 1, marginTop: 6 }}>{myPoints}</div>
-            <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>points · Silver tier 🥈</div>
+            <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>points · Silver tier <Icon name="tier" size={16} accent="#C0C7D1" /></div>
           </div>
           <div style={{ background: "rgba(255,255,255,0.16)", padding: 14, borderRadius: 12 }}>
             <div style={{ fontSize: 12, opacity: 0.85, marginBottom: 6 }}>Next tier: Gold (500 pts)</div>
@@ -781,7 +782,7 @@ function RewardsView() {
               <ul style={{ listStyle: "none", padding: 0, display: "grid", gap: 6 }}>
                 {t.perks.map((p) => (
                   <li key={p} style={{ fontSize: 13, display: "flex", gap: 8 }}>
-                    <span style={{ color: brand.primary }}>✦</span>
+                    <span style={{ color: brand.primary }}><Icon name="sparkle" size={14} accent={brand.primary} /></span>
                     {p}
                   </li>
                 ))}

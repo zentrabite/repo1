@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
+import { Icon } from "@/components/zb-icon";
 
 const BASE = { g:"#00B67A", st:"#8B9DB5", cl:"#F8FAFB", navy:"#0F1F2D", card:"#1C2D48", mist:"rgba(255,255,255,.08)", r:"#FF4757" };
 
@@ -107,7 +108,7 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
 
   if (error) return (
     <div style={{ minHeight:"100vh", background:C.navy, display:"flex", alignItems:"center", justifyContent:"center", flexDirection:"column", gap:12 }}>
-      <div style={{ fontSize:40 }}>🍽️</div>
+      <Icon name="menu" size={40} />
       <div style={{ fontFamily:"sans-serif", color:C.cl, fontWeight:600, fontSize:18 }}>Menu not found</div>
       <div style={{ fontFamily:"sans-serif", color:C.st, fontSize:13 }}>This restaurant may not have set up their online menu yet.</div>
     </div>
@@ -140,7 +141,7 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
               display:"flex", alignItems:"center", gap:8, padding:"9px 16px", borderRadius:10,
               background:C.g, border:"none", color:C.onG, fontWeight:700, fontSize:13, cursor:"pointer",
             }}>
-              🛒 {cartCount} · ${total.toFixed(2)}
+              <Icon name="storefront" size={16} accent={C.onG} />{cartCount} · ${total.toFixed(2)}
             </button>
           )}
         </div>
@@ -275,7 +276,7 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
             color:C.onG, fontWeight:700, fontSize:14, cursor:"pointer",
             boxShadow:`0 8px 32px color-mix(in srgb, ${C.g} 40%, transparent)`,
           }}>
-            🛒 View order · {cartCount} items · ${total.toFixed(2)}
+            <Icon name="storefront" size={16} accent={C.onG} style={{ marginRight: 6 }} />View order · {cartCount} items · ${total.toFixed(2)}
           </button>
         </div>
       )}

@@ -6,6 +6,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import BrandMark from "@/components/brand-mark";
+import { Icon } from "@/components/zb-icon";
 
 const C = { g: "#00B67A", st: "#6B7C93", cl: "#F8FAFB", r: "#FF4757" };
 
@@ -60,7 +61,7 @@ export default function ForgotPasswordPage() {
 
         {sent ? (
           <div className="gc" style={{ padding: 32, textAlign: "center" }}>
-            <div style={{ fontSize: 40, marginBottom: 16 }}>📧</div>
+            <div style={{ fontSize: 40, marginBottom: 16 }}><Icon name="email" size={40} /></div>
             <div style={{
               fontFamily: "var(--font-outfit)", fontWeight: 600, fontSize: 16,
               color: C.cl, marginBottom: 8,

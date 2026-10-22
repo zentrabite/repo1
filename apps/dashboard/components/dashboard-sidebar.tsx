@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Building2, LogOut } from "lucide-react";
+import { Icon } from "@/components/zb-icon";
 import { navigation } from "@/lib/navigation";
 import { useBusiness } from "@/hooks/use-business";
 import { resolvePermissions } from "@/lib/permissions";
@@ -79,7 +79,7 @@ export default function DashboardSidebar() {
           <img src={logoUrl} alt={bizName} style={{ width: 40, height: 40, borderRadius: 10, objectFit: "cover", marginBottom: 5 }} />
         ) : (
           <div style={{ marginBottom: 5, color: STEEL, display: "flex", alignItems: "center" }}>
-            <Building2 size={22} strokeWidth={1.75} />
+            <Icon name="business" size={22} strokeWidth={1.75} />
           </div>
         )}
         <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 14, color: CLOUD }}>
@@ -97,7 +97,7 @@ export default function DashboardSidebar() {
             pathname === item.href ||
             (item.href !== "/dashboard" && pathname.startsWith(item.href));
           const isHovered = hoveredHref === item.href;
-          const Icon = item.icon;
+          const NavIcon = item.icon;
 
           const background = isActive
             ? "rgba(0,182,122,.11)"
@@ -123,7 +123,7 @@ export default function DashboardSidebar() {
                 textDecoration: "none", transition: "all .15s",
               }}
             >
-              <Icon size={18} strokeWidth={1.75} color={color} style={{ flexShrink: 0, display: "block" }} />
+              <NavIcon size={18} strokeWidth={1.75} accent={isActive ? GREEN : undefined} style={{ color, flexShrink: 0, display: "block" }} />
               {item.label}
             </Link>
           );
@@ -152,7 +152,7 @@ export default function DashboardSidebar() {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={logoUrl} alt={bizName} style={{ width: 24, height: 24, borderRadius: 6, objectFit: "cover", flexShrink: 0 }} />
           ) : (
-            <Building2 size={18} strokeWidth={1.75} color={STEEL} style={{ flexShrink: 0, display: "block" }} />
+            <Icon name="business" size={18} strokeWidth={1.75} style={{ color: STEEL, flexShrink: 0, display: "block" }} />
           )}
           <div style={{ flex: 1, overflow: "hidden" }}>
             <div style={{ fontFamily: "var(--font-inter)", fontSize: 12, color: CLOUD, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -187,7 +187,7 @@ export default function DashboardSidebar() {
             }
           }}
         >
-          <LogOut size={18} strokeWidth={1.75} style={{ flexShrink: 0, display: "block" }} />
+          <Icon name="logout" size={18} strokeWidth={1.75} accent="currentColor" style={{ flexShrink: 0, display: "block" }} />
           {signingOut ? "Signing out…" : "Sign out"}
         </button>
       </div>

@@ -51,9 +51,9 @@ export default function AutomationsPage() {
         body:    JSON.stringify({ businessId }),
       });
       const data = await res.json();
-      show(data.sent > 0 ? `✅ Sent ${data.sent} messages` : "No customers due right now");
+      show(data.sent > 0 ? `Sent ${data.sent} messages` : "No customers due right now");
     } catch {
-      show("❌ Failed to run automations");
+      show("Failed to run automations");
     } finally {
       setRunning(false);
     }
@@ -107,10 +107,10 @@ export default function AutomationsPage() {
       </div>
 
       <div style={{ display:"flex", gap:10, flexWrap:"wrap", marginBottom:12 }}>
-        <StatCard label="Active"    value={String(totalActive)} icon="⚡" />
-        <StatCard label="SMS Sent"  value={smsSent.toLocaleString()} icon="📤" delay={50} />
-        <StatCard label="Converted" value={String(smsConv)} accent icon="✅" delay={100} />
-        <StatCard label="Conv Rate" value={smsSent > 0 ? `${Math.round(smsConv/smsSent*100)}%` : "—"} accent icon="📊" delay={150} />
+        <StatCard label="Active"    value={String(totalActive)} icon="fast" />
+        <StatCard label="SMS Sent"  value={smsSent.toLocaleString()} icon="send" delay={50} />
+        <StatCard label="Converted" value={String(smsConv)} accent icon="done" delay={100} />
+        <StatCard label="Conv Rate" value={smsSent > 0 ? `${Math.round(smsConv/smsSent*100)}%` : "—"} accent icon="chart" delay={150} />
       </div>
 
       <div style={{ display:"flex", flexDirection:"column", gap:8 }}>

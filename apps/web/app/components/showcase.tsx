@@ -1,4 +1,5 @@
 import { Expandable } from "./expandable";
+import { Icon, type IconName } from "./zb-icon";
 
 const showcases = [
   {
@@ -174,12 +175,12 @@ function SideVisual({ kind }: { kind: string }) {
       </div>
       <div style={{ height: 1, background: "var(--mist-9)", marginBottom: 18 }} />
       {[
-        { icon: "🎂", label: "Birthday reward sent", sub: "to Olivia M. · +250 pts bonus" },
-        { icon: "📩", label: "Win-back SMS triggered", sub: "23 customers · avg $34 recovered" },
-        { icon: "🏆", label: "Tier upgrade", sub: "James K. → Gold tier" },
+        { icon: "birthday" as IconName, label: "Birthday reward sent", sub: "to Olivia M. · +250 pts bonus" },
+        { icon: "email" as IconName, label: "Win-back SMS triggered", sub: "23 customers · avg $34 recovered" },
+        { icon: "trophy" as IconName, label: "Tier upgrade", sub: "James K. → Gold tier" },
       ].map((e) => (
         <div key={e.label} style={{ display: "flex", gap: 12, padding: "10px 0", alignItems: "flex-start" }}>
-          <div style={{ fontSize: 20 }}>{e.icon}</div>
+          <div style={{ fontSize: 20, display: "flex" }}><Icon name={e.icon} size={20} /></div>
           <div>
             <div style={{ color: "var(--cloud)", fontSize: 13, fontWeight: 600 }}>{e.label}</div>
             <div style={{ color: "var(--steel)", fontSize: 12, marginTop: 2 }}>{e.sub}</div>

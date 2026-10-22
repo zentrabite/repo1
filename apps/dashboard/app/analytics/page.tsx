@@ -86,11 +86,11 @@ export default function AnalyticsPage() {
       </div>
 
       <div style={{ display:"flex", gap:10, flexWrap:"wrap", marginBottom:14 }}>
-        <StatCard label="Revenue"            value={`$${Math.round(totalRevenue).toLocaleString()}`} accent icon="💰" />
-        <StatCard label="Orders"             value={String(totalOrders)} icon="📦" delay={50} />
-        <StatCard label="Avg. order value"   value={`$${aov.toFixed(2)}`} icon="🧮" delay={100} />
-        <StatCard label="Repeat rate"        value={`${repeat.repeatRate}%`} icon="🔁" delay={150} accent={repeat.repeatRate > 30} />
-        <StatCard label="SMS conversion"     value={`${smsConversion}%`} subtitle={`${sms.converted}/${sms.sent}`} icon="💬" delay={200} />
+        <StatCard label="Revenue"            value={`$${Math.round(totalRevenue).toLocaleString()}`} accent icon="money" />
+        <StatCard label="Orders"             value={String(totalOrders)} icon="orders" delay={50} />
+        <StatCard label="Avg. order value"   value={`$${aov.toFixed(2)}`} icon="calculator" delay={100} />
+        <StatCard label="Repeat rate"        value={`${repeat.repeatRate}%`} icon="return" delay={150} accent={repeat.repeatRate > 30} />
+        <StatCard label="SMS conversion"     value={`${smsConversion}%`} subtitle={`${sms.converted}/${sms.sent}`} icon="sms" delay={200} />
       </div>
 
       {/* Trend */}

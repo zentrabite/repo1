@@ -3,7 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useRef, useState } from "react";
-import { Sparkles, Send, RotateCcw } from "lucide-react";
+import { Icon } from "@/components/zb-icon";
 
 const C = {
   g: "#00B67A",
@@ -87,13 +87,13 @@ export default function CopilotPage() {
         const errJson = await res.json().catch(() => null);
         const errMsg = errJson?.error ?? `Error ${res.status}`;
         setStreaming(null);
-        setMessages((m) => [...m, { role: "b", html: `⚠️ ${errMsg}` }]);
+        setMessages((m) => [...m, { role: "b", html: `${errMsg}` }]);
         return;
       }
 
       if (!res.body) {
         setStreaming(null);
-        setMessages((m) => [...m, { role: "b", html: "⚠️ No response stream." }]);
+        setMessages((m) => [...m, { role: "b", html: "No response stream." }]);
         return;
       }
 
@@ -117,7 +117,7 @@ export default function CopilotPage() {
         setStreaming(null);
         setMessages((m) => [
           ...m,
-          { role: "b", html: "⚠️ Connection lost. Try again." },
+          { role: "b", html: "Connection lost. Try again." },
         ]);
       }
     } finally {
@@ -146,7 +146,7 @@ export default function CopilotPage() {
             display: "flex", alignItems: "center", gap: 10,
             fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 24, color: C.cl, margin: 0,
           }}>
-            <Sparkles size={22} color={C.g} />
+            <Icon name="copilot" size={22} style={{ color: C.g }} />
             AI Copilot
           </h1>
           <p style={{ fontSize: 13, color: C.st, margin: "4px 0 0 32px" }}>
@@ -163,7 +163,7 @@ export default function CopilotPage() {
             fontFamily: "var(--font-outfit)", fontWeight: 500,
           }}
         >
-          <RotateCcw size={13} /> New chat
+          <Icon name="refresh" size={13} /> New chat
         </button>
       </div>
 
@@ -269,7 +269,7 @@ export default function CopilotPage() {
               fontFamily: "var(--font-outfit)",
             }}
           >
-            <Send size={14} /> Send
+            <Icon name="send" size={14} accent="currentColor" /> Send
           </button>
         </form>
       </div>

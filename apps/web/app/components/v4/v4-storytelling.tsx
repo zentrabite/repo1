@@ -1,3 +1,4 @@
+import { Icon } from "../zb-icon";
 /**
  * "Every part of your business, in one system" — sticky-nav storytelling
  * section with 5 panels (Orders / Customers / AI / Rewards / Campaigns).
@@ -98,7 +99,7 @@ function OrdersPanel() {
     <div className="story-panel active" data-panel="orders">
       <div className="story-panel-inner">
         <div className="story-panel-header">
-          <div className="story-panel-eyebrow">📦 Order Management</div>
+          <div className="story-panel-eyebrow"><Icon name="orders" size={14} /> Order Management</div>
           <h3 className="story-panel-title">
             Every order, in real time.
             <br />
@@ -113,19 +114,19 @@ function OrdersPanel() {
         </div>
         <div className="panel-bullets">
           <div className="pb">
-            <span className="pb-ico">🔄</span>
+            <span className="pb-ico"><Icon name="integrations" size={15} /></span>
             <span>One board for POS, storefront, Uber Eats, DoorDash & Menulog — no switching apps</span>
           </div>
           <div className="pb">
-            <span className="pb-ico">⚡</span>
+            <span className="pb-ico"><Icon name="fast" size={15} /></span>
             <span>Status change triggers kitchen display, driver dispatch, stock deduction & SMS in one action</span>
           </div>
           <div className="pb">
-            <span className="pb-ico">📊</span>
+            <span className="pb-ico"><Icon name="analytics" size={15} /></span>
             <span>Live stats: revenue, avg ticket, order count, and top items — updated every 30 seconds</span>
           </div>
           <div className="pb">
-            <span className="pb-ico">🚨</span>
+            <span className="pb-ico"><Icon name="warning" size={15} /></span>
             <span>Alerts when an item is low-stock mid-service, before you 86 it and lose revenue</span>
           </div>
         </div>
@@ -228,7 +229,7 @@ function CustomersPanel() {
     <div className="story-panel" data-panel="customers">
       <div className="story-panel-inner">
         <div className="story-panel-header">
-          <div className="story-panel-eyebrow">👥 Customer CRM</div>
+          <div className="story-panel-eyebrow"><Icon name="customers" size={14} /> Customer CRM</div>
           <h3 className="story-panel-title">
             Know every customer.
             <br />
@@ -242,19 +243,19 @@ function CustomersPanel() {
         </div>
         <div className="panel-bullets">
           <div className="pb">
-            <span className="pb-ico">📈</span>
+            <span className="pb-ico"><Icon name="growth" size={15} /></span>
             <span>Lifetime value, churn risk score, and favourite items calculated automatically per customer</span>
           </div>
           <div className="pb">
-            <span className="pb-ico">🏷️</span>
+            <span className="pb-ico"><Icon name="price" size={15} /></span>
             <span>Auto-segments: VIP (top 10%), At-risk (dropping off), Lapsed (21+ days), First-timer</span>
           </div>
           <div className="pb">
-            <span className="pb-ico">🔍</span>
+            <span className="pb-ico"><Icon name="search" size={15} /></span>
             <span>Search any customer and see their full order history, rewards balance, and AI recommendations</span>
           </div>
           <div className="pb">
-            <span className="pb-ico">📞</span>
+            <span className="pb-ico"><Icon name="phone" size={15} /></span>
             <span>One-click to fire a personalised SMS, trigger an AI call, or add them to a campaign</span>
           </div>
         </div>
@@ -263,7 +264,7 @@ function CustomersPanel() {
           <div className="s-body">
             <div className="screen-customers">
               <div className="cust-profile">
-                <div className="cust-avatar">😊</div>
+                <div className="cust-avatar" style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>PS</div>
                 <div className="cust-name">Priya S.</div>
                 <div className="cust-meta">Member since Jan 2024 · Gold tier</div>
                 <div className="cust-stats">
@@ -290,7 +291,7 @@ function CustomersPanel() {
                       marginTop: 4,
                     }}
                   >
-                    🍜 Pad Thai (ordered 28×)
+                    Pad Thai (ordered 28×)
                   </div>
                 </div>
                 <div className="db-s">
@@ -324,7 +325,7 @@ function CustomersPanel() {
                 <div className="db-s">
                   <div className="db-sl">AI recommendation</div>
                   <div style={{ fontSize: 10.5, color: "var(--g)", marginTop: 4 }}>
-                    ✨ Send &ldquo;almost there&rdquo; SMS — 160pts from Platinum
+                    <Icon name="ai" size={12} style={{ marginRight: 4, verticalAlign: "-2px" }} />Send &ldquo;almost there&rdquo; SMS — 160pts from Platinum
                   </div>
                 </div>
               </div>
@@ -350,7 +351,7 @@ function AiPanel() {
     <div className="story-panel" data-panel="ai">
       <div className="story-panel-inner">
         <div className="story-panel-header">
-          <div className="story-panel-eyebrow">🤖 AI Co-pilot</div>
+          <div className="story-panel-eyebrow"><Icon name="copilot" size={14} /> AI Co-pilot</div>
           <h3 className="story-panel-title">
             Your business, briefed
             <br />
@@ -364,19 +365,19 @@ function AiPanel() {
         </div>
         <div className="panel-bullets">
           <div className="pb">
-            <span className="pb-ico">🌅</span>
+            <span className="pb-ico"><Icon name="brief" size={15} /></span>
             <span>7 AM daily brief: top 5 actions ranked by revenue impact, specific to your business</span>
           </div>
           <div className="pb">
-            <span className="pb-ico">📞</span>
+            <span className="pb-ico"><Icon name="phone" size={15} /></span>
             <span>AI voice calls lapsed customers at day 14 — sounds human, logs outcome, sends SMS fallback</span>
           </div>
           <div className="pb">
-            <span className="pb-ico">💡</span>
+            <span className="pb-ico"><Icon name="insight" size={15} /></span>
             <span>Menu, stock, staffing, and campaign suggestions — all backed by your actual sales data</span>
           </div>
           <div className="pb">
-            <span className="pb-ico">📉</span>
+            <span className="pb-ico"><Icon name="decline" size={15} /></span>
             <span>Revenue anomaly detection: flags dips before you notice them and tells you the root cause</span>
           </div>
         </div>
@@ -431,7 +432,7 @@ function RewardsPanel() {
     <div className="story-panel" data-panel="rewards">
       <div className="story-panel-inner">
         <div className="story-panel-header">
-          <div className="story-panel-eyebrow">⭐ Rewards Engine</div>
+          <div className="story-panel-eyebrow"><Icon name="rewards" size={14} /> Rewards Engine</div>
           <h3 className="story-panel-title">
             Earn points. Unlock tiers.
             <br />
@@ -445,19 +446,19 @@ function RewardsPanel() {
         </div>
         <div className="panel-bullets">
           <div className="pb">
-            <span className="pb-ico">🎯</span>
+            <span className="pb-ico"><Icon name="goal" size={15} /></span>
             <span>Configurable earn rate per tier — 1pt/$ Bronze, 1.5pt/$ Silver, 2pt/$ Gold & Platinum</span>
           </div>
           <div className="pb">
-            <span className="pb-ico">🎁</span>
+            <span className="pb-ico"><Icon name="rewards" size={15} /></span>
             <span>Free-item redemptions, birthday bonuses, priority queuing, and VIP-only offers per tier</span>
           </div>
           <div className="pb">
-            <span className="pb-ico">📱</span>
+            <span className="pb-ico"><Icon name="smartphone" size={15} /></span>
             <span>Customers track points via SMS link — no app download required. Frictionless by design.</span>
           </div>
           <div className="pb">
-            <span className="pb-ico">🔔</span>
+            <span className="pb-ico"><Icon name="notifications" size={15} /></span>
             <span>AI auto-sends &ldquo;almost there&rdquo; nudge when a customer is within 200pts of the next tier</span>
           </div>
         </div>
@@ -466,7 +467,7 @@ function RewardsPanel() {
           <div className="s-body">
             <div className="screen-rewards">
               <div className="tier-card">
-                <div className="tier-icon">🥉</div>
+                <div className="tier-icon"><Icon name="tier" size={26} accent="#C28D5C" /></div>
                 <div className="tier-name">Bronze</div>
                 <div className="tier-pts">0 – 999 pts</div>
                 <div className="tier-bar">
@@ -493,7 +494,7 @@ function RewardsPanel() {
                   background: "rgba(0,182,122,0.06)",
                 }}
               >
-                <div className="tier-icon">🥈</div>
+                <div className="tier-icon"><Icon name="tier" size={26} accent="#C0C7D1" /></div>
                 <div className="tier-name" style={{ color: "var(--g)" }}>
                   Silver
                 </div>
@@ -516,7 +517,7 @@ function RewardsPanel() {
                 </div>
               </div>
               <div className="tier-card">
-                <div className="tier-icon">🥇</div>
+                <div className="tier-icon"><Icon name="tier" size={26} accent="#F5B83D" /></div>
                 <div className="tier-name">Gold</div>
                 <div className="tier-pts">2,500+ pts</div>
                 <div className="tier-bar">
@@ -549,7 +550,7 @@ function CampaignsPanel() {
     <div className="story-panel" data-panel="campaigns">
       <div className="story-panel-inner">
         <div className="story-panel-header">
-          <div className="story-panel-eyebrow">📣 Campaigns & Winback</div>
+          <div className="story-panel-eyebrow"><Icon name="campaigns" size={14} /> Campaigns & Winback</div>
           <h3 className="story-panel-title">
             Automated campaigns that
             <br />
@@ -563,19 +564,19 @@ function CampaignsPanel() {
         </div>
         <div className="panel-bullets">
           <div className="pb">
-            <span className="pb-ico">🤖</span>
+            <span className="pb-ico"><Icon name="ai-calls" size={15} /></span>
             <span>AI voice calls lapsed customers — sounds natural, logs the conversation, SMS fallback if no answer</span>
           </div>
           <div className="pb">
-            <span className="pb-ico">🧠</span>
+            <span className="pb-ico"><Icon name="automations" size={15} /></span>
             <span>Behaviour triggers: first order, 14-day lapse, tier unlock, birthday, unredeemed rewards</span>
           </div>
           <div className="pb">
-            <span className="pb-ico">💸</span>
+            <span className="pb-ico"><Icon name="money" size={15} /></span>
             <span>Every campaign tied to revenue — see exact ROI per message, per campaign, per customer segment</span>
           </div>
           <div className="pb">
-            <span className="pb-ico">🎯</span>
+            <span className="pb-ico"><Icon name="goal" size={15} /></span>
             <span>Quiet-slot promo: AI identifies your slowest hour and auto-creates a targeted offer to fill it</span>
           </div>
         </div>

@@ -1,3 +1,4 @@
+import { Icon } from "../zb-icon";
 export function V4Macbook() {
   return (
     <section id="macbook-section">
@@ -11,18 +12,18 @@ export function V4Macbook() {
                   <div className="db-wrap">
                     <div className="db-nav">
                       <div className="db-nav-section">Main</div>
-                      <div className="db-nav-item on">📦 Orders</div>
-                      <div className="db-nav-item">👥 Customers</div>
-                      <div className="db-nav-item">🍽️ Menu</div>
+                      <div className="db-nav-item on"><Icon name="orders" size={12} /> Orders</div>
+                      <div className="db-nav-item"><Icon name="customers" size={12} /> Customers</div>
+                      <div className="db-nav-item"><Icon name="menu" size={12} /> Menu</div>
                       <div className="db-nav-section">Grow</div>
-                      <div className="db-nav-item">📣 Campaigns</div>
-                      <div className="db-nav-item">⭐ Rewards</div>
-                      <div className="db-nav-item">🤖 AI Calls</div>
+                      <div className="db-nav-item"><Icon name="campaigns" size={12} /> Campaigns</div>
+                      <div className="db-nav-item"><Icon name="rewards" size={12} /> Rewards</div>
+                      <div className="db-nav-item"><Icon name="ai-calls" size={12} /> AI Calls</div>
                       <div className="db-nav-section">Ops</div>
-                      <div className="db-nav-item">🚚 Delivery</div>
-                      <div className="db-nav-item">💰 Financials</div>
-                      <div className="db-nav-item">📦 Stock</div>
-                      <div className="db-nav-item">🏪 POS</div>
+                      <div className="db-nav-item"><Icon name="delivery" size={12} /> Delivery</div>
+                      <div className="db-nav-item"><Icon name="financials" size={12} /> Financials</div>
+                      <div className="db-nav-item"><Icon name="stock" size={12} /> Stock</div>
+                      <div className="db-nav-item"><Icon name="pos" size={12} /> POS</div>
                     </div>
                     <div className="db-main">
                       <div className="db-topbar">
