@@ -12,6 +12,7 @@ import { navigation } from "@/lib/navigation";
 import { DEFAULT_ROLE_PERMISSIONS, NAV_HREFS } from "@/lib/permissions";
 import { orderUrl } from "@/lib/tenant";
 import BrandMark from "@/components/brand-mark";
+import PasswordInput from "@/components/password-input";
 
 const C = { g:"#00B67A", o:"#FF6B35", r:"#FF4757", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(226,232,240,.08)" };
 
@@ -769,7 +770,7 @@ function SettingsContent() {
               <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:10 }}>🚗 Uber Direct</div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
                 <Field label="API Key">
-                  <input type="password" placeholder="From developer.uber.com"
+                  <PasswordInput label="key" placeholder="From developer.uber.com"
                     value={deliverySettings.uber_direct_api_key}
                     onChange={e => setDeliverySettings(d => ({ ...d, uber_direct_api_key: e.target.value }))} />
                 </Field>
@@ -787,7 +788,7 @@ function SettingsContent() {
               <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:10 }}>🔴 DoorDash Drive</div>
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
                 <Field label="Developer ID">
-                  <input type="password" placeholder="From developer.doordash.com"
+                  <PasswordInput label="ID" placeholder="From developer.doordash.com"
                     value={deliverySettings.doordash_developer_id}
                     onChange={e => setDeliverySettings(d => ({ ...d, doordash_developer_id: e.target.value }))} />
                 </Field>
@@ -797,7 +798,7 @@ function SettingsContent() {
                     onChange={e => setDeliverySettings(d => ({ ...d, doordash_key_id: e.target.value }))} />
                 </Field>
                 <Field label="Signing Secret">
-                  <input type="password" placeholder="JWT signing secret"
+                  <PasswordInput label="secret" placeholder="JWT signing secret"
                     value={deliverySettings.doordash_signing_secret}
                     onChange={e => setDeliverySettings(d => ({ ...d, doordash_signing_secret: e.target.value }))} />
                 </Field>
@@ -809,7 +810,7 @@ function SettingsContent() {
             <div style={{ marginBottom:18, paddingBottom:18, borderBottom:`1px solid ${C.mist}` }}>
               <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:10 }}>📦 Sherpa</div>
               <Field label="API Key">
-                <input type="password" placeholder="From Sherpa developer portal"
+                <PasswordInput label="key" placeholder="From Sherpa developer portal"
                   value={deliverySettings.sherpa_api_key}
                   onChange={e => setDeliverySettings(d => ({ ...d, sherpa_api_key: e.target.value }))} />
               </Field>
@@ -820,7 +821,7 @@ function SettingsContent() {
             <div style={{ marginBottom:18, paddingBottom:18, borderBottom:`1px solid ${C.mist}` }}>
               <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:10 }}>⚡ Zoom2u</div>
               <Field label="API Key">
-                <input type="password" placeholder="From Zoom2u developer portal"
+                <PasswordInput label="key" placeholder="From Zoom2u developer portal"
                   value={deliverySettings.zoom2u_api_key}
                   onChange={e => setDeliverySettings(d => ({ ...d, zoom2u_api_key: e.target.value }))} />
               </Field>
@@ -831,7 +832,7 @@ function SettingsContent() {
             <div style={{ marginBottom:18, paddingBottom:18, borderBottom:`1px solid ${C.mist}` }}>
               <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:10 }}>🏃 GoPeople</div>
               <Field label="API Key">
-                <input type="password" placeholder="From GoPeople developer portal"
+                <PasswordInput label="key" placeholder="From GoPeople developer portal"
                   value={deliverySettings.gopeople_api_key}
                   onChange={e => setDeliverySettings(d => ({ ...d, gopeople_api_key: e.target.value }))} />
               </Field>

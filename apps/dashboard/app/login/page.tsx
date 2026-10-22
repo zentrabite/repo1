@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import BrandMark from "@/components/brand-mark";
+import PasswordInput from "@/components/password-input";
 
 const C = { g: "#00B67A", st: "#6B7C93", cl: "#F8FAFB", r: "#FF4757" };
 
@@ -96,11 +97,11 @@ function LoginForm() {
               <label style={{ margin:0 }}>Password</label>
               <Link href="/forgot-password" style={{ fontSize:11, color:C.g, textDecoration:"none", fontFamily:"var(--font-inter)" }}>Forgot password?</Link>
             </div>
-            <input
-              type="password"
+            <PasswordInput
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="••••••••"
+              autoComplete="current-password"
               required
             />
           </div>

@@ -116,8 +116,14 @@ export function useBusiness(): BusinessState {
 
     load();
 
-    // Re-run when auth state changes (login/logout)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => load());
+    // Re-run when auth state changes (login/logout). Supabase runs this
+    // callback while it holds its auth lock, so calling Supabase straight from
+    // inside it deadlocks and the page sits on "Loading" forever. Defer the
+    // reload until the lock is free. INITIAL_SESSION is covered by load() above.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string) => {
+      if (event === "INITIAL_SESSION") return;
+      setTimeout(() => { void load(); }, 0);
+    });
     return () => subscription.unsubscribe();
   }, []);
 

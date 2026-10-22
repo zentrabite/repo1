@@ -167,6 +167,24 @@ input:focus, select:focus, textarea:focus {
 }
 input::placeholder { color: rgba(248,250,251,.25); }
 select option { background: #1C2D48; font-size: 14px; }
+
+/* ── Show / hide password eye (components/password-input.tsx) ── */
+/* Edge adds its own reveal button to password boxes. Ours replaces it. */
+input::-ms-reveal, input::-ms-clear { display: none; }
+.zb-eye {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  width: 34px; height: 34px; padding: 0; border: 0; border-radius: 8px;
+  display: grid; place-items: center; cursor: pointer;
+  background: transparent; color: #6B7C93; transition: color .15s, background .15s;
+}
+.zb-eye:hover { color: #F8FAFB; background: rgba(255, 255, 255, .06); }
+.zb-eye:focus-visible { outline: 2px solid rgba(0, 182, 122, .6); outline-offset: 1px; color: #F8FAFB; }
+.zb-eye g { transform-box: fill-box; transform-origin: center; transition: transform .22s ease, opacity .16s ease; }
+.zb-eye-open { transform: scaleY(.08); opacity: 0; }
+.zb-eye-open.on { transform: scaleY(1); opacity: 1; }
+.zb-eye-shut { opacity: 0; }
+.zb-eye-shut.on { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .zb-eye g { transition: none; } }
 textarea { resize: vertical; min-height: 80px; }
 
 /* ── Form label — Inter caption style ── */
