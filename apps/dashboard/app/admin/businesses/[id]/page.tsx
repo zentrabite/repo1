@@ -192,7 +192,7 @@ export default function AdminBusinessAboutPage() {
   }
   if (!isSuperAdmin || !biz) return null;
 
-  const subdomainUrl = biz.subdomain ? `${biz.subdomain}.zentrabite.com.au` : null;
+  const subdomainUrl = biz.subdomain ? `${biz.subdomain}.zentrabite.com` : null;
   const signupDate   = new Date(biz.created_at).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 
   return (

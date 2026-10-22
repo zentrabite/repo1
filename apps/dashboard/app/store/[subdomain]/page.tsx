@@ -17,7 +17,7 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
   const [menu,      setMenu]      = useState<any[]>([]);
   const [cart,      setCart]      = useState<CartItem[]>([]);
   const [activeTab, setActiveTab] = useState<string>("");
-  const [customer,  setCustomer]  = useState({ name:"", phone:"", email:"" });
+  const [customer,  setCustomer]  = useState({ name:"", phone:"", email:"", marketingOptIn:false });
   const [loading,   setLoading]   = useState(true);
   const [error,     setError]     = useState("");
   const [checking,  setChecking]  = useState(false);
@@ -193,6 +193,16 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
               <input value={customer.name} onChange={e=>setCustomer(c=>({...c,name:e.target.value}))} placeholder="Your name *" style={{ width:"100%", marginBottom:8, background:"rgba(255,255,255,.06)", border:`1px solid ${C.mist}`, color:C.cl, borderRadius:8, padding:"10px 12px", fontSize:13, boxSizing:"border-box" }} />
               <input value={customer.phone} onChange={e=>setCustomer(c=>({...c,phone:e.target.value}))} placeholder="Phone number" style={{ width:"100%", marginBottom:8, background:"rgba(255,255,255,.06)", border:`1px solid ${C.mist}`, color:C.cl, borderRadius:8, padding:"10px 12px", fontSize:13, boxSizing:"border-box" }} />
               <input type="email" value={customer.email} onChange={e=>setCustomer(c=>({...c,email:e.target.value}))} placeholder="Email (for receipt)" style={{ width:"100%", background:"rgba(255,255,255,.06)", border:`1px solid ${C.mist}`, color:C.cl, borderRadius:8, padding:"10px 12px", fontSize:13, boxSizing:"border-box" }} />
+              {/* Marketing consent. Its own unticked box, separate from the order (Spam Act). */}
+              <label style={{ display:"flex", gap:10, alignItems:"flex-start", marginTop:12, fontSize:12, lineHeight:1.5, color:C.st, cursor:"pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={customer.marketingOptIn}
+                  onChange={e=>setCustomer(c=>({...c,marketingOptIn:e.target.checked}))}
+                  style={{ marginTop:2, width:16, height:16, flexShrink:0 }}
+                />
+                <span>Send me offers and rewards from {biz?.name ?? "this restaurant"} by text and email. Unsubscribe any time by replying STOP.</span>
+              </label>
             </div>
 
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 0" }}>

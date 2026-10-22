@@ -1,65 +1,75 @@
 // ─── POST /api/stripe/checkout ────────────────────────────────────────────────
-// Creates a Stripe Checkout session for the $500/month merchant subscription.
+// Creates a Stripe Checkout session for the merchant subscription.
 //
 // Flow:
-//   1. New merchant clicks "Start Free Trial" or "Subscribe" in onboarding
-//   2. This endpoint creates a Checkout session with the monthly price
+//   1. Merchant clicks "Start Free Trial" or "Subscribe" in Settings
+//   2. This endpoint creates a Checkout session with the right monthly price
 //   3. Merchant is redirected to Stripe's hosted checkout page
 //   4. On success, Stripe fires customer.subscription.created webhook
 //   5. Webhook handler marks the business as active in Supabase
 //
-// Prerequisites:
-//   - Create a Product in Stripe Dashboard: "ZentraBite Pro — $500/month"
-//   - Copy the Price ID → STRIPE_PRICE_MERCHANT_MONTHLY in .env.local
+// Security: the business and email come from the login, never the body.
+//
+// Pricing
+//   STRIPE_PRICE_MERCHANT_MONTHLY — standard $500/month
+//   STRIPE_PRICE_MERCHANT_PILOT   — $299/month for the first 3 pilot merchants.
+//   A business gets the pilot price when a super admin sets
+//   businesses.settings.billing_plan = "pilot".
 
 import { NextResponse } from "next/server";
 import { stripe, PRICES } from "@/lib/stripe";
+import { createAdminClient } from "@/lib/supabase-server";
+import { MANAGER_ROLES, requireBusiness } from "@/lib/request-business";
+
+const TRIAL_DAYS = 30;
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const { business_id: requestedBusinessId } = body as { business_id?: string };
 
-    // TODO: In production, pull business_id + email from the auth session.
-    const { business_id, email } = body as {
-      business_id: string;
-      email: string;
-    };
+    const auth = await requireBusiness(requestedBusinessId, { roles: MANAGER_ROLES });
+    if (!auth.ok) return auth.response;
+    const { businessId, email } = auth;
 
-    if (!business_id || !email) {
+    const db = createAdminClient();
+    const { data: business } = await db
+      .from("businesses")
+      .select("id, name, settings, stripe_customer_id")
+      .eq("id", businessId)
+      .single();
+    if (!business) return NextResponse.json({ error: "Business not found" }, { status: 404 });
+
+    const settings = (business.settings ?? {}) as Record<string, unknown>;
+    const isPilot = settings.billing_plan === "pilot";
+    const price = isPilot ? PRICES.merchantPilot : PRICES.merchantMonthly;
+
+    if (!price) {
       return NextResponse.json(
-        { error: "business_id and email are required" },
-        { status: 400 }
-      );
-    }
-
-    if (!PRICES.merchantMonthly) {
-      return NextResponse.json(
-        { error: "STRIPE_PRICE_MERCHANT_MONTHLY is not set in .env.local" },
+        { error: isPilot ? "STRIPE_PRICE_MERCHANT_PILOT is not set" : "STRIPE_PRICE_MERCHANT_MONTHLY is not set" },
         { status: 500 }
       );
     }
 
-    const origin = req.headers.get("origin") ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3002";
+    const origin = req.headers.get("origin") ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://dashboard.zentrabite.com";
+    const customerId = (business as { stripe_customer_id?: string | null }).stripe_customer_id ?? null;
 
     const session = await stripe.checkout.sessions.create({
-      mode:               "subscription",
+      mode:                 "subscription",
       payment_method_types: ["card"],
-      customer_email:     email,
-      line_items: [
-        {
-          price:    PRICES.merchantMonthly,
-          quantity: 1,
-        },
-      ],
-      // 1-month free trial
+      // Reuse the Stripe customer if this business has one, so invoices and
+      // the billing portal stay in one place.
+      ...(customerId ? { customer: customerId } : { customer_email: email ?? undefined }),
+      line_items: [{ price, quantity: 1 }],
       subscription_data: {
-        trial_period_days: 30,
+        trial_period_days: TRIAL_DAYS,
         metadata: {
-          zentrabite_business_id: business_id,
+          zentrabite_business_id: businessId,
+          zentrabite_plan:        isPilot ? "pilot" : "standard",
         },
       },
       metadata: {
-        zentrabite_business_id: business_id,
+        zentrabite_business_id: businessId,
       },
       success_url: `${origin}/settings?subscription=success`,
       cancel_url:  `${origin}/settings?subscription=cancelled`,

@@ -17,6 +17,8 @@
 import { NextResponse } from "next/server";
 import { createAdminClient, createSessionClient } from "@/lib/supabase-server";
 import { sendEmail } from "@/lib/email";
+import { requireBusiness } from "@/lib/request-business";
+import { ALL_ROLES } from "@/lib/permissions";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,13 +32,24 @@ type InviteBody = {
 
 export async function POST(req: Request) {
   try {
-    const { email, businessId, role = "Staff", businessName = "your team" } = (await req.json()) as InviteBody;
+    const body = (await req.json()) as InviteBody;
+    const { businessId: requestedBusinessId, role = "Staff" } = body;
+    // Stored lowercase so it matches the login email later.
+    const email = (body.email ?? "").trim().toLowerCase();
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json({ error: "Valid email required" }, { status: 400 });
     }
+    if (!ALL_ROLES.includes(role)) {
+      return NextResponse.json({ error: "Unknown role" }, { status: 400 });
+    }
 
-    // Must be signed in
+    // Business comes from the login. Without this anyone logged in could add
+    // themselves to another restaurant's team.
+    const auth = await requireBusiness(requestedBusinessId);
+    if (!auth.ok) return auth.response;
+    const businessId = auth.businessId;
+
     const session = await createSessionClient();
     const { data: userRes } = await session.auth.getUser();
     const inviter = userRes?.user;
@@ -45,7 +58,22 @@ export async function POST(req: Request) {
     }
 
     const admin = createAdminClient();
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://dashboard.zentrabite.com.au";
+
+    // Only owners, managers and super admins can invite. Only owners and
+    // super admins can create another Owner.
+    const inviterRole = auth.role;
+    if (inviterRole !== "Owner" && inviterRole !== "Manager") {
+      return NextResponse.json({ error: "Only owners and managers can invite team members" }, { status: 403 });
+    }
+    if (role === "Owner" && inviterRole !== "Owner") {
+      return NextResponse.json({ error: "Only an owner can add another owner" }, { status: 403 });
+    }
+
+    // Business name comes from the database so the email can't be spoofed.
+    const { data: biz } = await admin.from("businesses").select("name").eq("id", businessId).single();
+    const businessName = biz?.name ?? "your team";
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://dashboard.zentrabite.com";
 
     // Generate the Supabase magic-link / invite URL (no email sent by Supabase
     // unless SMTP configured — we handle delivery ourselves).
@@ -66,7 +94,7 @@ export async function POST(req: Request) {
 
     // Record in business_members if you've got that table; otherwise this is
     // a no-op safety net for future auditing.
-    if (businessId) {
+    {
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (admin.from("business_members") as any).upsert({

@@ -3,12 +3,16 @@
 //
 //   1. Manually from the dashboard UI:
 //        POST /api/automations/run   body: { businessId }
-//      Runs the rules for a single business. No auth required (the UI is
-//      already behind Supabase auth).
+//      Runs the rules for the logged-in user's business only. The business is
+//      checked against the login (requireBusiness), not trusted from the body.
 //
-//   2. Daily from Vercel cron:
-//        POST /api/automations/run   header: Authorization: Bearer $CRON_SECRET
+//   2. Daily from Vercel cron (vercel.json, GET with the secret):
+//        GET /api/automations/run    header: Authorization: Bearer $CRON_SECRET
 //      Iterates EVERY business with active rules. Rejects without the secret.
+//      This path is let through the login gate in proxy.ts.
+//
+// Spam Act: only customers who opted in to marketing and haven't opted out
+// are contacted. Every text names the business and says "Reply STOP".
 //
 // The runner processes `winback_rules` (Zentra Rewards rules from the dashboard) AND
 // the legacy `campaigns` table so old data keeps working while we migrate.
@@ -19,6 +23,8 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import { sendEmail } from "@/lib/email";
+import { MANAGER_ROLES, requireBusiness } from "@/lib/request-business";
+import { checkSmsAllowance, sendTwilioSms, withSenderAndOptOut } from "@/lib/sms";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -39,15 +45,17 @@ export async function POST(req: Request) {
     let body: { businessId?: string } = {};
     try { body = await req.json(); } catch { /* no body, fine */ }
 
-    // Cron auth: if no businessId, require CRON_SECRET
+    // Cron auth: a matching CRON_SECRET means "run every business".
+    // Anything else must be a logged-in user running their own business.
     const authHeader = req.headers.get("authorization") ?? "";
     const cronSecret = process.env.CRON_SECRET;
-    const isCron = !body.businessId;
+    const isCron = Boolean(cronSecret) && authHeader === `Bearer ${cronSecret}`;
 
-    if (isCron) {
-      if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
-        return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-      }
+    let manualBusinessId: string | null = null;
+    if (!isCron) {
+      const auth = await requireBusiness(body.businessId, { roles: MANAGER_ROLES });
+      if (!auth.ok) return auth.response;
+      manualBusinessId = auth.businessId;
     }
 
     const db = createAdminClient();
@@ -55,8 +63,8 @@ export async function POST(req: Request) {
 
     // Target businesses
     let businessIds: string[] = [];
-    if (body.businessId) {
-      businessIds = [body.businessId];
+    if (manualBusinessId) {
+      businessIds = [manualBusinessId];
     } else {
       // Everyone with at least one active rule (or active campaign)
       const [rulesRes, campRes] = await Promise.all([
@@ -111,9 +119,16 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
     .single();
 
   const businessName = business?.name ?? "your favourite spot";
+  // Link to the ordering page. Uses the subdomain host once wildcard domains
+  // are set up (NEXT_PUBLIC_STOREFRONT_HOST, e.g. "zentrabite.com"), otherwise
+  // the working /store page on the CRM domain. The old default pointed at
+  // shop.zentrabite.com.au, which doesn't exist.
+  const storefrontHost = process.env.NEXT_PUBLIC_STOREFRONT_HOST;
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "https://dashboard.zentrabite.com").replace(/\/$/, "");
   const storeUrl = business?.subdomain
-    ? `https://${business.subdomain}.${process.env.NEXT_PUBLIC_STOREFRONT_HOST ?? "shop.zentrabite.com.au"}`
+    ? (storefrontHost ? `https://${business.subdomain}.${storefrontHost}` : `${appUrl}/store/${business.subdomain}`)
     : "";
+  const settings = (business?.settings ?? null) as Record<string, unknown> | null;
 
   // Rules + legacy campaigns
   const [rulesRes, campaignsRes, customersRes] = await Promise.all([
@@ -122,7 +137,8 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
     db.from("customers")
       .select("id, name, phone, email, last_order_date")
       .eq("business_id", businessId)
-      .eq("opted_out", false),
+      .eq("opted_out", false)
+      .eq("marketing_opt_in", true),
   ]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -183,8 +199,15 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
       let status = "sent";
       let providerId: string | null = null;
 
+      let finalMessage = message;
       if (channel === "sms") {
-        const out = await sendSms(recipient, message);
+        const allowance = await checkSmsAllowance(db, businessId, settings, { skipRate: true });
+        if (!allowance.ok) {
+          console.warn(`[automations/run] ${businessId} ${allowance.reason}`);
+          break;
+        }
+        finalMessage = withSenderAndOptOut(message, businessName);
+        const out = await sendTwilioSms(recipient, finalMessage);
         status = out.status;
         providerId = out.sid;
       } else if (channel === "email") {
@@ -208,7 +231,7 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
         campaign_id: null,
         channel,
         recipient,
-        message,
+        message:     finalMessage,
         status,
         twilio_sid:  channel === "sms" ? providerId : null,
       });
@@ -243,12 +266,20 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
         if (daysSinceLast < (campaign.cooldown_days ?? 30)) continue;
       }
 
-      const message = render(campaign.template ?? "Hey {name}, we miss you! Come back for ${discount} off your next order.", {
+      const allowance = await checkSmsAllowance(db, businessId, settings, { skipRate: true });
+      if (!allowance.ok) {
+        console.warn(`[automations/run] ${businessId} ${allowance.reason}`);
+        break;
+      }
+
+      const message = withSenderAndOptOut(render(campaign.template ?? "Hey {name}, we miss you! Come back for ${discount} off your next order.", {
         name:     (customer.name ?? "").split(" ")[0] ?? "there",
         discount: String(campaign.discount_amount ?? 0),
-      });
+        shop:     businessName,
+        link:     storeUrl,
+      }), businessName);
 
-      const out = await sendSms(customer.phone, message);
+      const out = await sendTwilioSms(customer.phone, message);
       if (out.status === "sent") sent++;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -298,34 +329,4 @@ function formatOffer(rule: any): string {
   if (t === "free_delivery") return "Free delivery";
   if (t === "free_item")     return "A free item";
   return "A special offer";
-}
-
-async function sendSms(to: string, body: string): Promise<{ status: string; sid: string | null }> {
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken  = process.env.TWILIO_AUTH_TOKEN;
-  const fromNumber = process.env.TWILIO_PHONE_NUMBER;
-
-  if (!accountSid || !authToken || !fromNumber) {
-    console.warn("[automations/run] Twilio not configured — SMS skipped");
-    return { status: "skipped", sid: null };
-  }
-
-  try {
-    const res = await fetch(
-      `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`,
-      {
-        method:  "POST",
-        headers: {
-          "Authorization": `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString("base64")}`,
-          "Content-Type":  "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({ To: to, From: fromNumber, Body: body }).toString(),
-      },
-    );
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) return { status: "failed", sid: null };
-    return { status: "sent", sid: data.sid ?? null };
-  } catch {
-    return { status: "failed", sid: null };
-  }
 }

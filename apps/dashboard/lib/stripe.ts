@@ -46,6 +46,9 @@ export const stripe: Stripe = new Proxy({} as Stripe, {
 export const PRICES = {
   // $500/month merchant subscription
   merchantMonthly: process.env.STRIPE_PRICE_MERCHANT_MONTHLY ?? "",
+  // $299/month pilot price for the first 3 merchants
+  // (used when businesses.settings.billing_plan = "pilot")
+  merchantPilot: process.env.STRIPE_PRICE_MERCHANT_PILOT ?? "",
 } as const;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

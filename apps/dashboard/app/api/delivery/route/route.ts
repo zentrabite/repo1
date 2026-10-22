@@ -10,6 +10,7 @@
 
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
+import { requireBusiness } from "@/lib/request-business";
 import { fetchAllQuotes, type ProviderCredentials } from "@/lib/delivery-providers";
 import type { RoutingRequest, RoutingDecision, ProviderQuote, ProviderId } from "@/lib/delivery-types";
 
@@ -115,12 +116,23 @@ function selectProvider(
 export async function POST(req: Request) {
   try {
     const body: RoutingRequest = await req.json();
-    const { businessId, orderId, orderValue, distanceKm, pickupAddress, dropoffAddress, deliveryTier, isPeakHour, isHighDemand, isBadWeather } = body;
+    const { orderId, orderValue, distanceKm, pickupAddress, dropoffAddress, deliveryTier, isPeakHour, isHighDemand, isBadWeather } = body;
 
-    if (!businessId) return NextResponse.json({ error: "business_id required" }, { status: 400 });
+    // Uses this business's delivery provider credentials, so the business
+    // must come from the login, never the body.
+    const auth = await requireBusiness(body.businessId);
+    if (!auth.ok) return auth.response;
+    const { businessId } = auth;
+
     if (!distanceKm || !pickupAddress || !dropoffAddress) return NextResponse.json({ error: "distanceKm, pickupAddress and dropoffAddress required" }, { status: 400 });
 
     const db = createAdminClient();
+
+    // An order id, if given, must belong to this business.
+    if (orderId) {
+      const { data: order } = await db.from("orders").select("id").eq("id", orderId).eq("business_id", businessId).maybeSingle();
+      if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    }
 
     // Load delivery_settings
     const { data: biz } = await db.from("businesses").select("delivery_settings").eq("id", businessId).single();

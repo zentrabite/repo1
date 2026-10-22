@@ -117,7 +117,7 @@ export async function POST(req: Request) {
   // Best-effort owner invite — don't fail the whole op if email send fails.
   let inviteLink: string | null = null;
   if (body.sendInvite !== false) {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://dashboard.zentrabite.com.au";
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://dashboard.zentrabite.com";
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let authUserId: string | null = null;
     try {

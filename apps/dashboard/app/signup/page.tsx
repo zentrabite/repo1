@@ -26,34 +26,26 @@ export default function SignupPage() {
     setLoading(true);
     setError("");
 
-    // 1. Create the auth user
+    // Create the login. The database trigger (handle_new_user, migration 015)
+    // creates the business from business_name and links this user as owner.
+    // The browser can't create businesses itself: row security blocks it, and
+    // with email confirmation on there is no session yet at this point.
     const { data, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: { name, business_name: bizName },
+        emailRedirectTo: `${window.location.origin}/login`,
       },
     });
 
     if (authError) { setError(authError.message); setLoading(false); return; }
 
-    // 2. Create the business record
-    if (data.user) {
-      const subdomain = bizName.toLowerCase().replace(/[^a-z0-9]/g, "-");
-
-      const { data: biz, error: bizError } = await supabase
-        .from("businesses")
-        .insert({ name: bizName, type: "Restaurant", subdomain })
-        .select("id")
-        .single();
-
-      if (!bizError && biz) {
-        // 3. Link user to business
-        await supabase
-          .from("users")
-          .update({ business_id: biz.id, name, role: "owner" })
-          .eq("id", data.user.id);
-      }
+    // With email confirmation on, Supabase returns no session until the link
+    // is clicked. If it ever comes back with a session, go straight in.
+    if (data.session) {
+      router.push("/dashboard");
+      return;
     }
 
     setSuccess(true);

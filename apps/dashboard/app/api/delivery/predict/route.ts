@@ -15,6 +15,7 @@
 
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
+import { requireBusiness } from "@/lib/request-business";
 import type { DeliveryPrediction, DeliveryRecommendation } from "@/lib/delivery-types";
 
 export type { DeliveryPrediction, DeliveryRecommendation };
@@ -103,10 +104,12 @@ function buildRecommendation(
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const businessId = searchParams.get("business_id");
     const dateParam  = searchParams.get("date") ?? new Date().toISOString().slice(0, 10);
 
-    if (!businessId) return NextResponse.json({ error: "business_id required" }, { status: 400 });
+    // Order volumes are private. The business comes from the login.
+    const auth = await requireBusiness(searchParams.get("business_id"));
+    if (!auth.ok) return auth.response;
+    const { businessId } = auth;
 
     const targetDate = new Date(dateParam);
     const targetDow  = targetDate.getDay();

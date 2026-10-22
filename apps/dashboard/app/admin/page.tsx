@@ -323,7 +323,7 @@ export default function AdminPage() {
                   </div>
                   {active.subdomain && (
                     <div style={{ fontSize: 12, color: C.st, marginTop: 6, fontFamily: "var(--font-mono)" }}>
-                      {active.subdomain}.zentrabite.com.au
+                      {active.subdomain}.zentrabite.com
                     </div>
                   )}
                 </div>
@@ -474,7 +474,7 @@ export default function AdminPage() {
                       <Row k="Owner phone"    v={active.owner?.phone ?? "—"} />
                       <Row k="Business phone" v={active.contact_phone ?? "—"} />
                       <Row k="Business email" v={active.contact_email ?? "—"} />
-                      <Row k="Subdomain"      v={active.subdomain ? `${active.subdomain}.zentrabite.com.au` : "—"} />
+                      <Row k="Subdomain"      v={active.subdomain ? `${active.subdomain}.zentrabite.com` : "—"} />
                       <Row k="Stripe acc."    v={active.stripe_account_id ?? "—"} />
                       <Row k="Business ID"    v={active.id} mono />
                     </div>

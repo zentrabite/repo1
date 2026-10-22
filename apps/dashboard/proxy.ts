@@ -8,6 +8,24 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 
 const PUBLIC_PATHS = ["/login", "/signup", "/auth", "/forgot-password", "/reset-password", "/store"];
 
+// API routes that are called by outside services or by customers who aren't
+// logged in. Each one checks its own credentials, so the login gate must let
+// them through:
+//   /api/stripe/webhook    — Stripe, verified by signature
+//   /api/sms/inbound       — Twilio replies (STOP), verified by signature
+//   /api/automations/run   — Vercel cron, verified by CRON_SECRET (the manual
+//                            path inside it checks the login itself)
+//   /api/store/            — the public ordering page (menu, checkout, receipt)
+//   /api/delivery/fee      — fee preview on the public ordering page
+// Match exact paths or a trailing-slash prefix so "/api/store" can't be used
+// to open something like "/api/storefront-admin" by accident.
+const PUBLIC_API_EXACT  = ["/api/stripe/webhook", "/api/sms/inbound", "/api/automations/run", "/api/delivery/fee"];
+const PUBLIC_API_PREFIX = ["/api/store/"];
+
+function isPublicApi(pathname: string): boolean {
+  return PUBLIC_API_EXACT.includes(pathname) || PUBLIC_API_PREFIX.some(p => pathname.startsWith(p));
+}
+
 // Paths that must render client-side even without a session so JS can inspect
 // the URL hash fragment (which the server never sees, and some mobile browsers
 // strip through a 303 redirect). The root "/" uses this to rescue
@@ -47,7 +65,9 @@ export async function proxy(req: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession();
 
   const { pathname } = req.nextUrl;
-  const isPublic     = PUBLIC_PATHS.some(p => pathname.startsWith(p));
+  // Public API routes still get the session refresh above (so a logged-in
+  // "Run now" on automations keeps working), they just never get redirected.
+  const isPublic     = PUBLIC_PATHS.some(p => pathname.startsWith(p)) || isPublicApi(pathname);
   const isHashRescue = HASH_RESCUE_PATHS.includes(pathname);
 
   // 1. No session + protected route → send to login
@@ -56,6 +76,11 @@ export async function proxy(req: NextRequest) {
   //    server never sees). The root "/" page uses this to forward
   //    password-recovery tokens to /reset-password.
   if (!session && !isPublic && !isHashRescue) {
+    // API callers get a JSON 401 instead of an HTML login page, so failures
+    // show up clearly in logs and in the browser's network tab.
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
     const url = req.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("redirect", pathname);
