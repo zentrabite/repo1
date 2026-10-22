@@ -677,8 +677,9 @@ textarea.input { resize: vertical; }
 .mock-table { background: var(--m-panel); border: 1px solid var(--m-line); border-radius: 10px; overflow: hidden; }
 .mock-row {
   display: grid;
-  grid-template-columns: 1.1fr 0.8fr 0.95fr 104px;
+  grid-template-columns: minmax(0, 1fr) 96px 100px;
   gap: 10px;
+  white-space: nowrap;
   align-items: center;
   padding: 10px 12px;
   border-top: 1px solid var(--m-line);
@@ -719,8 +720,7 @@ textarea.input { resize: vertical; }
 @media (max-width: 640px) {
   .mock-body { grid-template-columns: 1fr; min-height: 0; }
   .mock-side { display: none; }
-  .mock-row { grid-template-columns: 1fr 0.9fr 96px; }
-  .mock-row > :nth-child(2) { display: none; }
+  .mock-row { grid-template-columns: minmax(0, 1fr) 88px 96px; }
 }
 
 /* ── Home: sections ───────────────────────────────────────────────────── */

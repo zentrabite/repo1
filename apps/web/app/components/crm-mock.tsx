@@ -65,14 +65,15 @@ export function CrmMock() {
           <div className="mock-table">
             <div className="mock-row">
               <span>Customer</span>
-              <span>Orders</span>
               <span>Last order</span>
               <span>Status</span>
             </div>
             {ROWS.map((r) => (
               <div key={r.name} className="mock-row">
-                <span style={{ fontWeight: 600 }}>{r.name}</span>
-                <span className="sub">{r.visits}</span>
+                <span>
+                  <span style={{ fontWeight: 600, display: "block" }}>{r.name}</span>
+                  <span className="sub">{r.visits}</span>
+                </span>
                 <span className="sub">{r.last}</span>
                 <span className={`mock-pill ${r.status}`}>{r.label}</span>
               </div>
