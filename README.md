@@ -1,6 +1,6 @@
 # ZentraBite
 
-ZentraBite gives small businesses one system to win customers, keep them and bring them back. That means their own website and ordering or booking, a customer list, rewards, win-back texts, reviews and an AI assistant, with modules switched on per business. It started with restaurants, where it replaces 30% delivery app fees with direct ordering. The same core is built to work for salons, gyms, shops, trades and other local businesses.
+ZentraBite gives small businesses one system to win customers, keep them and bring them back. That means their own website and online ordering, a customer list, rewards, win-back texts, reviews and an AI assistant, with modules switched on per business. It started with restaurants, where it replaces 30% delivery app fees with direct ordering. The same core is built to work for salons, gyms, shops, trades and other local businesses.
 
 Live at [zentrabite.com](https://zentrabite.com). The merchant CRM is at [dashboard.zentrabite.com](https://dashboard.zentrabite.com), and each business gets its own site at `name.zentrabite.com`.
 
