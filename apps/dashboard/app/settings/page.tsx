@@ -10,6 +10,7 @@ import { useBusiness } from "@/hooks/use-business";
 import { supabase } from "@/lib/supabase";
 import { navigation } from "@/lib/navigation";
 import { DEFAULT_ROLE_PERMISSIONS, NAV_HREFS } from "@/lib/permissions";
+import { orderUrl } from "@/lib/tenant";
 
 const C = { g:"#00B67A", o:"#FF6B35", r:"#FF4757", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(226,232,240,.08)" };
 
@@ -129,12 +130,8 @@ function SettingsContent() {
     }
   }, [business]);
 
-  // Build the customer-facing storefront URL
-  const storefrontOrigin =
-    typeof window !== "undefined"
-      ? (process.env.NEXT_PUBLIC_STOREFRONT_URL ?? window.location.origin)
-      : (process.env.NEXT_PUBLIC_STOREFRONT_URL ?? "");
-  const storefrontUrl = profile.subdomain ? `${storefrontOrigin.replace(/\/$/, "")}/store/${profile.subdomain}` : "";
+  // The customer-facing ordering page at name.zentrabite.com/order
+  const storefrontUrl = profile.subdomain ? orderUrl(profile.subdomain) : "";
 
   // Populate team from real auth user
   useEffect(() => {

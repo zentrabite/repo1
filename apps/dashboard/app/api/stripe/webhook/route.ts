@@ -9,6 +9,7 @@ import { createServerClient } from "@/lib/supabase-server";
 import { notifyOwnerOfOrder } from "@/lib/notify";
 import { sendCustomerReceipt } from "@/lib/email";
 import { normaliseAuPhone } from "@/lib/sms";
+import { orderUrl } from "@/lib/tenant";
 
 export const dynamic = "force-dynamic";
 
@@ -304,8 +305,7 @@ async function sendOrderReceipt(args: {
       .single();
     if (!biz) return;
 
-    const origin = process.env.NEXT_PUBLIC_STOREFRONT_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "";
-    const storeUrl = biz.subdomain && origin ? `${origin.replace(/\/$/, "")}/store/${biz.subdomain}` : undefined;
+    const storeUrl = biz.subdomain ? orderUrl(biz.subdomain) : undefined;
 
     const rawItems = Array.isArray(args.items) ? args.items as OrderItemLike[] : [];
     const items = rawItems.map(it => ({

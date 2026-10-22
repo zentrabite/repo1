@@ -5,8 +5,10 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { tenantFromHost } from "@/lib/tenant";
 
-const PUBLIC_PATHS = ["/login", "/signup", "/auth", "/forgot-password", "/reset-password", "/store"];
+// /site is each restaurant's public website (also served at name.zentrabite.com).
+const PUBLIC_PATHS = ["/login", "/signup", "/auth", "/forgot-password", "/reset-password", "/store", "/site"];
 
 // API routes that are called by outside services or by customers who aren't
 // logged in. Each one checks its own credentials, so the login gate must let
@@ -32,7 +34,38 @@ function isPublicApi(pathname: string): boolean {
 // password-recovery tokens that Supabase dumps there instead of /reset-password.
 const HASH_RESCUE_PATHS = ["/"];
 
+// ─── Restaurant hosts (name.zentrabite.com) ─────────────────────────────────
+// Only the public website and ordering page are reachable on a restaurant's
+// host. The CRM never answers there.
+//   /                         → /site/<name>      their website
+//   /order                    → /store/<name>     ordering page
+//   /store/<name>[/success]   → as is              Stripe sends customers back here
+//   /api/store/*, /api/delivery/fee              public ordering APIs
+// Anything else goes back to their home page.
+function tenantResponse(req: NextRequest, tenant: string): NextResponse {
+  const { pathname } = req.nextUrl;
+  const url = req.nextUrl.clone();
+  if (pathname === "/") {
+    url.pathname = `/site/${tenant}`;
+    return NextResponse.rewrite(url);
+  }
+  if (pathname === "/order") {
+    url.pathname = `/store/${tenant}`;
+    return NextResponse.rewrite(url);
+  }
+  if (pathname === `/store/${tenant}` || pathname.startsWith(`/store/${tenant}/`)) return NextResponse.next();
+  if (pathname.startsWith("/api/store/") || pathname === "/api/delivery/fee") return NextResponse.next();
+  url.pathname = "/";
+  url.search = "";
+  const host = req.headers.get("host");
+  if (host) url.host = host;
+  return NextResponse.redirect(url);
+}
+
 export async function proxy(req: NextRequest) {
+  const tenant = tenantFromHost(req.headers.get("host"));
+  if (tenant) return tenantResponse(req, tenant);
+
   // Start with a pass-through response so cookie mutations are forwarded.
   let res = NextResponse.next({ request: { headers: req.headers } });
 

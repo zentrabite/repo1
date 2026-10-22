@@ -5,7 +5,14 @@ export const dynamic = "force-dynamic";
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 
-const C = { g:"#00B67A", st:"#8B9DB5", cl:"#F8FAFB", navy:"#0F1F2D", card:"#1C2D48", mist:"rgba(255,255,255,.08)", r:"#FF4757" };
+const BASE = { g:"#00B67A", st:"#8B9DB5", cl:"#F8FAFB", navy:"#0F1F2D", card:"#1C2D48", mist:"rgba(255,255,255,.08)", r:"#FF4757" };
+
+// Readable text colour on the restaurant's brand colour.
+function textOn(hex: string): string {
+  const h = hex.replace("#", "");
+  const [r, g, b] = [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) / 255).map(c => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)));
+  return 0.2126 * r! + 0.7152 * g! + 0.0722 * b! > 0.45 ? "#0F1F2D" : "#FFFFFF";
+}
 
 interface CartItem { id:string; name:string; price:number; qty:number; image_url?:string }
 
@@ -22,6 +29,12 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
   const [error,     setError]     = useState("");
   const [checking,  setChecking]  = useState(false);
   const [showCart,  setShowCart]  = useState(false);
+  const [notice,    setNotice]    = useState("");
+  const [siteHref,  setSiteHref]  = useState<string | null>(null);
+
+  // Brand colour on buttons and prices, ZentraBite green if none is set.
+  const accent = biz?.accent_color ?? BASE.g;
+  const C = { ...BASE, g: accent, onG: textOn(accent) };
 
   useEffect(() => {
     fetch(`/api/store/${subdomain}`)
@@ -31,6 +44,22 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
         setBiz(data.business);
         setMenu(data.menu);
         if (data.menu.length > 0) setActiveTab(data.menu[0].id);
+        // Link back to their website. On name.zentrabite.com that's "/".
+        if (data.business?.has_website) {
+          setSiteHref(window.location.pathname === "/order" ? "/" : `/site/${subdomain}`);
+        }
+        // "+" on the website links here with ?add=<item id>
+        const add = new URLSearchParams(window.location.search).get("add");
+        if (add) {
+          for (const section of data.menu) {
+            const item = section.items.find((i: { id: string }) => i.id === add);
+            if (item) {
+              setActiveTab(section.id);
+              setCart([{ id: item.id, name: item.name, price: item.price, qty: 1, image_url: item.image_url }]);
+              break;
+            }
+          }
+        }
         setLoading(false);
       })
       .catch(() => { setError("Failed to load menu"); setLoading(false); });
@@ -63,8 +92,8 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
-      else alert(data.error ?? "Failed to start checkout");
-    } catch { alert("Network error"); }
+      else setNotice(data.error ?? "Couldn't start checkout. Please try again.");
+    } catch { setNotice("Network error. Check your connection and try again."); }
     finally { setChecking(false); }
   };
 
@@ -92,22 +121,24 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
         <div style={{ maxWidth:720, margin:"0 auto", height:64, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
           <div style={{ display:"flex", alignItems:"center", gap:12 }}>
             {biz?.logo_url ? (
-              <img src={biz.logo_url} alt={biz.name} style={{ width:38, height:38, borderRadius:10, objectFit:"cover" }} />
+              <img src={biz.logo_url} alt={biz.name} style={{ height:38, maxWidth:120, borderRadius:8, objectFit:"contain" }} />
             ) : (
-              <div style={{ width:38, height:38, borderRadius:10, background:C.g, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, fontSize:14, color:C.navy }}>
+              <div style={{ width:38, height:38, borderRadius:10, background:C.g, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:800, fontSize:14, color:C.onG }}>
                 {biz?.name?.charAt(0) ?? "?"}
               </div>
             )}
             <div>
               <div style={{ fontWeight:700, fontSize:16, color:C.cl }}>{biz?.name}</div>
-              {biz?.suburb && <div style={{ fontSize:11, color:C.st }}>{biz.suburb}</div>}
+              {siteHref
+                ? <a href={siteHref} style={{ fontSize:11, color:C.st, textDecoration:"none" }}>← Back to our website</a>
+                : biz?.suburb && <div style={{ fontSize:11, color:C.st }}>{biz.suburb}</div>}
             </div>
           </div>
 
           {cartCount > 0 && (
             <button onClick={() => setShowCart(!showCart)} style={{
               display:"flex", alignItems:"center", gap:8, padding:"9px 16px", borderRadius:10,
-              background:C.g, border:"none", color:C.navy, fontWeight:700, fontSize:13, cursor:"pointer",
+              background:C.g, border:"none", color:C.onG, fontWeight:700, fontSize:13, cursor:"pointer",
             }}>
               🛒 {cartCount} · ${total.toFixed(2)}
             </button>
@@ -117,13 +148,20 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
 
       <div style={{ maxWidth:720, margin:"0 auto", padding:"0 20px 100px" }}>
 
+        {/* Not connected to Stripe yet: customers can browse, but can't pay online */}
+        {biz && !biz.taking_orders && (
+          <div style={{ marginTop:16, padding:"12px 14px", borderRadius:12, background:"rgba(255,193,75,.1)", border:"1px solid rgba(255,193,75,.3)", color:"#FFC14B", fontSize:13, lineHeight:1.5 }}>
+            Online payments aren&apos;t set up yet.{biz.phone ? <> Call <a href={`tel:${String(biz.phone).replace(/[^\d+]/g, "")}`} style={{ color:"#FFC14B", fontWeight:700 }}>{biz.phone}</a> to order.</> : " Please order in store for now."}
+          </div>
+        )}
+
         {/* Category tabs */}
         {menu.length > 1 && (
           <div style={{ display:"flex", gap:8, overflowX:"auto", padding:"16px 0", scrollbarWidth:"none" }}>
             {menu.map(s => (
               <button key={s.id} onClick={() => setActiveTab(s.id)} style={{
                 padding:"8px 16px", borderRadius:20, border:`1px solid ${activeTab===s.id?C.g:C.mist}`,
-                background:activeTab===s.id?"rgba(0,182,122,.15)":"transparent",
+                background:activeTab===s.id?`color-mix(in srgb, ${C.g} 15%, transparent)`:"transparent",
                 color:activeTab===s.id?C.g:C.st, fontWeight:600, fontSize:13, cursor:"pointer", whiteSpace:"nowrap", flexShrink:0,
               }}>
                 {s.name}
@@ -150,14 +188,14 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
                   </div>
                   <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:10 }}>
                     <div style={{ fontWeight:700, fontSize:15, color:C.g }}>${Number(item.price).toFixed(2)}</div>
-                    {inCart ? (
+                    {!biz?.taking_orders ? null : inCart ? (
                       <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                         <button onClick={() => updateQty(item.id, inCart.qty - 1)} style={{ width:28, height:28, borderRadius:7, background:"rgba(255,255,255,.1)", border:"none", color:C.cl, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center" }}>−</button>
                         <span style={{ fontWeight:700, fontSize:13, color:C.cl, minWidth:16, textAlign:"center" }}>{inCart.qty}</span>
-                        <button onClick={() => updateQty(item.id, inCart.qty + 1)} style={{ width:28, height:28, borderRadius:7, background:C.g, border:"none", color:C.navy, cursor:"pointer", fontSize:16, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
+                        <button onClick={() => updateQty(item.id, inCart.qty + 1)} style={{ width:28, height:28, borderRadius:7, background:C.g, border:"none", color:C.onG, cursor:"pointer", fontSize:16, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
                       </div>
                     ) : (
-                      <button onClick={() => addToCart(item)} style={{ padding:"7px 18px", borderRadius:8, background:C.g, border:"none", color:C.navy, fontWeight:700, fontSize:13, cursor:"pointer" }}>Add</button>
+                      <button onClick={() => addToCart(item)} style={{ padding:"7px 18px", borderRadius:8, background:C.g, border:"none", color:C.onG, fontWeight:700, fontSize:13, cursor:"pointer" }}>Add</button>
                     )}
                   </div>
                 </div>
@@ -183,7 +221,7 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
                 <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                   <button onClick={() => updateQty(item.id, item.qty - 1)} style={{ width:26, height:26, borderRadius:6, background:"rgba(255,255,255,.1)", border:"none", color:C.cl, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center" }}>−</button>
                   <span style={{ fontWeight:700, fontSize:13, color:C.cl, minWidth:16, textAlign:"center" }}>{item.qty}</span>
-                  <button onClick={() => updateQty(item.id, item.qty + 1)} style={{ width:26, height:26, borderRadius:6, background:"rgba(0,182,122,.2)", border:"none", color:C.g, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
+                  <button onClick={() => updateQty(item.id, item.qty + 1)} style={{ width:26, height:26, borderRadius:6, background:`color-mix(in srgb, ${C.g} 20%, transparent)`, border:"none", color:C.g, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
                 </div>
               </div>
             ))}
@@ -210,10 +248,16 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
               <span style={{ fontWeight:800, fontSize:20, color:C.cl }}>${total.toFixed(2)}</span>
             </div>
 
+            {notice && (
+              <div style={{ marginBottom:12, padding:"10px 12px", borderRadius:10, background:"rgba(255,71,87,.12)", border:"1px solid rgba(255,71,87,.3)", color:C.r, fontSize:13, lineHeight:1.45 }}>
+                {notice}
+              </div>
+            )}
+
             <button onClick={handleCheckout} disabled={checking || !customer.name.trim()} style={{
               width:"100%", padding:"15px", borderRadius:12, border:"none",
               background: !customer.name.trim() ? "rgba(255,255,255,.08)" : C.g,
-              color: !customer.name.trim() ? C.st : C.navy,
+              color: !customer.name.trim() ? C.st : C.onG,
               fontWeight:700, fontSize:15, cursor: !customer.name.trim() ? "not-allowed" : "pointer",
               opacity: checking ? .7 : 1,
             }}>
@@ -228,8 +272,8 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
         <div style={{ position:"fixed", bottom:24, left:"50%", transform:"translateX(-50%)", zIndex:50 }}>
           <button onClick={() => setShowCart(true)} style={{
             padding:"14px 28px", borderRadius:14, background:C.g, border:"none",
-            color:C.navy, fontWeight:700, fontSize:14, cursor:"pointer",
-            boxShadow:"0 8px 32px rgba(0,182,122,.4)",
+            color:C.onG, fontWeight:700, fontSize:14, cursor:"pointer",
+            boxShadow:`0 8px 32px color-mix(in srgb, ${C.g} 40%, transparent)`,
           }}>
             🛒 View order · {cartCount} items · ${total.toFixed(2)}
           </button>

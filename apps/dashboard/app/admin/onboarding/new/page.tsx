@@ -172,7 +172,7 @@ export default function NewOnboardingPage() {
           </h2>
         </div>
         <p style={{ fontFamily: "var(--font-inter)", fontSize: 14, color: C.st }}>
-          Step 1 of 8 · Identity & owner. The wizard will guide you through the rest.
+          Step 1 of 9 · Identity & owner. The wizard will guide you through the rest.
         </p>
       </div>
 
@@ -234,14 +234,14 @@ export default function NewOnboardingPage() {
           <Field label="Suburb / city" check={checkFor("suburb", suburb)}>
             <input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="Bondi" />
           </Field>
-          <Field label="Storefront subdomain">
+          <Field label="Website address">
             <input
               value={subdomain}
               onChange={e => { setSubdomainEdit(true); setSubdomain(slugify(e.target.value)); }}
               placeholder="joes-pizza"
             />
             <div style={{ fontSize: 11, color: C.st, marginTop: 4 }}>
-              {subdomain ? `${subdomain}.shop.zentrabite.com` : "Auto-suggested from the name"}
+              {subdomain ? `${subdomain}.zentrabite.com` : "Auto-suggested from the name"}
             </div>
           </Field>
         </div>

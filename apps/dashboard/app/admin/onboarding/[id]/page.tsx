@@ -29,8 +29,10 @@ const STEPS = [
   { id: 5, label: "Payments",     icon: "💳" },
   { id: 6, label: "Delivery",     icon: "🚚" },
   { id: 7, label: "Notifications",icon: "📣" },
-  { id: 8, label: "Team",         icon: "👥" },
+  { id: 8, label: "Website",      icon: "🌐" },
+  { id: 9, label: "Team",         icon: "👥" },
 ] as const;
+const LAST_STEP = STEPS.length as StepId;
 
 type StepId = (typeof STEPS)[number]["id"];
 
@@ -44,6 +46,7 @@ type Biz = {
   logo_url:   string | null;
   address?:   string | null;
   website?:   string | null;
+  description?: string | null;
   stripe_account_id: string | null;
   stripe_charges_enabled:  boolean | null;
   stripe_payouts_enabled:  boolean | null;
@@ -119,7 +122,7 @@ export default function OnboardingWizard() {
     const data = await res.json();
     setBiz(data.business);
     const savedStep = data.business?.settings?.onboarding?.step;
-    if (typeof savedStep === "number" && savedStep >= 1 && savedStep <= 8) setStep(savedStep as StepId);
+    if (typeof savedStep === "number" && savedStep >= 1 && savedStep <= LAST_STEP) setStep(savedStep as StepId);
   }, [id]);
 
   useEffect(() => {
@@ -148,7 +151,7 @@ export default function OnboardingWizard() {
         setBiz(data.business);
         if (!opts?.silent) show("Saved ✓");
         if (opts?.advance) {
-          const next = Math.min(8, step + 1) as StepId;
+          const next = Math.min(LAST_STEP, step + 1) as StepId;
           setStep(next);
           // persist the cursor so resume works
           await fetch(`/api/admin/onboarding/${id}`, {
@@ -242,7 +245,8 @@ export default function OnboardingWizard() {
         {step === 5 && <StepPayments    biz={biz} save={save} show={show} />}
         {step === 6 && <StepDelivery    biz={biz} save={save} />}
         {step === 7 && <StepNotifications biz={biz} save={save} show={show} />}
-        {step === 8 && <StepTeam        biz={biz} router={router} show={show} />}
+        {step === 8 && <StepWebsite     biz={biz} save={save} show={show} />}
+        {step === 9 && <StepTeam        biz={biz} router={router} show={show} />}
       </div>
 
       {/* Footer nav */}
@@ -256,14 +260,14 @@ export default function OnboardingWizard() {
         </button>
         <button
           onClick={() => {
-            if (step < 8) setStep((step + 1) as StepId);
+            if (step < LAST_STEP) setStep((step + 1) as StepId);
             else router.push(`/admin`);
           }}
           disabled={saving}
           className="bp"
           style={{ padding: "11px 22px" }}
         >
-          {step < 8 ? "Skip →" : "Finish & return to Admin"}
+          {step < LAST_STEP ? "Skip →" : "Finish & return to Admin"}
         </button>
       </div>
 
@@ -787,7 +791,108 @@ function StepNotifications({ biz, save, show }: { biz: Biz; save: SaveFn; show: 
   );
 }
 
-// ─── Step 8: Team + review ────────────────────────────────────────────────
+// ─── Step 8: Website ──────────────────────────────────────────────────────
+// Their site at name.zentrabite.com: the look, the words, which of their own
+// photos we may use, and the publish switch. Stock photos fill in until the
+// owner says which of their photos are theirs to use.
+const LOOKS = [
+  { id: "bold",  label: "Bold",       note: "White, big uppercase names" },
+  { id: "warm",  label: "Warm, dark", note: "Near-black, serif headings" },
+  { id: "clean", label: "Clean",      note: "Light and simple" },
+] as const;
+
+function StepWebsite({ biz, save, show }: { biz: Biz; save: SaveFn; show: (m: string) => void }) {
+  const imp = importOf(biz);
+  const site = (biz.settings?.site ?? {}) as { published?: boolean; look?: string; tagline?: string; about?: string; photos?: string[]; offer_text?: string };
+  const [look,    setLook]    = useState<string>(site.look ?? "bold");
+  const [tagline, setTagline] = useState<string>(site.tagline ?? imp?.tagline ?? "");
+  const [about,   setAbout]   = useState<string>(site.about ?? biz.description ?? "");
+  const [offer,   setOffer]   = useState<string>(site.offer_text ?? "");
+  const [photos,  setPhotos]  = useState<string[]>(site.photos ?? []);
+  const [busy,    setBusy]    = useState(false);
+  const published = site.published === true;
+  const address = biz.subdomain ? `${biz.subdomain}.zentrabite.com` : null;
+  const imported = imp?.photos ?? [];
+
+  function togglePhoto(url: string) {
+    setPhotos(p => (p.includes(url) ? p.filter(x => x !== url) : [...p, url]));
+  }
+
+  const siteSettings = () => ({ look, tagline: tagline.trim(), about: about.trim(), offer_text: offer.trim(), photos });
+
+  async function setPublished(next: boolean) {
+    setBusy(true);
+    try {
+      const ok = await save({ settings: { site: { ...siteSettings(), published: next, ...(next ? { published_at: new Date().toISOString() } : {}) } } }, { silent: true });
+      if (ok) show(next ? "Website published ✓" : "Website hidden");
+    } finally { setBusy(false); }
+  }
+
+  return (
+    <Section title="Website" subtitle="Their site with ordering built in. Check it with the owner, then publish.">
+      <div style={{ ...importBox, background: published ? "rgba(0,182,122,.06)" : importBox.background, borderColor: published ? "rgba(0,182,122,.25)" : "rgba(255,193,75,.2)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: published ? C.g : C.cl }}>{published ? "Live" : "Not published yet"}</div>
+          {address && <div style={{ fontSize: 12, color: C.st, marginTop: 3 }}>{address}{published ? "" : " shows a holding page until you publish"}</div>}
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {biz.subdomain && <button onClick={() => window.open(`/site/${biz.subdomain}`, "_blank")} style={ghostBtn}>Preview ↗</button>}
+          <button onClick={() => setPublished(!published)} disabled={busy || !biz.subdomain} className={published ? undefined : "bp"} style={published ? ghostBtn : { padding: "9px 14px" }}>
+            {busy ? "Saving…" : published ? "Unpublish" : "Publish website"}
+          </button>
+        </div>
+      </div>
+
+      <div style={label}>Look</div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, margin: "6px 0 18px" }}>
+        {LOOKS.map(l => (
+          <button key={l.id} onClick={() => setLook(l.id)} style={{ ...ghostBtn, textAlign: "left", borderColor: look === l.id ? C.g : C.mist, background: look === l.id ? "rgba(0,182,122,.08)" : "transparent" }}>
+            <div style={{ fontWeight: 600 }}>{l.label}</div>
+            <div style={{ fontSize: 11, color: C.st, marginTop: 2 }}>{l.note}</div>
+          </button>
+        ))}
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <Field label="Tagline (under their name)">
+          <input value={tagline} onChange={e => setTagline(e.target.value)} placeholder="Wood-fired pizza with dough rested for 48 hours" maxLength={200} />
+        </Field>
+        <Field label="About them (Our story)">
+          <textarea value={about} onChange={e => setAbout(e.target.value)} rows={4} maxLength={1200} placeholder="A few sentences about the venue, in their words." />
+          <ImportCheck note={imp?.checks.description} />
+        </Field>
+        <Field label="Offer banner (optional)">
+          <input value={offer} onChange={e => setOffer(e.target.value)} placeholder="e.g. $10 off your first order here. Only if the owner is running it." maxLength={160} />
+        </Field>
+      </div>
+
+      <div style={{ marginTop: 18 }}>
+        <div style={label}>Their photos</div>
+        <div style={{ fontSize: 12, color: C.st, margin: "4px 0 10px", lineHeight: 1.5 }}>
+          Tick only photos the owner took or has the rights to. The first one ticked is the big photo at the top. Until any are ticked, the site uses licensed stock photos.
+        </div>
+        {imported.length === 0 && <div style={{ fontSize: 12, color: C.st }}>No photos came from the import.</div>}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))", gap: 8 }}>
+          {imported.map(p => {
+            const on = photos.includes(p.url);
+            return (
+              <button key={p.url} onClick={() => togglePhoto(p.url)} title={p.alt ?? ""} style={{ position: "relative", aspectRatio: "1 / 1", borderRadius: 10, overflow: "hidden", padding: 0, cursor: "pointer", border: on ? `2px solid ${C.g}` : `1px solid ${C.mist}`, background: C.bg }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.url} alt="" referrerPolicy="no-referrer" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: on ? 1 : 0.55 }} />
+                {on && <span style={{ position: "absolute", top: 6, right: 6, background: C.g, color: "#fff", borderRadius: 999, fontSize: 11, fontWeight: 700, padding: "2px 7px" }}>{photos.indexOf(p.url) + 1}</span>}
+              </button>
+            );
+          })}
+        </div>
+        <ImportCheck note={imp?.checks.photos} />
+      </div>
+
+      <SaveBar onSave={() => save({ settings: { site: siteSettings() } }, { advance: true })} />
+    </Section>
+  );
+}
+
+// ─── Step 9: Team + review ────────────────────────────────────────────────
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function StepTeam({ biz, router, show }: { biz: Biz; router: any; show: (m: string) => void }) {
   const [invites, setInvites] = useState<{ email: string; role: string }[]>([]);
