@@ -1,15 +1,15 @@
 # ZentraBite
 
-ZentraBite helps restaurants and small businesses take orders direct, keep their own customers and win them back, instead of paying 30% to delivery apps. One login covers online ordering, the restaurant's own website, a CRM, rewards, win-back texts and the day-to-day running of the business.
+ZentraBite gives small businesses one system to win customers, keep them and bring them back. That means their own website and ordering or booking, a customer list, rewards, win-back texts, reviews and an AI assistant, with modules switched on per business. It started with restaurants, where it replaces 30% delivery app fees with direct ordering. The same core is built to work for salons, gyms, shops, trades and other local businesses.
 
-Live at [zentrabite.com](https://zentrabite.com). The merchant CRM is at [dashboard.zentrabite.com](https://dashboard.zentrabite.com), and each restaurant gets its own site at `name.zentrabite.com`.
+Live at [zentrabite.com](https://zentrabite.com). The merchant CRM is at [dashboard.zentrabite.com](https://dashboard.zentrabite.com), and each business gets its own site at `name.zentrabite.com`.
 
 ## What's in this repo
 
 | Folder | What it is |
 |---|---|
 | `apps/web` | The marketing site at zentrabite.com, plus the clickable demos under `/demo` |
-| `apps/dashboard` | The merchant CRM, restaurant websites and ordering pages, and the admin tools |
+| `apps/dashboard` | The merchant CRM, each business's website and ordering page, and the admin tools |
 | `apps/storefront` | A standalone storefront build. Not deployed, the live ordering pages are in `apps/dashboard` |
 | `packages/eslint-config`, `packages/typescript-config` | Shared lint and TypeScript settings |
 | `supabase/migrations` | The database schema |
