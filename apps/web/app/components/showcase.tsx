@@ -11,7 +11,7 @@ const showcases = [
       "Menu builder with photo upload, categories, modifiers",
       "Mobile-first checkout with Apple Pay & Google Pay",
       "Delivery radius auto-calculated from postcode",
-      "Custom subdomain or your own zentrabite.com.au URL",
+      "A free name.zentrabite.com address, or your own domain",
     ],
     side: "storefront",
   },

@@ -109,7 +109,7 @@ const MODULES: Mod[] = [
     icon: "return",
     name: "Win-back Automations",
     detail:
-      "Day-14 lapse trigger: AI call → SMS → $5 off. Fully automated. Avg $4,280/mo recovered.",
+      "Day-14 lapse trigger: SMS → $5 off. Fully automated.",
     badge: "ai",
     badgeLabel: "✦ AI",
   },

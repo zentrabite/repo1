@@ -77,7 +77,7 @@ const ROW_B: Step[] = [
     num: "Step 06",
     icon: "campaigns",
     label: "Win-back Campaign",
-    desc: "At day 14 of silence: AI voice call → SMS fallback → $5 off offer. $4,280 avg recovered/mo.",
+    desc: "At day 14 of silence, a text goes out with a $5 off offer.",
     tag: { kind: "win", label: "Day 14 auto" },
   },
   {

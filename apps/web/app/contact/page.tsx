@@ -375,7 +375,7 @@ function DirectContact() {
     <div style={{ color: "var(--steel)", fontSize: 13, padding: "0 4px", lineHeight: 1.7 }}>
       <div style={{ marginBottom: 4 }}>Prefer direct?</div>
       <div>
-        <a href="mailto:hello@zentrabite.com.au" style={{ color: "var(--cloud)" }}>hello@zentrabite.com.au</a>
+        <a href="mailto:hello@zentrabite.com" style={{ color: "var(--cloud)" }}>hello@zentrabite.com</a>
       </div>
       <div style={{ marginTop: 8 }}>
         <Link href="/demo" style={{ color: "var(--green)" }}>Or poke around the live demo →</Link>

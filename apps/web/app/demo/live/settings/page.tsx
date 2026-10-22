@@ -52,7 +52,7 @@ export default function SettingsPage() {
             <Field label="Storefront URL">
               <div style={{ display: "flex", alignItems: "center" }}>
                 <Input value={subdomain} onChange={setSubdomain} />
-                <span style={{ marginLeft: 8, color: "var(--steel)", fontSize: 13 }}>.zentrabite.com.au</span>
+                <span style={{ marginLeft: 8, color: "var(--steel)", fontSize: 13 }}>.zentrabite.com</span>
               </div>
             </Field>
             <Field label="Address">

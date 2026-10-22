@@ -106,7 +106,7 @@ export function Hero() {
                   fontFamily: "var(--font-mono)",
                 }}
               >
-                dashboard.zentrabite.com.au/orders
+                dashboard.zentrabite.com/orders
               </div>
             </div>
 
