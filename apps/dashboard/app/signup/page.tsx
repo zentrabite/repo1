@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import BrandMark from "@/components/brand-mark";
+import PasswordInput from "@/components/password-input";
 
 const C = { g:"#00B67A", st:"#6B7C93", cl:"#F8FAFB", r:"#FF4757" };
 
@@ -101,7 +102,7 @@ export default function SignupPage() {
             </div>
             <div style={{ marginBottom:24 }}>
               <label>Password</label>
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Min. 8 characters" required />
+              <PasswordInput value={password} onChange={e => setPassword(e.target.value)} placeholder="Min. 8 characters" autoComplete="new-password" required />
             </div>
 
             {error && (

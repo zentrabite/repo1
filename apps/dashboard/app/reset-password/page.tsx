@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import BrandMark from "@/components/brand-mark";
+import PasswordInput from "@/components/password-input";
 
 const C = { g: "#00B67A", st: "#6B7C93", cl: "#F8FAFB", r: "#FF4757" };
 
@@ -176,9 +177,9 @@ function ResetForm() {
             <form onSubmit={handleReset}>
               <div style={{ marginBottom: 16 }}>
                 <label>New password</label>
-                <input
-                  type="password"
+                <PasswordInput
                   value={password}
+                  autoComplete="new-password"
                   onChange={e => setPassword(e.target.value)}
                   placeholder="Min. 8 characters"
                   required
@@ -187,9 +188,9 @@ function ResetForm() {
               </div>
               <div style={{ marginBottom: 24 }}>
                 <label>Confirm password</label>
-                <input
-                  type="password"
+                <PasswordInput
                   value={confirm}
+                  autoComplete="new-password"
                   onChange={e => setConfirm(e.target.value)}
                   placeholder="Repeat your password"
                   required

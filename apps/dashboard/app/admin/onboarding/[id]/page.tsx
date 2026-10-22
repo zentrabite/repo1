@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useBusiness } from "@/hooks/use-business";
 import ImportCheck from "@/components/import-check";
+import PasswordInput from "@/components/password-input";
 import type { ImportedMenuCategory, StoredImport } from "@/lib/import/types";
 
 // ─── Theme ────────────────────────────────────────────────────────────────
@@ -709,16 +710,16 @@ function StepDelivery({ biz, save }: { biz: Biz; save: SaveFn }) {
       <ProviderCard title="Uber Direct" help="uber.com/business/deliveries/api">
         <Field label="Customer ID"><input value={uberId}      onChange={e => setUberId(e.target.value)} /></Field>
         <Field label="Client ID">  <input value={uberClient}  onChange={e => setUberClient(e.target.value)} /></Field>
-        <Field label="Client secret"><input type="password" value={uberSecret} onChange={e => setUberSecret(e.target.value)} /></Field>
+        <Field label="Client secret"><PasswordInput label="secret" value={uberSecret} onChange={e => setUberSecret(e.target.value)} /></Field>
       </ProviderCard>
       <ProviderCard title="DoorDash Drive" help="developer.doordash.com">
         <Field label="Developer ID"> <input value={ddDev}   onChange={e => setDdDev(e.target.value)} /></Field>
         <Field label="Key ID">       <input value={ddKey}   onChange={e => setDdKey(e.target.value)} /></Field>
-        <Field label="Signing secret"><input type="password" value={ddSecret} onChange={e => setDdSecret(e.target.value)} /></Field>
+        <Field label="Signing secret"><PasswordInput label="secret" value={ddSecret} onChange={e => setDdSecret(e.target.value)} /></Field>
       </ProviderCard>
       <ProviderCard title="E-commerce shipping" help="Optional — for post-able goods">
-        <Field label="Shippo API key"><input type="password" value={shippo} onChange={e => setShippo(e.target.value)} /></Field>
-        <Field label="Australia Post API key"><input type="password" value={auspost} onChange={e => setAuspost(e.target.value)} /></Field>
+        <Field label="Shippo API key"><PasswordInput label="key" value={shippo} onChange={e => setShippo(e.target.value)} /></Field>
+        <Field label="Australia Post API key"><PasswordInput label="key" value={auspost} onChange={e => setAuspost(e.target.value)} /></Field>
       </ProviderCard>
 
       <SaveBar
