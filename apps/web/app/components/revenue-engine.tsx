@@ -5,15 +5,15 @@ const REVENUE_PILLARS = [
     icon: "📈",
     label: "Upsells",
     title: "Add revenue to every order",
-    body: "Smart bundles, drink add-ons, and combo prompts surface at the right moment in checkout — proven to lift average ticket by 12–18%.",
-    metric: "+14% average ticket",
+    body: "Smart bundles, drink add-ons, and combo prompts surface at the right moment in checkout.",
+    metric: "Prompts at checkout",
   },
   {
     icon: "🤝",
     label: "Referrals",
     title: "Turn customers into your best channel",
     body: "Built-in referral codes with shareable links, automatic credit, and tracking — no extra tool or developer needed.",
-    metric: "1 in 6 invites convert",
+    metric: "Shareable referral links",
   },
   {
     icon: "🔄",
@@ -27,21 +27,21 @@ const REVENUE_PILLARS = [
     label: "Reactivation",
     title: "Win back lapsed customers",
     body: "AI segments customers who haven't ordered in 30/60/90 days and triggers personalised SMS + email flows automatically.",
-    metric: "$3.40 ROI per $1 spent",
+    metric: "30, 60 and 90 day flows",
   },
   {
     icon: "🛒",
     label: "Missed revenue recovery",
     title: "Don't leave money on the table",
     body: "Abandoned carts, failed payments, no-show bookings — all flagged and recovered with one-tap automations.",
-    metric: "8–12% of sales recovered",
+    metric: "One-tap recovery",
   },
   {
     icon: "📦",
     label: "Stock intelligence",
     title: "Cut waste. Never stock out.",
     body: "AI par levels, expiry tracking and auto-reorder suggestions — based on real demand, not guesswork.",
-    metric: "−22% food & stock waste",
+    metric: "AI par levels",
   },
 ];
 
