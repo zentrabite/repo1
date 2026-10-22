@@ -25,6 +25,7 @@ import { createAdminClient } from "@/lib/supabase-server";
 import { sendEmail } from "@/lib/email";
 import { MANAGER_ROLES, requireBusiness } from "@/lib/request-business";
 import { checkSmsAllowance, sendTwilioSms, withSenderAndOptOut } from "@/lib/sms";
+import { orderUrl } from "@/lib/tenant";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -119,15 +120,8 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
     .single();
 
   const businessName = business?.name ?? "your favourite spot";
-  // Link to the ordering page. Uses the subdomain host once wildcard domains
-  // are set up (NEXT_PUBLIC_STOREFRONT_HOST, e.g. "zentrabite.com"), otherwise
-  // the working /store page on the CRM domain. The old default pointed at
-  // shop.zentrabite.com.au, which doesn't exist.
-  const storefrontHost = process.env.NEXT_PUBLIC_STOREFRONT_HOST;
-  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "https://dashboard.zentrabite.com").replace(/\/$/, "");
-  const storeUrl = business?.subdomain
-    ? (storefrontHost ? `https://${business.subdomain}.${storefrontHost}` : `${appUrl}/store/${business.subdomain}`)
-    : "";
+  // Link to the restaurant's ordering page at name.zentrabite.com/order.
+  const storeUrl = business?.subdomain ? orderUrl(business.subdomain) : "";
   const settings = (business?.settings ?? null) as Record<string, unknown> | null;
 
   // Rules + legacy campaigns

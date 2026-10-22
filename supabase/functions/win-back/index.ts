@@ -42,12 +42,11 @@ function withSenderAndOptOut(message: string, businessName: string): string {
   return text;
 }
 
-// Ordering page link. Wildcard subdomains once STOREFRONT_HOST is set,
-// otherwise the working /store page on the CRM domain.
-const STOREFRONT_HOST = Deno.env.get("STOREFRONT_HOST");
-const APP_URL = (Deno.env.get("APP_URL") ?? "https://dashboard.zentrabite.com").replace(/\/$/, "");
+// Ordering page link. Each restaurant's own site at name.zentrabite.com/order
+// (wildcard domain live since 22 Oct 2026). STOREFRONT_HOST overrides the domain.
+const STOREFRONT_HOST = Deno.env.get("STOREFRONT_HOST") ?? "zentrabite.com";
 function storefrontUrl(subdomain: string): string {
-  return STOREFRONT_HOST ? `https://${subdomain}.${STOREFRONT_HOST}` : `${APP_URL}/store/${subdomain}`;
+  return `https://${subdomain}.${STOREFRONT_HOST}/order`;
 }
 
 async function sendSMS(to: string, body: string): Promise<string> {

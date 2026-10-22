@@ -1,18 +1,24 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useSelectedLayoutSegment } from "next/navigation";
 import DashboardSidebar from "./dashboard-sidebar";
 import DashboardTopbar from "./dashboard-topbar";
 import ImpersonationBanner from "./impersonation-banner";
 
 const AUTH_ROUTES = ["/login", "/signup", "/auth"];
 
+// Customer-facing pages: a restaurant's website and ordering page. Checked by
+// route segment, not by URL, because on name.zentrabite.com the browser shows
+// "/" or "/order" while the route is /site/... or /store/...
+const PUBLIC_SEGMENTS = new Set(["site", "store"]);
+
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname   = usePathname();
+  const segment    = useSelectedLayoutSegment();
   const isAuthPage = AUTH_ROUTES.some(r => pathname.startsWith(r));
 
-  // Auth pages — no sidebar/topbar
-  if (isAuthPage) return <>{children}</>;
+  // Auth pages and customer pages — no sidebar/topbar
+  if (isAuthPage || (segment && PUBLIC_SEGMENTS.has(segment))) return <>{children}</>;
 
   return (
     <>

@@ -14,6 +14,7 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase-server";
+import { trustedOrigin } from "@/lib/tenant";
 
 const MAX_LINES = 50;
 const MAX_QTY   = 50;
@@ -109,7 +110,9 @@ export async function POST(req: Request) {
       lines.push({ id, name: m.name as string, price: Number(m.price), qty: qtyById.get(id)! });
     }
 
-    const origin = req.headers.get("origin") ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://dashboard.zentrabite.com";
+    // Customers come back to the host they ordered on (their name.zentrabite.com
+    // or the CRM's /store page). Only our own hosts are trusted.
+    const origin = trustedOrigin(req.headers.get("origin"), process.env.NEXT_PUBLIC_APP_URL ?? "https://dashboard.zentrabite.com");
     const compactItems = JSON.stringify(lines.map(l => ({ id: l.id, qty: l.qty })));
 
     const session = await stripe.checkout.sessions.create({
