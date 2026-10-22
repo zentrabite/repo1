@@ -7,6 +7,7 @@ import { Building2, LogOut } from "lucide-react";
 import { navigation } from "@/lib/navigation";
 import { useBusiness } from "@/hooks/use-business";
 import { resolvePermissions } from "@/lib/permissions";
+import BrandMark from "@/components/brand-mark";
 
 const NAVY  = "#1C2D48";
 const GREEN = "#00B67A";
@@ -58,14 +59,7 @@ export default function DashboardSidebar() {
       {/* ── Logo ── */}
       <div style={{ padding: "22px 20px 16px", borderBottom: `1px solid ${MIST}` }}>
         <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
-          <div style={{
-            width: 40, height: 40, borderRadius: 11,
-            background: GREEN,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 16,
-            color: NAVY, flexShrink: 0,
-            boxShadow: "0 3px 14px rgba(0,182,122,.35)",
-          }}>ZB</div>
+          <BrandMark size={34} />
           <div>
             <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 16, lineHeight: 1.1 }}>
               <span style={{ color: CLOUD }}>Zentra</span>
