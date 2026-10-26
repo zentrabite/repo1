@@ -595,9 +595,12 @@ export default function SuperAdminPage() {
           }
           .sa-table { overflow-x: auto !important; }
           .sa-table table { min-width: 760px; }
-          .sa-main [style*="display:grid"] > * { min-width: 0; }
-          .sa-main [style*="grid-template-columns:repeat(3"] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-          .sa-main [style*="grid-template-columns:1fr 1fr"] { grid-template-columns: minmax(0, 1fr) !important; }
+          .sa-main [style*="display:grid"] > *,
+          .sa-main [style*="display: grid"] > * { min-width: 0; }
+          .sa-main [style*="repeat(3,"] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+          .sa-main [style*=":1fr 1fr;"], .sa-main [style*=": 1fr 1fr;"],
+          .sa-main [style$=":1fr 1fr"], .sa-main [style$=": 1fr 1fr"] { grid-template-columns: minmax(0, 1fr) !important; }
+          .sa-main input, .sa-main select { font-size: 16px !important; }
         }
       `}</style>
     </div>

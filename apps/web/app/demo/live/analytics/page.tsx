@@ -64,8 +64,9 @@ export default function AnalyticsPage() {
           <div style={{ padding: "14px 18px", borderBottom: "1px solid var(--mist-9)", fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 15, color: "var(--cloud)" }}>
             Top sellers · 30d
           </div>
-          {analytics.topItems30d.map((item, i) => {
-            const max = analytics.topItems30d[0]?.sold ?? 1;
+          {analytics.topItems30d.map((item, i, list) => {
+            // Ranked by revenue, so the bar shows revenue too
+            const max = Math.max(...list.map((x) => x.revenue)) || 1;
             return (
               <div key={item.name} style={{ padding: "12px 18px", borderBottom: "1px solid var(--mist-9)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6, fontSize: 13.5 }}>
@@ -80,7 +81,7 @@ export default function AnalyticsPage() {
                 <div style={{ height: 6, borderRadius: 999, background: "rgba(255,255,255,0.04)", overflow: "hidden" }}>
                   <div
                     style={{
-                      width: `${(item.sold / max) * 100}%`,
+                      width: `${(item.revenue / max) * 100}%`,
                       height: "100%",
                       background: "var(--green)",
                       borderRadius: 999,
