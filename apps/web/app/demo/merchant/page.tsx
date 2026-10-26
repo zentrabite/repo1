@@ -58,6 +58,7 @@ export default function MerchantStorefront() {
 
   return (
     <div
+      className="mh-root"
       style={{
         minHeight: "100vh",
         background: brand.cream,
@@ -65,6 +66,17 @@ export default function MerchantStorefront() {
         fontFamily: "var(--font-inter)",
       }}
     >
+      {/* The site's headings take the theme colour, which is light inside the
+          demos. This storefront is cream, so its headings use its own ink. */}
+      <style>{`.mh-root :is(h1, h2, h3, h4, h5) { color: inherit; }
+        .mh-badge-short { display: none; }
+        @media (max-width: 640px) {
+          .mh-badge-long { display: none; }
+          .mh-badge-short { display: inline; }
+          .mh-topbar { padding: 10px 16px !important; gap: 8px !important; }
+          .mh-nav { flex-wrap: nowrap !important; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; width: calc(100% + 32px); }
+          .mh-nav > button { flex-shrink: 0; }
+        }`}</style>
       <DemoBadge />
       <Topbar view={view} setView={setView} cartCount={cart.reduce((s, c) => s + c.qty, 0)} />
 
@@ -114,7 +126,9 @@ function DemoBadge() {
         zIndex: 60,
       }}
     >
-      <Icon name="storefront" size={16} accent="currentColor" style={{ marginRight: 6 }} />DEMO STOREFRONT — Harbour Lane is a fictional merchant powered by ZentraBite ·{" "}
+      <Icon name="storefront" size={16} accent="currentColor" style={{ marginRight: 6 }} />
+      <span className="mh-badge-long">DEMO STOREFRONT — Harbour Lane is a fictional merchant powered by ZentraBite ·{" "}</span>
+      <span className="mh-badge-short">Demo storefront ·{" "}</span>
       <Link href="/demo" style={{ color: "white", textDecoration: "underline" }}>
         Back to demo hub
       </Link>
@@ -140,7 +154,7 @@ function Topbar({ view, setView, cartCount }: { view: View; setView: (v: View) =
         borderBottom: `1px solid rgba(26,22,18,0.08)`,
       }}
     >
-      <div style={{ maxWidth: 1180, margin: "0 auto", padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
+      <div className="mh-topbar" style={{ maxWidth: 1180, margin: "0 auto", padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
         <button
           onClick={() => setView("home")}
           style={{ display: "flex", alignItems: "center", gap: 10, background: "none", border: "none", cursor: "pointer", color: brand.ink }}
@@ -149,7 +163,7 @@ function Topbar({ view, setView, cartCount }: { view: View; setView: (v: View) =
           <span style={{ fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 19 }}>{brand.name}</span>
         </button>
 
-        <nav style={{ display: "flex", gap: 4, alignItems: "center", flexWrap: "wrap" }}>
+        <nav className="mh-nav" style={{ display: "flex", gap: 4, alignItems: "center", flexWrap: "wrap" }}>
           {items.map((it) => {
             const on = view === it.key;
             return (
@@ -527,6 +541,7 @@ function CartView({
               {cart.map((c) => (
                 <div
                   key={c.item.id}
+                  className="mh-cart-row"
                   style={{
                     display: "grid",
                     gridTemplateColumns: "44px 1fr auto auto",
@@ -589,7 +604,8 @@ function CartView({
             </aside>
           </div>
         )}
-        <style>{`@media (max-width: 760px) { .mh-cart { grid-template-columns: 1fr !important; } }`}</style>
+        <style>{`@media (max-width: 760px) { .mh-cart { grid-template-columns: 1fr !important; } }
+          @media (max-width: 480px) { .mh-cart-row { grid-template-columns: 36px minmax(0, 1fr) auto auto !important; gap: 8px !important; padding: 12px 8px !important; } }`}</style>
       </div>
     </main>
   );

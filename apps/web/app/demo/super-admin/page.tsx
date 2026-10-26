@@ -234,7 +234,7 @@ export default function SuperAdminPage() {
               { id:"health",    label:"Platform Health", icon:"health" },
               { id:"catalogue", label:"Module Catalogue",icon:"modules" },
             ] as const).map(n => (
-              <button key={n.id} onClick={() => setScreen(n.id)} style={{ display:"flex", alignItems:"center", gap:8, width:"100%", padding:"9px 11px", borderRadius:9, marginBottom:2, border:"none", cursor:"pointer", fontSize:13, fontWeight: screen===n.id ? 600 : 400, color: screen===n.id ? G : ST, background: screen===n.id ? "rgba(0,182,122,.11)" : "transparent", borderLeft:`2px solid ${screen===n.id ? G : "transparent"}`, textAlign:"left" }}>
+              <button key={n.id} onClick={() => { setScreen(n.id); setMenuOpen(false); }} style={{ display:"flex", alignItems:"center", gap:8, width:"100%", padding:"9px 11px", borderRadius:9, marginBottom:2, border:"none", cursor:"pointer", fontSize:13, fontWeight: screen===n.id ? 600 : 400, color: screen===n.id ? G : ST, background: screen===n.id ? "rgba(0,182,122,.11)" : "transparent", borderLeft:`2px solid ${screen===n.id ? G : "transparent"}`, textAlign:"left" }}>
                 <Icon name={n.icon} size={14} />{n.label}
               </button>
             ))}
@@ -275,22 +275,26 @@ export default function SuperAdminPage() {
               </div>
 
               {/* Filters */}
-              <div style={{ display:"flex", gap:8, marginBottom:16, flexWrap:"wrap" }}>
+              <div className="sa-filters" style={{ display:"flex", gap:8, marginBottom:16, flexWrap:"wrap" }}>
                 <input
                   value={search} onChange={e => setSearch(e.target.value)}
                   placeholder="Search name or type…"
                   style={{ padding:"8px 12px", borderRadius:8, background:N40, border:`1px solid ${M9}`, color:CL, fontSize:13, width:220, maxWidth:"100%" }}
                 />
+                <div className="sa-fgroup" data-label="Plan">
                 {["All","Starter","Growth","Scale"].map(p => (
                   <button key={p} onClick={() => setPlanFilter(p)} style={{ padding:"7px 14px", borderRadius:8, border:`1px solid ${planFilter===p?"rgba(0,182,122,.4)":M9}`, background:planFilter===p?"rgba(0,182,122,.10)":N40, color:planFilter===p?G:ST, fontSize:12.5, fontWeight:planFilter===p?700:400, cursor:"pointer" }}>{p}</button>
                 ))}
+                </div>
+                <div className="sa-fgroup" data-label="Health">
                 {["All","Healthy","Warning","Critical"].map(h => {
                   const hc = h !== "All" ? HEALTH_COLORS[h as Tenant["health"]] : null;
                   return (
                     <button key={h} onClick={() => setHealthFilter(h)} style={{ padding:"7px 14px", borderRadius:8, border:`1px solid ${healthFilter===h?(hc?.color ?? G)+"66":M9}`, background:healthFilter===h?(hc?.bg ?? "rgba(0,182,122,.10)"):"transparent", color:healthFilter===h?(hc?.color ?? G):ST, fontSize:12.5, fontWeight:healthFilter===h?700:400, cursor:"pointer" }}>{h}</button>
                   );
                 })}
-                <button onClick={() => toast("Tenant created ✓ (demo only)")} style={{ marginLeft:"auto", padding:"7px 16px", borderRadius:8, background:G, border:"none", color:"var(--navy)", fontSize:12.5, fontWeight:700, cursor:"pointer" }}>+ New Tenant</button>
+                </div>
+                <button className="sa-new" onClick={() => toast("Tenant created ✓ (demo only)")} style={{ marginLeft:"auto", padding:"7px 16px", borderRadius:8, background:G, border:"none", color:"var(--navy)", fontSize:12.5, fontWeight:700, cursor:"pointer" }}>+ New Tenant</button>
               </div>
 
               {/* Table */}
@@ -346,7 +350,7 @@ export default function SuperAdminPage() {
           {/* ══ TENANT DETAIL ════════════════════════════════════════════════ */}
           {screen === "detail" && (
             <div>
-              <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
+              <div className="sa-detail-head" style={{ display:"flex", alignItems:"center", gap:12, marginBottom:20 }}>
                 <button onClick={() => setScreen("list")} style={{ padding:"6px 14px", borderRadius:8, background:N40, border:`1px solid ${M9}`, color:ST, fontSize:13, cursor:"pointer" }}>← All Tenants</button>
                 <div>
                   <h1 style={{ fontFamily:"var(--font-outfit)", fontWeight:800, fontSize:24, color:CL, margin:0 }}>{tenant.name}</h1>
@@ -575,6 +579,7 @@ export default function SuperAdminPage() {
       <style>{`
         .sa-short, .sa-menu-btn { display: none; }
         .sa-backdrop { display: none; }
+        .sa-fgroup { display: contents; }
         @media (max-width: 820px) {
           .sa-long { display: none; }
           .sa-short { display: inline; }
@@ -593,8 +598,27 @@ export default function SuperAdminPage() {
             padding: 9px 14px; border-radius: 10px; border: 1px solid var(--mist-12);
             background: var(--navy-40); color: var(--cloud); font-size: 14px; font-weight: 600; cursor: pointer;
           }
-          .sa-table { overflow-x: auto !important; }
-          .sa-table table { min-width: 760px; }
+          /* Filters: search on its own line, then one row per filter group */
+          .sa-filters input { flex-basis: 100%; width: 100% !important; }
+          .sa-fgroup { display: flex; gap: 6px; flex-basis: 100%; align-items: center; overflow-x: auto; scrollbar-width: none; }
+          .sa-fgroup::before { content: attr(data-label); flex: 0 0 52px; font-size: 11px; color: var(--steel); text-transform: uppercase; letter-spacing: .06em; }
+          .sa-new { margin-left: 0 !important; }
+          /* Tenant detail: the back button above the name */
+          .sa-detail-head { flex-direction: column; align-items: flex-start !important; }
+          .sa-detail-head > div > div { flex-wrap: wrap; }
+          /* Tenant table becomes a list of cards */
+          .sa-table thead { display: none; }
+          .sa-table table, .sa-table tbody { display: block; }
+          .sa-table tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 10px; padding: 12px 14px; align-items: center; }
+          .sa-table td { padding: 0 !important; }
+          .sa-table td:nth-child(1) { grid-column: 1; grid-row: 1; }
+          .sa-table td:nth-child(3) { grid-column: 2; grid-row: 1; justify-self: end; }
+          .sa-table td:nth-child(2) { grid-column: 1; grid-row: 2; }
+          .sa-table td:nth-child(4) { grid-column: 2; grid-row: 2; justify-self: end; }
+          .sa-table td:nth-child(6) { grid-column: 1; grid-row: 3; }
+          .sa-table td:nth-child(8) { grid-column: 2; grid-row: 3; justify-self: end; }
+          .sa-table td:nth-child(5), .sa-table td:nth-child(7) { display: none; }
+          .sa-table td[colspan] { grid-column: 1 / -1; padding: 24px !important; }
           .sa-main [style*="display:grid"] > *,
           .sa-main [style*="display: grid"] > * { min-width: 0; }
           .sa-main [style*="repeat(3,"] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }

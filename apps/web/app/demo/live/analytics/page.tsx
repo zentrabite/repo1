@@ -1,6 +1,7 @@
 "use client";
 
 import { analytics, formatAUD } from "../data";
+import { useNarrow } from "../show-on-phone";
 
 export default function AnalyticsPage() {
   const peakHour = analytics.ordersByHour.indexOf(Math.max(...analytics.ordersByHour));
@@ -201,7 +202,8 @@ export default function AnalyticsPage() {
 
 function HourlyChart({ data, peak }: { data: number[]; peak: number }) {
   const max = Math.max(...data, 1);
-  const W = 820;
+  const narrow = useNarrow();
+  const W = narrow ? 420 : 820;
   const H = 160;
   const PAD_L = 32;
   const PAD_R = 12;
@@ -212,7 +214,7 @@ function HourlyChart({ data, peak }: { data: number[]; peak: number }) {
   const barW = innerW / data.length - 4;
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: 180, display: "block" }}>
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", aspectRatio: `${W} / ${H}`, display: "block" }}>
       {data.map((n, i) => {
         const h = max === 0 ? 0 : (n / max) * innerH;
         const x = PAD_L + i * (innerW / data.length) + 2;

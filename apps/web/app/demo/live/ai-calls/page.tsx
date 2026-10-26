@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { calls, callsTodayStats, callOutcomeLabel, formatTime, formatAUD, type DemoCall } from "../data";
 import { Icon } from "../../../components/zb-icon";
+import { showOnPhone } from "../show-on-phone";
 
 function toast(text: string) {
   if (typeof document === "undefined") return;
@@ -105,7 +106,7 @@ export default function AiCallsPage() {
             return (
               <button
                 key={c.id}
-                onClick={() => setSelectedId(c.id)}
+                onClick={() => { setSelectedId(c.id); showOnPhone("call-detail"); }}
                 style={{
                   width: "100%",
                   textAlign: "left",
@@ -165,6 +166,7 @@ function CallDetail({ call }: { call: DemoCall }) {
   const o = callOutcomeLabel[call.outcome];
   return (
     <aside
+      id="call-detail"
       style={{
         borderRadius: 14,
         background: "rgba(255,255,255,0.03)",
@@ -172,6 +174,7 @@ function CallDetail({ call }: { call: DemoCall }) {
         padding: 20,
         position: "sticky",
         top: 116,
+        scrollMarginTop: 120,
         height: "fit-content",
         maxHeight: "calc(100vh - 140px)",
         overflowY: "auto",

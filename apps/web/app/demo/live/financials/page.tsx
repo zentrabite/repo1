@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { financials, formatAUD } from "../data";
 import { Icon } from "../../../components/zb-icon";
+import { useNarrow } from "../show-on-phone";
 
 type Range = "today" | "wtd" | "mtd" | "last30";
 
@@ -424,7 +425,8 @@ function RevenueChart() {
   const data = financials.daily;
   const max = Math.max(...data.map((d) => d.revenue));
   const min = Math.min(...data.map((d) => d.revenue));
-  const W = 820;
+  const narrow = useNarrow();
+  const W = narrow ? 420 : 820;
   const H = 200;
   const PAD_L = 48;
   const PAD_R = 16;
@@ -447,7 +449,7 @@ function RevenueChart() {
   const yTicks = [min * 0.9, (min + max) / 2, max];
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: 220, display: "block" }}>
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", aspectRatio: `${W} / ${H}`, display: "block" }}>
       <defs>
         <linearGradient id="rev-fin-grad" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#00B67A" stopOpacity="0.44" />

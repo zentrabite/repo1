@@ -144,6 +144,7 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => setMenuOpen(false)}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -334,9 +335,33 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
           .demo-content [style*="repeat(3,"],
           .demo-content [style*="repeat(4,"],
           .demo-content [style*="repeat(5,"],
-          .demo-content [style*="repeat(6,"] {
+          .demo-content [style*="repeat(6,"],
+          .demo-content [style*="auto-fit, minmax(1"],
+          .demo-content [style*="auto-fill, minmax(1"],
+          .demo-content [style*="auto-fit, minmax(20"],
+          .demo-content [style*="auto-fill, minmax(20"],
+          .demo-content [style*="auto-fit, minmax(22"] {
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
           }
+
+          /* Big numbers in the two-across stat cards: a bit smaller so they fit */
+          .demo-content :is([style*="repeat(3,"], [style*="repeat(4,"], [style*="repeat(5,"], [style*="repeat(6,"],
+                            [style*="auto-fit, minmax(1"], [style*="auto-fill, minmax(1"], [style*="auto-fit, minmax(22"])
+            :is([style*="font-size:2"], [style*="font-size: 2"], [style*="font-size:3"], [style*="font-size: 3"]) {
+            font-size: 22px !important;
+          }
+
+          /* A week of day cards: swipe sideways, about four on screen */
+          .demo-content [style*="repeat(7, minmax(0"],
+          .demo-content [style*="repeat(7,minmax(0"] {
+            grid-template-columns: repeat(7, 92px) !important;
+            overflow-x: auto;
+            scroll-snap-type: x proximity;
+            padding-bottom: 6px;
+            scrollbar-width: none;
+          }
+          .demo-content [style*="repeat(7, minmax(0"] > *,
+          .demo-content [style*="repeat(7,minmax(0"] > * { scroll-snap-align: start; }
 
           /* Side by side panels: one on top of the other */
           .demo-content [style*=":1fr 1fr;"],
@@ -360,27 +385,106 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
             grid-template-columns: minmax(0, 1fr) !important;
           }
 
+          /* Detail panels that sit beside a list on a computer sit under it here,
+             so they don't need to stick or scroll on their own */
+          .demo-content aside[style*="sticky"] { position: static !important; max-height: none !important; }
+
           /* Stop phones zooming in when you tap a box to type */
           .demo-content input,
           .demo-content select,
           .demo-content textarea { font-size: 16px !important; }
           .demo-content input,
-          .demo-content select { max-width: 100%; }
+          .demo-content select { max-width: 100%; min-width: 0; }
 
-          /* Wide table rows keep their columns and the list scrolls sideways */
-          .demo-content :has(> [style*="110px 110px"]),
-          .demo-content :has(> [style*="120px 100px"]),
-          .demo-content :has(> [style*="100px 90px 90px"]) {
-            overflow-x: auto !important;
-            -webkit-overflow-scrolling: touch;
+          /* Wide tables become a list of small cards. Each table is matched by its
+             column sizes. The header row goes, and each cell is placed in the card. */
+          .demo-content [style*="90px 1.3fr 1.4fr 110px"][style*="uppercase"],
+          .demo-content [style*="1.5fr 1fr 90px 110px 110px"][style*="uppercase"],
+          .demo-content [style*="1.6fr 110px 110px 110px 130px"][style*="uppercase"],
+          .demo-content [style*="1.4fr 1.6fr 80px 110px"][style*="uppercase"] { display: none !important; }
+          .demo-content [style*="90px 1.3fr 1.4fr 110px"],
+          .demo-content [style*="1.5fr 1fr 90px 110px 110px"],
+          .demo-content [style*="1.6fr 110px 110px 110px 130px"],
+          .demo-content [style*="40px 1.4fr 1.2fr 120px"],
+          .demo-content [style*="1.4fr 1.6fr 80px 110px"],
+          .demo-content [style*="1fr 110px 110px 90px"] {
+            min-width: 0 !important;
+            row-gap: 8px !important;
+            column-gap: 10px !important;
           }
-          .demo-content [style*="110px 110px"] { min-width: 780px; }
-          .demo-content [style*="1.5fr 1fr 90px 110px"] { min-width: 840px; }
-          .demo-content [style*="90px 1.3fr 1.4fr"] { min-width: 880px; }
-          .demo-content [style*="1.4fr 1.6fr 80px"] { min-width: 1000px; }
-          .demo-content [style*="1fr 110px 110px 90px"] { min-width: 520px; }
-          .demo-content [style*="120px 100px"] { min-width: 680px; }
-          .demo-content [style*="100px 90px 90px"] { min-width: 540px; }
+          .demo-content [style*="1.5fr 1fr 90px 110px 110px"] > :nth-child(6)::before,
+          .demo-content [style*="1.6fr 110px 110px 110px 130px"] > :nth-child(3)::before,
+          .demo-content [style*="1.6fr 110px 110px 110px 130px"] > :nth-child(4)::before,
+          .demo-content [style*="1.4fr 1.6fr 80px 110px"] > :nth-child(4)::before,
+          .demo-content [style*="1.4fr 1.6fr 80px 110px"] > :nth-child(5)::before,
+          .demo-content [style*="1.4fr 1.6fr 80px 110px"] > :nth-child(6)::before {
+            font-size: 11px; color: var(--steel); font-weight: 500; margin-right: 4px;
+            font-family: var(--font-inter);
+          }
+
+          /* Orders: customer and total, then the items, then order number, channel and status */
+          .demo-content [style*="90px 1.3fr 1.4fr 110px"] { grid-template-columns: auto auto minmax(0, 1fr) auto !important; }
+          .demo-content [style*="90px 1.3fr 1.4fr 110px"] > :nth-child(2) { grid-column: 1 / 4; grid-row: 1; }
+          .demo-content [style*="90px 1.3fr 1.4fr 110px"] > :nth-child(5) { grid-column: 4; grid-row: 1; }
+          .demo-content [style*="90px 1.3fr 1.4fr 110px"] > :nth-child(3) { grid-column: 1 / 5; grid-row: 2; }
+          .demo-content [style*="90px 1.3fr 1.4fr 110px"] > :nth-child(1) { grid-column: 1; grid-row: 3; }
+          .demo-content [style*="90px 1.3fr 1.4fr 110px"] > :nth-child(4) { grid-column: 2; grid-row: 3; color: var(--steel) !important; }
+          .demo-content [style*="90px 1.3fr 1.4fr 110px"] > :nth-child(6) { display: none; }
+          .demo-content [style*="90px 1.3fr 1.4fr 110px"] > :nth-child(7) { grid-column: 4; grid-row: 3; justify-self: end; }
+
+          /* Customers: name and tier, contact details, then spend, orders, last order and status */
+          .demo-content [style*="1.5fr 1fr 90px 110px 110px"] { grid-template-columns: auto auto minmax(0, 1fr) auto !important; }
+          .demo-content [style*="1.5fr 1fr 90px 110px 110px"] > :nth-child(1) { grid-column: 1 / 4; grid-row: 1; }
+          .demo-content [style*="1.5fr 1fr 90px 110px 110px"] > :nth-child(3) { grid-column: 4; grid-row: 1; justify-self: end; }
+          .demo-content [style*="1.5fr 1fr 90px 110px 110px"] > :nth-child(2) { grid-column: 1 / 5; grid-row: 2; padding-left: 44px; overflow-wrap: anywhere; }
+          .demo-content [style*="1.5fr 1fr 90px 110px 110px"] > :nth-child(4) { grid-column: 1; grid-row: 3; text-align: left !important; padding-left: 44px; }
+          .demo-content [style*="1.5fr 1fr 90px 110px 110px"] > :nth-child(5) { grid-column: 2; grid-row: 3; text-align: left !important; }
+          .demo-content [style*="1.5fr 1fr 90px 110px 110px"] > :nth-child(5)::after { content: " orders"; font-size: 11px; color: var(--steel); }
+          .demo-content [style*="1.5fr 1fr 90px 110px 110px"] > :nth-child(6) { grid-column: 3; grid-row: 3; }
+          .demo-content [style*="1.5fr 1fr 90px 110px 110px"] > :nth-child(6)::before { content: "Last"; }
+          .demo-content [style*="1.5fr 1fr 90px 110px 110px"] > :nth-child(7) { grid-column: 4; grid-row: 3; justify-self: end; }
+
+          /* Win-back campaigns: name and status, then channel, sent, recovered and revenue */
+          .demo-content [style*="1.6fr 110px 110px 110px 130px"] { grid-template-columns: auto auto minmax(0, 1fr) auto !important; align-items: start !important; }
+          .demo-content [style*="1.6fr 110px 110px 110px 130px"] > :nth-child(1) { grid-column: 1 / 4; grid-row: 1; }
+          .demo-content [style*="1.6fr 110px 110px 110px 130px"] > :nth-child(6) { grid-column: 4; grid-row: 1; }
+          .demo-content [style*="1.6fr 110px 110px 110px 130px"] > :nth-child(2) { grid-column: 1; grid-row: 2; }
+          .demo-content [style*="1.6fr 110px 110px 110px 130px"] > :nth-child(3) { grid-column: 2; grid-row: 2; }
+          .demo-content [style*="1.6fr 110px 110px 110px 130px"] > :nth-child(3)::before { content: "Sent"; }
+          .demo-content [style*="1.6fr 110px 110px 110px 130px"] > :nth-child(4) { grid-column: 3; grid-row: 2; }
+          .demo-content [style*="1.6fr 110px 110px 110px 130px"] > :nth-child(4)::before { content: "Back"; }
+          .demo-content [style*="1.6fr 110px 110px 110px 130px"] > :nth-child(5) { grid-column: 4; grid-row: 2; text-align: right; }
+
+          /* Active deliveries: driver and status, then the order and ETA */
+          .demo-content [style*="40px 1.4fr 1.2fr 120px"] { grid-template-columns: 40px minmax(0, 1fr) auto !important; }
+          .demo-content [style*="40px 1.4fr 1.2fr 120px"] > :nth-child(1) { grid-column: 1; grid-row: 1 / 3; align-self: start; }
+          .demo-content [style*="40px 1.4fr 1.2fr 120px"] > :nth-child(2) { grid-column: 2; grid-row: 1; }
+          .demo-content [style*="40px 1.4fr 1.2fr 120px"] > :nth-child(4) { grid-column: 3; grid-row: 1; justify-self: end; }
+          .demo-content [style*="40px 1.4fr 1.2fr 120px"] > :nth-child(3) { grid-column: 2; grid-row: 2; }
+          .demo-content [style*="40px 1.4fr 1.2fr 120px"] > :nth-child(5) { grid-column: 3; grid-row: 2; justify-self: end; }
+          .demo-content [style*="40px 1.4fr 1.2fr 120px"] > :nth-child(6) { grid-column: 3; grid-row: 3; }
+
+          /* Recent delivery jobs: provider and status, address, then tier, cost, fee and margin */
+          .demo-content [style*="1.4fr 1.6fr 80px 110px"] { grid-template-columns: auto auto auto minmax(0, 1fr) !important; }
+          .demo-content [style*="1.4fr 1.6fr 80px 110px"] > :nth-child(1) { grid-column: 1 / 3; grid-row: 1; }
+          .demo-content [style*="1.4fr 1.6fr 80px 110px"] > :nth-child(8) { grid-column: 3 / 5; grid-row: 1; justify-self: end; }
+          .demo-content [style*="1.4fr 1.6fr 80px 110px"] > :nth-child(2) { grid-column: 1 / 5; grid-row: 2; }
+          .demo-content [style*="1.4fr 1.6fr 80px 110px"] > :nth-child(3) { grid-column: 1; grid-row: 3; }
+          .demo-content [style*="1.4fr 1.6fr 80px 110px"] > :nth-child(4) { grid-column: 2; grid-row: 3; text-align: left !important; }
+          .demo-content [style*="1.4fr 1.6fr 80px 110px"] > :nth-child(4)::before { content: "Cost"; }
+          .demo-content [style*="1.4fr 1.6fr 80px 110px"] > :nth-child(5) { grid-column: 3; grid-row: 3; text-align: left !important; }
+          .demo-content [style*="1.4fr 1.6fr 80px 110px"] > :nth-child(5)::before { content: "Fee"; }
+          .demo-content [style*="1.4fr 1.6fr 80px 110px"] > :nth-child(6) { grid-column: 4; grid-row: 3; text-align: right !important; }
+          .demo-content [style*="1.4fr 1.6fr 80px 110px"] > :nth-child(6)::before { content: "Margin"; }
+          .demo-content [style*="1.4fr 1.6fr 80px 110px"] > :nth-child(7),
+          .demo-content [style*="1.4fr 1.6fr 80px 110px"] > :nth-child(9) { display: none; }
+
+          /* Stock: item and status, then on hand and the suggested order */
+          .demo-content [style*="1fr 110px 110px 90px"] { grid-template-columns: minmax(0, 1fr) auto !important; }
+          .demo-content [style*="1fr 110px 110px 90px"] > :nth-child(1) { grid-column: 1; grid-row: 1; }
+          .demo-content [style*="1fr 110px 110px 90px"] > :nth-child(4) { grid-column: 2; grid-row: 1; align-self: start; }
+          .demo-content [style*="1fr 110px 110px 90px"] > :nth-child(2) { grid-column: 1; grid-row: 2; text-align: left !important; display: flex; gap: 8px; align-items: baseline; }
+          .demo-content [style*="1fr 110px 110px 90px"] > :nth-child(3) { grid-column: 2; grid-row: 2; }
 
           /* Short list rows (orders, calls, rewards): drop the middle column */
           .demo-content [style*="60px 1fr 90px 110px"],
