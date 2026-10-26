@@ -5,7 +5,7 @@
 // Shows: tenant list → tenant detail (3 tabs) → platform health.
 // All data is fake. Nothing is saved or sent.
 
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { Icon, type IconName } from "../../components/zb-icon";
 
@@ -151,6 +151,16 @@ export default function SuperAdminPage() {
   const totalMrr   = tenants.reduce((s, t) => s + t.mrr, 0);
   const totalOrders = tenants.reduce((s, t) => s + t.orders30d, 0);
 
+  // Phone menu. The sidebar slides in from the left under 820px wide.
+  const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => setMenuOpen(false), [screen]);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setMenuOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
+
   const openDetail = (id: string) => { setDetailId(id); setDetailTab("modules"); setScreen("detail"); };
 
   const toggleModule = (key: string) => {
@@ -179,17 +189,18 @@ export default function SuperAdminPage() {
       <div style={{ position:"fixed", top:0, left:0, right:0, zIndex:60, background:"linear-gradient(90deg,rgba(201,162,74,.94),rgba(255,150,75,.94))", color:"white", padding:"8px 16px", fontSize:13, fontWeight:600, display:"flex", alignItems:"center", justifyContent:"space-between", gap:12 }}>
         <div style={{ display:"flex", alignItems:"center", gap:10 }}>
           <span style={{ display:"inline-block", width:8, height:8, borderRadius:999, background:"white" }} aria-hidden />
-          SUPER ADMIN DEMO — Read-only view. Module toggles reset on page reload.
+          <span className="sa-long">Super admin demo. Read-only view. Module switches reset when you reload.</span>
+          <span className="sa-short">Super admin demo</span>
         </div>
-        <Link href="/" style={{ color:"white", fontWeight:600, fontSize:12.5, padding:"4px 12px", borderRadius:8, background:"rgba(0,0,0,.18)", textDecoration:"none" }}>
-          ← Back to site
+        <Link href="/" style={{ color:"white", fontWeight:600, fontSize:12.5, padding:"4px 12px", borderRadius:8, background:"rgba(0,0,0,.18)", textDecoration:"none", whiteSpace:"nowrap" }}>
+          ← <span className="sa-long">Back to site</span><span className="sa-short">Site</span>
         </Link>
       </div>
 
       <div style={{ display:"flex", paddingTop:40, minHeight:"100vh" }}>
 
         {/* ── Left sidebar ── */}
-        <aside style={{ width:220, background:"rgba(15,25,42,.96)", borderRight:`1px solid ${M9}`, position:"fixed", top:40, bottom:0, display:"flex", flexDirection:"column", zIndex:40 }}>
+        <aside id="sa-sidebar" aria-label="Admin menu" className={`sa-sidebar${menuOpen ? " open" : ""}`} style={{ width:220, background:"rgba(15,25,42,.96)", borderRight:`1px solid ${M9}`, position:"fixed", top:40, bottom:0, display:"flex", flexDirection:"column", zIndex:40 }}>
           {/* Brand */}
           <div style={{ padding:"18px 16px 14px", borderBottom:`1px solid ${M9}` }}>
             <div style={{ display:"flex", alignItems:"center", gap:8 }}>
@@ -237,8 +248,23 @@ export default function SuperAdminPage() {
           </div>
         </aside>
 
+        {menuOpen && <div className="sa-backdrop" onClick={() => setMenuOpen(false)} aria-hidden />}
+
         {/* ── Main content ── */}
-        <main style={{ marginLeft:220, flex:1, padding:"28px 32px", maxWidth:"calc(100vw - 220px)" }}>
+        <main className="sa-main" style={{ marginLeft:220, flex:1, padding:"28px 32px", maxWidth:"calc(100vw - 220px)" }}>
+          <button
+            type="button"
+            className="sa-menu-btn"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            aria-controls="sa-sidebar"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+            Menu
+          </button>
 
           {/* ══ TENANT LIST ══════════════════════════════════════════════════ */}
           {screen === "list" && (
@@ -253,7 +279,7 @@ export default function SuperAdminPage() {
                 <input
                   value={search} onChange={e => setSearch(e.target.value)}
                   placeholder="Search name or type…"
-                  style={{ padding:"8px 12px", borderRadius:8, background:N40, border:`1px solid ${M9}`, color:CL, fontSize:13, width:220 }}
+                  style={{ padding:"8px 12px", borderRadius:8, background:N40, border:`1px solid ${M9}`, color:CL, fontSize:13, width:220, maxWidth:"100%" }}
                 />
                 {["All","Starter","Growth","Scale"].map(p => (
                   <button key={p} onClick={() => setPlanFilter(p)} style={{ padding:"7px 14px", borderRadius:8, border:`1px solid ${planFilter===p?"rgba(0,182,122,.4)":M9}`, background:planFilter===p?"rgba(0,182,122,.10)":N40, color:planFilter===p?G:ST, fontSize:12.5, fontWeight:planFilter===p?700:400, cursor:"pointer" }}>{p}</button>
@@ -268,7 +294,7 @@ export default function SuperAdminPage() {
               </div>
 
               {/* Table */}
-              <div style={{ borderRadius:14, overflow:"hidden", border:`1px solid ${M9}` }}>
+              <div className="sa-table" style={{ borderRadius:14, overflow:"hidden", border:`1px solid ${M9}` }}>
                 <table style={{ width:"100%", borderCollapse:"collapse" }}>
                   <thead>
                     <tr style={{ borderBottom:`1px solid ${M9}` }}>
@@ -545,6 +571,35 @@ export default function SuperAdminPage() {
           )}
         </main>
       </div>
+
+      <style>{`
+        .sa-short, .sa-menu-btn { display: none; }
+        .sa-backdrop { display: none; }
+        @media (max-width: 820px) {
+          .sa-long { display: none; }
+          .sa-short { display: inline; }
+          .sa-sidebar {
+            transform: translateX(-100%);
+            transition: transform .25s ease;
+            z-index: 70 !important;
+            width: min(280px, 82vw) !important;
+            background: rgba(15,25,42,0.98) !important;
+          }
+          .sa-sidebar.open { transform: none; }
+          .sa-backdrop { display: block; position: fixed; inset: 40px 0 0 0; z-index: 65; background: rgba(4,10,18,0.6); }
+          .sa-main { margin-left: 0 !important; max-width: 100vw !important; padding: 16px !important; min-width: 0; }
+          .sa-menu-btn {
+            display: inline-flex; align-items: center; gap: 8px; margin-bottom: 16px;
+            padding: 9px 14px; border-radius: 10px; border: 1px solid var(--mist-12);
+            background: var(--navy-40); color: var(--cloud); font-size: 14px; font-weight: 600; cursor: pointer;
+          }
+          .sa-table { overflow-x: auto !important; }
+          .sa-table table { min-width: 760px; }
+          .sa-main [style*="display:grid"] > * { min-width: 0; }
+          .sa-main [style*="grid-template-columns:repeat(3"] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+          .sa-main [style*="grid-template-columns:1fr 1fr"] { grid-template-columns: minmax(0, 1fr) !important; }
+        }
+      `}</style>
     </div>
   );
 }

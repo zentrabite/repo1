@@ -137,9 +137,9 @@ export default function CustomerApp() {
   const cartCount = cart.reduce((s, l) => s + l.qty, 0);
 
   return (
-    <div style={pageShell}>
+    <div style={pageShell} className="app-shell">
       {/* Desktop backdrop */}
-      <div style={desktopInfo}>
+      <div style={desktopInfo} className="app-info">
         <div style={desktopInfoBadge}><Icon name="smartphone" size={14} accent={ORANGE} style={{ marginRight: 6 }} />Customer app preview</div>
         <h1 style={desktopTitle}>The {brand.name} app</h1>
         <p style={desktopSub}>
@@ -154,9 +154,9 @@ export default function CustomerApp() {
       </div>
 
       {/* Phone frame */}
-      <div style={phoneFrame}>
-        <div style={phoneNotch} />
-        <div style={phoneScreen}>
+      <div style={phoneFrame} className="app-frame">
+        <div style={phoneNotch} className="app-notch" />
+        <div style={phoneScreen} className="app-screen">
           <StatusBar />
           <div style={appBody}>
             {tab === "home" && (
@@ -228,6 +228,24 @@ export default function CustomerApp() {
           ZentraBite
         </Link>
       </div>
+
+      {/* On a real phone, drop the drawn phone and fill the screen */}
+      <style>{`
+        @media (max-width: 500px) {
+          .app-shell { padding: 20px 0 32px !important; gap: 20px !important; }
+          .app-info { padding: 0 16px; }
+          .app-frame {
+            width: 100% !important;
+            height: calc(100svh - 40px) !important;
+            min-height: 560px;
+            border-radius: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+          }
+          .app-screen { border-radius: 0 !important; }
+          .app-notch { display: none; }
+        }
+      `}</style>
     </div>
   );
 }
