@@ -602,6 +602,208 @@ export const features: Feature[] = [
       "Any business that counts stock on paper or in a spreadsheet. That means kitchens like pizza shops, burger bars and cafés, and shops and salons that sell products. If you've ever sold something you didn't have, this is for you.",
     relatedSlugs: ["pos", "live-orders", "financial-reporting"],
   },
+  {
+    slug: "reviews",
+    icon: "reviews",
+    title: "Reviews",
+    tagline: "Every review in one list, with a reply box and a nudge for happy customers to leave one.",
+    summary:
+      "See your reviews in one place, reply to them and mark them handled. After an order or booking, happy customers get asked to leave a review.",
+    eyebrow: "Growth",
+    overview: [
+      "Reviews decide a lot of first visits. ZentraBite keeps yours in one list next to the customer who left them, so you can see what people are saying and answer quickly.",
+      "Reply from the same screen, or mark a review as handled if it doesn't need a reply. A few days after an order or booking, customers can get a text or email asking how it went, with a link to leave a review.",
+    ],
+    howItWorks: [
+      {
+        title: "Reviews land in one list",
+        body: "New reviews show up with the customer's name, the rating and what they wrote. Search by name or by what was said.",
+      },
+      {
+        title: "Reply or mark it handled",
+        body: "Write a reply in the box under the review. If there's nothing to say, mark it handled so the list stays tidy.",
+      },
+      {
+        title: "Ask for the next one",
+        body: "Switch on a review request and customers get a short text or email after their order or booking, with a link straight to the review page.",
+      },
+    ],
+    bullets: [
+      "All your reviews in one list",
+      "Search by customer or by what they wrote",
+      "Reply from the same screen",
+      "Mark reviews as handled",
+      "Review requests by text or email after an order or booking",
+      "You choose how many days after to send the request",
+    ],
+    whoItsFor:
+      "Any business that lives on word of mouth. Cafés, restaurants and takeaways, and salons, barbers, gyms and trades where a good review is often what wins the next customer.",
+    relatedSlugs: ["sms-email", "crm", "automations"],
+  },
+  {
+    slug: "ai-calls",
+    icon: "ai-calls",
+    title: "AI phone calls",
+    tagline: "An AI assistant that picks up the phone when you can't, takes orders and bookings, and can call back regulars.",
+    summary:
+      "An AI assistant answers your phone after hours or when the line is busy. It can take orders and bookings, answer common questions and hand over to a person.",
+    eyebrow: "Channels",
+    overview: [
+      "A missed call is often a missed sale. The AI assistant answers when you're closed, when the line is busy, or every time, depending on how you set it up.",
+      "It knows your hours, menu or services and anything else you add to its notes. It can take an order or a booking, answer questions like \"are you open on Monday\", and pass the caller to a person when it should. It can also ring regulars who've gone quiet, if you switch that on.",
+    ],
+    howItWorks: [
+      {
+        title: "Choose when it answers",
+        body: "Every call, only after hours, or only when the line is busy. When it's off, calls ring through as normal.",
+      },
+      {
+        title: "Give it the details",
+        body: "Pick a voice and a greeting, and add notes about your business. Your hours, menu or services come in from ZentraBite.",
+      },
+      {
+        title: "It takes the call",
+        body: "The caller can place an order, make a booking or ask a question. Orders and bookings land in ZentraBite like any other.",
+      },
+      {
+        title: "You see every call",
+        body: "Each call is logged with what happened, so you can check how it went.",
+      },
+    ],
+    bullets: [
+      "Answers every call, after hours only, or when the line is busy",
+      "Takes orders and bookings",
+      "Answers questions about your hours, menu or services",
+      "Australian voice options and your own greeting",
+      "Hands the caller over to a person when needed",
+      "Can call regulars who've gone quiet, if you switch it on",
+      "A log of every call",
+    ],
+    whoItsFor:
+      "Busy places where the phone rings while everyone's flat out, like takeaways at dinner time. Also salons, barbers and trades who can't answer while they're with a customer.",
+    relatedSlugs: ["live-orders", "crm", "winback"],
+  },
+  {
+    slug: "automations",
+    icon: "automations",
+    title: "Automations",
+    tagline: "Set a rule once, like a thank you after a first order, and ZentraBite sends it every time.",
+    summary:
+      "Rules that send the right text or email at the right time. A thank you after a first order, a birthday offer, or a nudge when a regular goes quiet.",
+    eyebrow: "Growth",
+    overview: [
+      "Most small businesses mean to follow up with customers and never get the time. Automations do it for you.",
+      "Each rule has a trigger, a wait, a message and an optional offer. ZentraBite checks every day who it applies to and sends it. It won't send the same customer the same offer again until the cooldown you set has passed, and it only texts customers who've agreed to hear from you.",
+    ],
+    howItWorks: [
+      {
+        title: "Pick a trigger",
+        body: "A first order, a birthday, a set number of days since the last visit, or a new review.",
+      },
+      {
+        title: "Write the message",
+        body: "Start from a template and change the words. Add the customer's name, your business name, an offer and a link.",
+      },
+      {
+        title: "Set the timing",
+        body: "Choose how long to wait and how long before the same customer can get it again.",
+      },
+      {
+        title: "See what it brought in",
+        body: "Each rule shows how many messages went out and how many customers came back after it.",
+      },
+    ],
+    bullets: [
+      "Rules for first orders, birthdays, quiet regulars and reviews",
+      "Text or email",
+      "Your own wording, with the customer's name filled in",
+      "Optional dollar or percentage offer",
+      "Cooldown so nobody gets the same offer twice in a row",
+      "Only sends to customers who've agreed to marketing",
+      "Sent, converted and conversion rate for every rule",
+    ],
+    whoItsFor:
+      "Any business with regulars. A café can thank first-time customers, a barber can remind clients when they're due for a cut, and a gym can check in on members who've stopped coming.",
+    relatedSlugs: ["winback", "sms-email", "crm"],
+  },
+  {
+    slug: "rostering",
+    icon: "rostering",
+    title: "Rostering",
+    tagline: "Plan the week's shifts next to your sales, and see the hours and labour cost as you go.",
+    summary:
+      "Plan staff shifts in the same place as your orders and bookings. See total hours and labour cost for the week as you build the roster.",
+    eyebrow: "Operations",
+    overview: [
+      "Rostering usually lives in a spreadsheet or a separate app. In ZentraBite it sits next to your sales, so you can see which days are busy while you plan.",
+      "Add your staff with their hourly rate, drop shifts into the week and the totals update. Suggestions based on your busy times help you put people where they're needed.",
+    ],
+    howItWorks: [
+      {
+        title: "Add your staff",
+        body: "Enter each person's name and, if you like, their hourly rate.",
+      },
+      {
+        title: "Build the week",
+        body: "Add shifts for each day. Click a shift to change it.",
+      },
+      {
+        title: "Check the numbers",
+        body: "See shifts this week, total hours, labour cost and shifts per day as you go.",
+      },
+      {
+        title: "Use the suggestions",
+        body: "ZentraBite looks at your busy times and suggests where more or fewer people would help.",
+      },
+    ],
+    bullets: [
+      "Weekly roster for every staff member",
+      "Hourly rates and labour cost for the week",
+      "Total hours and shifts per day",
+      "Suggestions based on your sales",
+      "Export hours for your payroll",
+    ],
+    whoItsFor:
+      "Businesses with a small team on shifts. Cafés, restaurants, takeaways and shops, and salons or gyms with staff across the week.",
+    relatedSlugs: ["financial-reporting", "live-orders", "pos"],
+  },
+  {
+    slug: "ai-assistant",
+    icon: "copilot",
+    title: "AI assistant",
+    tagline: "Ask about your own business in plain English and get an answer from your real numbers.",
+    summary:
+      "Ask questions like \"who hasn't been in for a month?\" or \"what sold best last weekend?\" and get an answer from your own sales and customers.",
+    eyebrow: "Insights",
+    overview: [
+      "Reports are useful when you have time to read them. The AI assistant lets you just ask.",
+      "It reads your orders, customers, stock and sales inside ZentraBite and answers in plain English. It can also suggest what to do next, like which customers to send an offer to, and draft the message for you to check.",
+    ],
+    howItWorks: [
+      {
+        title: "Ask a question",
+        body: "Type it the way you'd ask a person. Who are my best customers this month? Which items aren't selling?",
+      },
+      {
+        title: "It checks your data",
+        body: "The assistant looks at your own orders, customers and stock in ZentraBite. It only sees your business.",
+      },
+      {
+        title: "Get an answer and a next step",
+        body: "You get a short answer with the numbers behind it, and a suggestion if there's something worth doing.",
+      },
+    ],
+    bullets: [
+      "Questions in plain English",
+      "Answers from your own orders, customers and stock",
+      "Suggestions for what to do next",
+      "Drafts messages and offers for you to check",
+      "Only ever sees your business's data",
+    ],
+    whoItsFor:
+      "Owners who want answers without digging through reports. It works the same for a café, a shop, a salon or a trade business.",
+    relatedSlugs: ["financial-reporting", "crm", "automations"],
+  },
 ];
 
 export function getFeature(slug: string): Feature | undefined {

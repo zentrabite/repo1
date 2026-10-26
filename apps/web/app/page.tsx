@@ -3,8 +3,9 @@ import { Nav } from "./components/nav";
 import { Footer } from "./components/footer";
 import { FAQ } from "./components/faq";
 import { CTABanner } from "./components/cta-banner";
-import { CrmMock } from "./components/crm-mock";
+import { HeroStory } from "./components/hero-story";
 import { AiChat } from "./components/ai-chat";
+import { FeatureExplorer } from "./components/feature-explorer";
 import { Icon, type IconName } from "./components/zb-icon";
 
 // Marketing homepage. Seven sections, each with one job:
@@ -72,51 +73,6 @@ const WHO: { icon: IconName; title: string; types: string; body: string }[] = [
   },
 ];
 
-type Mod = { name: string; desc: string; href?: string };
-const MODULES: { title: string; note: string; items: Mod[] }[] = [
-  {
-    title: "Win customers",
-    note: "Get found and take orders or bookings direct.",
-    items: [
-      { name: "Website", desc: "Your own site, filled in from your current one.", href: "/features/custom-website" },
-      { name: "Online ordering", desc: "Your menu or products, with card payments.", href: "/features/storefronts" },
-      { name: "Reviews", desc: "Your reviews in one place, with review requests after each order." },
-      { name: "AI phone calls", desc: "Answers calls and can ring customers who've gone quiet." },
-    ],
-  },
-  {
-    title: "Keep them coming back",
-    note: "Know who your regulars are and look after them.",
-    items: [
-      { name: "Customer list", desc: "Every customer with their history and how often they come in.", href: "/features/crm" },
-      { name: "Rewards", desc: "Points per dollar, Bronze, Silver and Gold tiers, birthday bonuses.", href: "/features/winback" },
-      { name: "Win-back texts and emails", desc: "Sent when a regular stops coming in.", href: "/features/sms-email" },
-      { name: "Automations", desc: "Your own rules, like a thank you after a first order." },
-    ],
-  },
-  {
-    title: "Run the day",
-    note: "Turn on the parts your business needs.",
-    items: [
-      { name: "Orders", desc: "One live board for every order, wherever it came from.", href: "/features/live-orders" },
-      { name: "POS", desc: "Take payments at the counter on the same system.", href: "/features/pos" },
-      { name: "Menu and stock", desc: "Items, options, stock levels and reorder suggestions.", href: "/features/stock-take" },
-      { name: "Delivery", desc: "Your own drivers, or the best courier for each order.", href: "/features/delivery-routing" },
-      { name: "Shipping", desc: "Pick, pack and track orders that go in the post.", href: "/features/fulfillment" },
-      { name: "Rostering", desc: "Staff shifts in the same place as everything else." },
-    ],
-  },
-  {
-    title: "Know your numbers",
-    note: "See what's working and what isn't.",
-    items: [
-      { name: "Payments", desc: "Stripe pays into your own bank account.", href: "/features/stripe-payouts" },
-      { name: "Reports", desc: "Sales, GST and exports for Xero or your accountant.", href: "/features/financial-reporting" },
-      { name: "AI assistant", desc: "Ask about your own sales and customers in plain English." },
-    ],
-  },
-];
-
 export default function Home() {
   return (
     <>
@@ -143,7 +99,7 @@ export default function Home() {
                 Built in Adelaide for cafés, restaurants, shops, salons, gyms and trades. Launching soon.
               </p>
             </div>
-            <CrmMock />
+            <HeroStory />
           </div>
         </section>
 
@@ -238,32 +194,11 @@ export default function Home() {
               <span className="label">What&apos;s inside</span>
               <h2 className="h-section">Switch on only what you use.</h2>
               <p className="lead">
-                Every part shares the same customer list. An order, a booking, a reward and a text all know who the
-                customer is.
+                Every part shares the same customer list, so an order, a booking, a reward and a text all know who the
+                customer is. Pick a part to see how it works.
               </p>
             </div>
-            <div className="cols-2" style={{ rowGap: 56 }}>
-              {MODULES.map((g) => (
-                <div key={g.title} className="module-group">
-                  <h3>{g.title}</h3>
-                  <p className="group-note">{g.note}</p>
-                  <ul className="module-list">
-                    {g.items.map((m) => (
-                      <li key={m.name}>
-                        {m.href ? (
-                          <Link href={m.href} className="m-name">
-                            {m.name}
-                          </Link>
-                        ) : (
-                          <span className="m-name">{m.name}</span>
-                        )}
-                        <span className="m-desc">{m.desc}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
+            <FeatureExplorer />
           </div>
         </section>
 

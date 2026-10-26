@@ -1,7 +1,14 @@
 import { Icon, type IconName } from "./zb-icon";
 
-// A drawing of the CRM's Customers page for the homepage hero. Made-up data
-// for a made-up pizzeria. Styles are .mock* in globals.css.
+// A drawing of the CRM's Customers page for the homepage hero, with made-up
+// data for a made-up pizzeria. `stage` drives the win-back story played by
+// HeroStory. Styles are .mock* in globals.css.
+//
+// 0  normal list
+// 1  James has gone quiet
+// 2  a win-back text is ready
+// 3  the text has been sent
+// 4  James ordered again
 
 const NAV: { icon: IconName; label: string; on?: boolean }[] = [
   { icon: "dashboard", label: "Dashboard" },
@@ -12,20 +19,30 @@ const NAV: { icon: IconName; label: string; on?: boolean }[] = [
   { icon: "analytics", label: "Analytics" },
 ];
 
-const ROWS: { name: string; visits: string; last: string; status: "active" | "lapsing" | "lapsed"; label: string }[] = [
+type Status = "active" | "lapsing" | "lapsed" | "back";
+type Row = { name: string; visits: string; last: string; status: Status; label: string };
+
+const BASE: Row[] = [
   { name: "Olivia M.", visits: "23 orders", last: "4 days ago", status: "active", label: "Regular" },
-  { name: "James K.", visits: "11 orders", last: "19 days ago", status: "lapsing", label: "Going quiet" },
+  { name: "James K.", visits: "11 orders", last: "19 days ago", status: "active", label: "Regular" },
   { name: "Priya S.", visits: "31 orders", last: "26 days ago", status: "lapsing", label: "Going quiet" },
   { name: "Nathan C.", visits: "6 orders", last: "2 months ago", status: "lapsed", label: "Lapsed" },
 ];
 
-export function CrmMock() {
+function rowsFor(stage: number): Row[] {
+  return BASE.map((r) => {
+    if (r.name !== "James K.") return r;
+    if (stage >= 4) return { ...r, visits: "12 orders", last: "Just now", status: "back", label: "Came back" };
+    if (stage >= 1) return { ...r, status: "lapsing", label: "Going quiet" };
+    return r;
+  });
+}
+
+export function CrmMock({ stage = 0 }: { stage?: number }) {
+  const rows = rowsFor(stage);
+  const quiet = stage >= 1 && stage < 4 ? 14 : 13;
   return (
-    <div
-      className="mock"
-      role="img"
-      aria-label="The ZentraBite CRM showing a customer list. Two regulars are marked as going quiet and a win-back text is ready to send."
-    >
+    <div className="mock" aria-hidden>
       <div className="mock-bar">
         <div className="mock-url">dashboard.zentrabite.com</div>
       </div>
@@ -53,9 +70,9 @@ export function CrmMock() {
               <span style={{ color: "var(--m-text-3)", fontSize: 12 }}>Regulars</span>
               <b>186</b>
             </div>
-            <div className="mock-stat">
+            <div className={`mock-stat${stage >= 1 && stage < 4 ? " bump" : ""}`}>
               <span style={{ color: "var(--m-text-3)", fontSize: 12 }}>Going quiet</span>
-              <b style={{ color: "#ff9a70" }}>14</b>
+              <b style={{ color: "#ff9a70" }}>{quiet}</b>
             </div>
             <div className="mock-stat">
               <span style={{ color: "var(--m-text-3)", fontSize: 12 }}>Birthdays</span>
@@ -68,8 +85,11 @@ export function CrmMock() {
               <span>Last order</span>
               <span>Status</span>
             </div>
-            {ROWS.map((r) => (
-              <div key={r.name} className="mock-row">
+            {rows.map((r) => (
+              <div
+                key={r.name}
+                className={`mock-row${r.name === "James K." && stage >= 1 ? " focus" : ""}`}
+              >
                 <span>
                   <span style={{ fontWeight: 600, display: "block" }}>{r.name}</span>
                   <span className="sub">{r.visits}</span>
@@ -79,12 +99,12 @@ export function CrmMock() {
               </div>
             ))}
           </div>
-          <div className="mock-callout">
+          <div className={`mock-callout${stage >= 2 ? " show" : ""}`}>
             <div>
-              <div style={{ fontWeight: 600 }}>Win-back text ready</div>
-              <span>14 regulars, sending Thursday at 4pm</span>
+              <div style={{ fontWeight: 600 }}>{stage >= 3 ? "Win-back text sent" : "Win-back text ready"}</div>
+              <span>{stage >= 3 ? "James K. and 13 other regulars" : "14 regulars who've gone quiet"}</span>
             </div>
-            <div className="mock-btn">Review</div>
+            <div className={`mock-btn${stage >= 3 ? " done" : ""}`}>{stage >= 3 ? "Sent ✓" : "Send"}</div>
           </div>
         </div>
       </div>
