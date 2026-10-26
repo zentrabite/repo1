@@ -340,7 +340,7 @@ function RevenueChart() {
   const area = `${path} L${w},${h} L0,${h} Z`;
 
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} style={{ width: "100%", height: 140, display: "block" }}>
+    <svg viewBox={`0 0 ${w} ${h}`} style={{ width: "100%", height: 140, display: "block", overflow: "visible" }}>
       <defs>
         <linearGradient id="rev-grad" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="rgba(0,182,122,0.36)" />

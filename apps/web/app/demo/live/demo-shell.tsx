@@ -322,39 +322,56 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
           .demo-live-pill { display: none !important; }
           .demo-content { padding: 16px !important; }
 
+          /* These match the inline styles on the demo pages. The browser writes
+             them two ways ("columns:1fr" on first load, "columns: 1fr" after
+             tapping to another page), so every selector matches the value only. */
+
           /* Let grid cells shrink instead of pushing the page wider */
-          .demo-content [style*="display:grid"] > * { min-width: 0; }
+          .demo-content [style*="display:grid"] > *,
+          .demo-content [style*="display: grid"] > * { min-width: 0; }
 
           /* Rows of stat cards: two across */
-          .demo-content [style*="grid-template-columns:repeat(3"],
-          .demo-content [style*="grid-template-columns:repeat(4"],
-          .demo-content [style*="grid-template-columns:repeat(5"],
-          .demo-content [style*="grid-template-columns:repeat(6"] {
+          .demo-content [style*="repeat(3,"],
+          .demo-content [style*="repeat(4,"],
+          .demo-content [style*="repeat(5,"],
+          .demo-content [style*="repeat(6,"] {
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
           }
 
           /* Side by side panels: one on top of the other */
-          .demo-content [style*="grid-template-columns:1fr 1fr;"],
-          .demo-content [style$="grid-template-columns:1fr 1fr"],
-          .demo-content [style*="grid-template-columns:1.2fr 1fr;"],
-          .demo-content [style$="grid-template-columns:1.2fr 1fr"],
-          .demo-content [style*="grid-template-columns:1.3fr 1fr;"],
-          .demo-content [style*="grid-template-columns:1.45fr 1fr;"],
-          .demo-content [style*="grid-template-columns:1.5fr 1fr;"],
-          .demo-content [style$="grid-template-columns:1.5fr 1fr"],
-          .demo-content [style*="grid-template-columns:1.5fr 1fr 1fr"],
-          .demo-content [style*="grid-template-columns:minmax(0, 1fr) 380px"],
-          .demo-content [style*="grid-template-columns:minmax(0, 360px) minmax(0, 1fr)"],
-          .demo-content [style*="grid-template-columns:minmax(0, 1.1fr) 1fr"],
-          .demo-content [style*="grid-template-columns:minmax(0, 1.1fr) minmax(0, 2.2fr) auto"] {
+          .demo-content [style*=":1fr 1fr;"],
+          .demo-content [style*=": 1fr 1fr;"],
+          .demo-content [style$=":1fr 1fr"],
+          .demo-content [style$=": 1fr 1fr"],
+          .demo-content [style*="1.2fr 1fr;"],
+          .demo-content [style$="1.2fr 1fr"],
+          .demo-content [style*="1.3fr 1fr;"],
+          .demo-content [style$="1.3fr 1fr"],
+          .demo-content [style*="1.45fr 1fr;"],
+          .demo-content [style$="1.45fr 1fr"],
+          .demo-content [style*="1.5fr 1fr;"],
+          .demo-content [style$="1.5fr 1fr"],
+          .demo-content [style*="1.5fr 1fr 1fr"],
+          .demo-content [style*="1fr) 380px"],
+          .demo-content [style*="1fr) 420px"],
+          .demo-content [style*="360px) minmax("],
+          .demo-content [style*="1.1fr) 1fr"],
+          .demo-content [style*="2.2fr) auto"] {
             grid-template-columns: minmax(0, 1fr) !important;
           }
+
+          /* Stop phones zooming in when you tap a box to type */
+          .demo-content input,
+          .demo-content select,
+          .demo-content textarea { font-size: 16px !important; }
+          .demo-content input,
+          .demo-content select { max-width: 100%; }
 
           /* Wide table rows keep their columns and the list scrolls sideways */
           .demo-content :has(> [style*="110px 110px"]),
           .demo-content :has(> [style*="120px 100px"]),
           .demo-content :has(> [style*="100px 90px 90px"]) {
-            overflow-x: auto;
+            overflow-x: auto !important;
             -webkit-overflow-scrolling: touch;
           }
           .demo-content [style*="110px 110px"] { min-width: 780px; }
@@ -376,6 +393,15 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
           .demo-content [style*="32px 1fr 90px 100px"] > :nth-child(3) {
             display: none;
           }
+
+          /* Menu items: name and price on top, the switch and Edit underneath */
+          .demo-content [style*="44px 1fr 100px 90px 90px"] {
+            grid-template-columns: 36px minmax(0, 1fr) auto !important;
+            row-gap: 8px !important;
+            min-width: 0 !important;
+          }
+          .demo-content [style*="44px 1fr 100px 90px 90px"] > :nth-child(4) { grid-column: 2; justify-self: start; }
+          .demo-content [style*="44px 1fr 100px 90px 90px"] > :nth-child(5) { grid-column: 3; justify-self: end; }
 
           /* Automation rule cards: icon and text on top, the rest underneath */
           .demo-content [style*="auto 1fr 180px 130px 100px"] {
