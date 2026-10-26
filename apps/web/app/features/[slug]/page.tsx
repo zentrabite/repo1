@@ -5,6 +5,7 @@ import { Nav } from "../../components/nav";
 import { Footer } from "../../components/footer";
 import { CTABanner } from "../../components/cta-banner";
 import { features, getFeature, getRelated } from "../data";
+import { groupOf } from "../groups";
 import { Icon } from "../../components/zb-icon";
 
 export async function generateStaticParams() {
@@ -43,10 +44,10 @@ export default async function FeaturePage({
       <main>
         <section className="page-top">
           <div className="container narrow">
-            <Link href="/#features" className="back-link">
-              <span aria-hidden>←</span> Everything that&apos;s inside
+            <Link href="/features" className="back-link">
+              <span aria-hidden>←</span> All features
             </Link>
-            <span className="label">{f.eyebrow}</span>
+            <span className="label">{groupOf(f.slug)?.title ?? f.eyebrow}</span>
             <div className="feature-hero">
               <div className="feature-icon" aria-hidden>
                 <Icon name={f.icon} size={34} />

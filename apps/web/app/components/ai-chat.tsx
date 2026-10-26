@@ -32,7 +32,7 @@ function renderMarkdown(raw: string): string {
   html = html.replace(/^\s*[-*]\s+(.+)$/gm, "• $1");
   // Turn our own page paths into links. Only these exact paths match.
   html = html.replace(
-    /(^|[\s(])(\/(?:contact|pricing|how-it-works|demo(?:\/(?:live|merchant|app|super-admin))?))(?=[\s).,!?]|$)/gm,
+    /(^|[\s(>])(\/(?:contact|pricing|how-it-works|features|demo(?:\/(?:live|merchant|app|super-admin))?))(?=[\s).,!?<]|$)/gm,
     '$1<a href="$2" class="text-link">$2</a>',
   );
   html = html.replace(/\n/g, "<br>");
