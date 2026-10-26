@@ -12,6 +12,7 @@ import {
   type StockStatus,
 } from "../data";
 import { Icon } from "../../../components/zb-icon";
+import { showOnPhone } from "../show-on-phone";
 
 function toast(text: string, tone: "ok" | "warn" = "ok") {
   if (typeof document === "undefined") return;
@@ -167,7 +168,7 @@ export default function StockPage() {
               return (
                 <button
                   key={i.id}
-                  onClick={() => setSelectedId(i.id)}
+                  onClick={() => { setSelectedId(i.id); showOnPhone("stock-detail"); }}
                   style={{
                     display: "grid",
                     gridTemplateColumns: "1fr 110px 110px 90px",
@@ -355,7 +356,7 @@ function StockDetail({
   const reorderValue = item.aiSuggestOrder * item.costPerUnit;
 
   return (
-    <div className="glass" style={{ padding: 20 }}>
+    <div id="stock-detail" className="glass" style={{ padding: 20, scrollMarginTop: 120 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
         <div>
           <div style={{ fontSize: 11, color: "var(--steel)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700, marginBottom: 4 }}>

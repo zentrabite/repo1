@@ -58,6 +58,7 @@ export default function MerchantStorefront() {
 
   return (
     <div
+      className="mh-root"
       style={{
         minHeight: "100vh",
         background: brand.cream,
@@ -65,6 +66,9 @@ export default function MerchantStorefront() {
         fontFamily: "var(--font-inter)",
       }}
     >
+      {/* The site's headings take the theme colour, which is light inside the
+          demos. This storefront is cream, so its headings use its own ink. */}
+      <style>{`.mh-root :is(h1, h2, h3, h4, h5) { color: inherit; }`}</style>
       <DemoBadge />
       <Topbar view={view} setView={setView} cartCount={cart.reduce((s, c) => s + c.qty, 0)} />
 
@@ -527,6 +531,7 @@ function CartView({
               {cart.map((c) => (
                 <div
                   key={c.item.id}
+                  className="mh-cart-row"
                   style={{
                     display: "grid",
                     gridTemplateColumns: "44px 1fr auto auto",
@@ -589,7 +594,8 @@ function CartView({
             </aside>
           </div>
         )}
-        <style>{`@media (max-width: 760px) { .mh-cart { grid-template-columns: 1fr !important; } }`}</style>
+        <style>{`@media (max-width: 760px) { .mh-cart { grid-template-columns: 1fr !important; } }
+          @media (max-width: 480px) { .mh-cart-row { grid-template-columns: 36px minmax(0, 1fr) auto auto !important; gap: 8px !important; padding: 12px 8px !important; } }`}</style>
       </div>
     </main>
   );

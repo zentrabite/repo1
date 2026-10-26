@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { campaigns, customers, formatAUD, type DemoCampaign } from "../data";
 import { Icon, type IconName } from "../../../components/zb-icon";
+import { showOnPhone } from "../show-on-phone";
 
 const STATUS_COLORS: Record<DemoCampaign["status"], { color: string; bg: string; label: string }> = {
   live:   { color: "#00B67A", bg: "rgba(0,182,122,0.14)",  label: "Live" },
@@ -171,7 +172,10 @@ export default function WinbackPage() {
             return (
               <button
                 key={c.id}
-                onClick={() => setSelectedId(isActive ? null : c.id)}
+                onClick={() => {
+                  setSelectedId(isActive ? null : c.id);
+                  if (!isActive) showOnPhone("campaign-detail");
+                }}
                 style={{
                   width: "100%",
                   textAlign: "left",
@@ -277,6 +281,7 @@ function CampaignDetail({
 
   return (
     <aside
+      id="campaign-detail"
       style={{
         borderRadius: 14,
         background: "rgba(255,255,255,0.03)",
@@ -284,6 +289,7 @@ function CampaignDetail({
         padding: 20,
         position: "sticky",
         top: 116,
+        scrollMarginTop: 120,
         height: "fit-content",
       }}
     >

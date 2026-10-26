@@ -195,7 +195,7 @@ export default function DemoReviewsPage() {
                   border: "1px solid var(--mist-6)",
                 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+                <div className="rv-card" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 8 }}>
                       <span style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 15, color: "var(--cloud)" }}>
@@ -280,7 +280,7 @@ export default function DemoReviewsPage() {
                   </div>
 
                   {!isEditing && (
-                    <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                    <div className="rv-actions" style={{ display: "flex", gap: 6, flexShrink: 0 }}>
                       {!r.replied ? (
                         <>
                           <button onClick={() => openReply(r)} style={btnPrimary}>Reply</button>
@@ -297,6 +297,12 @@ export default function DemoReviewsPage() {
           })
         )}
       </div>
+      <style>{`
+        @media (max-width: 600px) {
+          .rv-card { flex-direction: column; align-items: stretch !important; }
+          .rv-actions { justify-content: flex-end; }
+        }
+      `}</style>
     </div>
   );
 }

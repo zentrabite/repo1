@@ -122,7 +122,7 @@ export default function DemoRosteringPage() {
             </div>
 
             {/* Shifts */}
-            <div style={{ padding: 8, display: "grid", gap: 6, flex: 1 }}>
+            <div style={{ padding: 8, display: "grid", gap: 6, flex: 1, alignContent: "start" }}>
               {dayShifts.length === 0 ? (
                 <div style={{ color: "var(--steel)", fontSize: 12, padding: 10, textAlign: "center" }}>
                   No shifts
