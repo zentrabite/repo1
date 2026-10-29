@@ -1,6 +1,7 @@
 export default function Toast({ message, visible }: { message: string; visible: boolean }) {
   return (
     <div
+      className="zb-toast"
       style={{
         position: "fixed",
         bottom: 18,

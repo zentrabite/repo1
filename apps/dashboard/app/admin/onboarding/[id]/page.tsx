@@ -204,7 +204,7 @@ export default function OnboardingWizard() {
         <div style={{ height: 4, background: C.mist, borderRadius: 2, overflow: "hidden" }}>
           <div style={{ height: "100%", width: `${progress}%`, background: C.g, transition: "width .25s" }} />
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 12, gap: 6 }}>
+        <div className="ob-steps" style={{ display: "flex", justifyContent: "space-between", marginTop: 12, gap: 6 }}>
           {STEPS.map(s => {
             const done = s.id < step;
             const active = s.id === step;
@@ -275,10 +275,23 @@ export default function OnboardingWizard() {
 
       {/* Toast */}
       {toast && (
-        <div style={{ position: "fixed", bottom: 28, left: "50%", transform: "translateX(-50%)", background: "rgba(15,31,45,.95)", color: C.cl, padding: "10px 18px", borderRadius: 10, border: `1px solid ${C.mist}`, fontSize: 13, fontFamily: "var(--font-inter)", fontWeight: 600, boxShadow: "0 10px 30px rgba(0,0,0,.4)", zIndex: 40 }}>
+        <div className="ob-toast" style={{ position: "fixed", bottom: 28, left: "50%", transform: "translateX(-50%)", background: "rgba(15,31,45,.95)", color: C.cl, padding: "10px 18px", borderRadius: 10, border: `1px solid ${C.mist}`, fontSize: 13, fontFamily: "var(--font-inter)", fontWeight: 600, boxShadow: "0 10px 30px rgba(0,0,0,.4)", zIndex: 40 }}>
           {toast}
         </div>
       )}
+
+      <style>{`
+        /* Phones: the nine steps swipe sideways, rows stack */
+        @media (max-width: 820px) {
+          .ob-steps { overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scrollbar-width: none; justify-content: flex-start !important; padding-bottom: 2px; }
+          .ob-steps > button { flex: 0 0 auto !important; min-width: 84px; scroll-snap-align: start; }
+          .ob-hours-row { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; align-items: center; padding-bottom: 6px; }
+          .ob-hours-row > :first-child, .ob-hours-row > :last-child { order: -1; }
+          .ob-hours-row > :last-child { justify-self: end; min-height: 44px; }
+          .ob-item-row { grid-template-columns: minmax(0, 1fr) 96px 44px !important; }
+          .ob-toast { max-width: calc(100vw - 32px); text-align: center; }
+        }
+      `}</style>
     </div>
   );
 }
@@ -377,7 +390,7 @@ function StepHours({ biz, save }: { biz: Biz; save: SaveFn }) {
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 10 }}>
         <button onClick={copyMondayToAll} style={ghostBtn}>Copy Monday to all days</button>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "80px 1fr 1fr 100px", gap: 10, alignItems: "center" }}>
+      <div className="zb-stack" style={{ display: "grid", gridTemplateColumns: "80px 1fr 1fr 100px", gap: 10, alignItems: "center" }}>
         {DAYS.map(([k, label]) => {
           const row = hours[k]!;
           return (
@@ -434,7 +447,7 @@ function StepBranding({ biz, save, show }: { biz: Biz; save: SaveFn; show: (m: s
 
   return (
     <Section title="Branding" subtitle="Shown on the storefront, receipts, and kitchen tickets.">
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+      <div className="zb-stack" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
         <div>
           <div style={label}>Logo</div>
           <div style={{ aspectRatio: "1 / 1", maxWidth: 220, borderRadius: 12, background: C.bg, border: `1px dashed ${C.mist}`, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", marginBottom: 10 }}>
@@ -592,7 +605,7 @@ function StepMenu({ biz, show }: { biz: Biz; show: (m: string) => void }) {
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {cat.items.map((it, j) => (
                 <div key={j}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 110px 32px", gap: 6 }}>
+                  <div className="ob-item-row" style={{ display: "grid", gridTemplateColumns: "1fr 110px 32px", gap: 6 }}>
                     <input value={it.name} onChange={e => updateCategory(i, { ...cat, items: cat.items.map((x, k) => k === j ? { ...x, name: e.target.value } : x) })} placeholder="Item name" />
                     <input type="number" step="0.5" value={it.price} onChange={e => updateCategory(i, { ...cat, items: cat.items.map((x, k) => k === j ? { ...x, price: Number(e.target.value), check: null } : x) })} />
                     <button onClick={() => updateCategory(i, { ...cat, items: cat.items.filter((_, k) => k !== j) })} style={{ ...ghostBtn, padding: "4px 6px" }}>×</button>
@@ -649,7 +662,7 @@ function StepPayments({ biz, save, show }: { biz: Biz; save: SaveFn; show: (m: s
   return (
     <Section title="Payments" subtitle="Stripe Connect, GST, tip %. Owner can revisit in Settings later.">
       <div style={{ background: C.bg, border: `1px solid ${C.mist}`, borderRadius: 12, padding: 18, marginBottom: 18 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div className="zb-wrap" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", rowGap: 10 }}>
           <div>
             <div style={{ fontWeight: 600, color: C.cl, fontSize: 14 }}>Stripe Connect</div>
             <div style={{ fontSize: 12, color: C.st, marginTop: 4 }}>
@@ -771,7 +784,7 @@ function StepNotifications({ biz, save, show }: { biz: Biz; save: SaveFn; show: 
       </Grid>
 
       <div style={{ background: C.bg, border: `1px solid ${C.mist}`, borderRadius: 10, padding: 14, marginTop: 16 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+        <div className="zb-col" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
           <div>
             <div style={{ fontWeight: 600, color: C.cl, fontSize: 13 }}>Default Zentra Rewards rules</div>
             <div style={{ fontSize: 12, color: C.st, marginTop: 3 }}>
@@ -846,7 +859,7 @@ function StepWebsite({ biz, save, show }: { biz: Biz; save: SaveFn; show: (m: st
       </div>
 
       <div style={label}>Look</div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, margin: "6px 0 18px" }}>
+      <div className="zb-stack" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, margin: "6px 0 18px" }}>
         {LOOKS.map(l => (
           <button key={l.id} onClick={() => setLook(l.id)} style={{ ...ghostBtn, textAlign: "left", borderColor: look === l.id ? C.g : C.mist, background: look === l.id ? "rgba(0,182,122,.08)" : "transparent" }}>
             <div style={{ fontWeight: 600 }}>{l.label}</div>
@@ -952,7 +965,7 @@ function StepTeam({ biz, router, show }: { biz: Biz; router: any; show: (m: stri
           The owner has a magic link in their inbox. You can impersonate them from the admin panel to verify
           everything looks right, or hand it over and move on to your next sale.
         </div>
-        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+        <div className="zb-wrap" style={{ display: "flex", gap: 8, marginTop: 12 }}>
           <button onClick={() => router.push("/admin")} className="bp" style={{ padding: "9px 14px" }}>Back to Super Admin</button>
           <button
             onClick={async () => {
@@ -987,7 +1000,7 @@ function Section({ title, subtitle, children }: { title: string; subtitle?: stri
 }
 
 function Grid({ children }: { children: React.ReactNode }) {
-  return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>{children}</div>;
+  return <div className="zb-stack" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>{children}</div>;
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -1002,7 +1015,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function ProviderCard({ title, help, children }: { title: string; help: string; children: React.ReactNode }) {
   return (
     <div style={{ background: C.bg, border: `1px solid ${C.mist}`, borderRadius: 10, padding: 14, marginBottom: 12 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+      <div className="zb-wrap" style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
         <div style={{ fontWeight: 600, color: C.cl, fontSize: 14 }}>{title}</div>
         <div style={{ fontSize: 11, color: C.st }}>{help}</div>
       </div>
@@ -1027,7 +1040,11 @@ function SaveBar({ onSave }: { onSave: () => void | Promise<unknown> }) {
   );
 }
 
-function RowContents({ children }: { children: React.ReactNode }) { return <>{children}</>; }
+// display: contents, so on a computer the cells sit straight in the parent's
+// four-column grid. On a phone it becomes its own row (see .ob-hours-row).
+function RowContents({ children }: { children: React.ReactNode }) {
+  return <div className="ob-hours-row" style={{ display: "contents" }}>{children}</div>;
+}
 
 const label = { fontSize: 12, fontWeight: 600 as const, color: C.st, textTransform: "uppercase" as const, letterSpacing: "0.05em" };
 function label_() { return label; }

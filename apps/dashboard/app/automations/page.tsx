@@ -93,7 +93,7 @@ export default function AutomationsPage() {
 
   return (
     <div>
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+      <div className="zb-head" style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
         <div>
           <h2 style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:20, color:"#fff" }}>Automations</h2>
           <p style={{ color:C.st, fontSize:12 }}>SMS & email with triggers & attribution</p>
@@ -122,9 +122,9 @@ export default function AutomationsPage() {
           </div>
         ) : camps.map((c, i) => (
           <div key={i} className="gc" style={{ padding:20, cursor:"pointer" }} onClick={() => openEdit(c)}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+            <div className="zb-col" style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", rowGap:12 }}>
               <div>
-                <div style={{ display:"flex", gap:5, alignItems:"center", marginBottom:4 }}>
+                <div className="zb-wrap" style={{ display:"flex", gap:5, alignItems:"center", marginBottom:4 }}>
                   <span style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:15, color:"#fff" }}>{c.name ?? c.type}</span>
                   <Badge type={c.active ? "active" : "paused"}>{c.active ? "active" : "paused"}</Badge>
                   <Badge type={c.type}>{c.type}</Badge>
@@ -148,11 +148,11 @@ export default function AutomationsPage() {
       </div>
 
       <Modal open={!!editing} onClose={() => setEditing(null)} title={isNew ? "New Automation" : `Edit: ${editing?.name ?? editing?.type}`} wide>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
+        <div className="zb-stack" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
           <div><label>Name</label><input value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="e.g. Win-Back" /></div>
           <div><label>Type</label><select value={form.type} onChange={e=>setForm(f=>({...f,type:e.target.value}))}><option>SMS</option><option>Email</option></select></div>
         </div>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+        <div className="zb-two" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:10 }}>
           <div><label>Trigger after (days)</label><input type="number" value={form.trigger_days} onChange={e=>setForm(f=>({...f,trigger_days:Number(e.target.value)}))} /></div>
           <div><label>Discount ($)</label><input type="number" value={form.discount_amount} onChange={e=>setForm(f=>({...f,discount_amount:Number(e.target.value)}))} /></div>
           <div><label>Cooldown (days)</label><input type="number" value={form.cooldown_days} onChange={e=>setForm(f=>({...f,cooldown_days:Number(e.target.value)}))} /></div>

@@ -21,7 +21,7 @@ function SourceRow({ label, rev, fee, color, total }: { label:string; rev:number
         {pct > 0 && <div className="pb-fill" style={{ width:`${pct}%`, background:`linear-gradient(90deg,${color},${color}88)` }} />}
       </div>
       {fee > 0 && (
-        <div style={{ display:"flex", alignItems:"center", gap:6, padding:"5px 10px", background:"rgba(255,71,87,.08)", border:"1px solid rgba(255,71,87,.15)", borderRadius:7 }}>
+        <div className="zb-wrap" style={{ display:"flex", alignItems:"center", gap:6, padding:"5px 10px", background:"rgba(255,71,87,.08)", border:"1px solid rgba(255,71,87,.15)", borderRadius:7 }}>
           <span style={{ fontSize:12, color:C.r, fontWeight:600 }}>Fees: −${fee.toLocaleString()}</span>
           <span style={{ fontSize:11, color:"rgba(255,71,87,.6)" }}>(30% platform cut)</span>
         </div>
@@ -90,7 +90,7 @@ export default function FinancialsPage() {
       </div>
 
       {/* Revenue breakdown + margin */}
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
+      <div className="zb-stack" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12, marginBottom:12 }}>
         {/* Revenue by source */}
         <div className="gc" style={{ padding:22 }}>
           <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:14, color:"#fff", marginBottom:18 }}>
@@ -124,7 +124,7 @@ export default function FinancialsPage() {
                   </div>
                 )}
               </div>
-              <div style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:C.st, marginBottom:20 }}>
+              <div className="zb-wrap" style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:C.st, marginBottom:20 }}>
                 <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Icon name="dot" size={14} accent="#00B67A" />Direct (full margin)</span>
                 <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Icon name="dot" size={14} accent="#FF6B35" />Aggregators (−30%)</span>
               </div>
@@ -148,7 +148,7 @@ export default function FinancialsPage() {
 
       {/* Xero export */}
       <div className="gc" style={{ padding:22, marginBottom:12 }}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+        <div className="zb-col" style={{ display:"flex", justifyContent:"space-between", alignItems:"center", rowGap:14 }}>
           <div style={{ display:"flex", gap:10, alignItems:"center" }}>
             <Icon name="receipt" size={22} />
             <div>
@@ -159,6 +159,7 @@ export default function FinancialsPage() {
           <a
             href="/api/export/xero"
             download
+            className="zb-tap"
             style={{
               padding:"8px 16px", borderRadius:8,
               background:"rgba(0,182,122,.12)", color:C.g,

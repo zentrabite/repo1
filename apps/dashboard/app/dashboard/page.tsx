@@ -109,7 +109,7 @@ export default function DashboardPage() {
   return (
     <div>
       {/* Header */}
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
+      <div className="zb-head" style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
         <div>
           <h2 style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:20, color:"#fff" }}>
             {business?.name ?? "Dashboard"}
@@ -141,7 +141,7 @@ export default function DashboardPage() {
           </span>
           <Link href="/orders" className="bg-btn" style={{ textDecoration:"none" }}>Open board →</Link>
         </div>
-        <div style={{ display:"grid", gridTemplateColumns:`repeat(${KANBAN.length}, 1fr)`, gap:10 }}>
+        <div className="zb-two" style={{ display:"grid", gridTemplateColumns:`repeat(${KANBAN.length}, 1fr)`, gap:10 }}>
           {KANBAN.map(col => {
             const cards = ordersByStatus.get(col.key) ?? [];
             return (
@@ -157,7 +157,7 @@ export default function DashboardPage() {
                     <div style={{ fontSize:11, color:"#fff", fontWeight:600 }}>
                       {(o as any).customers?.name ?? `#${o.id.slice(0,6)}`}
                     </div>
-                    <div style={{ fontSize:10, color:C.st, display:"flex", justifyContent:"space-between", marginTop:2 }}>
+                    <div className="zb-wrap" style={{ fontSize:10, color:C.st, display:"flex", justifyContent:"space-between", marginTop:2 }}>
                       <span>${o.total}</span>
                       <span>{new Date(o.created_at).toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" })}</span>
                     </div>
@@ -170,7 +170,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Row 3 — 14d revenue + revenue by channel */}
-      <div style={{ display:"grid", gridTemplateColumns:"5fr 3fr", gap:12, marginBottom:14 }}>
+      <div className="zb-stack" style={{ display:"grid", gridTemplateColumns:"5fr 3fr", gap:12, marginBottom:14 }}>
         <div className="gc" style={{ padding:20 }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:14 }}>
             <span style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:13.5, color:"#fff" }}>Revenue — last 14 days</span>
@@ -178,7 +178,7 @@ export default function DashboardPage() {
               {revByDay.length > 0 ? `$${revByDay.reduce((s,d) => s+d.revenue, 0).toLocaleString()} total` : ""}
             </span>
           </div>
-          <div style={{ display:"flex", alignItems:"flex-end", gap:4, height:90 }}>
+          <div className="zb-bars" style={{ display:"flex", alignItems:"flex-end", gap:4, height:90 }}>
             {chart14 ? chart14.map((d, i) => (
               <div key={i} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center" }} title={`$${d.revenue.toFixed(0)}`}>
                 <div style={{ width:"100%", height:d.height, background:`linear-gradient(180deg,${C.g},${C.g}55)`, borderRadius:"3px 3px 0 0" }} />
@@ -212,7 +212,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Row 4 — top customer + top 3 winbacks + segments */}
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:14 }}>
+      <div className="zb-stack" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12, marginBottom:14 }}>
         <div className="gc" style={{ padding:18 }}>
           <div style={{ fontSize:11, color:C.st, textTransform:"uppercase", letterSpacing:.5, marginBottom:10 }}>Top customer</div>
           {topCust ? (
@@ -286,7 +286,7 @@ export default function DashboardPage() {
         ) : (
           <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
             {recs.map(r => (
-              <div key={r.id} style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:10, padding:"10px 12px", background:"rgba(255,255,255,.02)", borderRadius:6 }}>
+              <div key={r.id} className="zb-col" style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:10, padding:"10px 12px", background:"rgba(255,255,255,.02)", borderRadius:6 }}>
                 <div style={{ flex:1 }}>
                   <div style={{ display:"flex", gap:6, alignItems:"center", marginBottom:3 }}>
                     <Badge type={r.priority === "urgent" ? "Direct" : r.priority === "high" ? "New" : "Loyal"}>{r.priority}</Badge>
@@ -294,7 +294,7 @@ export default function DashboardPage() {
                   </div>
                   <p style={{ fontSize:11, color:C.st, lineHeight:1.5, margin:0 }}>{r.body}</p>
                 </div>
-                <div style={{ display:"flex", gap:6 }}>
+                <div className="zb-wrap" style={{ display:"flex", gap:6 }}>
                   {r.action_url && (
                     <Link href={r.action_url} className="bg-btn" style={{ textDecoration:"none" }}>{r.action_label ?? "Review"}</Link>
                   )}
@@ -312,7 +312,7 @@ export default function DashboardPage() {
           <span style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:14, color:"#fff" }}>Recent orders</span>
           <Link href="/orders" className="bg-btn" style={{ textDecoration:"none" }}>View all →</Link>
         </div>
-        <table>
+        <table className="zb-table">
           <thead>
             <tr>{["ID","Customer","Items","Source","Total","Status"].map(h => <th key={h}>{h}</th>)}</tr>
           </thead>
@@ -323,12 +323,12 @@ export default function DashboardPage() {
               </tr>
             ) : orders.slice(0, 6).map((o) => (
               <tr key={o.id}>
-                <td style={{ fontFamily:"var(--font-mono)", fontSize:10, color:C.st }}>{o.id.slice(0,8)}…</td>
-                <td style={{ fontWeight:600, color:"#fff" }}>{(o as any).customers?.name ?? "—"}</td>
-                <td>{Array.isArray(o.items) ? `${(o.items as any[]).length} item(s)` : "—"}</td>
-                <td><Badge type={o.source}>{o.source}</Badge></td>
-                <td style={{ fontWeight:600, color:"#fff" }}>${o.total}</td>
-                <td><Badge type={o.status}>{o.status}</Badge></td>
+                <td data-label="ID" style={{ fontFamily:"var(--font-mono)", fontSize:10, color:C.st }}>{o.id.slice(0,8)}…</td>
+                <td data-label="Customer" style={{ fontWeight:600, color:"#fff" }}>{(o as any).customers?.name ?? "—"}</td>
+                <td data-label="Items">{Array.isArray(o.items) ? `${(o.items as any[]).length} item(s)` : "—"}</td>
+                <td data-label="Source"><Badge type={o.source}>{o.source}</Badge></td>
+                <td data-first style={{ fontWeight:600, color:"#fff" }}>${o.total}</td>
+                <td data-first data-end><Badge type={o.status}>{o.status}</Badge></td>
               </tr>
             ))}
           </tbody>
