@@ -9,6 +9,8 @@
 // of texts. Defaults can be raised per business with
 // businesses.settings.sms_monthly_cap and businesses.settings.sms_per_minute.
 
+import "server-only";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Db = any;
 

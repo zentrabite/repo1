@@ -7,6 +7,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import BrandMark from "@/components/brand-mark";
 import { Icon } from "@/components/zb-icon";
+import { forgotPasswordErrorMessage, MSG } from "@/lib/auth-errors";
 
 const C = { g: "#00B67A", st: "#6B7C93", cl: "#F8FAFB", r: "#FF4757" };
 
@@ -24,17 +25,22 @@ export default function ForgotPasswordPage() {
     // Prefer the canonical app URL from env so previews / localhost sessions
     // don't send reset links that point at the wrong host.
     const base = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${base}/reset-password`,
-    });
 
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-    } else {
-      setSent(true);
-      setLoading(false);
+    // The page says the same thing whether or not the email has an account.
+    // Only a network failure or too many requests gets its own message.
+    let shown: string | null = null;
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${base}/reset-password`,
+      });
+      if (error) shown = forgotPasswordErrorMessage(error);
+    } catch (err) {
+      shown = forgotPasswordErrorMessage(err);
     }
+
+    if (shown) setError(shown);
+    else setSent(true);
+    setLoading(false);
   };
 
   return (
@@ -66,15 +72,15 @@ export default function ForgotPasswordPage() {
               fontFamily: "var(--font-outfit)", fontWeight: 600, fontSize: 16,
               color: C.cl, marginBottom: 8,
             }}>
-              Reset link sent
+              Check your email
             </div>
             <div style={{
               fontFamily: "var(--font-inter)", fontSize: 13,
               color: C.st, marginBottom: 24, lineHeight: 1.5,
             }}>
-              We sent a password reset link to <strong style={{ color: C.cl }}>{email}</strong>.
+              {MSG.resetSent}
               <br />
-              Check your spam folder if you don&apos;t see it within a minute.
+              Check your spam folder if you don&apos;t see it within a few minutes.
             </div>
             <Link href="/login" style={{
               color: C.g, textDecoration: "none", fontSize: 13,

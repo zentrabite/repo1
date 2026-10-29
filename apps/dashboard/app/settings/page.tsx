@@ -150,6 +150,8 @@ function SettingsContent() {
   const [stripePayouts, setStripePayouts]   = useState(false); // can receive payouts
   const [stripeDetails, setStripeDetails]   = useState(false); // completed onboarding form
   const [subscriptionStatus, setSubscriptionStatus] = useState<"inactive"|"trialing"|"active">("inactive");
+  // While trialing, Stripe's current period ends when the trial does.
+  const [trialEnds, setTrialEnds] = useState<string | null>(null);
   const [connectLoading, setConnectLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [hours, setHours] = useState<Record<string, { open: string; close: string; closed: boolean }>>({
@@ -181,6 +183,11 @@ function SettingsContent() {
     const settings = (b.settings ?? {}) as Record<string, unknown>;
     if (settings.subscription_status) {
       setSubscriptionStatus(settings.subscription_status as any);
+    }
+    if (settings.subscription_status === "trialing" && typeof settings.subscription_period_end === "string") {
+      const end = new Date(settings.subscription_period_end);
+      setTrialEnds(Number.isNaN(end.getTime()) ? null
+        : end.toLocaleDateString("en-AU", { weekday: "long", day: "numeric", month: "long", year: "numeric" }));
     }
     if (settings.hours && typeof settings.hours === "object") {
       setHours(prev => ({ ...prev, ...(settings.hours as any) }));
@@ -647,7 +654,7 @@ function SettingsContent() {
             {subscriptionStatus === "inactive" ? (
               <div>
                 <div style={{ fontFamily:"var(--font-inter)", fontSize:13, color:C.st, lineHeight:1.6, marginBottom:16 }}>
-                  Start your 1-month free trial. No credit card required until the trial ends.
+                  Start your 30-day free trial. You add a card at checkout. The first payment is taken when the trial ends.
                 </div>
                 <div style={{ padding:"16px", background:"rgba(28,45,72,.5)", borderRadius:12, marginBottom:16 }}>
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:8 }}>
@@ -671,7 +678,9 @@ function SettingsContent() {
               <div>
                 <div style={{ padding:"12px 16px", background:"rgba(0,182,122,.06)", border:"1px solid rgba(0,182,122,.15)", borderRadius:10, marginBottom:16 }}>
                   <div style={{ fontFamily:"var(--font-inter)", fontSize:13, color:C.g, fontWeight:600 }}>
-                    {subscriptionStatus === "trialing" ? "✓ Free trial active — 1 month remaining" : "✓ Subscription active"}
+                    {subscriptionStatus === "trialing"
+                      ? (trialEnds ? `✓ Free trial active. It ends on ${trialEnds}, and your first payment is taken then.` : "✓ Free trial active")
+                      : "✓ Subscription active"}
                   </div>
                 </div>
                 <button

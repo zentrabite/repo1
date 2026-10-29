@@ -6,6 +6,7 @@
 //   settings.notify_phone   — owner phone for SMS (optional; set in Settings UI)
 // Missing creds or destinations are silently skipped so the webhook never fails.
 
+import "server-only";
 import { createServerClient } from "@/lib/supabase-server";
 import { sendEmail } from "@/lib/email";
 

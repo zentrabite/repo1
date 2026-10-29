@@ -8,6 +8,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import BrandMark from "@/components/brand-mark";
 import PasswordInput from "@/components/password-input";
+import { loginErrorMessage, MSG } from "@/lib/auth-errors";
 
 const C = { g: "#00B67A", st: "#6B7C93", cl: "#F8FAFB", r: "#FF4757" };
 
@@ -46,8 +47,10 @@ function LoginForm() {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
+      // One message for unknown email and wrong password, so the form can't
+      // be used to find out who has an account. Details go to the console.
       if (error) {
-        setError(error.message);
+        setError(loginErrorMessage(error));
         setLoading(false);
         return;
       }
@@ -55,11 +58,12 @@ function LoginForm() {
       if (data.session) {
         window.location.href = "/dashboard";
       } else {
-        setError("Login succeeded but no session was created. Please try again.");
+        console.error("[auth/login] signed in but no session came back");
+        setError(MSG.server);
         setLoading(false);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An unexpected error occurred");
+      setError(loginErrorMessage(err));
       setLoading(false);
     }
   };

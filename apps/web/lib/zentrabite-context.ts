@@ -91,4 +91,5 @@ export const MAX_USER_MESSAGE_CHARS = 2000;
 
 // Hard cap on conversation depth — keeps tail-end requests from accumulating
 // thousands of tokens. The most-recent turns matter most for this Q&A pattern.
-export const MAX_HISTORY_TURNS = 12;
+// 8 messages is the last four questions and answers.
+export const MAX_HISTORY_TURNS = 8;

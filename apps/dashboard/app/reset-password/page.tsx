@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase";
 import BrandMark from "@/components/brand-mark";
 import PasswordInput from "@/components/password-input";
 import { Icon } from "@/components/zb-icon";
+import { resetLinkErrorMessage, resetUpdateErrorMessage } from "@/lib/auth-errors";
 
 const C = { g: "#00B67A", st: "#6B7C93", cl: "#F8FAFB", r: "#FF4757" };
 
@@ -45,8 +46,9 @@ function ResetForm() {
       const { access, refresh, type, error: hashError } = parseHash(window.location.hash || "");
 
       // Supabase surfaces expiry / invalid-link errors in the hash too.
+      // Show one plain message and keep the detail in the console.
       if (hashError) {
-        if (!cancelled) { setError(hashError); setHasSession(false); }
+        if (!cancelled) { setError(resetLinkErrorMessage({ message: hashError })); setHasSession(false); }
         return;
       }
 
@@ -58,7 +60,7 @@ function ResetForm() {
           });
           if (cancelled) return;
           if (setErr) {
-            setError(setErr.message);
+            setError(resetLinkErrorMessage(setErr));
             setHasSession(false);
             return;
           }
@@ -68,7 +70,7 @@ function ResetForm() {
           return;
         } catch (err) {
           if (!cancelled) {
-            setError(err instanceof Error ? err.message : "Could not start recovery session");
+            setError(resetLinkErrorMessage(err));
             setHasSession(false);
           }
           return;
@@ -93,15 +95,21 @@ function ResetForm() {
 
     // Guard: if updateUser hangs on a gotrue lock (same bug as sign-out),
     // surface an error rather than sitting on "Updating…" forever.
-    const timeout = new Promise<{ error: { message: string } }>(resolve =>
-      setTimeout(() => resolve({ error: { message: "Request timed out. Please try again." } }), 15000),
+    const timeout = new Promise<{ error: { message: string; code: string } }>(resolve =>
+      setTimeout(() => resolve({ error: { message: "updateUser timed out", code: "client_timeout" } }), 15000),
     );
     const update = supabase.auth.updateUser({ password });
 
-    const { error } = await Promise.race([update, timeout]);
+    let error: unknown = null;
+    try {
+      ({ error } = await Promise.race([update, timeout]));
+    } catch (err) {
+      error = err;
+    }
 
     if (error) {
-      setError(error.message);
+      const code = (error as { code?: string }).code;
+      setError(code === "client_timeout" ? "That took too long. Try again." : resetUpdateErrorMessage(error));
       setLoading(false);
     } else {
       setDone(true);
@@ -164,7 +172,7 @@ function ResetForm() {
               fontFamily: "var(--font-inter)", fontSize: 13,
               color: C.st, marginBottom: 20, lineHeight: 1.5,
             }}>
-              {error || "This reset link is no longer valid. Password reset links expire after one hour."}
+              {error || "This reset link is no longer valid. Reset links expire after one hour."}
             </div>
             <Link href="/forgot-password" style={{
               color: C.g, textDecoration: "none", fontSize: 13,

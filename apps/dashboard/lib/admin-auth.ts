@@ -6,6 +6,7 @@
 //   const user = await assertSuperAdmin();
 //   if (!user) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
+import "server-only";
 import { createSessionClient, createAdminClient } from "@/lib/supabase-server";
 
 export async function assertSuperAdmin() {

@@ -11,6 +11,7 @@
 // during a production build (where env vars may not be set yet) doesn't crash
 // the build. Missing credentials only error at real call-time.
 
+import "server-only";
 import Stripe from "stripe";
 
 let _stripe: Stripe | null = null;

@@ -7,10 +7,11 @@ import ImpersonationBanner from "./impersonation-banner";
 
 const AUTH_ROUTES = ["/login", "/signup", "/auth"];
 
-// Customer-facing pages: a restaurant's website and ordering page. Checked by
-// route segment, not by URL, because on name.zentrabite.com the browser shows
-// "/" or "/order" while the route is /site/... or /store/...
-const PUBLIC_SEGMENTS = new Set(["site", "store"]);
+// Customer-facing pages: a restaurant's website and ordering page, and the
+// unsubscribe page from marketing emails. Checked by route segment, not by
+// URL, because on name.zentrabite.com the browser shows "/" or "/order" while
+// the route is /site/... or /store/...
+const PUBLIC_SEGMENTS = new Set(["site", "store", "unsubscribe"]);
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname   = usePathname();

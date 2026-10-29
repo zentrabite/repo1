@@ -28,6 +28,7 @@
 // users.is_super_admin and users.business_id are protected from browser
 // writes by migration 015. Don't loosen those grants without revisiting this.
 
+import "server-only";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createAdminClient, createSessionClient } from "@/lib/supabase-server";
