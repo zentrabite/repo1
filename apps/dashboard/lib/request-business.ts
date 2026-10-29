@@ -18,10 +18,10 @@
 //   • Owner (users.business_id)            → that business, role "Owner"
 //   • Team member (business_members.email) → the businesses they belong to,
 //                                             with their member role. Only
-//                                             counts once the login's email
-//                                             is confirmed, so nobody can
-//                                             claim an invite by signing up
-//                                             with someone else's address.
+//                                             counts for a login that was
+//                                             created by an invite
+//                                             (invited_at set) and whose
+//                                             email is confirmed. See below.
 //   • Requested id not in the allowed set  → 403
 //   • Role not in options.roles            → 403
 //
@@ -89,8 +89,20 @@ export async function requireBusiness(
   const roles = new Map<string, string>();
   if (userRow?.business_id) roles.set(userRow.business_id as string, "Owner");
 
+  // Why invited_at and not just email_confirmed_at: email confirmation is
+  // off in this project, so a self-signup is confirmed straight away with no
+  // proof the person owns the inbox. Anyone could sign up as an invited
+  // address and inherit the invite. Team invites (/api/team/invite) and
+  // admin onboarding create the login with generateLink({ type: "invite" }),
+  // which sets invited_at. A self-signup never has invited_at, so it can't
+  // claim a membership. Owners are unaffected: they come from
+  // users.business_id above.
+  // Not covered here: whether Supabase lets a new signup take over an
+  // invited login that hasn't been accepted yet while confirmation is off.
+  // Turning "Confirm email" on in Supabase Auth closes that for good.
   const emailConfirmed = Boolean(user.email_confirmed_at);
-  if (email && emailConfirmed) {
+  const createdByInvite = Boolean(user.invited_at);
+  if (email && emailConfirmed && createdByInvite) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: memberships } = await (admin.from("business_members") as any)
       .select("business_id, role, status")

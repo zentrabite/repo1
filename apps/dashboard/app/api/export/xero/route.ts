@@ -13,6 +13,7 @@
 
 import { NextResponse } from "next/server";
 import { createSessionClient, createAdminClient } from "@/lib/supabase-server";
+import { csvCell } from "@/lib/csv";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,15 +23,8 @@ export const dynamic = "force-dynamic";
 const DEFAULT_ACCOUNT_CODE = "200";
 const DEFAULT_TAX_TYPE     = "OUTPUT";
 
-function csvEscape(value: string | number | null | undefined): string {
-  if (value === null || value === undefined) return "";
-  const str = String(value);
-  // Quote fields containing comma, quote, or newline; double up any quotes.
-  if (/[,"\n]/.test(str)) {
-    return `"${str.replace(/"/g, '""')}"`;
-  }
-  return str;
-}
+// Quotes where needed and neutralises spreadsheet formulas (see lib/csv.ts).
+const csvEscape = (value: string | number | null | undefined): string => csvCell(value);
 
 function fmtDate(iso: string): string {
   // Xero accepts DD/MM/YYYY — the most common AU format.
