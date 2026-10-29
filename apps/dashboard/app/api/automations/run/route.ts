@@ -12,17 +12,19 @@
 //      This path is let through the login gate in proxy.ts.
 //
 // Spam Act: only customers who opted in to marketing and haven't opted out
-// are contacted. Every text names the business and says "Reply STOP".
+// are contacted. Every text names the business and says "Reply STOP". Every
+// email goes through sendMarketingEmail, which checks consent again right
+// before sending and adds the unsubscribe link and headers.
 //
 // The runner processes `winback_rules` (Zentra Rewards rules from the dashboard) AND
 // the legacy `campaigns` table so old data keeps working while we migrate.
 // Channel dispatch:
 //   • sms   → Twilio REST
-//   • email → Resend (via lib/email.ts)
+//   • email → Resend (via sendMarketingEmail in lib/email.ts)
 //   • push  → no-op for now (logged so UI shows it tried)
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
-import { sendEmail } from "@/lib/email";
+import { sendMarketingEmail } from "@/lib/email";
 import { MANAGER_ROLES, requireBusiness } from "@/lib/request-business";
 import { checkSmsAllowance, sendTwilioSms, withSenderAndOptOut } from "@/lib/sms";
 import { orderUrl } from "@/lib/tenant";
@@ -206,7 +208,9 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
         providerId = out.sid;
       } else if (channel === "email") {
         const subject = `${offerLabel} at ${businessName}`;
-        const out = await sendEmail({ to: recipient, subject, text: message });
+        const out = await sendMarketingEmail({
+          db, businessId, businessName, customerId: customer.id, to: recipient, subject, text: message,
+        });
         status = out.ok ? "sent" : (out.skipped ? "skipped" : "failed");
         providerId = out.ok ? out.id : null;
       } else {

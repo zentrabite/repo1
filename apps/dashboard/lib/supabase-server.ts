@@ -11,6 +11,7 @@
 //                            (e.g. sending transactional data, admin tasks).
 //                            NEVER import in client components.
 
+import "server-only";
 import { createServerClient as createSSRClient, type CookieOptions } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";

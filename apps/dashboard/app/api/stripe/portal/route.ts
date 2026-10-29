@@ -9,6 +9,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createSessionClient, createAdminClient } from "@/lib/supabase-server";
+import { trustedOrigin } from "@/lib/tenant";
 
 export const runtime = "nodejs";
 
@@ -62,7 +63,8 @@ export async function POST(req: Request) {
     }
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2024-06-20", typescript: true });
-    const origin = req.headers.get("origin") ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://dashboard.zentrabite.com";
+    // Only our own hosts, so a forged Origin can't send people elsewhere.
+    const origin = trustedOrigin(req.headers.get("origin"), process.env.NEXT_PUBLIC_APP_URL ?? "https://dashboard.zentrabite.com");
 
     const portal = await stripe.billingPortal.sessions.create({
       customer:   customerId,

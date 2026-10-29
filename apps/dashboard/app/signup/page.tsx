@@ -9,8 +9,24 @@ import { supabase } from "@/lib/supabase";
 import BrandMark from "@/components/brand-mark";
 import PasswordInput from "@/components/password-input";
 import { Icon } from "@/components/zb-icon";
+import { signupErrorMessage } from "@/lib/auth-errors";
 
 const C = { g:"#00B67A", st:"#6B7C93", cl:"#F8FAFB", r:"#FF4757" };
+
+// The deal, shown before the button. Keep it in step with the code:
+//   • signup itself creates the account and business, no card, no charge
+//   • the trial starts from Settings → Subscription, which opens Stripe
+//     Checkout (app/api/stripe/checkout). Stripe takes a card there.
+//   • trial_period_days is 30 (TRIAL_DAYS in that route). Stripe takes the
+//     first monthly payment when the trial ends, then every month.
+//   • $500 a month AUD is the standard price (STRIPE_PRICE_MERCHANT_MONTHLY),
+//     worded the same as the Settings subscription card.
+const DEAL = [
+  "Signing up is free. You don't need a card today.",
+  "Start your free trial from Settings when you're ready. You add a card then.",
+  "The trial lasts 30 days. Your first $500 payment is taken the day it ends, then once a month.",
+  "300 texts a month are included. Extra texts are $0.12 each.",
+];
 
 export default function SignupPage() {
   const router = useRouter();
@@ -25,7 +41,7 @@ export default function SignupPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 8) { setError("Password must be at least 8 characters"); return; }
+    if (password.length < 8) { setError("Your password needs at least 8 characters."); return; }
     setLoading(true);
     setError("");
 
@@ -33,16 +49,26 @@ export default function SignupPage() {
     // creates the business from business_name and links this user as owner.
     // The browser can't create businesses itself: row security blocks it, and
     // with email confirmation on there is no session yet at this point.
-    const { data, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { name, business_name: bizName },
-        emailRedirectTo: `${window.location.origin}/login`,
-      },
-    });
+    //
+    // Errors never say an email is taken. With email confirmation off,
+    // Supabase answers an existing email with "User already registered";
+    // signupErrorMessage turns that into a generic message.
+    let data: { session: unknown } | null = null;
+    let authError: unknown = null;
+    try {
+      ({ data, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { name, business_name: bizName },
+          emailRedirectTo: `${window.location.origin}/login`,
+        },
+      }));
+    } catch (err) {
+      authError = err;
+    }
 
-    if (authError) { setError(authError.message); setLoading(false); return; }
+    if (authError || !data) { setError(signupErrorMessage(authError)); setLoading(false); return; }
 
     // With email confirmation on, Supabase returns no session until the link
     // is clicked. If it ever comes back with a session, go straight in.
@@ -61,8 +87,9 @@ export default function SignupPage() {
         <div style={{ fontSize:48, marginBottom:16 }}><Icon name="done" size={48} /></div>
         <h2 style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:22, color:C.cl, marginBottom:8 }}>Check your email</h2>
         <p style={{ fontFamily:"var(--font-inter)", fontSize:14, color:C.st, lineHeight:1.6 }}>
-          We&apos;ve sent a confirmation link to <strong style={{ color:C.cl }}>{email}</strong>.
-          Click the link to activate your account, then come back here to sign in.
+          If <strong style={{ color:C.cl }}>{email}</strong> can be used, we&apos;ve sent it a link to finish
+          setting up. Open the link, then come back here to sign in. If you already have an account, sign in or
+          reset your password.
         </p>
         <Link href="/login" className="bp" style={{ display:"inline-flex", marginTop:24, textDecoration:"none" }}>
           Go to Sign In →
@@ -106,8 +133,24 @@ export default function SignupPage() {
               <PasswordInput value={password} onChange={e => setPassword(e.target.value)} placeholder="Min. 8 characters" autoComplete="new-password" required />
             </div>
 
+            {/* The deal, before the button */}
+            <div style={{ padding:16, background:"rgba(28,45,72,.5)", borderRadius:12, marginBottom:20 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:10 }}>
+                <span style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:20, color:C.cl }}>$500</span>
+                <span style={{ fontFamily:"var(--font-inter)", fontSize:12, color:C.st }}>/month AUD after a 30-day free trial</span>
+              </div>
+              <ul style={{ margin:0, padding:0, listStyle:"none", display:"grid", gap:6 }}>
+                {DEAL.map(line => (
+                  <li key={line} style={{ display:"flex", gap:8, fontFamily:"var(--font-inter)", fontSize:12, lineHeight:1.5, color:C.st }}>
+                    <span aria-hidden="true" style={{ color:C.g, flexShrink:0 }}>•</span>
+                    <span>{line}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
             {error && (
-              <div style={{ padding:"10px 14px", borderRadius:8, marginBottom:16, background:"rgba(255,71,87,.1)", border:"1px solid rgba(255,71,87,.2)", fontFamily:"var(--font-inter)", fontSize:13, color:C.r }}>
+              <div role="alert" style={{ padding:"10px 14px", borderRadius:8, marginBottom:16, background:"rgba(255,71,87,.1)", border:"1px solid rgba(255,71,87,.2)", fontFamily:"var(--font-inter)", fontSize:13, color:C.r }}>
                 {error}
               </div>
             )}

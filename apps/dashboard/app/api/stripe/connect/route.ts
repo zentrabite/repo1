@@ -17,6 +17,7 @@ import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase-server";
 import { MANAGER_ROLES, requireBusiness } from "@/lib/request-business";
+import { trustedOrigin } from "@/lib/tenant";
 
 export async function POST(req: Request) {
   try {
@@ -65,7 +66,8 @@ export async function POST(req: Request) {
     }
 
     // ── Step 2: Create the onboarding link ────────────────────────────────
-    const origin = req.headers.get("origin") ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3002";
+    // Only our own hosts (or localhost in dev), so a forged Origin can't send people elsewhere.
+    const origin = trustedOrigin(req.headers.get("origin"), process.env.NEXT_PUBLIC_APP_URL ?? "https://dashboard.zentrabite.com");
 
     const accountLink = await stripe.accountLinks.create({
       account:     accountId,

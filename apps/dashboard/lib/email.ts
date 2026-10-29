@@ -1,5 +1,11 @@
-// ─── Transactional email (Resend) ──────────────────────────────────────────
+// ─── Email (Resend) ────────────────────────────────────────────────────────
 // Tiny wrapper around the Resend REST API — no SDK dep, runs on edge or node.
+//
+// Two kinds of email:
+//   • transactional (receipts, invites, billing notices): sendEmail()
+//   • marketing (win-back offers, promotions): sendMarketingEmail() ONLY.
+//     It checks consent right before sending, adds the unsubscribe link and
+//     the List-Unsubscribe headers. Spam Act 2003 needs all three.
 //
 // ENV:
 //   RESEND_API_KEY          — pk/sk from resend.com
@@ -8,6 +14,9 @@
 //
 // If RESEND_API_KEY is unset the helper no-ops — useful for local dev so you
 // don't need keys to test an order flow.
+
+import "server-only";
+import { canSendMarketing, unsubscribeLinks } from "@/lib/unsubscribe";
 
 export type EmailResult =
   | { ok: true;  id: string }
@@ -20,6 +29,8 @@ export type SendEmailInput = {
   html?:   string;
   from?:   string;
   replyTo?: string;
+  /** Extra email headers, passed straight to Resend. */
+  headers?: Record<string, string>;
 };
 
 export async function sendEmail(input: SendEmailInput): Promise<EmailResult> {
@@ -46,6 +57,7 @@ export async function sendEmail(input: SendEmailInput): Promise<EmailResult> {
         text:     input.text,
         html,
         reply_to: input.replyTo,
+        ...(input.headers ? { headers: input.headers } : {}),
       }),
     });
     const body = await res.json().catch(() => ({}));
@@ -59,6 +71,79 @@ export async function sendEmail(input: SendEmailInput): Promise<EmailResult> {
     console.error("[email] send failed:", msg);
     return { ok: false, error: msg };
   }
+}
+
+// ─── Marketing email ───────────────────────────────────────────────────────
+// Every marketing send goes through here. It:
+//   1. checks the customer still has marketing consent and hasn't opted out
+//      (canSendMarketing), so a customer who unsubscribed a minute ago is
+//      skipped even mid-run
+//   2. adds a footer naming the business with a working unsubscribe link
+//   3. adds List-Unsubscribe and List-Unsubscribe-Post, so mail apps show
+//      their own one-click unsubscribe button
+// It refuses to send if it can't build the unsubscribe link.
+
+export type MarketingEmailInput = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  db:           any;
+  businessId:   string;
+  businessName: string;
+  customerId:   string;
+  to:           string;
+  subject:      string;
+  text:         string;
+};
+
+export async function sendMarketingEmail(input: MarketingEmailInput): Promise<EmailResult> {
+  const { db, businessId, businessName, customerId, to, subject, text } = input;
+
+  if (!(await canSendMarketing(db, businessId, customerId, to))) {
+    return { ok: false, error: "Customer has opted out or hasn't agreed to marketing", skipped: true };
+  }
+
+  const links = unsubscribeLinks(customerId);
+  if (!links) {
+    console.error("[email] marketing email not sent: no unsubscribe link (SUPABASE_SERVICE_ROLE_KEY missing?)");
+    return { ok: false, error: "Unsubscribe link unavailable" };
+  }
+
+  const footer = [
+    `You're getting this because you agreed to hear from ${businessName}.`,
+    `Unsubscribe: ${links.page}`,
+    `Sent by ZentraBite for ${businessName}.`,
+  ].join("\n");
+
+  return sendEmail({
+    to,
+    subject,
+    text: `${text.trim()}\n\n--\n${footer}`,
+    html: marketingHtml(businessName, text, links.page),
+    headers: {
+      "List-Unsubscribe":      `<${links.oneClick}>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    },
+  });
+}
+
+function marketingHtml(businessName: string, text: string, unsubscribeUrl: string): string {
+  return `<!doctype html>
+<html><body style="margin:0;padding:0;background:#F8FAFB;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F8FAFB;padding:24px 0">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:14px;padding:32px 28px;box-shadow:0 1px 4px rgba(15,31,45,.06)">
+        <tr><td>
+          <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#6B7C93;font-weight:600">${escapeHtml(businessName)}</div>
+          <div style="margin-top:12px;font-size:15px;line-height:1.6;color:#0F1F2D;white-space:pre-wrap">${escapeHtml(text.trim())}</div>
+          <div style="margin-top:24px;padding-top:20px;border-top:1px solid #eceff4;font-size:12px;color:#6B7C93;line-height:1.6">
+            You're getting this because you agreed to hear from ${escapeHtml(businessName)}.
+            <a href="${escapeHtml(unsubscribeUrl)}" style="color:#6B7C93;text-decoration:underline">Unsubscribe</a>
+          </div>
+        </td></tr>
+      </table>
+      <div style="margin-top:18px;font-size:11px;color:#6B7C93">Sent by ZentraBite for ${escapeHtml(businessName)}</div>
+    </td></tr>
+  </table>
+</body></html>`;
 }
 
 // ─── Templates ─────────────────────────────────────────────────────────────

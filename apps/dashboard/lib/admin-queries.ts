@@ -4,6 +4,7 @@
 // via supabase-server.ts.
 // Only import from: API routes, Server Components, and Server Actions.
 
+import "server-only";
 import { createAdminClient } from "@/lib/supabase-server";
 
 export type AdminBusinessRow = {

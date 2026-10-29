@@ -8,7 +8,8 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { tenantFromHost } from "@/lib/tenant";
 
 // /site is each restaurant's public website (also served at name.zentrabite.com).
-const PUBLIC_PATHS = ["/login", "/signup", "/auth", "/forgot-password", "/reset-password", "/store", "/site"];
+// /unsubscribe is where the link in a marketing email lands.
+const PUBLIC_PATHS = ["/login", "/signup", "/auth", "/forgot-password", "/reset-password", "/store", "/site", "/unsubscribe"];
 
 // API routes that are called by outside services or by customers who aren't
 // logged in. Each one checks its own credentials, so the login gate must let
@@ -17,11 +18,16 @@ const PUBLIC_PATHS = ["/login", "/signup", "/auth", "/forgot-password", "/reset-
 //   /api/sms/inbound       — Twilio replies (STOP), verified by signature
 //   /api/automations/run   — Vercel cron, verified by CRON_SECRET (the manual
 //                            path inside it checks the login itself)
+//   /api/billing/trial-reminders — Vercel cron, verified by CRON_SECRET
 //   /api/store/            — the public ordering page (menu, checkout, receipt)
 //   /api/delivery/fee      — fee preview on the public ordering page
+//   /api/unsubscribe       — email unsubscribe, verified by a signed token
 // Match exact paths or a trailing-slash prefix so "/api/store" can't be used
 // to open something like "/api/storefront-admin" by accident.
-const PUBLIC_API_EXACT  = ["/api/stripe/webhook", "/api/sms/inbound", "/api/automations/run", "/api/delivery/fee"];
+const PUBLIC_API_EXACT  = [
+  "/api/stripe/webhook", "/api/sms/inbound", "/api/automations/run", "/api/billing/trial-reminders",
+  "/api/delivery/fee", "/api/unsubscribe",
+];
 const PUBLIC_API_PREFIX = ["/api/store/"];
 
 function isPublicApi(pathname: string): boolean {

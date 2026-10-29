@@ -12,6 +12,7 @@ import Modal from "@/components/modal";
 import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
 import { Icon } from "@/components/zb-icon";
+import { csvCell } from "@/lib/csv";
 import {
   getCustomersByPoints,
   getRewardsCatalogue,
@@ -142,7 +143,7 @@ export default function RewardsPage() {
     const headers = ["id","name","email","points","tier"];
     const body = customers.map(r =>
       [r.id, r.name, r.email ?? "", r.pts, r.tier]
-        .map(v => `"${String(v).replace(/"/g, '""')}"`)
+        .map(v => csvCell(v, { quote: true }))   // also stops formulas in names
         .join(",")
     );
     const csv  = headers.join(",") + "\n" + body.join("\n");

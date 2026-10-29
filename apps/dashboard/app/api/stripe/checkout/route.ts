@@ -20,6 +20,7 @@ import { NextResponse } from "next/server";
 import { stripe, PRICES } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase-server";
 import { MANAGER_ROLES, requireBusiness } from "@/lib/request-business";
+import { trustedOrigin } from "@/lib/tenant";
 
 const TRIAL_DAYS = 30;
 
@@ -51,7 +52,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const origin = req.headers.get("origin") ?? process.env.NEXT_PUBLIC_APP_URL ?? "https://dashboard.zentrabite.com";
+    // Only our own hosts, so a forged Origin can't send people elsewhere after checkout.
+    const origin = trustedOrigin(req.headers.get("origin"), process.env.NEXT_PUBLIC_APP_URL ?? "https://dashboard.zentrabite.com");
     const customerId = (business as { stripe_customer_id?: string | null }).stripe_customer_id ?? null;
 
     const session = await stripe.checkout.sessions.create({

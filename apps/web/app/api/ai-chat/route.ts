@@ -7,72 +7,156 @@ import {
 
 export const runtime = "nodejs";
 
-// ── In-memory rate limiter ────────────────────────────────────────────────────
-// 10 requests per IP per hour. Resets on server restart (fine for edge/serverless).
-const RATE_LIMIT = 10;
-const WINDOW_MS = 60 * 60 * 1000; // 1 hour
+// ── Spend guards ─────────────────────────────────────────────────────────────
+// Everything below lives in memory, so each serverless instance keeps its own
+// counts and they reset when the instance is recycled. That makes them a
+// brake, not a wall. The real ceiling is the monthly spend limit on the
+// Anthropic key, which is set in the Anthropic console.
+//
+//   • per IP: 3 requests a minute and 8 an hour
+//   • per instance: 120 requests an hour across everyone
+//   • request body: 32 KB at most, refused before it's read in full
+//   • conversation: the last MAX_HISTORY_TURNS messages, each cut to
+//     MAX_USER_MESSAGE_CHARS
+//   • answer: max_tokens 400 (about four short paragraphs)
+const IP_PER_MINUTE = 3;
+const IP_PER_HOUR = 8;
+const INSTANCE_PER_HOUR = 120;
+const MAX_BODY_BYTES = 32 * 1024;
+const MAX_OUTPUT_TOKENS = 400;
 
-const ipMap = new Map<string, { count: number; windowStart: number }>();
+const MINUTE_MS = 60 * 1000;
+const HOUR_MS = 60 * MINUTE_MS;
+const MAX_TRACKED_IPS = 5000;
 
-function isRateLimited(ip: string): boolean {
+// Request times per IP in the last hour.
+const ipHits = new Map<string, number[]>();
+// Request times for this whole instance in the last hour.
+let instanceHits: number[] = [];
+
+type LimitResult = "ok" | "ip" | "instance";
+
+function checkLimits(ip: string): LimitResult {
   const now = Date.now();
-  const entry = ipMap.get(ip);
-  if (!entry || now - entry.windowStart > WINDOW_MS) {
-    ipMap.set(ip, { count: 1, windowStart: now });
-    return false;
+
+  instanceHits = instanceHits.filter((t) => now - t < HOUR_MS);
+  if (instanceHits.length >= INSTANCE_PER_HOUR) return "instance";
+
+  const hits = (ipHits.get(ip) ?? []).filter((t) => now - t < HOUR_MS);
+  const lastMinute = hits.filter((t) => now - t < MINUTE_MS).length;
+  if (hits.length >= IP_PER_HOUR || lastMinute >= IP_PER_MINUTE) {
+    ipHits.set(ip, hits);
+    return "ip";
   }
-  if (entry.count >= RATE_LIMIT) return true;
-  entry.count++;
-  return false;
+
+  hits.push(now);
+  ipHits.set(ip, hits);
+  instanceHits.push(now);
+
+  // Keep the map from growing without end on a long-lived instance.
+  if (ipHits.size > MAX_TRACKED_IPS) {
+    for (const [key, times] of ipHits) {
+      if (times.every((t) => now - t >= HOUR_MS)) ipHits.delete(key);
+    }
+  }
+  return "ok";
+}
+
+function clientIp(req: Request): string {
+  // Vercel sets both of these from the real connection.
+  return (
+    req.headers.get("x-real-ip")?.trim() ||
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    "unknown"
+  );
+}
+
+function json(body: unknown, status: number, headers: Record<string, string> = {}): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json", ...headers },
+  });
+}
+
+const UNAVAILABLE =
+  "The chat isn't available right now. Try again later, or book a call at /contact and a person can help.";
+
+/** Reads the body as text, giving up as soon as it passes the limit. */
+async function readBody(req: Request, limit: number): Promise<string | null> {
+  if (!req.body) return "";
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > limit) {
+      await reader.cancel().catch(() => {});
+      return null;
+    }
+    chunks.push(value);
+  }
+  const all = new Uint8Array(size);
+  let offset = 0;
+  for (const c of chunks) {
+    all.set(c, offset);
+    offset += c.byteLength;
+  }
+  return new TextDecoder().decode(all);
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
 type IncomingMessage = { role: "user" | "assistant"; content: string };
 
 export async function POST(req: Request) {
-  // Rate limit by IP
-  const ip =
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  if (isRateLimited(ip)) {
-    return new Response(
-      JSON.stringify({ error: "Too many requests. Please try again later." }),
-      { status: 429, headers: { "Content-Type": "application/json" } },
-    );
+  // Refuse big bodies before doing any work.
+  const declared = Number(req.headers.get("content-length") ?? "0");
+  if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) {
+    return json({ error: "That message is too long." }, 413);
+  }
+
+  const limit = checkLimits(clientIp(req));
+  if (limit === "ip") {
+    return json({ error: "Too many questions in a short time. Wait a few minutes and try again." }, 429, {
+      "Retry-After": "120",
+    });
+  }
+  if (limit === "instance") {
+    console.error("[ai-chat] hourly cap for this instance reached");
+    return json({ error: UNAVAILABLE }, 503, { "Retry-After": "600" });
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return new Response(
-      JSON.stringify({
-        error:
-          "ANTHROPIC_API_KEY not set on the server. Add it to apps/web's environment (Vercel → Settings → Environment Variables).",
-      }),
-      { status: 503, headers: { "Content-Type": "application/json" } },
-    );
+    console.error("[ai-chat] ANTHROPIC_API_KEY is not set, so the chat can't answer");
+    return json({ error: UNAVAILABLE }, 503);
+  }
+
+  const raw = await readBody(req, MAX_BODY_BYTES);
+  if (raw === null) {
+    return json({ error: "That message is too long." }, 413);
   }
 
   let body: { messages?: IncomingMessage[] };
   try {
-    body = await req.json();
+    body = JSON.parse(raw);
   } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON body." }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return json({ error: "Invalid JSON body." }, 400);
   }
 
-  const incoming = Array.isArray(body.messages) ? body.messages : [];
+  const incoming = Array.isArray(body?.messages) ? body.messages : [];
   if (incoming.length === 0) {
-    return new Response(JSON.stringify({ error: "messages is required." }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return json({ error: "messages is required." }, 400);
   }
 
-  // Sanitise: trim, cap length, drop anything we don't recognise.
+  // Sanitise: keep only the latest turns, trim, cap length, drop anything we
+  // don't recognise. The page sends the whole conversation every time.
   const cleaned: Anthropic.MessageParam[] = incoming
-    .filter((m): m is IncomingMessage =>
-      m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string",
+    .slice(-MAX_HISTORY_TURNS * 2)
+    .filter(
+      (m): m is IncomingMessage =>
+        !!m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string",
     )
     .map((m) => ({
       role: m.role,
@@ -81,11 +165,12 @@ export async function POST(req: Request) {
     .filter((m) => m.content.length > 0)
     .slice(-MAX_HISTORY_TURNS);
 
+  // The conversation must start with the visitor (the page's greeting is an
+  // assistant message).
+  while (cleaned.length > 0 && cleaned[0]!.role !== "user") cleaned.shift();
+
   if (cleaned.length === 0 || cleaned[cleaned.length - 1]!.role !== "user") {
-    return new Response(
-      JSON.stringify({ error: "The last message must be from the user." }),
-      { status: 400, headers: { "Content-Type": "application/json" } },
-    );
+    return json({ error: "The last message must be from the user." }, 400);
   }
 
   const client = new Anthropic({ apiKey });
@@ -96,7 +181,7 @@ export async function POST(req: Request) {
       try {
         const messageStream = client.messages.stream({
           model: "claude-haiku-4-5",
-          max_tokens: 512,
+          max_tokens: MAX_OUTPUT_TOKENS,
           system: [
             {
               type: "text",

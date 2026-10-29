@@ -8,6 +8,17 @@
 // Deploy: supabase functions deploy win-back
 //
 // Reads from `winback_rules` (the /biteback CRM page) — not campaigns.
+//
+// Guards (the cron job calls this with the public anon key, so anyone with
+// that key can call it too):
+//   • one run per day, claimed in edge_function_runs (migration 017). A
+//     second call the same day stops straight away.
+//   • the same monthly text cap per business as the CRM (lib/sms.ts):
+//     settings.sms_monthly_cap, default 1000 sent texts a month.
+//   • only SMS rules. Email rules are sent by the CRM's /api/automations/run,
+//     which adds the unsubscribe link.
+// Apply migration 017 before redeploying. Without it the run guard is off
+// (logged) and everything else still works.
 // ═══════════════════════════════════════════════════════════════════════════
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
@@ -20,6 +31,38 @@ const TWILIO_AUTH_TOKEN    = Deno.env.get("TWILIO_AUTH_TOKEN")!;
 const TWILIO_PHONE_NUMBER  = Deno.env.get("TWILIO_PHONE_NUMBER")!;
 
 const db = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
+// Same default as DEFAULT_SMS_MONTHLY_CAP in apps/dashboard/lib/sms.ts.
+const DEFAULT_SMS_MONTHLY_CAP = 1000;
+
+// ─── Guards ───────────────────────────────────────────────────────────────────
+
+/** True if this is the first run today (UTC). False means stop. */
+async function claimDailyRun(functionName: string): Promise<boolean> {
+  const runDate = new Date().toISOString().slice(0, 10);
+  const { error } = await db.from("edge_function_runs").insert({ function_name: functionName, run_date: runDate });
+  if (!error) return true;
+  if ((error as any).code === "23505") return false;
+  // Most likely migration 017 isn't applied yet. Keep working without the guard.
+  console.warn(`[${functionName}] run guard unavailable, carrying on: ${error.message}`);
+  return true;
+}
+
+/** Texts this business can still send this month under the CRM's cap. */
+async function smsLeftThisMonth(businessId: string, settings: Record<string, unknown> | null): Promise<number> {
+  const cap = Number(settings?.sms_monthly_cap ?? DEFAULT_SMS_MONTHLY_CAP);
+  const now = new Date();
+  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
+  const { count, error } = await db
+    .from("sms_logs")
+    .select("id", { count: "exact", head: true })
+    .eq("business_id", businessId)
+    .eq("channel", "sms")
+    .eq("status", "sent")
+    .gte("sent_at", monthStart);
+  if (error) throw new Error(`sms count failed for ${businessId}: ${error.message}`);
+  return Math.max(0, (Number.isFinite(cap) ? cap : DEFAULT_SMS_MONTHLY_CAP) - (count ?? 0));
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -68,12 +111,19 @@ async function sendSMS(to: string, body: string): Promise<string> {
 
 serve(async () => {
   try {
-    const results = { processed: 0, sent: 0, errors: 0 };
+    const results = { processed: 0, sent: 0, errors: 0, capped: 0 };
+
+    if (!(await claimDailyRun("win-back"))) {
+      return new Response(
+        JSON.stringify({ message: "Already ran today", ...results }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
 
     // 1. Load all active rules from winback_rules (written by /biteback UI)
     const { data: rules, error: rulesErr } = await db
       .from("winback_rules")
-      .select("*, businesses(id, name, subdomain)")
+      .select("*, businesses(id, name, subdomain, settings)")
       .eq("is_active", true);
 
     if (rulesErr) throw rulesErr;
@@ -85,9 +135,30 @@ serve(async () => {
       );
     }
 
+    // Texts left this month per business, worked out once and counted down.
+    const smsLeft = new Map<string, number>();
+
     for (const rule of rules) {
       const business = (rule as any).businesses;
       if (!business) continue;
+
+      // Email rules belong to the CRM's automations runner.
+      if ((rule.channel ?? "sms") !== "sms") continue;
+
+      if (!smsLeft.has(business.id)) {
+        let left = 0; // can't count, so don't send
+        try {
+          left = await smsLeftThisMonth(business.id, business.settings ?? null);
+        } catch (err) {
+          console.error(`[win-back] ${business.id}`, err);
+        }
+        smsLeft.set(business.id, left);
+      }
+      if ((smsLeft.get(business.id) ?? 0) <= 0) {
+        console.warn(`[win-back] ${business.id} monthly text cap reached, skipping rule ${rule.id}`);
+        results.capped++;
+        continue;
+      }
 
       // 2. Find customers who haven't ordered in inactive_days
       const triggerDate = new Date();
@@ -123,6 +194,11 @@ serve(async () => {
 
       // 4. Send SMS to each eligible customer
       for (const customer of eligible) {
+        if ((smsLeft.get(business.id) ?? 0) <= 0) {
+          console.warn(`[win-back] ${business.id} monthly text cap reached mid-run`);
+          results.capped++;
+          break;
+        }
         results.processed++;
         try {
           const discountCode = generateDiscountCode(business.name);
@@ -147,6 +223,8 @@ serve(async () => {
             }
           ), business.name);
 
+          // Count it before sending, so a failed send can't push past the cap.
+          smsLeft.set(business.id, (smsLeft.get(business.id) ?? 0) - 1);
           const twilioSid = await sendSMS(customer.phone, smsBody);
 
           // 5. Log to sms_logs with rule_id so cooldown filter works next run
@@ -158,7 +236,7 @@ serve(async () => {
             status:      "sent",
             twilio_sid:  twilioSid,
             converted:   false,
-            channel:     rule.channel ?? "sms",
+            channel:     "sms",
           });
 
           // 6. Log to campaign_events for attribution tracking
