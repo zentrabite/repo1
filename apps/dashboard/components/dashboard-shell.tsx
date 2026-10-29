@@ -6,7 +6,7 @@ import DashboardSidebar from "./dashboard-sidebar";
 import DashboardTopbar from "./dashboard-topbar";
 import ImpersonationBanner from "./impersonation-banner";
 
-const AUTH_ROUTES = ["/login", "/signup", "/auth"];
+const AUTH_ROUTES = ["/login", "/signup", "/auth", "/forgot-password", "/reset-password"];
 
 // Customer-facing pages: a restaurant's website and ordering page, and the
 // unsubscribe page from marketing emails. Checked by route segment, not by
