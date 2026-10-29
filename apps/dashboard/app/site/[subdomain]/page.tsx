@@ -7,13 +7,15 @@
 
 /* eslint-disable @next/next/no-img-element -- photos come from Unsplash and Supabase, outside next/image's allow list */
 
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import { cache } from "react";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { Bricolage_Grotesque, Fraunces } from "next/font/google";
-import { loadSite, type SiteData } from "@/lib/site";
+import { loadSite as loadSiteUncached, type SiteData, type SiteLook } from "@/lib/site";
 import { requireBusiness } from "@/lib/request-business";
 import { siteUrl, tenantFromHost } from "@/lib/tenant";
+import { PUBLIC_NOT_FOUND_BG } from "@/components/public-not-found";
 import "./site.css";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +24,13 @@ const bricolage = Bricolage_Grotesque({ subsets: ["latin"], weight: ["700", "800
 const fraunces  = Fraunces({ subsets: ["latin"], weight: ["600", "700"], variable: "--font-fraunces", display: "swap" });
 
 type Props = { params: Promise<{ subdomain: string }> };
+
+// One load per request, shared by the metadata, the viewport and the page.
+const loadSite = cache(loadSiteUncached);
+
+// Browser bar colour (theme-color) to match the top of the page: the dark
+// photo hero once the site is live, the page colour on the holding page.
+const HOLDING_BG: Record<SiteLook, string> = { bold: "#FFFFFF", warm: "#16130F", clean: "#FAFBFC" };
 
 function initials(name: string): string {
   return name.split(/\s+/).filter(w => /^[A-Za-z]/.test(w)).slice(0, 2).map(w => w[0]!.toUpperCase()).join("") || "?";
@@ -41,7 +50,7 @@ async function canPreview(site: SiteData): Promise<boolean> {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { subdomain } = await params;
   const site = await loadSite(subdomain);
-  if (!site) return { title: "Not found" };
+  if (!site) return { title: "Page not found", description: "This address isn't linked to a restaurant." };
   const title = site.kicker ? `${site.name} · ${site.kicker}` : site.name;
   const description = site.tagline ?? site.about?.slice(0, 160) ?? `Order online from ${site.name}.`;
   return {
@@ -52,6 +61,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     icons: site.logoUrl ? { icon: site.logoUrl, apple: site.logoUrl } : undefined,
     openGraph: { title, description, url: siteUrl(site.subdomain), siteName: site.name, images: site.photos[0] ? [{ url: site.photos[0].url }] : undefined, type: "website" },
   };
+}
+
+export async function generateViewport({ params }: Props): Promise<Viewport> {
+  const { subdomain } = await params;
+  const site = await loadSite(subdomain);
+  if (!site) return { themeColor: PUBLIC_NOT_FOUND_BG };   // the not-found page
+  return { themeColor: site.published ? "#1A1A1A" : HOLDING_BG[site.look] };
 }
 
 export default async function RestaurantSite({ params }: Props) {

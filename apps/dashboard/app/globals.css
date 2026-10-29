@@ -168,6 +168,15 @@ input:focus, select:focus, textarea:focus {
 input::placeholder { color: rgba(248,250,251,.25); }
 select option { background: #1C2D48; font-size: 14px; }
 
+/* 404 pages (app/not-found.tsx): fill the window with no body margin around them */
+body:has(.zb-404) { margin: 0; }
+
+/* Phones and tablets: iOS zooms in on any box under 16px and doesn't zoom back
+   out. !important beats the inline sizes, like the ordering page's checkout. */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea { font-size: 16px !important; }
+}
+
 /* ── Show / hide password eye (components/password-input.tsx) ── */
 /* Edge adds its own reveal button to password boxes. Ours replaces it. */
 input::-ms-reveal, input::-ms-clear { display: none; }

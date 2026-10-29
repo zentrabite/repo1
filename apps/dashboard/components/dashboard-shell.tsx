@@ -11,7 +11,9 @@ const AUTH_ROUTES = ["/login", "/signup", "/auth"];
 // unsubscribe page from marketing emails. Checked by route segment, not by
 // URL, because on name.zentrabite.com the browser shows "/" or "/order" while
 // the route is /site/... or /store/...
-const PUBLIC_SEGMENTS = new Set(["site", "store", "unsubscribe"]);
+// "/_not-found" is Next's segment for the 404 page (app/not-found.tsx). It
+// picks its own look and must never show the CRM menu on a restaurant address.
+const PUBLIC_SEGMENTS = new Set(["site", "store", "unsubscribe", "/_not-found"]);
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname   = usePathname();

@@ -245,6 +245,10 @@ export default function CustomerApp() {
           .app-screen { border-radius: 0 !important; }
           .app-notch { display: none; }
         }
+        /* iOS zooms in on a search box under 16px and doesn't zoom back out */
+        @media (pointer: coarse) {
+          .app-screen input { font-size: 16px !important; }
+        }
       `}</style>
     </div>
   );

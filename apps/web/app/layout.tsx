@@ -16,11 +16,11 @@ export const metadata: Metadata = {
     template: "%s | ZentraBite",
   },
   description: DESCRIPTION,
-  alternates: { canonical: "/" },
+  // No canonical here. Pages set their own, otherwise every page without one
+  // (the demos) would point search engines at the home page.
   openGraph: {
     title: "ZentraBite | Website, ordering and CRM for small businesses",
     description: DESCRIPTION,
-    url: SITE_URL,
     siteName: "ZentraBite",
     locale: "en_AU",
     type: "website",
@@ -28,7 +28,13 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image" },
 };
 
+// viewport-fit=cover lets the page run edge to edge on phones with a notch.
+// globals.css pads the nav, page sides and footer back out with
+// env(safe-area-inset-*). The demos switch it off in their layouts.
+// The browser bar colour follows the device here. theme-toggle.tsx updates it
+// when someone picks light or dark.
 export const viewport: Viewport = {
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#F8FAFB" },
     { media: "(prefers-color-scheme: dark)", color: "#0F1F2D" },
