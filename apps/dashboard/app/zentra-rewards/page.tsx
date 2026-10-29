@@ -104,7 +104,7 @@ export default function WinBackPage() {
 
   return (
     <div>
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+      <div className="zb-head" style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
         <div>
           <h2 style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:19, color:"#fff" }}>Win-Back Engine</h2>
           <p style={{ color:C.st, fontSize:11 }}>Automated retention offers sent to customers who go quiet</p>
@@ -129,7 +129,7 @@ export default function WinBackPage() {
           </div>
         ) : rules.map(r => (
           <div key={r.id} className="gc" style={{ padding:16 }}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:14 }}>
+            <div className="zb-col" style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:14 }}>
               <div style={{ flex:1 }}>
                 <div style={{ display:"flex", gap:6, alignItems:"center", marginBottom:4, flexWrap:"wrap" }}>
                   <span style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:14, color:"#fff" }}>{r.name}</span>
@@ -142,12 +142,12 @@ export default function WinBackPage() {
                 </div>
                 <div style={{ fontSize:11, color:"rgba(255,255,255,.55)", fontStyle:"italic", lineHeight:1.5 }}>&ldquo;{r.template}&rdquo;</div>
               </div>
-              <div style={{ display:"flex", flexDirection:"column", gap:6, alignItems:"flex-end", minWidth:120 }}>
+              <div className="zb-start" style={{ display:"flex", flexDirection:"column", gap:6, alignItems:"flex-end", minWidth:120 }}>
                 <div style={{ textAlign:"right" }}>
                   <div style={{ fontWeight:700, fontSize:18, fontFamily:"var(--font-outfit)", color:C.g }}>{r.redemptions}</div>
                   <div style={{ fontSize:9, color:C.st }}>Redeemed · ${Math.round(Number(r.revenue))}</div>
                 </div>
-                <div style={{ display:"flex", gap:6 }}>
+                <div className="zb-wrap" style={{ display:"flex", gap:6 }}>
                   <button className="bg-btn" onClick={() => loadFromRule(r)}>Edit</button>
                   <button className="bg-btn" onClick={() => toggle(r)} style={{ color: r.is_active ? C.r : C.g, borderColor: r.is_active ? "rgba(220,53,69,.2)" : "rgba(0,182,122,.2)" }}>
                     {r.is_active ? "Pause" : "Resume"}
@@ -169,7 +169,7 @@ export default function WinBackPage() {
           {editingId && <button className="bg-btn" onClick={reset}>Cancel</button>}
         </div>
 
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
+        <div className="zb-stack" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:10 }}>
           <div>
             <label style={{ display:"block", fontSize:10, color:C.st, marginBottom:3 }}>Rule name</label>
             <input value={form.name} onChange={e=>setForm(f=>({...f, name:e.target.value}))} placeholder="e.g. 14-day lapsed customer win-back" />
@@ -184,7 +184,7 @@ export default function WinBackPage() {
           </div>
         </div>
 
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+        <div className="zb-two" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
           <div>
             <label style={{ display:"block", fontSize:10, color:C.st, marginBottom:3 }}>Inactive for (days)</label>
             <input type="number" value={form.inactive_days} onChange={e=>setForm(f=>({...f, inactive_days:Number(e.target.value)}))} />
@@ -220,7 +220,7 @@ export default function WinBackPage() {
           />
         </div>
 
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+        <div className="zb-wrap" style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
           <label style={{ display:"flex", alignItems:"center", gap:8, fontSize:12, color:C.st, cursor:"pointer" }}>
             <input type="checkbox" checked={form.is_active} onChange={e=>setForm(f=>({...f, is_active:e.target.checked}))} />
             Active on save

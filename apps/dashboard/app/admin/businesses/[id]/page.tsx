@@ -202,6 +202,7 @@ export default function AdminBusinessAboutPage() {
       <div style={{ marginBottom: 18 }}>
         <Link
           href="/admin"
+          className="ab-back"
           style={{ fontSize: 12.5, color: C.st, textDecoration: "none", fontFamily: "var(--font-inter)" }}
         >
           ← Back to Super Admin
@@ -210,7 +211,7 @@ export default function AdminBusinessAboutPage() {
 
       {/* Hero card */}
       <div
-        className="gc"
+        className="gc ab-hero"
         style={{
           padding: 24,
           marginBottom: 16,
@@ -247,7 +248,7 @@ export default function AdminBusinessAboutPage() {
             </div>
           )}
         </div>
-        <div style={{ display: "flex", gap: 8, flexDirection: "column" }}>
+        <div className="ab-actions" style={{ display: "flex", gap: 8, flexDirection: "column" }}>
           {form.contact_phone && (
             <a
               href={`tel:${form.contact_phone}`}
@@ -429,6 +430,15 @@ export default function AdminBusinessAboutPage() {
         @media (max-width: 900px) {
           .about-grid { grid-template-columns: 1fr !important; }
         }
+        @media (max-width: 820px) {
+          .ab-back { display: inline-flex; align-items: center; min-height: 44px; }
+          .ab-hero { grid-template-columns: 56px minmax(0, 1fr) !important; padding: 16px !important; gap: 14px !important; }
+          .ab-hero > :first-child { width: 56px !important; height: 56px !important; }
+          .ab-hero > * { min-width: 0; overflow-wrap: anywhere; }
+          .ab-actions { grid-column: 1 / -1; flex-direction: row !important; flex-wrap: wrap; }
+          .ab-actions > * { flex: 1 1 140px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+          .ab-quick { display: flex !important; align-items: center; min-height: 44px; overflow-wrap: anywhere; }
+        }
       `}</style>
     </div>
   );
@@ -503,7 +513,7 @@ function QuickLink({ href, label, external }: { href: string; label: string; ext
     fontWeight: 600,
   };
   if (external) {
-    return <a href={href} target="_blank" rel="noreferrer" style={commonStyle}>{label} ↗</a>;
+    return <a href={href} target="_blank" rel="noreferrer" className="ab-quick" style={commonStyle}>{label} ↗</a>;
   }
-  return <Link href={href} style={commonStyle}>{label} →</Link>;
+  return <Link href={href} className="ab-quick" style={commonStyle}>{label} →</Link>;
 }

@@ -21,6 +21,7 @@ export default function Modal({ open, onClose, title, wide, children }: ModalPro
 
   return (
     <div
+      className="zb-modal"
       style={{
         position: "fixed", inset: 0, zIndex: 100,
         display: "flex", alignItems: "center", justifyContent: "center",
@@ -38,9 +39,14 @@ export default function Modal({ open, onClose, title, wide, children }: ModalPro
       {/* Modal panel — 16px radius, Navy surface */}
       <div
         onClick={(e) => e.stopPropagation()}
+        className="zb-modal-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
         style={{
           position: "relative",
-          width: wide ? 700 : 480,
+          width: "100%",
+          maxWidth: wide ? 700 : 480,
           maxHeight: "88vh",
           overflowY: "auto",
           background: `rgba(18,30,50,.97)`,
@@ -50,7 +56,7 @@ export default function Modal({ open, onClose, title, wide, children }: ModalPro
         }}
       >
         {/* Header */}
-        <div style={{
+        <div className="zb-modal-head" style={{
           padding: "18px 24px",
           borderBottom: `1px solid ${MIST}`,
           display: "flex", justifyContent: "space-between", alignItems: "center",
@@ -67,6 +73,8 @@ export default function Modal({ open, onClose, title, wide, children }: ModalPro
           </h3>
           <button
             onClick={onClose}
+            className="zb-modal-close"
+            aria-label="Close"
             style={{
               background: "rgba(226,232,240,.07)",
               border: "none", color: STEEL,
@@ -78,7 +86,7 @@ export default function Modal({ open, onClose, title, wide, children }: ModalPro
         </div>
 
         {/* Body — Inter font */}
-        <div style={{
+        <div className="zb-modal-body" style={{
           padding: "22px 24px",
           fontFamily: "var(--font-inter)",
           fontSize: 14, color: CLOUD,

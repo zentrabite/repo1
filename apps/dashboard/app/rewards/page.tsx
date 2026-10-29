@@ -164,7 +164,7 @@ export default function RewardsPage() {
       </div>
 
       {/* ── Stat row ── */}
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10, marginBottom:14 }}>
+      <div className="zb-two" style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10, marginBottom:14 }}>
         {[
           { label:"Total Members",     value:customers.length,           color:"#fff" },
           { label:"Points In Circulation", value:totalPts.toLocaleString(), color:C.am },
@@ -179,7 +179,7 @@ export default function RewardsPage() {
       </div>
 
       {/* ── Tier ladder ── */}
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:14 }}>
+      <div className="zb-stack" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:14 }}>
         {[
           { icon:"tier" as const, accent:"#C28D5C", label:"Bronze", count:bronzeCount, range:"0–299 pts",   perk:"5% off every order",         bg:"rgba(205,127,50,.06)",  bd:"rgba(205,127,50,.18)", col:"#CD7F32" },
           { icon:"tier" as const, accent:"#C0C7D1", label:"Silver", count:silverCount, range:"300–999 pts", perk:"10% off + free delivery",    bg:"rgba(192,192,192,.06)", bd:"rgba(192,192,192,.18)",col:"#C0C0C0" },
@@ -221,7 +221,7 @@ export default function RewardsPage() {
       </div>
 
       {/* ── Tabs ── */}
-      <div style={{ display:"flex", gap:4, marginBottom:12 }}>
+      <div className="zb-wrap" style={{ display:"flex", gap:4, marginBottom:12 }}>
         {(["leaderboard","catalogue","redemptions"] as const).map(t => (
           <button key={t} className={`bg-btn ${tab===t?"on":""}`} onClick={() => setTab(t)} style={{ textTransform:"capitalize" }}>{t}</button>
         ))}
@@ -236,7 +236,7 @@ export default function RewardsPage() {
       {/* ── Leaderboard tab ── */}
       {tab === "leaderboard" && (
         <div className="gc" style={{ overflow:"hidden" }}>
-          <table>
+          <table className="zb-table">
             <thead>
               <tr>{["#","","Customer","Points","Tier","Progress"].map(h => <th key={h}>{h}</th>)}</tr>
             </thead>
@@ -247,15 +247,15 @@ export default function RewardsPage() {
                 </tr>
               ) : customers.map((c, i) => (
                 <tr key={c.id}>
-                  <td style={{ color:C.st, fontSize:12, fontWeight:600 }}>#{i+1}</td>
-                  <td><Av n={c.name} /></td>
-                  <td>
+                  <td data-label="Rank" style={{ color:C.st, fontSize:12, fontWeight:600 }}>#{i+1}</td>
+                  <td className="zb-hide-phone"><Av n={c.name} /></td>
+                  <td data-primary>
                     <div style={{ fontWeight:600, color:"#fff", fontSize:13 }}>{c.name}</div>
                     {c.email && <div style={{ fontSize:10, color:C.st }}>{c.email}</div>}
                   </td>
-                  <td style={{ fontWeight:700, color:C.am, fontSize:13 }}>{c.pts.toLocaleString()}</td>
-                  <td><Badge type={c.tier}>{c.tier}</Badge></td>
-                  <td style={{ minWidth:120 }}><TierBar pts={c.pts} /></td>
+                  <td data-label="Points" style={{ fontWeight:700, color:C.am, fontSize:13 }}>{c.pts.toLocaleString()}</td>
+                  <td data-label="Tier"><Badge type={c.tier}>{c.tier}</Badge></td>
+                  <td data-label="Progress" style={{ minWidth:120 }}><TierBar pts={c.pts} /></td>
                 </tr>
               ))}
             </tbody>
@@ -301,7 +301,7 @@ export default function RewardsPage() {
       {/* ── Redemptions tab ── */}
       {tab === "redemptions" && (
         <div className="gc" style={{ overflow:"hidden" }}>
-          <table>
+          <table className="zb-table">
             <thead>
               <tr>{["Customer","Reward","Points Spent","Date"].map(h => <th key={h}>{h}</th>)}</tr>
             </thead>
@@ -312,10 +312,10 @@ export default function RewardsPage() {
                 </tr>
               ) : redemptions.map((r, i) => (
                 <tr key={i}>
-                  <td style={{ fontWeight:600, color:"#fff", fontSize:13 }}>{(r.customers as any)?.name ?? "—"}</td>
-                  <td style={{ fontSize:13, color:C.cl }}>{(r.rewards_catalogue as any)?.name ?? "—"}</td>
-                  <td style={{ fontWeight:700, color:C.am, fontSize:13 }}>{r.points_spent.toLocaleString()} pts</td>
-                  <td style={{ fontSize:12, color:C.st }}>{new Date(r.redeemed_at).toLocaleDateString()}</td>
+                  <td data-primary style={{ fontWeight:600, color:"#fff", fontSize:13 }}>{(r.customers as any)?.name ?? "—"}</td>
+                  <td data-label="Reward" data-wide style={{ fontSize:13, color:C.cl }}>{(r.rewards_catalogue as any)?.name ?? "—"}</td>
+                  <td data-label="Points spent" style={{ fontWeight:700, color:C.am, fontSize:13 }}>{r.points_spent.toLocaleString()} pts</td>
+                  <td data-label="Date" style={{ fontSize:12, color:C.st }}>{new Date(r.redeemed_at).toLocaleDateString()}</td>
                 </tr>
               ))}
             </tbody>

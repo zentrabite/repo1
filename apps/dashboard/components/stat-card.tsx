@@ -18,7 +18,7 @@ export default function StatCard({ label, value, subtitle, icon, accent, delay =
 
   return (
     <div
-      className="gc fd"
+      className="gc fd zb-stat"
       style={{
         padding: "22px 24px",
         flex: 1,
@@ -28,7 +28,7 @@ export default function StatCard({ label, value, subtitle, icon, accent, delay =
     >
       {/* Label row */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-        <span style={{
+        <span className="zb-stat-label" style={{
           fontSize: 12,
           color: "#6B7C93",
           fontFamily: "var(--font-inter)",
@@ -44,7 +44,7 @@ export default function StatCard({ label, value, subtitle, icon, accent, delay =
       </div>
 
       {/* Value — accent only when there's real data */}
-      <div style={{
+      <div className="zb-stat-value" style={{
         fontSize: 30,
         fontWeight: 700,
         fontFamily: "var(--font-outfit)",

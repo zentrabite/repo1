@@ -11,7 +11,7 @@ interface PageHeaderProps {
 
 export default function PageHeader({ title, subtitle, action }: PageHeaderProps) {
   return (
-    <div style={{
+    <div className="zb-head" style={{
       display: "flex", justifyContent: "space-between", alignItems: "flex-start",
       marginBottom: 20,
     }}>

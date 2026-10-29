@@ -111,7 +111,7 @@ export default function DriversPage() {
   return (
     <div>
       {/* ── Header ── */}
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+      <div className="zb-head" style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
         <div>
           <h2 style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:20, color:"#fff" }}>Drivers</h2>
           <p style={{ color:C.st, fontSize:12 }}>In-house delivery team · {activeCount} active{inactiveCount > 0 ? ` · ${inactiveCount} inactive` : ""}</p>
@@ -131,7 +131,7 @@ export default function DriversPage() {
 
       {/* ── Filters ── */}
       <div style={{ display:"flex", gap:5, marginBottom:12, flexWrap:"wrap" }}>
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name or phone…" style={{ width:200 }} />
+        <input className="zb-full" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name or phone…" style={{ width:200 }} />
         {(["all","active","inactive"] as const).map(f => (
           <button key={f} className={`bg-btn ${filter===f?"on":""}`} onClick={() => setFilter(f)} style={{ textTransform:"capitalize" }}>{f}</button>
         ))}
@@ -139,7 +139,7 @@ export default function DriversPage() {
 
       {/* ── Table ── */}
       <div className="gc" style={{ overflow:"hidden" }}>
-        <table>
+        <table className="zb-table">
           <thead>
             <tr>{["","Name","Phone","Email","Provider","Status",""].map(h=><th key={h}>{h}</th>)}</tr>
           </thead>
@@ -150,18 +150,18 @@ export default function DriversPage() {
               </tr>
             ) : filtered.map((d, i) => (
               <tr key={i} style={{ cursor:"pointer" }} onClick={() => openEdit(d)}>
-                <td><Av n={d.name} /></td>
-                <td>
+                <td className="zb-hide-phone"><Av n={d.name} /></td>
+                <td data-first>
                   <div style={{ fontWeight:600, color:"#fff", fontSize:13 }}>{d.name}</div>
                   {d.notes && <div style={{ fontSize:10, color:C.st }}>{d.notes}</div>}
                 </td>
-                <td style={{ fontSize:13, color:C.cl }}>{d.phone || <span style={{ color:C.st }}>—</span>}</td>
-                <td style={{ fontSize:12, color:C.st }}>{d.email || "—"}</td>
-                <td><Badge type={d.provider ?? undefined}>{d.provider || "—"}</Badge></td>
-                <td>
+                <td data-label="Phone" style={{ fontSize:13, color:C.cl }}>{d.phone || <span style={{ color:C.st }}>—</span>}</td>
+                <td data-label="Email" data-wide style={{ fontSize:12, color:C.st }}>{d.email || "—"}</td>
+                <td data-label="Provider"><Badge type={d.provider ?? undefined}>{d.provider || "—"}</Badge></td>
+                <td data-first data-end>
                   <Badge type={d.is_active ? "active" : "inactive"}>{d.is_active ? "Active" : "Inactive"}</Badge>
                 </td>
-                <td onClick={e => e.stopPropagation()}>
+                <td data-wide onClick={e => e.stopPropagation()}>
                   <div style={{ display:"flex", gap:4 }}>
                     <button className="bg-btn" style={{ padding:"4px 10px", fontSize:11 }} onClick={() => handleToggleActive(d)}>
                       {d.is_active ? "Deactivate" : "Activate"}

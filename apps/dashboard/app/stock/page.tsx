@@ -133,7 +133,7 @@ export default function StockPage() {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+      <div className="zb-head" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
         <div>
           <h2 style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 20, color: "#fff" }}>Stock</h2>
           <p style={{ color: C.st, fontSize: 12 }}>Par levels, counts and AI reorder suggestions</p>
@@ -141,7 +141,7 @@ export default function StockPage() {
         <button className="bp" onClick={() => { setForm(EMPTY_FORM); setAdding(true); }}>+ Add Stock Item</button>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 14 }}>
+      <div className="zb-two" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 14 }}>
         {[
           { label: "Items tracked", value: items.length, color: "#fff" },
           { label: "Low / reorder",  value: lowCount,    color: C.o },
@@ -161,25 +161,25 @@ export default function StockPage() {
         <EmptyState icon={StockIcon} title="No stock items yet" description="Add your first stock item to start tracking par levels, reorder triggers and expiry dates." />
       ) : (
         <div className="gs" style={{ padding: 0, overflow: "hidden" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1.5fr 90px 120px 120px 120px 100px", gap: 0, fontSize: 11, color: C.st, textTransform: "uppercase", letterSpacing: ".08em", fontWeight: 700, padding: "10px 16px", borderBottom: `1px solid ${C.mist}` }}>
+          <div className="zb-hide-phone" style={{ display: "grid", gridTemplateColumns: "1.5fr 90px 120px 120px 120px 100px", gap: 0, fontSize: 11, color: C.st, textTransform: "uppercase", letterSpacing: ".08em", fontWeight: 700, padding: "10px 16px", borderBottom: `1px solid ${C.mist}` }}>
             <div>Item</div><div>On hand</div><div>Par</div><div>Status</div><div>Expiry</div><div style={{ textAlign: "right" }}>Actions</div>
           </div>
           {items.map((it) => {
             const st = statusFor(it);
             const dte = daysToExpiry(it.expiry_date);
             return (
-              <div key={it.id} style={{ display: "grid", gridTemplateColumns: "1.5fr 90px 120px 120px 120px 100px", alignItems: "center", gap: 0, padding: "12px 16px", borderBottom: `1px solid ${C.mist}`, fontSize: 13 }}>
-                <div>
+              <div key={it.id} className="zb-card-row" style={{ display: "grid", gridTemplateColumns: "1.5fr 90px 120px 120px 120px 100px", alignItems: "center", gap: 0, padding: "12px 16px", borderBottom: `1px solid ${C.mist}`, fontSize: 13 }}>
+                <div data-primary>
                   <div style={{ color: "#fff", fontWeight: 600 }}>{it.name}</div>
                   <div style={{ fontSize: 11, color: C.st, marginTop: 2 }}>{(it.supplier ?? "No supplier") + " - $" + it.cost.toFixed(2) + "/" + it.unit}</div>
                 </div>
-                <div style={{ color: "#fff", fontFamily: "var(--font-outfit)", fontWeight: 700 }}>{it.on_hand} <span style={{ color: C.st, fontSize: 11, fontWeight: 500 }}>{it.unit}</span></div>
-                <div style={{ color: C.st }}>{it.par_level} {it.unit}</div>
-                <div><span style={{ fontSize: 11, fontWeight: 700, color: st.color, padding: "3px 10px", borderRadius: 999, background: "rgba(255,255,255,.04)", border: `1px solid ${st.color}55` }}>{st.label}</span></div>
-                <div style={{ color: dte !== null && dte <= 3 ? C.o : C.st, fontSize: 12 }}>
+                <div data-label="On hand" style={{ color: "#fff", fontFamily: "var(--font-outfit)", fontWeight: 700 }}>{it.on_hand} <span style={{ color: C.st, fontSize: 11, fontWeight: 500 }}>{it.unit}</span></div>
+                <div data-label="Par" style={{ color: C.st }}>{it.par_level} {it.unit}</div>
+                <div data-label="Status"><span style={{ fontSize: 11, fontWeight: 700, color: st.color, padding: "3px 10px", borderRadius: 999, background: "rgba(255,255,255,.04)", border: `1px solid ${st.color}55` }}>{st.label}</span></div>
+                <div data-label="Expiry" style={{ color: dte !== null && dte <= 3 ? C.o : C.st, fontSize: 12 }}>
                   {it.expiry_date ? (dte! < 0 ? "Expired " + Math.abs(dte!) + "d" : dte + "d") : "-"}
                 </div>
-                <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
+                <div data-wide style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
                   <button className="bg-btn" style={{ fontSize: 11, padding: "5px 9px" }} onClick={() => { setCountQty(String(it.on_hand)); setCounting(it); }}>Count</button>
                   <button className="bg-btn" style={{ fontSize: 11, padding: "5px 9px" }} onClick={() => openEdit(it)}>Edit</button>
                 </div>
@@ -199,7 +199,7 @@ export default function StockPage() {
 
       <Modal open={!!editing} onClose={() => setEditing(null)} title="Edit Stock Item">
         <StockForm form={form} setForm={setForm} />
-        <div style={{ display: "flex", gap: 6, justifyContent: "space-between" }}>
+        <div className="zb-wrap" style={{ display: "flex", gap: 6, justifyContent: "space-between" }}>
           <button className="bg-btn" style={{ color: C.r }} onClick={() => editing && remove(editing)}>Delete</button>
           <div style={{ display: "flex", gap: 6 }}>
             <button className="bg-btn" onClick={() => setEditing(null)}>Cancel</button>
@@ -229,7 +229,7 @@ function StockForm({ form, setForm }: { form: any; setForm: (f: any) => void }) 
   return (
     <>
       <div style={{ marginBottom: 12 }}><label>Name</label><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Chicken thigh" /></div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+      <div className="zb-stack" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
         <div><label>Unit</label>
           <select value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })}>
             <option value="each">each</option><option value="kg">kg</option><option value="g">g</option>
@@ -239,12 +239,12 @@ function StockForm({ form, setForm }: { form: any; setForm: (f: any) => void }) 
         </div>
         <div><label>Supplier</label><input value={form.supplier} onChange={(e) => setForm({ ...form, supplier: e.target.value })} placeholder="Optional" /></div>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 12 }}>
+      <div className="zb-two" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 12 }}>
         <div><label>Cost / unit ($)</label><input type="number" step="0.01" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value })} /></div>
         <div><label>On hand</label><input type="number" step="0.01" value={form.on_hand} onChange={(e) => setForm({ ...form, on_hand: e.target.value })} /></div>
         <div><label>Par level</label><input type="number" step="0.01" value={form.par_level} onChange={(e) => setForm({ ...form, par_level: e.target.value })} /></div>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 12 }}>
+      <div className="zb-two" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 12 }}>
         <div><label>Reorder to</label><input type="number" step="0.01" value={form.reorder_to} onChange={(e) => setForm({ ...form, reorder_to: e.target.value })} /></div>
         <div><label>Lead time (days)</label><input type="number" min="0" value={form.lead_time_days} onChange={(e) => setForm({ ...form, lead_time_days: e.target.value })} /></div>
         <div><label>Expiry</label><input type="date" value={form.expiry_date} onChange={(e) => setForm({ ...form, expiry_date: e.target.value })} /></div>

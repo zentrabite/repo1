@@ -214,7 +214,7 @@ export default function FulfillmentPage() {
       </div>
 
       {/* Stage stat cards — clicking filters the list */}
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
+      <div className="zb-two" style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
         <div onClick={() => setStageFilter("open")} style={{ cursor: "pointer" }}>
           <StatCard label="Open" value={String(stats.placed + stats.picked + stats.packed + stats.shipped)} icon="dot" accent />
         </div>
@@ -452,7 +452,7 @@ export default function FulfillmentPage() {
               <div style={{ fontSize: 12, color: C.st, marginBottom: 8, fontWeight: 600 }}>
                 TRACKING
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 8 }}>
+              <div className="zb-stack" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 8 }}>
                 <LabeledInput label="Carrier" placeholder="Auspost / Sendle / DHL" value={carrier} onChange={setCarrier} />
                 <LabeledInput label="Tracking #" placeholder="e.g. VC123456789AU" value={trackingNumber} onChange={setTrackingNumber} />
               </div>
@@ -491,7 +491,7 @@ export default function FulfillmentPage() {
       <Toast message={toast.message} visible={toast.visible} />
 
       <style>{`
-        @media (max-width: 720px) {
+        @media (max-width: 820px) {
           .fulfill-row {
             grid-template-columns: 1fr !important;
             align-items: flex-start !important;

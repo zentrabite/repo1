@@ -130,7 +130,7 @@ export default function CustomersPage() {
   if (selected) return (
     <div>
       <button className="bg-btn" onClick={() => setSelected(null)} style={{ marginBottom:16 }}>← Back</button>
-      <div style={{ display:"grid", gridTemplateColumns:"220px 1fr", gap:12 }}>
+      <div className="zb-stack" style={{ display:"grid", gridTemplateColumns:"220px 1fr", gap:12 }}>
         <div className="gc" style={{ padding:20 }}>
           <Av n={selected.name} sz={48} />
           <h3 style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:17, color:"#fff", margin:"10px 0 6px" }}>{selected.name}</h3>
@@ -138,7 +138,7 @@ export default function CustomersPage() {
             <Badge type={selected.segment}>{selected.segment}</Badge>
           </div>
           <div style={{ fontSize:13, color:C.st, display:"flex", flexDirection:"column", gap:5, marginBottom:12 }}>
-            {selected.email && <div style={{ display:"flex", alignItems:"center", gap:6 }}><Icon name="email" size={16} />{selected.email}</div>}
+            {selected.email && <div className="zb-break" style={{ display:"flex", alignItems:"center", gap:6 }}><Icon name="email" size={16} />{selected.email}</div>}
             {selected.phone && <div style={{ display:"flex", alignItems:"center", gap:6 }}><Icon name="smartphone" size={16} />{selected.phone}</div>}
             <div style={{ display:"flex", alignItems:"center", gap:6 }}><Icon name="loyalty" size={16} />{selected.points_balance} points</div>
           </div>
@@ -197,7 +197,7 @@ export default function CustomersPage() {
 
   return (
     <div>
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+      <div className="zb-head" style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
         <div>
           <h2 style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:20, color:"#fff" }}>Customers</h2>
           <p style={{ color:C.st, fontSize:12 }}>CRM database · {customers.length} total</p>
@@ -223,12 +223,12 @@ export default function CustomersPage() {
       )}
 
       <div style={{ display:"flex", gap:5, marginBottom:12, flexWrap:"wrap" }}>
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name or phone…" style={{ width:200 }} />
+        <input className="zb-full" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name or phone…" style={{ width:200 }} />
         {SEGS.map(s => <button key={s} className={`bg-btn ${seg===s?"on":""}`} onClick={() => setSeg(s)}>{s}</button>)}
       </div>
 
       <div className="gc" style={{ overflow:"hidden" }}>
-        <table>
+        <table className="zb-table">
           <thead>
             <tr>{["","Name","LTV","Points","Segment","Last Order","Source"].map(h=><th key={h}>{h}</th>)}</tr>
           </thead>
@@ -239,13 +239,13 @@ export default function CustomersPage() {
               </tr>
             ) : filtered.map((c, i) => (
               <tr key={i} onClick={() => setSelected(c)}>
-                <td><Av n={c.name} /></td>
-                <td><div style={{ fontWeight:600, color:"#fff", fontSize:13 }}>{c.name}</div><div style={{ fontSize:10, color:C.st }}>{c.email}</div></td>
-                <td style={{ fontWeight:600, color:C.g, fontSize:13 }}>${c.total_spent.toLocaleString()}</td>
-                <td style={{ fontWeight:600, color:C.am, fontSize:12 }}>{c.points_balance}</td>
-                <td><Badge type={c.segment}>{c.segment}</Badge></td>
-                <td style={{ fontSize:12, color:C.st }}>{c.last_order_date ? new Date(c.last_order_date).toLocaleDateString() : "—"}</td>
-                <td><Badge type={c.source}>{c.source}</Badge></td>
+                <td className="zb-hide-phone"><Av n={c.name} /></td>
+                <td data-primary><div style={{ fontWeight:600, color:"#fff", fontSize:13 }}>{c.name}</div><div style={{ fontSize:10, color:C.st }}>{c.email}</div></td>
+                <td data-label="LTV" style={{ fontWeight:600, color:C.g, fontSize:13 }}>${c.total_spent.toLocaleString()}</td>
+                <td data-label="Points" style={{ fontWeight:600, color:C.am, fontSize:12 }}>{c.points_balance}</td>
+                <td data-label="Segment"><Badge type={c.segment}>{c.segment}</Badge></td>
+                <td data-label="Last order" style={{ fontSize:12, color:C.st }}>{c.last_order_date ? new Date(c.last_order_date).toLocaleDateString() : "—"}</td>
+                <td data-label="Source"><Badge type={c.source}>{c.source}</Badge></td>
               </tr>
             ))}
           </tbody>

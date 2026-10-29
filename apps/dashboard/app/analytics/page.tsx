@@ -66,7 +66,7 @@ export default function AnalyticsPage() {
 
   return (
     <div>
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
+      <div className="zb-head" style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
         <div>
           <h2 style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:20, color:"#fff" }}>Analytics</h2>
           <p style={{ color:C.st, fontSize:12 }}>Performance of menu, channels, customers and campaigns.</p>
@@ -97,7 +97,7 @@ export default function AnalyticsPage() {
       <div className="gc" style={{ padding:20, marginBottom:14 }}>
         <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:14, color:"#fff", marginBottom:12 }}>Revenue trend — last {days} days</div>
         {trend ? (
-          <div style={{ display:"flex", alignItems:"flex-end", gap:3, height:100 }}>
+          <div className="zb-bars" style={{ display:"flex", alignItems:"flex-end", gap:3, height:100 }}>
             {trend.map((d, i) => (
               <div key={i} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center" }}>
                 <div style={{ width:"100%", height:d.height, background:`linear-gradient(180deg,${C.g},${C.g}55)`, borderRadius:"3px 3px 0 0" }} />
@@ -111,7 +111,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Top items + channels */}
-      <div style={{ display:"grid", gridTemplateColumns:"3fr 2fr", gap:12, marginBottom:14 }}>
+      <div className="zb-stack" style={{ display:"grid", gridTemplateColumns:"3fr 2fr", gap:12, marginBottom:14 }}>
         <div className="gc" style={{ overflow:"hidden" }}>
           <div style={{ padding:"14px 18px", borderBottom:"1px solid rgba(255,255,255,.07)" }}>
             <span style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:14, color:"#fff" }}>Top menu items — last {days}d</span>
