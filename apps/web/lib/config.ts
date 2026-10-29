@@ -5,3 +5,6 @@ export const DASHBOARD_URL =
 
 export const LOGIN_URL = `${DASHBOARD_URL}/login`;
 export const SIGNUP_URL = `${DASHBOARD_URL}/signup`;
+
+// The contact form posts here. The CRM saves it (apps/dashboard/app/api/public/enquiries).
+export const ENQUIRIES_URL = `${DASHBOARD_URL}/api/public/enquiries`;

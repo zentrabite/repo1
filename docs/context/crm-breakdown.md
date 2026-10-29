@@ -230,6 +230,14 @@ The **evaluator job is not included** — you need to build a scheduled Supabase
 - Mark one user super-admin (see top of doc).
 - Implement suspend/delete endpoints if you want the danger zone buttons to actually do something (currently they toast "coming soon").
 
+### Enquiries — `/admin/enquiries`
+
+**What it does.** Every enquiry from the contact form on zentrabite.com/contact, newest first, 50 at a time. Mark each one new, contacted or closed. Linked from the Super Admin header.
+
+**How it works.** The form in `apps/web/app/contact/page.tsx` posts from the browser to `POST /api/public/enquiries` on the CRM (apps/web has no Supabase keys). That route is let through the login gate in `proxy.ts`, allows CORS only from zentrabite.com, www, `repo1-web-*.vercel.app` and localhost in dev, checks every field (rules in `lib/enquiries.ts`), drops bots quietly (hidden `website` field, or sent under 3 seconds after the page opened), limits each address to 5 an hour and 20 a day (counted from saved rows by a keyed hash, never the raw IP), and inserts with the service role. After replying it emails hello@zentrabite.com through `lib/email.ts`, which skips quietly if Resend isn't set up. The page reads and updates through `/api/admin/enquiries` and `/api/admin/enquiries/[id]`, both checked with `lib/admin-auth.ts`.
+
+**Table.** `enquiries` (migration 016). RLS on, no insert or delete for browser roles, super admins can read and change `status` only.
+
 ---
 
 ## New API endpoints added in this pass

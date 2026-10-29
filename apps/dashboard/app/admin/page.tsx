@@ -3,6 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useBusiness } from "@/hooks/use-business";
 import { Icon } from "@/components/zb-icon";
@@ -182,25 +183,30 @@ export default function AdminPage() {
             Every tenant on ZentraBite. Flip modules, impersonate owners, see usage live.
           </p>
         </div>
-        <button
-          onClick={() => router.push("/admin/onboarding/new")}
-          style={{
-            padding: "10px 18px",
-            background: C.g,
-            border: "none",
-            borderRadius: 10,
-            color: "#fff",
-            fontWeight: 600,
-            fontSize: 13,
-            fontFamily: "var(--font-outfit)",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
-          <span style={{ fontSize: 16 }}>+</span> New business onboarding
-        </button>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <Link href="/admin/enquiries" className="bg-btn" style={{ textDecoration: "none", padding: "10px 16px" }}>
+            <Icon name="email" size={16} /> Enquiries
+          </Link>
+          <button
+            onClick={() => router.push("/admin/onboarding/new")}
+            style={{
+              padding: "10px 18px",
+              background: C.g,
+              border: "none",
+              borderRadius: 10,
+              color: "#fff",
+              fontWeight: 600,
+              fontSize: 13,
+              fontFamily: "var(--font-outfit)",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <span style={{ fontSize: 16 }}>+</span> New business onboarding
+          </button>
+        </div>
       </div>
 
       {/* Platform KPIs */}
