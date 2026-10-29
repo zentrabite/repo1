@@ -179,9 +179,11 @@ export function looksLikeSpam(body: unknown): boolean {
 
 const SITE_ORIGINS = ["https://zentrabite.com", "https://www.zentrabite.com"];
 
-// Vercel deployments of the marketing site (repo1-web-rho.vercel.app and its
-// previews). Same form as the repo1-dashboard check in lib/tenant.ts.
-const WEB_PREVIEW_HOST = /^repo1-web-[a-z0-9-]+\.vercel\.app$/;
+// Vercel deployments of the marketing site. The project alias is
+// repo1-web-rho.vercel.app. PR previews look like
+// repo1-<hash>-zentrabite.vercel.app and repo1-git-<branch>-zentrabite.vercel.app
+// (checked on PR #35). Sends from these are saved with source "preview".
+const WEB_PREVIEW_HOST = /^(repo1-web-[a-z0-9-]+|repo1-[a-z0-9-]+-zentrabite)\.vercel\.app$/;
 
 export type OriginKind = "website" | "preview" | "local";
 
