@@ -19,7 +19,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const f = getFeature(slug);
-  if (!f) return { title: "Feature not found" };
+  // Same as app/not-found.tsx, which is what the page shows next.
+  if (!f) return { title: "Page not found", description: "We couldn't find that page. Head to the home page, see the features, try the demo or get in touch." };
   return {
     title: f.title,
     description: f.tagline,

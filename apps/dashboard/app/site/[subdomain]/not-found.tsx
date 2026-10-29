@@ -1,14 +1,22 @@
+import type { Metadata, Viewport } from "next";
+import PublicNotFound, { PUBLIC_NOT_FOUND_BG, publicLinkStyle } from "@/components/public-not-found";
+
 // Shown for name.zentrabite.com addresses that don't belong to a business.
+// When the page calls notFound(), Next can take the title and browser bar
+// colour from this file instead of the page, so both say the same thing.
+// Without them the tab showed the CRM's title.
+export const metadata: Metadata = {
+  title: "Page not found",
+  description: "This address isn't linked to a restaurant.",
+};
+
+export const viewport: Viewport = { themeColor: PUBLIC_NOT_FOUND_BG };
+
 export default function SiteNotFound() {
   return (
-    <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", background: "#FAFBFC", color: "#0F1F2D", fontFamily: "var(--font-outfit), system-ui, sans-serif", padding: 24, textAlign: "center" }}>
-      <div style={{ maxWidth: 420 }}>
-        <h1 style={{ fontSize: 28, margin: "0 0 10px" }}>Nothing here yet</h1>
-        <p style={{ margin: 0, color: "#5F7089", fontSize: 16, lineHeight: 1.5 }}>
-          This address isn&apos;t linked to a restaurant. Check the link, or visit{" "}
-          <a href="https://zentrabite.com" style={{ color: "#00B67A", fontWeight: 600 }}>zentrabite.com</a>.
-        </p>
-      </div>
-    </div>
+    <PublicNotFound title="Nothing here yet">
+      This address isn&apos;t linked to a restaurant. Check the link, or visit{" "}
+      <a href="https://zentrabite.com" style={publicLinkStyle}>zentrabite.com</a>.
+    </PublicNotFound>
   );
 }

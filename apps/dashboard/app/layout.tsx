@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Outfit, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import DashboardShell from "@/components/dashboard-shell";
@@ -10,6 +10,12 @@ const mono   = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", dis
 export const metadata: Metadata = {
   title: "ZentraBite — Merchant CRM",
   description: "Own your customers. Own your margins.",
+};
+
+// Browser bar on phones matches the dark CRM and ordering page. Restaurant
+// websites set their own in app/site/[subdomain].
+export const viewport: Viewport = {
+  themeColor: "#0F1F2D",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

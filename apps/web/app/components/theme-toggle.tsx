@@ -22,10 +22,24 @@ function readChoice(): ThemeChoice {
   }
 }
 
+// The browser bar colour on phones. app/layout.tsx gives two theme-color tags,
+// one per device setting. When someone picks light or dark, both take that
+// theme's page colour (--bg). "Device" puts them back.
+function syncBarColour() {
+  const root = document.documentElement;
+  const forced = root.hasAttribute("data-theme");
+  const bg = getComputedStyle(root).getPropertyValue("--bg").trim();
+  document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((m) => {
+    if (m.dataset.device === undefined) m.dataset.device = m.content;
+    m.content = forced && bg ? bg : m.dataset.device;
+  });
+}
+
 function applyChoice(choice: ThemeChoice) {
   const root = document.documentElement;
   if (choice === "system") root.removeAttribute("data-theme");
   else root.setAttribute("data-theme", choice);
+  syncBarColour();
   try {
     if (choice === "system") localStorage.removeItem(KEY);
     else localStorage.setItem(KEY, choice);
@@ -56,6 +70,8 @@ function useThemeChoice(): ThemeChoice {
 /** One button for the top bar. Swaps between light and dark. The icon is
  *  picked by CSS so it's right before the page has finished loading. */
 export function ThemeButton() {
+  // The nav is on every page, so this also covers a choice saved on an earlier visit.
+  useEffect(syncBarColour, []);
   return (
     <button
       type="button"

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Nav } from "./components/nav";
 import { Footer } from "./components/footer";
@@ -72,6 +73,11 @@ const WHO: { icon: IconName; title: string; types: string; body: string }[] = [
     body: "Quotes, jobs and invoices, then a follow-up and a review request once the job's done.",
   },
 ];
+
+// Title and description come from app/layout.tsx.
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default function Home() {
   return (
