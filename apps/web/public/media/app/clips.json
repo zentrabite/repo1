@@ -1,0 +1,265 @@
+{
+  "about": "Real screen recordings of the ZentraBite demo app (sample data). Made by apps/web/scripts/record-app. Each clip is muted and loops. Poster is the first frame.",
+  "generated": "2026-10-29",
+  "clips": [
+    {
+      "id": "orders",
+      "device": "desktop",
+      "title": "Orders board",
+      "shows": "The live orders board across every channel. A new storefront order is opened and moved from New to Cooking to Ready.",
+      "route": "/demo/live/orders",
+      "width": 1440,
+      "height": 900,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "fps": 30,
+      "duration": 7.9,
+      "loop": "cut",
+      "loopSsim": 0.655,
+      "files": {
+        "mp4": "/media/app/orders-desktop.mp4",
+        "webm": "/media/app/orders-desktop.webm",
+        "poster": "/media/app/orders-desktop.webp"
+      },
+      "bytes": {
+        "mp4": 115341,
+        "webm": 118265,
+        "poster": 49302
+      },
+      "encode": {
+        "mp4Crf": 26,
+        "webmCrf": 34,
+        "scale": 1
+      },
+      "capture": {
+        "method": "screencast",
+        "pace": 9,
+        "testFps": 5
+      }
+    },
+    {
+      "id": "customer",
+      "device": "desktop",
+      "title": "Customer profile",
+      "shows": "The customer list, filtered to VIPs. A VIP customer is opened to show tier, points, lifetime value, quick actions and order history, then the full list is back.",
+      "route": "/demo/live/customers",
+      "width": 1440,
+      "height": 900,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "fps": 30,
+      "duration": 8.57,
+      "loop": "seamless",
+      "loopSsim": 1,
+      "files": {
+        "mp4": "/media/app/customer-desktop.mp4",
+        "webm": "/media/app/customer-desktop.webm",
+        "poster": "/media/app/customer-desktop.webp"
+      },
+      "bytes": {
+        "mp4": 157152,
+        "webm": 202944,
+        "poster": 55206
+      },
+      "encode": {
+        "mp4Crf": 26,
+        "webmCrf": 34,
+        "scale": 1
+      },
+      "capture": {
+        "method": "screencast",
+        "pace": 5,
+        "testFps": 9.2
+      }
+    },
+    {
+      "id": "winback",
+      "device": "desktop",
+      "title": "Win-back campaigns",
+      "shows": "Win-back campaigns with their results. Two SMS campaigns are opened to show the personalised text each one sends.",
+      "route": "/demo/live/winback",
+      "width": 1440,
+      "height": 900,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "fps": 30,
+      "duration": 7.77,
+      "loop": "cut",
+      "loopSsim": 0.875,
+      "files": {
+        "mp4": "/media/app/winback-desktop.mp4",
+        "webm": "/media/app/winback-desktop.webm",
+        "poster": "/media/app/winback-desktop.webp"
+      },
+      "bytes": {
+        "mp4": 162844,
+        "webm": 173034,
+        "poster": 46624
+      },
+      "encode": {
+        "mp4Crf": 26,
+        "webmCrf": 34,
+        "scale": 1
+      },
+      "capture": {
+        "method": "screencast",
+        "pace": 3,
+        "testFps": 19.5
+      }
+    },
+    {
+      "id": "rewards",
+      "device": "desktop",
+      "title": "Rewards",
+      "shows": "The rewards program. Tier ladder and points balance, then a reward is redeemed for points from the catalogue.",
+      "route": "/demo/live/rewards",
+      "width": 1440,
+      "height": 900,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "fps": 30,
+      "duration": 8.4,
+      "loop": "seamless",
+      "loopSsim": 1,
+      "files": {
+        "mp4": "/media/app/rewards-desktop.mp4",
+        "webm": "/media/app/rewards-desktop.webm",
+        "poster": "/media/app/rewards-desktop.webp"
+      },
+      "bytes": {
+        "mp4": 257153,
+        "webm": 254784,
+        "poster": 48882
+      },
+      "encode": {
+        "mp4Crf": 26,
+        "webmCrf": 34,
+        "scale": 1
+      },
+      "capture": {
+        "method": "screencast",
+        "pace": 3,
+        "testFps": 20.4
+      }
+    },
+    {
+      "id": "pos",
+      "device": "desktop",
+      "title": "POS",
+      "shows": "The POS terminal. Pizzas, a side and a drink are rung up, the order is placed and sent to the kitchen, and the till clears.",
+      "route": "/demo/live/pos",
+      "width": 1440,
+      "height": 900,
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "fps": 30,
+      "duration": 9.67,
+      "loop": "seamless",
+      "loopSsim": 1,
+      "files": {
+        "mp4": "/media/app/pos-desktop.mp4",
+        "webm": "/media/app/pos-desktop.webm",
+        "poster": "/media/app/pos-desktop.webp"
+      },
+      "bytes": {
+        "mp4": 152043,
+        "webm": 163170,
+        "poster": 42164
+      },
+      "encode": {
+        "mp4Crf": 26,
+        "webmCrf": 34,
+        "scale": 1
+      },
+      "capture": {
+        "method": "screencast",
+        "pace": 2,
+        "testFps": 37.4
+      }
+    },
+    {
+      "id": "storefront",
+      "device": "phone",
+      "title": "Ordering site on a phone",
+      "shows": "A restaurant's own ordering site on a phone. Browse the menu, add a pizza, open the cart, add another side and reach checkout.",
+      "route": "/demo/merchant",
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fps": 30,
+      "duration": 10.23,
+      "loop": "cut",
+      "loopSsim": 0.556,
+      "files": {
+        "mp4": "/media/app/storefront-phone.mp4",
+        "webm": "/media/app/storefront-phone.webm",
+        "poster": "/media/app/storefront-phone.webp"
+      },
+      "bytes": {
+        "mp4": 155217,
+        "webm": 151601,
+        "poster": 22472
+      },
+      "encode": {
+        "mp4Crf": 26,
+        "webmCrf": 34,
+        "scale": 1
+      },
+      "capture": {
+        "method": "screencast",
+        "pace": 1,
+        "testFps": 59.5
+      }
+    },
+    {
+      "id": "crm",
+      "device": "phone",
+      "title": "CRM on a phone",
+      "shows": "The ZentraBite CRM on a phone. The dashboard, the menu to the orders list, and a new order opened and moved to Cooking.",
+      "route": "/demo/live",
+      "width": 390,
+      "height": 844,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "fps": 30,
+      "duration": 9.27,
+      "loop": "cut",
+      "loopSsim": 0.619,
+      "files": {
+        "mp4": "/media/app/crm-phone.mp4",
+        "webm": "/media/app/crm-phone.webm",
+        "poster": "/media/app/crm-phone.webp"
+      },
+      "bytes": {
+        "mp4": 104364,
+        "webm": 130909,
+        "poster": 20510
+      },
+      "encode": {
+        "mp4Crf": 26,
+        "webmCrf": 34,
+        "scale": 1
+      },
+      "capture": {
+        "method": "screencast",
+        "pace": 1,
+        "testFps": 61
+      }
+    }
+  ]
+}
