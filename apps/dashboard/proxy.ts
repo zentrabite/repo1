@@ -22,11 +22,13 @@ const PUBLIC_PATHS = ["/login", "/signup", "/auth", "/forgot-password", "/reset-
 //   /api/store/            — the public ordering page (menu, checkout, receipt)
 //   /api/delivery/fee      — fee preview on the public ordering page
 //   /api/unsubscribe       — email unsubscribe, verified by a signed token
+//   /api/public/enquiries  — contact form on zentrabite.com, checks origin,
+//                            spam and a per-address limit itself
 // Match exact paths or a trailing-slash prefix so "/api/store" can't be used
 // to open something like "/api/storefront-admin" by accident.
 const PUBLIC_API_EXACT  = [
   "/api/stripe/webhook", "/api/sms/inbound", "/api/automations/run", "/api/billing/trial-reminders",
-  "/api/delivery/fee", "/api/unsubscribe",
+  "/api/delivery/fee", "/api/unsubscribe", "/api/public/enquiries",
 ];
 const PUBLIC_API_PREFIX = ["/api/store/"];
 
