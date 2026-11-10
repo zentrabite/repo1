@@ -138,9 +138,9 @@ export default function CopilotPage() {
   }
 
   return (
-    <div style={{ maxWidth: 960, margin: "0 auto", padding: "8px 24px 24px" }}>
+    <div className="zb-flush-x" style={{ maxWidth: 960, margin: "0 auto", padding: "8px 24px 24px" }}>
       {/* ── Header ── */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
+      <div className="zb-head" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
         <div>
           <h1 style={{
             display: "flex", alignItems: "center", gap: 10,
@@ -168,7 +168,7 @@ export default function CopilotPage() {
       </div>
 
       {/* ── Chat window ── */}
-      <div style={{
+      <div className="zb-chat" style={{
         background: "rgba(15,28,47,.5)",
         border: `1px solid ${C.mist}`,
         borderRadius: 14,
@@ -179,6 +179,7 @@ export default function CopilotPage() {
       }}>
         <div
           ref={scrollRef}
+          className="zb-chat-log"
           style={{
             flex: 1, overflowY: "auto",
             padding: "20px 22px",
@@ -216,7 +217,7 @@ export default function CopilotPage() {
 
         {/* ── Suggestions (only when fresh) ── */}
         {messages.length === 1 && !busy && (
-          <div style={{ padding: "0 22px 14px", display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <div className="zb-chat-pad" style={{ padding: "0 22px 14px", display: "flex", gap: 8, flexWrap: "wrap" }}>
             {SUGGESTIONS.map((s) => (
               <button
                 key={s}
@@ -238,6 +239,7 @@ export default function CopilotPage() {
         {/* ── Composer ── */}
         <form
           onSubmit={(e) => { e.preventDefault(); send(); }}
+          className="zb-chat-pad"
           style={{
             display: "flex", gap: 10,
             padding: "14px 18px", borderTop: `1px solid ${C.mist}`,

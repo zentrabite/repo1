@@ -366,6 +366,13 @@ export default function AdminEnquiriesPage() {
           .enq-actions .bg-btn { padding: 9px 14px; font-size: 13px; }
           .enq-more { padding: 6px 0; }
         }
+
+        /* Phones: links big enough to tap */
+        @media (max-width: 820px) {
+          .enq-back { display: inline-flex; align-items: center; min-height: 44px; margin-bottom: 8px; }
+          .enq-link { display: flex; align-items: center; min-height: 44px; padding: 0; }
+          .enq-link + .enq-link, .enq-link + div { margin-top: 0; }
+        }
       `}</style>
     </div>
   );

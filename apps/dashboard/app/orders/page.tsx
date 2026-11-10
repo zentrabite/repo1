@@ -126,7 +126,7 @@ export default function OrdersPage() {
 
   return (
     <div>
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+      <div className="zb-head" style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
         <div>
           <h2 style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:20, color:"#fff" }}>Orders</h2>
           <p style={{ color:C.st, fontSize:12 }}>Revenue & margin tracking by source</p>
@@ -170,7 +170,7 @@ export default function OrdersPage() {
 
       {/* ── Table ───────────────────────────────────────────────────────── */}
       <div className="gc" style={{ overflow:"hidden" }}>
-        <table>
+        <table className="zb-table">
           <thead>
             <tr>
               {["ID","Items","Source","Fulfilment","Total","Delivery Fee","Status"].map(h => (
@@ -185,19 +185,19 @@ export default function OrdersPage() {
               </tr>
             ) : filtered.map((o, i) => (
               <tr key={i} onClick={() => setSelected(o)}>
-                <td style={{ fontFamily:"var(--font-mono)", fontSize:10, color:C.st }}>{o.id.slice(0,8)}…</td>
-                <td>{Array.isArray(o.items) ? `${(o.items as any[]).length} item(s)` : "—"}</td>
-                <td><Badge type={o.source}>{SOURCE_LABELS[o.source] ?? o.source}</Badge></td>
-                <td style={{ fontSize:12 }}>
+                <td data-label="ID" style={{ fontFamily:"var(--font-mono)", fontSize:10, color:C.st }}>{o.id.slice(0,8)}…</td>
+                <td data-label="Items">{Array.isArray(o.items) ? `${(o.items as any[]).length} item(s)` : "—"}</td>
+                <td data-label="Source"><Badge type={o.source}>{SOURCE_LABELS[o.source] ?? o.source}</Badge></td>
+                <td data-label="Fulfilment" style={{ fontSize:12 }}>
                   {fulfillLabel(o)
                     ? <span style={{ display:"inline-flex", alignItems:"center", gap:6 }}><Icon name={FULFILL_ICON[o.fulfillment_type ?? ""] ?? "delivery"} size={14} />{fulfillLabel(o)}</span>
                     : <span style={{ color:C.st }}>—</span>}
                 </td>
-                <td style={{ fontWeight:600, color:"#fff" }}>${Number(o.total).toFixed(2)}</td>
-                <td style={{ fontSize:12, color: o.delivery_fee ? C.g : C.st }}>
+                <td data-first style={{ fontWeight:600, color:"#fff" }}>${Number(o.total).toFixed(2)}</td>
+                <td data-label="Delivery fee" style={{ fontSize:12, color: o.delivery_fee ? C.g : C.st }}>
                   {o.delivery_fee ? `$${Number(o.delivery_fee).toFixed(2)}` : "—"}
                 </td>
-                <td><Badge type={o.status === "New" ? "New_order" : o.status}>{o.status}</Badge></td>
+                <td data-first data-end><Badge type={o.status === "New" ? "New_order" : o.status}>{o.status}</Badge></td>
               </tr>
             ))}
           </tbody>
@@ -262,7 +262,7 @@ export default function OrdersPage() {
             )}
 
             {/* Actions */}
-            <div style={{ display:"flex", gap:8 }}>
+            <div className="zb-wrap" style={{ display:"flex", gap:8 }}>
               {selected.status !== "Delivered" && (
                 <button className="bp" onClick={() => advance(selected)}>
                   → {{ New:"Prepare", Preparing:"Mark Ready", Ready:"Deliver" }[selected.status] ?? "Next"}

@@ -254,7 +254,7 @@ export default function AdminPage() {
                 }}
               />
             </div>
-            <div style={{ maxHeight: 640, overflowY: "auto" }}>
+            <div className="sa-tenant-list" style={{ maxHeight: 640, overflowY: "auto" }}>
               {filtered.map(b => {
                 const on = b.id === activeId;
                 const enabledCount = Object.values(b.modules).filter(Boolean).length;
@@ -278,8 +278,8 @@ export default function AdminPage() {
                       fontFamily: "var(--font-inter)",
                     }}
                   >
-                    <div>
-                      <div style={{ fontSize: 13.5, fontWeight: 600, color: C.cl }}>{b.name}</div>
+                    <div style={{ minWidth: 0 }}>
+                      <div className="zb-break" style={{ fontSize: 13.5, fontWeight: 600, color: C.cl }}>{b.name}</div>
                       <div style={{ fontSize: 11.5, color: C.st, marginTop: 2 }}>
                         {b.type}{b.suburb ? ` · ${b.suburb}` : ""} · {enabledCount} modules on
                       </div>
@@ -308,7 +308,7 @@ export default function AdminPage() {
             <div>
               {/* Tenant header */}
               <div
-                className="gc"
+                className="gc zb-stack"
                 style={{
                   padding: 22,
                   marginBottom: 14,
@@ -322,7 +322,7 @@ export default function AdminPage() {
                   <div style={{ fontSize: 11, color: C.st, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700, marginBottom: 4 }}>
                     Tenant
                   </div>
-                  <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 24, color: C.cl }}>
+                  <div className="zb-break" style={{ fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 24, color: C.cl }}>
                     {active.name}
                   </div>
                   <div style={{ fontSize: 13, color: C.st, marginTop: 4 }}>
@@ -334,7 +334,7 @@ export default function AdminPage() {
                     </div>
                   )}
                 </div>
-                <div style={{ display: "flex", gap: 8 }}>
+                <div className="zb-wrap" style={{ display: "flex", gap: 8 }}>
                   <button
                     onClick={() => router.push(`/admin/businesses/${active.id}`)}
                     style={{
@@ -372,7 +372,7 @@ export default function AdminPage() {
               </div>
 
               {/* Tabs */}
-              <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+              <div className="zb-wrap" style={{ display: "flex", gap: 6, marginBottom: 14 }}>
                 {(["modules", "usage", "ops"] as const).map(t => (
                   <button
                     key={t}
@@ -543,6 +543,13 @@ export default function AdminPage() {
           .sa-kpis { grid-template-columns: repeat(2, 1fr) !important; }
           .sa-usage-kpis { grid-template-columns: repeat(2, 1fr) !important; }
         }
+        @media (max-width: 820px) {
+          .sa-layout > aside { position: static !important; }
+          .sa-tenant-list { max-height: min(420px, 55dvh) !important; overscroll-behavior: contain; }
+          .sa-kpis, .sa-usage-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+          .sa-row { grid-template-columns: minmax(0, 1fr) !important; gap: 2px !important; }
+          .sa-row > * { overflow-wrap: anywhere; }
+        }
       `}</style>
     </div>
   );
@@ -602,7 +609,7 @@ function Toggle({ on }: { on: boolean }) {
 
 function Row({ k, v, mono }: { k: string; v: string; mono?: boolean }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "160px 1fr", gap: 10, padding: "6px 0", borderBottom: `1px solid ${C.mist}` }}>
+    <div className="sa-row" style={{ display: "grid", gridTemplateColumns: "160px 1fr", gap: 10, padding: "6px 0", borderBottom: `1px solid ${C.mist}` }}>
       <span style={{ color: C.st, fontSize: 12.5 }}>{k}</span>
       <span style={{ color: C.cl, fontSize: 13, fontFamily: mono ? "var(--font-mono)" : "var(--font-inter)" }}>{v}</span>
     </div>

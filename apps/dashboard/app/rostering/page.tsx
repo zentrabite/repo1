@@ -159,15 +159,15 @@ export default function RosteringPage() {
 
   return (
     <div>
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
+      <div className="zb-head" style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
         <div>
           <h2 style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:20, color:"#fff" }}>Rostering</h2>
           <p style={{ color:C.st, fontSize:12 }}>Plan staff shifts with sales-aware suggestions.</p>
         </div>
-        <div style={{ display:"flex", gap:6, alignItems:"center" }}>
-          <button className="bg-btn" onClick={() => setWeekStart(d => addDays(d, -7))}>←</button>
+        <div className="zb-wrap" style={{ display:"flex", gap:6, alignItems:"center" }}>
+          <button className="bg-btn" onClick={() => setWeekStart(d => addDays(d, -7))} aria-label="Previous week">←</button>
           <div style={{ color:"#fff", fontSize:12, padding:"0 8px" }}>{weekLabel}</div>
-          <button className="bg-btn" onClick={() => setWeekStart(d => addDays(d, 7))}>→</button>
+          <button className="bg-btn" onClick={() => setWeekStart(d => addDays(d, 7))} aria-label="Next week">→</button>
           <button className="bg-btn" onClick={() => setWeekStart(startOfWeek(new Date()))}>This week</button>
         </div>
       </div>
@@ -181,7 +181,7 @@ export default function RosteringPage() {
 
       {/* Week grid */}
       <div className="gc" style={{ padding:14, marginBottom:14, overflowX:"auto" }}>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(7, minmax(140px, 1fr))", gap:8, minWidth:980 }}>
+        <div className="zb-roster-week" style={{ display:"grid", gridTemplateColumns:"repeat(7, minmax(140px, 1fr))", gap:8, minWidth:980 }}>
           {DAYS.map((dayLabel, i) => {
             const d = addDays(weekStart, i);
             const dayShifts = shiftsByDay.get(fmtDay(d)) ?? [];
@@ -213,7 +213,7 @@ export default function RosteringPage() {
                       title="Click to edit"
                     >
                       <div style={{ fontSize:11, color:"#fff", fontWeight:600 }}>{s.employee_name}</div>
-                      <div style={{ fontSize:10, color:C.st, display:"flex", justifyContent:"space-between" }}>
+                      <div className="zb-wrap" style={{ fontSize:10, color:C.st, display:"flex", justifyContent:"space-between" }}>
                         <span>{s.role}</span>
                         <span>
                           {new Date(s.shift_start).toLocaleTimeString([], { hour:"2-digit", minute:"2-digit" })}–
@@ -234,7 +234,7 @@ export default function RosteringPage() {
         <div style={{ padding:"14px 18px", borderBottom:"1px solid rgba(255,255,255,.07)" }}>
           <span style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:14, color:"#fff" }}>All shifts this week</span>
         </div>
-        <table>
+        <table className="zb-table">
           <thead>
             <tr><th>Employee</th><th>Role</th><th>Start</th><th>End</th><th>Rate</th><th>Status</th><th></th></tr>
           </thead>
@@ -245,13 +245,13 @@ export default function RosteringPage() {
               <tr className="empty-row"><td colSpan={7}>No shifts scheduled for this week — add one below.</td></tr>
             ) : shifts.map(s => (
               <tr key={s.id}>
-                <td style={{ fontWeight:600, color:"#fff" }}>{s.employee_name}</td>
-                <td style={{ color:C.st, textTransform:"capitalize" }}>{s.role}</td>
-                <td>{new Date(s.shift_start).toLocaleString()}</td>
-                <td>{new Date(s.shift_end).toLocaleString()}</td>
-                <td>{s.hourly_rate ? `$${s.hourly_rate}/hr` : "—"}</td>
-                <td style={{ textTransform:"capitalize", color:C.st }}>{s.status}</td>
-                <td style={{ textAlign:"right" }}>
+                <td data-primary style={{ fontWeight:600, color:"#fff" }}>{s.employee_name}</td>
+                <td data-label="Role" style={{ color:C.st, textTransform:"capitalize" }}>{s.role}</td>
+                <td data-label="Start">{new Date(s.shift_start).toLocaleString()}</td>
+                <td data-label="End">{new Date(s.shift_end).toLocaleString()}</td>
+                <td data-label="Rate">{s.hourly_rate ? `$${s.hourly_rate}/hr` : "—"}</td>
+                <td data-label="Status" style={{ textTransform:"capitalize", color:C.st }}>{s.status}</td>
+                <td data-wide style={{ textAlign:"right" }}>
                   <button className="bg-btn" onClick={() => edit(s)} style={{ marginRight:4 }}>Edit</button>
                   <button className="bg-btn" onClick={() => remove(s.id)} style={{ color:C.r }}>Delete</button>
                 </td>
@@ -270,7 +270,7 @@ export default function RosteringPage() {
           {editingId && <button className="bg-btn" onClick={() => { setEditingId(null); setForm(BLANK_FORM); }}>Cancel</button>}
         </div>
 
-        <div style={{ display:"grid", gridTemplateColumns:"2fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
+        <div className="zb-two" style={{ display:"grid", gridTemplateColumns:"2fr 1fr 1fr 1fr", gap:10, marginBottom:10 }}>
           <div>
             <label style={{ display:"block", fontSize:10, color:C.st, marginBottom:3 }}>Employee name</label>
             <input value={form.employee_name} onChange={e=>setForm(f=>({...f, employee_name:e.target.value}))} placeholder="e.g. Jordan" />
@@ -294,7 +294,7 @@ export default function RosteringPage() {
           </div>
         </div>
 
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:14 }}>
+        <div className="zb-stack" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:14 }}>
           <div>
             <label style={{ display:"block", fontSize:10, color:C.st, marginBottom:3 }}>Start</label>
             <input type="datetime-local" value={form.shift_start} onChange={e=>setForm(f=>({...f, shift_start:e.target.value}))} />

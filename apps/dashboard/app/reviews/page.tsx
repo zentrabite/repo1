@@ -104,7 +104,7 @@ export default function ReviewsPage() {
       </div>
 
       {/* ── Stats ── */}
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10, marginBottom:16 }}>
+      <div className="zb-two" style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10, marginBottom:16 }}>
         {[
           { label:"Total Reviews",    value: reviews.length,                  color:"#fff" },
           { label:"Average Rating",   value: avg + " ★",                      color:C.am  },
@@ -120,7 +120,7 @@ export default function ReviewsPage() {
 
       {/* ── Filters ── */}
       <div style={{ display:"flex", gap:5, marginBottom:12, flexWrap:"wrap" }}>
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name or review…" style={{ width:200 }} />
+        <input className="zb-full" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name or review…" style={{ width:200 }} />
         <select value={platform} onChange={e => setPlatform(e.target.value)} style={{ background:"rgba(255,255,255,.05)", border:"1px solid rgba(255,255,255,.08)", borderRadius:8, padding:"6px 10px", color:"#fff", fontSize:13 }}>
           {PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
         </select>
@@ -140,9 +140,9 @@ export default function ReviewsPage() {
           </div>
         ) : filtered.map((r) => (
           <div key={r.id} className="gc" style={{ padding:"16px 18px" }}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:10 }}>
+            <div className="zb-col" style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:10 }}>
               <div style={{ flex:1 }}>
-                <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5 }}>
+                <div className="zb-wrap" style={{ display:"flex", alignItems:"center", gap:8, marginBottom:5 }}>
                   <span style={{ fontWeight:600, color:"#fff", fontSize:13 }}>{r.customer_name || "Anonymous"}</span>
                   <Stars rating={r.rating} />
                   {r.platform && <Badge type={r.platform}>{r.platform}</Badge>}
@@ -160,7 +160,7 @@ export default function ReviewsPage() {
                   <div style={{ fontSize:11, color:C.st, fontStyle:"italic" }}>Marked as handled — no reply text</div>
                 )}
               </div>
-              <div style={{ display:"flex", gap:5, flexShrink:0 }}>
+              <div className="zb-wrap" style={{ display:"flex", gap:5, flexShrink:0 }}>
                 {!r.replied ? (
                   <>
                     <button className="bp" style={{ padding:"5px 12px", fontSize:12 }} onClick={() => openReply(r)}>Reply</button>

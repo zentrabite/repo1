@@ -40,7 +40,10 @@ body {
   50%       { opacity: .35; }
 }
 
-.fd { animation: fadeIn .3s ease-out both; }
+/* Fill "backwards", not "both": a transform left on after the animation makes
+   the page wrapper the box that position:fixed children sit in, so modals and
+   toasts opened on a long page landed off screen. */
+.fd { animation: fadeIn .3s ease-out backwards; }
 
 /* ── Glass card — 16px radius (brand spec: 16px for modals/cards) ── */
 .gc {
@@ -50,9 +53,13 @@ body {
   border-radius: 16px;
   transition: border-color .2s, box-shadow .2s;
 }
-.gc:hover {
-  border-color: rgba(0, 182, 122, .22);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, .2);
+/* Hover styles only where there is a real mouse: a tap on a phone would
+   otherwise leave them stuck on. */
+@media (hover: hover) and (pointer: fine) {
+  .gc:hover {
+    border-color: rgba(0, 182, 122, .22);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, .2);
+  }
 }
 
 /* ── Small surface (menu items, list rows) — 12px radius ── */
@@ -62,7 +69,9 @@ body {
   border-radius: 12px;
   transition: border-color .18s;
 }
-.gs:hover { border-color: rgba(226, 232, 240, .16); }
+@media (hover: hover) and (pointer: fine) {
+  .gs:hover { border-color: rgba(226, 232, 240, .16); }
+}
 
 /* ── Primary button — Green fill, white text ── */
 .bp {
@@ -82,10 +91,12 @@ body {
   gap: 7px;
   white-space: nowrap;
 }
-.bp:hover {
-  background: #00a36d;
-  transform: translateY(-1px);
-  box-shadow: 0 5px 20px rgba(0, 182, 122, .4);
+@media (hover: hover) and (pointer: fine) {
+  .bp:hover {
+    background: #00a36d;
+    transform: translateY(-1px);
+    box-shadow: 0 5px 20px rgba(0, 182, 122, .4);
+  }
 }
 .bp:active { transform: translateY(0); }
 
@@ -106,7 +117,9 @@ body {
   align-items: center;
   gap: 6px;
 }
-.bg-btn:hover { background: rgba(255,255,255,.07); color: #F8FAFB; border-color: rgba(226,232,240,.2); }
+@media (hover: hover) and (pointer: fine) {
+  .bg-btn:hover { background: rgba(255,255,255,.07); color: #F8FAFB; border-color: rgba(226,232,240,.2); }
+}
 .bg-btn.on    { background: rgba(0,182,122,.12); color: #00B67A; border-color: rgba(0,182,122,.35); }
 
 /* ── Badge pill — always 999px radius (brand spec) ── */
@@ -145,7 +158,9 @@ td {
 }
 tbody tr { transition: background .13s; cursor: pointer; }
 tbody tr:last-child td { border-bottom: none; }
-tbody tr:hover { background: rgba(255, 255, 255, .03); }
+@media (hover: hover) and (pointer: fine) {
+  tbody tr:hover { background: rgba(255, 255, 255, .03); }
+}
 
 /* ── Inputs — 8px radius (brand spec) ── */
 input, select, textarea {
@@ -290,4 +305,278 @@ label {
 }
 .toggle input[type="checkbox"]:checked + span {
   color: #00B67A;
+}
+
+/* ── Phones and small tablets (820px and under) ───────────────────────────────
+   The sidebar becomes a menu that slides in from the left, the page gets the
+   full width with a 16px gutter, and wide layouts stack. Desktop is untouched:
+   everything below is hidden on desktop or inside the media query (the one
+   exception, touch-action, only changes how taps behave on touch screens).
+
+   Page layouts opt in with small classes rather than matching inline styles,
+   which the browser writes two ways ("columns:1fr" on first load, "columns:
+   1fr" after moving between pages). The one inline match left is the safety
+   net that lets every grid cell shrink. The classes:
+     zb-head      title row that wraps its buttons underneath
+     zb-stack     grid (or flex row) that goes to one column
+     zb-two       grid (or flex row) that goes to two columns (stat rows)
+     zb-flush-x   no side padding (the page already has its 16px gutter)
+     zb-col       flex row that becomes a column
+     zb-wrap      flex row that wraps
+     zb-week      a 7-column grid of day cards that swipes sideways
+     zb-hide-phone
+     zb-full      full width (search boxes in a filter row)
+     zb-start     a right-aligned column that lines up on the left instead
+     zb-tap       a link styled as a button: at least 44px high
+     zb-card-row  a row drawn as a CSS grid that turns into a card, with the
+                  same data- attributes on its cells as zb-table
+     zb-table     table that turns into a list of cards: each <td> carries
+                  data-label (shown above its value), data-primary (the card's
+                  title, full width, first), data-first (moved to the top row),
+                  data-wide (full width) or data-end (right-aligned)
+   ─────────────────────────────────────────────────────────────────────────── */
+:root { --zb-ease-out: cubic-bezier(0.23, 1, 0.32, 1); }
+
+/* Phone-only pieces of the shell */
+.zb-menu-btn, .zb-menu-close, .zb-backdrop, .zb-search-row { display: none; }
+
+/* No double-tap zoom delay on anything tappable */
+button, a, select, label, summary, [role="button"] { touch-action: manipulation; }
+
+@media (max-width: 820px) {
+  html { -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; }
+
+  /* ── Shell ── */
+  /* No browser margin round the page, so the bar meets the edges and the
+     gutter is exactly 16px */
+  body:has(.zb-main) { margin: 0; }
+  .zb-main { margin-left: 0 !important; min-width: 0; }
+  .zb-content { padding: 16px 16px calc(24px + env(safe-area-inset-bottom, 0px)) !important; min-width: 0; }
+
+  .zb-sidebar {
+    width: min(300px, 86vw) !important;
+    z-index: 80 !important;
+    background: rgba(15, 25, 42, .98) !important;
+    overscroll-behavior: contain;
+    transform: translateX(-100%);
+    visibility: hidden;
+    transition: transform 200ms var(--zb-ease-out), visibility 0s linear 200ms;
+  }
+  .zb-sidebar.open {
+    transform: none;
+    visibility: visible;
+    box-shadow: 16px 0 48px rgba(0, 0, 0, .45);
+    transition: transform 260ms var(--zb-ease-out), visibility 0s;
+  }
+  .zb-backdrop {
+    display: block;
+    position: fixed; inset: 0; z-index: 75;
+    background: rgba(4, 10, 18, .62);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms var(--zb-ease-out);
+  }
+  .zb-backdrop.open { opacity: 1; pointer-events: auto; transition-duration: 260ms; }
+
+  .zb-sidebar-logo { padding: 12px 12px 12px 20px !important; }
+  .zb-menu-close {
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-left: auto; flex-shrink: 0;
+    width: 44px; height: 44px; border-radius: 10px;
+    border: 1px solid rgba(226, 232, 240, .12);
+    background: rgba(28, 45, 72, .5); color: #F8FAFB; cursor: pointer;
+  }
+  .zb-nav-link { min-height: 44px; }
+  .zb-break { overflow-wrap: anywhere; }
+
+  /* ── Topbar: one row (menu, title, avatar) that stays on top ── */
+  .zb-topbar {
+    height: auto !important; min-height: 60px;
+    padding: 8px 16px !important;
+    gap: 12px;
+  }
+  .zb-menu-btn {
+    display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+    width: 44px; height: 44px; border-radius: 10px;
+    border: 1px solid rgba(226, 232, 240, .12);
+    background: rgba(28, 45, 72, .5); color: #F8FAFB; cursor: pointer;
+  }
+  .zb-menu-btn:active, .zb-menu-close:active { transform: scale(.96); }
+  .zb-menu-btn, .zb-menu-close { transition: transform 120ms var(--zb-ease-out); }
+  .zb-menu-btn:focus-visible, .zb-menu-close:focus-visible { outline: 2px solid rgba(0, 182, 122, .7); outline-offset: 2px; }
+  .zb-topbar-title { flex: 1; min-width: 0; }
+  .zb-topbar-title h1 {
+    font-size: 17px !important; line-height: 1.25 !important;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .zb-topbar-title p { margin-top: 1px !important; min-width: 0; }
+  .zb-topbar-caption { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .zb-search-desktop { display: none !important; }
+  .zb-search-row { display: block; padding: 12px 16px 0; }
+  .zb-search-phone { padding: 0 14px !important; }
+  /* 16px here too, not only on touch screens, so iOS never zooms into it */
+  .zb-search-phone input { flex: 1; width: auto !important; min-width: 0; min-height: 44px; font-size: 16px !important; }
+
+  /* Impersonation banner scrolls away, so the bar with the menu stays on top */
+  .zb-imp-banner { position: static !important; flex-wrap: wrap; padding: 10px 16px !important; row-gap: 8px !important; }
+  .zb-imp-text { flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; line-height: 1.4; }
+  .zb-imp-note { display: none; }
+  .zb-imp-stop { min-height: 44px; }
+
+  /* ── Content ── */
+  /* Grid cells may shrink instead of pushing the page wider */
+  .zb-content [style*="display:grid"] > *,
+  .zb-content [style*="display: grid"] > * { min-width: 0; }
+  .zb-content img { max-width: 100%; }
+
+  /* At least 44px to tap */
+  .zb-content button,
+  .zb-content select,
+  .zb-content summary,
+  .zb-content .bp,
+  .zb-content .bg-btn,
+  .zb-content .toggle { min-height: 44px; }
+  .zb-content button { min-width: 44px; }
+  .zb-content input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]) { min-height: 44px; }
+  .zb-content .bg-btn, .zb-content .bp { justify-content: center; }
+  .zb-content span.bg-btn, .zb-content a.bp, .zb-content a.bg-btn { display: inline-flex !important; align-items: center; }
+
+  /* 16px text in boxes so iOS doesn't zoom in, and boxes never wider than their space */
+  .zb-content input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  .zb-content select,
+  .zb-content textarea { font-size: 16px !important; max-width: 100%; min-width: 0; }
+
+  /* Long names, emails and addresses wrap instead of spilling */
+  .zb-content td, .zb-content h2, .zb-content h3, .zb-content p { overflow-wrap: anywhere; }
+
+  /* Layout helpers (see the list above) */
+  .zb-head { flex-wrap: wrap; gap: 12px; }
+  .zb-head > * { min-width: 0; }
+  .zb-stack { display: grid !important; grid-template-columns: minmax(0, 1fr) !important; }
+  .zb-two { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .zb-stack > *, .zb-two > * { min-width: 0; }
+  .zb-flush-x { padding-left: 0 !important; padding-right: 0 !important; }
+  .zb-col { flex-direction: column !important; align-items: stretch !important; }
+  /* A gap of its own only where the page didn't set one inline */
+  .zb-wrap { flex-wrap: wrap !important; column-gap: 8px; row-gap: 8px; }
+  .zb-hide-phone { display: none !important; }
+  .zb-full { width: 100% !important; flex: 1 1 100%; }
+  .zb-start { align-items: flex-start !important; min-width: 0 !important; }
+  .zb-start, .zb-start > * { text-align: left !important; }
+  .zb-content .zb-tap { min-height: 44px; display: inline-flex; align-items: center; box-sizing: border-box; }
+  /* A week of day cards: swipe sideways, about four on screen */
+  .zb-week {
+    grid-template-columns: repeat(7, 92px) !important;
+    overflow-x: auto; overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity; scrollbar-width: none; padding-bottom: 4px;
+  }
+  .zb-week > * { scroll-snap-align: start; }
+  /* Checkbox and radio rows are tapped by their label */
+  .zb-content label:has(> input[type="checkbox"]),
+  .zb-content label:has(> input[type="radio"]) { min-height: 44px; align-items: center; }
+
+  /* Stat cards: two across, smaller numbers so they fit */
+  .zb-stat { flex: 1 1 calc(50% - 8px) !important; min-width: 0 !important; padding: 16px !important; box-sizing: border-box; }
+  .zb-stat-label { font-size: 11px !important; overflow-wrap: anywhere; }
+  .zb-stat-value { font-size: 22px !important; line-height: 1.15 !important; overflow-wrap: anywhere; }
+
+  /* Tables that aren't cards scroll sideways inside their own box */
+  .zb-content .gc:has(> table:not(.zb-table)) { overflow-x: auto !important; overscroll-behavior-x: contain; }
+
+  /* Tables as cards */
+  .zb-table thead { display: none; }
+  .zb-table, .zb-table tbody { display: block; width: 100%; }
+  .zb-table tbody tr {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: row dense;
+    gap: 10px 14px; padding: 14px 16px;
+    border-bottom: 1px solid rgba(226, 232, 240, .06);
+  }
+  .zb-table tbody tr:last-child { border-bottom: none; }
+  .zb-table td {
+    display: block; padding: 0 !important; border: none !important; min-width: 0;
+    max-width: none !important; white-space: normal !important; overflow: visible !important;
+  }
+  /* The same card for a row drawn as a CSS grid of divs */
+  .zb-card-row { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; grid-auto-flow: row dense; gap: 10px 14px !important; align-items: start !important; }
+  .zb-card-row > * { min-width: 0; overflow-wrap: anywhere; }
+  .zb-card-row > [data-primary] { order: -2; grid-column: 1 / -1; }
+  .zb-card-row > [data-wide] { grid-column: 1 / -1; }
+  .zb-card-row > [data-first] { order: -1; }
+  .zb-card-row > [data-end] { justify-self: end; text-align: right; }
+  .zb-card-row > [data-label]::before,
+  .zb-table td[data-label]::before {
+    content: attr(data-label); display: block; margin-bottom: 3px;
+    font-family: var(--font-outfit), sans-serif; font-size: 11px; font-weight: 600;
+    color: #6B7C93; text-transform: uppercase; letter-spacing: .5px;
+  }
+  .zb-table td[data-primary] { order: -2; grid-column: 1 / -1; font-size: 15px; }
+  .zb-table td[data-wide] { grid-column: 1 / -1; }
+  .zb-table td[data-first] { order: -1; }
+  .zb-table td[data-end] { justify-self: end; text-align: right; }
+  .zb-table .empty-row { display: block; }
+  /* A long badge in a half-width card cell wraps instead of being cut off */
+  .zb-table td .bd, .zb-card-row .bd { white-space: normal; max-width: 100%; }
+  .zb-table .empty-row td { padding: 40px 16px !important; text-align: center; }
+
+  /* Modals fit the screen with a small margin, and scroll inside */
+  .zb-modal { padding: 12px !important; }
+  .zb-modal-panel { max-height: calc(100dvh - 24px) !important; overscroll-behavior: contain; }
+  .zb-modal-head { padding: 10px 12px 10px 16px !important; gap: 12px; }
+  .zb-modal-head h3 { min-width: 0; overflow-wrap: anywhere; }
+  .zb-modal-close { width: 44px !important; height: 44px !important; flex-shrink: 0; }
+  .zb-modal-body { padding: 16px !important; }
+
+  .zb-toast {
+    max-width: calc(100vw - 32px); width: max-content;
+    white-space: normal !important; text-align: center;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  .zb-empty { padding: 36px 16px !important; }
+
+  /* ── Page bits that don't fit a helper ── */
+  /* Copilot: the chat fills the screen under the bar */
+  .zb-chat { min-height: 380px !important; max-height: none !important; height: calc(100dvh - 250px); }
+  .zb-chat-log { padding: 14px !important; }
+  .zb-chat-pad { padding-left: 12px !important; padding-right: 12px !important; }
+
+  /* POS: menu on top, the order underneath, and the page scrolls (no inner scrollers) */
+  .zb-pos { display: flex !important; flex-direction: column; gap: 16px; height: auto !important; margin: 0 !important; overflow: visible !important; }
+  .zb-pos-menu { border-right: none !important; overflow: visible !important; }
+  .zb-pos-items { overflow: visible !important; padding: 16px 0 0 !important; }
+  .zb-pos-order { border: 1px solid rgba(226, 232, 240, .09); border-radius: 12px; }
+  .zb-pos-order, .zb-pos-cart { overflow: visible !important; }
+
+  /* Menu rows: photo and name on top, price, switch and Edit underneath */
+  .zb-menu-row { flex-wrap: wrap; row-gap: 8px !important; }
+  /* the photo is 44px plus its 1px border each side, then a 12px gap */
+  .zb-menu-text { flex: 1 1 calc(100% - 60px) !important; min-width: 0; }
+  .zb-menu-price { margin-left: 58px; margin-right: auto; text-align: left !important; }
+
+  /* Rostering week: wider day columns that swipe inside their card, about two on screen */
+  .zb-roster-week { grid-template-columns: repeat(7, 150px) !important; min-width: max-content !important; }
+  .zb-roster-week > * { scroll-snap-align: start; scroll-margin-left: 14px; }
+  .gc:has(> .zb-roster-week) { scroll-snap-type: x proximity; overscroll-behavior-x: contain; }
+
+  /* Settings opening hours: day and "off" on top, the two times underneath */
+  .zb-hours-row { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; row-gap: 6px !important; margin-bottom: 14px !important; }
+  .zb-hours-row > :first-child, .zb-hours-row > :last-child { order: -1; }
+  .zb-hours-row > :last-child { justify-self: end; }
+
+  /* Bar charts: bars may get thin; with more than 30 bars the day labels go */
+  .zb-bars { gap: 2px !important; }
+  .zb-bars > * { min-width: 0; }
+  .zb-bars:has(> :nth-child(31)) > * > :nth-child(2) { display: none; }
+
+  /* Menu photo picker: width 100% plus its dashed border, so count the border in */
+  .zb-upload { box-sizing: border-box; }
+
+  /* Small switches drawn as divs: a bigger invisible hit area */
+  .zb-switch::after { content: ""; position: absolute; inset: -10px -4px; }
+}
+
+/* Reduced motion: the menu fades instead of sliding */
+@media (max-width: 820px) and (prefers-reduced-motion: reduce) {
+  .zb-sidebar { transform: none; opacity: 0; transition: opacity 150ms ease, visibility 0s linear 150ms; }
+  .zb-sidebar.open { opacity: 1; transition: opacity 150ms ease, visibility 0s; }
+  .zb-backdrop, .zb-backdrop.open { transition-duration: 150ms; }
 }

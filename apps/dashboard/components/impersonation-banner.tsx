@@ -9,6 +9,7 @@ export default function ImpersonationBanner() {
 
   return (
     <div
+      className="zb-imp-banner"
       style={{
         position: "sticky",
         top: 0,
@@ -26,13 +27,14 @@ export default function ImpersonationBanner() {
         boxShadow: "0 4px 12px rgba(0,0,0,0.35)",
       }}
     >
-      <div>
+      <div className="zb-imp-text">
         <Icon name="view" size={16} accent="currentColor" style={{ marginRight: 6 }} />Viewing CRM as <b>{business?.name ?? "business"}</b>
-        <span style={{ opacity: 0.85, marginLeft: 8, fontWeight: 500 }}>
+        <span className="zb-imp-note" style={{ opacity: 0.85, marginLeft: 8, fontWeight: 500 }}>
           — all actions write to this tenant's data
         </span>
       </div>
       <button
+        className="zb-imp-stop"
         onClick={stopImpersonating}
         style={{
           padding: "6px 14px",

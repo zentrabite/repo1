@@ -336,7 +336,7 @@ function SettingsContent() {
         </div>
       </div>
 
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+      <div className="zb-stack" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
 
         {/* ── Left column ─────────────────────────────────────────────── */}
         <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
@@ -361,7 +361,7 @@ function SettingsContent() {
               <input value={profile.subdomain} onChange={e => setProfile(p=>({...p,subdomain:e.target.value}))} />
             </Field>
             <Field label="Business Logo">
-              <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+              <div className="zb-wrap" style={{ display:"flex", alignItems:"center", gap:12 }}>
                 {logoUrl ? (
                   <img src={logoUrl} alt="logo" style={{ width:48, height:48, borderRadius:10, objectFit:"cover", border:"1px solid rgba(255,255,255,.1)", flexShrink:0 }} />
                 ) : (
@@ -429,6 +429,7 @@ function SettingsContent() {
                     href={storefrontUrl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    className="zb-tap"
                     style={{ flex:1, fontFamily:"var(--font-mono)", fontSize:12, color:C.g, wordBreak:"break-all", textDecoration:"none" }}
                   >
                     {storefrontUrl}
@@ -512,7 +513,7 @@ function SettingsContent() {
             ] as [string,string][]).map(([key, label]) => {
               const h = hours[key];
               return (
-                <div key={key} style={{ display:"grid", gridTemplateColumns:"90px 1fr 1fr 60px", gap:8, alignItems:"center", marginBottom:8 }}>
+                <div key={key} className="zb-hours-row" style={{ display:"grid", gridTemplateColumns:"90px 1fr 1fr 60px", gap:8, alignItems:"center", marginBottom:8 }}>
                   <span style={{ fontSize:12, color:C.cl }}>{label}</span>
                   <input type="time" value={h.open} disabled={h.closed} onChange={e => setHours(hs => ({ ...hs, [key]: { ...hs[key], open: e.target.value } }))} />
                   <input type="time" value={h.close} disabled={h.closed} onChange={e => setHours(hs => ({ ...hs, [key]: { ...hs[key], close: e.target.value } }))} />
@@ -747,7 +748,7 @@ function SettingsContent() {
               <div style={{ fontSize:11, color:C.st, marginBottom:12 }}>
                 Base fee is distance-based (0–3km $6.99 · 3–6km $8.99 · 6km+ $10.99). Surcharges stack on top.
               </div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
+              <div className="zb-two" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
                 <Field label="Service fee ($)">
                   <input type="number" step="0.01" value={deliverySettings.service_fee}
                     onChange={e => setDeliverySettings(d => ({ ...d, service_fee: e.target.value }))} />
@@ -778,7 +779,7 @@ function SettingsContent() {
             {/* Uber Direct */}
             <div style={{ marginBottom:18, paddingBottom:18, borderBottom:`1px solid ${C.mist}` }}>
               <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:10, display:"flex", alignItems:"center", gap:6 }}><Icon name="car" size={14} />Uber Direct</div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+              <div className="zb-stack" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
                 <Field label="API Key">
                   <PasswordInput label="key" placeholder="From developer.uber.com"
                     value={deliverySettings.uber_direct_api_key}
@@ -796,7 +797,7 @@ function SettingsContent() {
             {/* DoorDash Drive */}
             <div style={{ marginBottom:18, paddingBottom:18, borderBottom:`1px solid ${C.mist}` }}>
               <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:10, display:"flex", alignItems:"center", gap:6 }}><Icon name="dot" size={14} accent="#FF4757" />DoorDash Drive</div>
-              <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
+              <div className="zb-stack" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
                 <Field label="Developer ID">
                   <PasswordInput label="ID" placeholder="From developer.doordash.com"
                     value={deliverySettings.doordash_developer_id}
@@ -889,7 +890,7 @@ function SettingsContent() {
           <div className="gc" style={{ padding:24 }}>
             <SectionTitle>Team</SectionTitle>
             {team.map((m, i) => (
-              <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 0", borderBottom:`1px solid ${C.mist}`, fontSize:13, fontFamily:"var(--font-inter)" }}>
+              <div key={i} className="zb-break" style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 0", borderBottom:`1px solid ${C.mist}`, fontSize:13, fontFamily:"var(--font-inter)" }}>
                 <span style={{ color:C.cl }}>{m.email}</span>
                 <span style={{
                   padding:"3px 10px", borderRadius:999, fontSize:11, fontWeight:600,
@@ -930,7 +931,7 @@ function SettingsContent() {
               const allowed = rolePerms[role] ?? [];
               return (
                 <div key={role} style={{ marginBottom:18, paddingBottom:18, borderBottom:`1px solid ${C.mist}` }}>
-                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+                  <div className="zb-wrap" style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
                     <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                       <span style={{
                         padding:"3px 10px", borderRadius:999, fontSize:11, fontWeight:600,
