@@ -1,9 +1,12 @@
 // 7. What happens next. Plain sentences in order, set as a staircase that
 // steps down and across the page, so the order shows without numbers.
 
-const STEPS = [
+const STEPS: React.ReactNode[] = [
   "You tell us about your business.",
-  "We reply to find a time for a 15-minute call.",
+  // "15-minute" stays on one line
+  <>
+    We reply to find a time for a <span className="nowrap">15-minute</span> call.
+  </>,
   "We set you up from your current website. You check it.",
   "Sign-ups aren't open yet. There'll be a 1-month free trial at launch.",
 ];
@@ -17,7 +20,7 @@ export function NextSteps() {
         </h2>
         <ol className="hm-stairs">
           {STEPS.map((s, i) => (
-            <li key={s} data-r style={{ "--i": i + 1 } as React.CSSProperties}>
+            <li key={i} data-r style={{ "--i": i + 1 } as React.CSSProperties}>
               {s}
             </li>
           ))}

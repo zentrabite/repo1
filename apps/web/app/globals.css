@@ -592,9 +592,12 @@ img, svg, video, canvas, iframe { max-width: 100%; height: auto; }
   text-decoration-thickness: 2px;
   text-underline-offset: 0.3em;
 }
-.ft-contact { text-align: right; }
 .ft-contact p { color: var(--nv-ink-2); font-size: 16px; }
-.ft-contact p:first-child { min-height: 44px; display: flex; align-items: center; justify-content: flex-end; }
+.ft-contact p:first-child { min-height: 44px; display: flex; align-items: center; }
+@media (min-width: 1000px) {
+  .ft-contact { text-align: right; }
+  .ft-contact p:first-child { justify-content: flex-end; }
+}
 @media (hover: hover) and (pointer: fine) {
   .ft-links a:hover,
   .ft-contact a:hover { text-decoration-color: currentColor; }
@@ -623,10 +626,6 @@ img, svg, video, canvas, iframe { max-width: 100%; height: auto; }
   margin-top: 28px;
   font-size: 14px;
   color: var(--nv-ink-3);
-}
-@media (max-width: 640px) {
-  .ft-contact { text-align: left; }
-  .ft-contact p:first-child { justify-content: flex-start; }
 }
 
 /* ── Shared blocks (inner pages) ──────────────────────────────────────── */
@@ -961,7 +960,7 @@ textarea.input { resize: vertical; }
 /* Phone: two screens whole, the third a swipe away */
 @media (max-width: 699px) {
   .hm-h1 { font-size: min(40px, 11.2cqi); }
-  .hm-hero-lead { margin-top: 16px; font-size: 17px; }
+  .hm-hero-lead { margin-top: 16px; font-size: 18px; }
   .hm-hero-grid { gap: 24px; }
   .hm-actions { margin-top: 24px; gap: 4px; }
   .hm-actions .btn-primary { flex: 1 1 100%; }
@@ -989,8 +988,8 @@ textarea.input { resize: vertical; }
   .hm-shot-profile .hm-shot-frame,
   .hm-shot-winback .hm-shot-frame { aspect-ratio: auto; border-radius: 14px; }
   .hm-shot-cart .hm-shot-frame { border-radius: 22px; }
-  .hm-shot figcaption { margin-top: 12px; font-size: 15px; line-height: 1.35; }
-  .hm-tag { font-size: 13px; }
+  .hm-shot figcaption { margin-top: 12px; font-size: 16px; line-height: 1.35; }
+  .hm-tag { font-size: 14px; }
   .hm-shots-foot {
     display: flex;
     align-items: center;
@@ -1001,7 +1000,7 @@ textarea.input { resize: vertical; }
   .hm-dots { display: flex; gap: 6px; }
   .hm-dots span { width: 6px; height: 6px; border-radius: 3px; background: var(--nv-dot); }
   .hm-dots span.on { width: 18px; background: var(--green); }
-  .hm-note { font-size: 13px; }
+  .hm-note { font-size: 14px; }
 }
 
 /* 2. What do you run? --------------------------------------------------- */
@@ -1081,6 +1080,8 @@ textarea.input { resize: vertical; }
   }
   .hm-stage-clip.on { opacity: 1; z-index: 1; }
   .hm-stage-screen > div { width: 100%; }
+  /* The phone clip stands on a panel the size of the desktop clips, so the stage keeps its shape */
+  .hm-stage-phone { padding: 28px 0; border-radius: 12px; background: var(--band); }
   .hm-stage-phone > div { height: 100%; aspect-ratio: 390 / 844; }
   .hm-count { font-size: 14px; color: var(--text-2); }
   .hm-stop {
@@ -1128,14 +1129,14 @@ textarea.input { resize: vertical; }
   letter-spacing: -0.015em;
 }
 .hm-keep-fig { margin: 0; }
-.hm-keep-frame { overflow: hidden; border-radius: 16px; background: var(--near-black); }
+.hm-keep-frame { overflow: hidden; border-radius: 12px; background: var(--near-black); }
 .hm-keep-frame img { display: block; width: 100%; height: auto; }
 .hm-keep-fig figcaption { margin-top: 14px; font-size: 14px; line-height: 1.4; color: var(--nv-ink-3); }
 @media (min-width: 1000px) {
   .hm-keep-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(40px, 5vw, 80px); }
   /* The board runs off the right edge: there's more of it than fits. It slides in from that side. */
   .hm-keep-fig { margin-right: calc(-1 * max(var(--margin), env(safe-area-inset-right, 0px))); --rv-x: 48px; --rv-y: 0px; }
-  .hm-keep-frame { border-radius: 16px 0 0 16px; }
+  .hm-keep-frame { border-radius: 12px 0 0 12px; }
   .hm-keep-fig figcaption { padding-right: var(--margin); }
 }
 
@@ -1194,7 +1195,7 @@ textarea.input { resize: vertical; }
   .hm-index-pic {
     aspect-ratio: 16 / 10;
     overflow: hidden;
-    border-radius: 14px;
+    border-radius: 12px;
     background: var(--near-black);
   }
   .hm-index-pic img { display: block; width: 100%; height: 100%; object-fit: cover; }
@@ -1275,6 +1276,7 @@ textarea.input { resize: vertical; }
   --rv-y: 0px;
   --rv-step: 110ms;
 }
+.nowrap { white-space: nowrap; }
 .hm-stairs li {
   font-size: var(--fs-h3);
   font-weight: 600;
@@ -1315,11 +1317,12 @@ textarea.input { resize: vertical; }
 /* 9. The close ---------------------------------------------------------- */
 
 .hm-close { padding: var(--sec-pad) 0 0; }
-.hm-close .hm-h2 { font-size: clamp(36px, 3.9vw, 64px); }
+/* The ask, at the hero's size */
+.hm-close .hm-h2 { font-size: clamp(40px, 7.3vw, 56px); }
 .hm-close-grid { display: grid; gap: 24px; align-items: end; }
 .hm-close-side .hm-lead { color: var(--nv-ink-2); }
 .hm-close-side > div { margin-top: 24px; }
-@media (min-width: 700px) {
+@media (min-width: 1000px) {
   .hm-close-grid { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 48px; }
 }
 
