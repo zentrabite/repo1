@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { campaigns, customers, formatAUD, type DemoCampaign } from "../data";
+import { campaigns, customerById, formatAUD, timeAgo, type DemoCampaign, type DemoCustomer } from "../data";
 import { Icon, type IconName } from "../../../components/zb-icon";
 import { showOnPhone } from "../show-on-phone";
 
@@ -45,9 +45,6 @@ export default function WinbackPage() {
     const liveCount = campaigns.filter((c) => c.status === "live").length;
     return { sent, recovered, revenue, liveCount };
   }, []);
-
-  // Pick a deterministic sample customer for template preview
-  const sampleCustomer = customers[0]!;
 
   return (
     <div style={{ display: "grid", gap: 24, maxWidth: 1180 }}>
@@ -117,6 +114,7 @@ export default function WinbackPage() {
       {/* Campaigns list + detail */}
       <div style={{ display: "grid", gridTemplateColumns: selected ? "minmax(0,1fr) 420px" : "1fr", gap: 16 }}>
         <div
+          className="wb-table"
           style={{
             borderRadius: 14,
             background: "rgba(255,255,255,0.02)",
@@ -141,6 +139,7 @@ export default function WinbackPage() {
 
           {/* Header row */}
           <div
+            className="wb-row wb-head"
             style={{
               display: "grid",
               gridTemplateColumns: "1.6fr 110px 110px 110px 130px 90px",
@@ -172,6 +171,7 @@ export default function WinbackPage() {
             return (
               <button
                 key={c.id}
+                className="wb-row"
                 onClick={() => {
                   setSelectedId(isActive ? null : c.id);
                   if (!isActive) showOnPhone("campaign-detail");
@@ -185,11 +185,9 @@ export default function WinbackPage() {
                   alignItems: "center",
                   padding: "14px 18px",
                   background: isActive ? "rgba(0,182,122,0.07)" : "transparent",
+                  border: "none",
                   borderLeft: `3px solid ${isActive ? "var(--green)" : "transparent"}`,
                   borderBottom: "1px solid var(--mist-9)",
-                  border: "none",
-                  borderTop: "none",
-                  borderRight: "none",
                   cursor: "pointer",
                   fontFamily: "var(--font-inter)",
                   color: "inherit",
@@ -251,33 +249,74 @@ export default function WinbackPage() {
 
         {selected && (
           <CampaignDetail
+            key={selected.id}
             campaign={selected}
-            sampleName={sampleCustomer.name.split(" ")[0] ?? "there"}
-            sampleFav={sampleCustomer.favourite.split(" + ")[0] ?? "pizza"}
+            previewFor={customerById[selected.previewCustomerId]!}
             onClose={() => setSelectedId(null)}
           />
         )}
       </div>
+
+      {/* With the detail panel open the list is about 700px wide on a 1440px
+          screen. The columns get narrower so the campaign name keeps a usable
+          width. On smaller laptops the box is narrower still, so each campaign
+          becomes a small card, the same as on a phone. Phones (820px and under)
+          get that card layout from demo-shell.tsx, so these rules skip them. */}
+      <style>{`
+        .wb-table { container-type: inline-size; }
+        @media (min-width: 821px) {
+          @container (max-width: 820px) {
+            .wb-row {
+              grid-template-columns: minmax(180px, 1fr) 76px 56px 80px 94px 66px !important;
+              gap: 8px !important;
+              padding-left: 14px !important;
+              padding-right: 14px !important;
+            }
+          }
+          @container (max-width: 619px) {
+            .wb-head { display: none !important; }
+            .wb-row {
+              grid-template-columns: auto auto minmax(0, 1fr) auto !important;
+              align-items: start !important;
+              row-gap: 8px !important;
+              column-gap: 10px !important;
+            }
+            .wb-row > :nth-child(1) { grid-column: 1 / 4; grid-row: 1; }
+            .wb-row > :nth-child(6) { grid-column: 4; grid-row: 1; }
+            .wb-row > :nth-child(2) { grid-column: 1; grid-row: 2; }
+            .wb-row > :nth-child(3) { grid-column: 2; grid-row: 2; }
+            .wb-row > :nth-child(4) { grid-column: 3; grid-row: 2; }
+            .wb-row > :nth-child(5) { grid-column: 4; grid-row: 2; text-align: right; }
+            .wb-row > :nth-child(3)::before,
+            .wb-row > :nth-child(4)::before {
+              font-size: 11px; color: var(--steel); font-weight: 500; margin-right: 4px; font-family: var(--font-inter);
+            }
+            .wb-row > :nth-child(3)::before { content: "Sent"; }
+            .wb-row > :nth-child(4)::before { content: "Back"; }
+          }
+        }
+      `}</style>
     </div>
   );
 }
 
 function CampaignDetail({
   campaign,
-  sampleName,
-  sampleFav,
+  previewFor,
   onClose,
 }: {
   campaign: DemoCampaign;
-  sampleName: string;
-  sampleFav: string;
+  /** A customer this campaign sends to. The preview is written for them. */
+  previewFor: DemoCustomer;
   onClose: () => void;
 }) {
   const [live, setLive] = useState(campaign.status === "live");
   const ch = CHANNEL_COLORS[campaign.channel];
+  const firstName = previewFor.name.split(" ")[0] ?? "there";
+  const favourite = previewFor.favourite.split(" + ")[0] ?? "pizza";
   const preview = campaign.template
-    .replace("{name}", sampleName)
-    .replace("{favourite}", sampleFav);
+    .replace("{name}", firstName)
+    .replace("{favourite}", favourite);
 
   return (
     <aside
@@ -359,8 +398,8 @@ function CampaignDetail({
         >
           {preview}
         </div>
-        <div style={{ fontSize: 11, color: "var(--steel)", marginTop: 6 }}>
-          Preview personalised for {sampleName}. Each send is AI-tuned per customer.
+        <div style={{ fontSize: 11, color: "var(--steel)", marginTop: 6, lineHeight: 1.5 }}>
+          Preview for {previewFor.name} ({previewFor.tier}, last order {timeAgo(previewFor.lastOrderAt)}). Each send is AI-tuned per customer.
         </div>
       </div>
 

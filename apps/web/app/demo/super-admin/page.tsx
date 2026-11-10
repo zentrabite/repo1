@@ -8,6 +8,7 @@
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { Icon, type IconName } from "../../components/zb-icon";
+import { sampleBusiness } from "../sample-business";
 
 // ─── Design tokens (matching web app CSS vars) ────────────────────────────────
 const G   = "var(--green)";
@@ -52,8 +53,8 @@ type Tenant = {
 
 const TENANTS: Tenant[] = [
   {
-    id:"t01", name:"Harbour Lane Pizza Co", type:"Restaurant", plan:"Growth", mrr:249, orders30d:1842, aiCredits:340, health:"Healthy", lastActive:"2 min ago",
-    owner:"Marco Bellini", email:"marco@harbourlane.com.au", subdomain:"harbourlane",
+    id:"t01", name:sampleBusiness.name, type:"Restaurant", plan:"Growth", mrr:249, orders30d:1238, aiCredits:340, health:"Healthy", lastActive:"2 min ago",
+    owner:sampleBusiness.owner.name, email:sampleBusiness.owner.email, subdomain:sampleBusiness.subdomain,
     modules:{ loyalty:true, ai_calls:true, driver_dispatch:true, stock:true, campaigns:true, sms:true, email:true, reviews:true, custom_website:true, ordering_app:false, advanced_analytics:false, premium_support:false },
   },
   {
@@ -490,7 +491,7 @@ export default function SuperAdminPage() {
                     <div style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:14, color:CL, marginBottom:10 }}>Audit log (last 5 events)</div>
                     {[
                       { ts:"Today 11:42 am", ev:`Module 'ai_calls' enabled by super admin` },
-                      { ts:"Today 09:15 am", ev:`Owner logged in from Sydney, NSW` },
+                      { ts:"Today 09:15 am", ev:`Owner logged in from ${sampleBusiness.city}, ${sampleBusiness.state}` },
                       { ts:"Yesterday 3:22 pm", ev:`SMS campaign sent to 42 customers` },
                       { ts:"Yesterday 1:01 pm", ev:`Plan changed: Starter → Growth` },
                       { ts:"Apr 20, 9:00 am", ev:`Win-back edge function ran — 3 messages sent` },

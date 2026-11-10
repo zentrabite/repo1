@@ -271,19 +271,19 @@ Feature-flag hook `useModule('stock')` short-circuits UI when disabled. The CRM 
 
 ## 8 · Demo merchant brand concept
 
-**Brand:** **Harbour Lane Pizza Co** — a Sydney neighbourhood pizza bar.
+**Brand:** **Nonna's Kitchen** — a made-up wood-fired pizzeria in Adelaide SA (18 Basil Lane, Adelaide SA 5000, (08) 5550 1288; the lane doesn't exist and the number is in the ACMA's fiction range).
 - Colours: deep navy + warm cream + accent orange (distinct from ZentraBite's green so the brand layer is obvious).
 - Voice: friendly, local, unpretentious.
-- Offering: wood-fired pizzas, pastas, salads, soft drinks, a loyalty program ("Dough Club").
+- Offering: wood-fired pizzas, burgers, sides, drinks, desserts, a loyalty program ("Dough Club").
 - Why it works as a demo: most buyers will be cafés/takeaways/restaurants; they immediately understand the use case.
 
-All three experiences (`/demo/live`, `/demo/merchant`, `/demo/app`) show the **same** menu, the **same** 6 live orders, and the **same** customer records — proving the system is a single source of truth.
+All three experiences (`/demo/live`, `/demo/merchant`, `/demo/app`) show the **same** business, menu, prices, deals and rewards, and the ordering site and app are signed in as Sofia De Luca, the CRM's VIP — proving the system is a single source of truth. That shared data lives in `apps/web/app/demo/sample-business.ts`; change it there, not in one demo.
 
 ---
 
 ## 9 · Demo merchant website (`/demo/merchant`)
 
-Public-facing Harbour Lane site. Pages:
+Public-facing Nonna's Kitchen site. Pages:
 - **Home** — hero, today's deals, menu preview, pickup/delivery toggle, rewards pitch, story.
 - **Menu** — category nav, item cards with modifiers, add-to-cart.
 - **Cart / Checkout** — address, time, payment (Apple Pay / Card), tip, loyalty apply.
@@ -297,7 +297,7 @@ Ribbon: "Powered by ZentraBite" footer link + Ω in corner, subtle not overwhelm
 
 ## 10 · Demo customer app (`/demo/app`)
 
-Mobile-frame rendering of the same Harbour Lane brand. Tab bar:
+Mobile-frame rendering of the same Nonna's Kitchen brand. Tab bar:
 - **Home** — featured deal, reorder, points.
 - **Menu** — tap to add, modifier sheet, cart badge.
 - **Cart** — checkout sheet.
@@ -439,7 +439,7 @@ businesses(id, modules_json, plan, subdomain, stripe_account_id, ...)
 - 1 credit = SMS draft, 5 = menu optimisation, 10 per AI voice-call minute, 1 per review reply. Logged in `credit_transactions`.
 
 **Multi-tenant storefront/app:**
-- Merchant website served on tenant subdomain (`harbourlane.zentrabite.store`) from `apps/web` with `generateStaticParams` + ISR.
+- Merchant website served on tenant subdomain (`nonnas-kitchen.zentrabite.store`) from `apps/web` with `generateStaticParams` + ISR.
 - Customer mobile app = PWA today; React Native shell planned.
 
 ---
@@ -519,7 +519,7 @@ businesses(id, modules_json, plan, subdomain, stripe_account_id, ...)
 5. `/pricing` — tailored-solution framing + interactive estimator.
 6. `/demo` hub updates — three entry points surfaced.
 7. `/demo/super-admin` — tenant list + module toggles + usage + impersonation.
-8. `/demo/merchant` — Harbour Lane storefront (home, menu, checkout, tracking, rewards).
+8. `/demo/merchant` — Nonna's Kitchen storefront (home, menu, checkout, tracking, rewards).
 9. `/demo/app` — mobile-framed customer app (home, menu, cart, rewards, orders, profile).
 10. `/demo/live/rewards` — rebuilt logic (earn, tiers, redemptions, ROI).
 11. `/demo/live/integrations`, `/demo/live/team`, `/demo/live/billing`, `/demo/live/reviews` — new CRM pages.
@@ -567,7 +567,7 @@ Type-check: `npx tsc --noEmit` (passes green).
 - `/demo` — hub
 - `/demo/live/rewards` — rebuilt
 - `/demo/super-admin` — tenant control
-- `/demo/merchant` — Harbour Lane storefront
+- `/demo/merchant` — Nonna's Kitchen storefront
 - `/demo/app` — mobile frame
 
 ---

@@ -21,7 +21,7 @@ function toast(text: string) {
 export default function SettingsPage() {
   const [name, setName] = useState(business.name);
   const [type, setType] = useState("Pizzeria");
-  const [subdomain, setSubdomain] = useState("nonnas-kitchen");
+  const [subdomain, setSubdomain] = useState(business.subdomain);
   const [emailNotif, setEmailNotif] = useState(true);
   const [smsNotif, setSmsNotif] = useState(true);
   const [winbackOn, setWinbackOn] = useState(true);
@@ -56,7 +56,7 @@ export default function SettingsPage() {
               </div>
             </Field>
             <Field label="Address">
-              <Input value="12 King William St, Adelaide SA 5000" onChange={() => {}} />
+              <Input value={business.address} onChange={() => {}} />
             </Field>
             <SaveButton onClick={() => toast("Business profile saved")} />
           </Card>

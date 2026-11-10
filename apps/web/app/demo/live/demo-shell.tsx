@@ -236,7 +236,7 @@ export function DemoShell({ children }: { children: React.ReactNode }) {
               {business.today}
             </div>
             <div className="demo-topbar-title" style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 19, color: "var(--cloud)", marginTop: 2 }}>
-              Service is live · Store open until 10:30 pm
+              Service is live · Store open until {business.closes}
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>

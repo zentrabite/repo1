@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { customers, rewardTiers, earnRules, formatAUD, type DemoCustomer } from "../data";
+import { customers, rewardTiers, earnRules, redemptions, formatAUD, type DemoCustomer, type Redemption } from "../data";
 import { Icon, type IconName } from "../../../components/zb-icon";
 
 function toast(text: string) {
@@ -27,25 +27,8 @@ const TIER_COLORS: Record<DemoCustomer["tier"], { color: string; bg: string; ico
   Bronze: { color: "#C28D5C", bg: "rgba(194,141,92,0.14)",  icon: "tier", accent: "#C28D5C" },
 };
 
-type Redemption = {
-  id: string;
-  name: string;
-  cost: number;
-  category: "treat" | "discount" | "delivery" | "status";
-  tierMin: DemoCustomer["tier"];
-  redeems30d: number;
-};
-
-const REDEMPTIONS: Redemption[] = [
-  { id: "r01", name: "Free coffee on your next visit",   cost: 100, category: "treat",    tierMin: "Bronze", redeems30d: 128 },
-  { id: "r02", name: "Free garlic bread side",           cost: 150, category: "treat",    tierMin: "Bronze", redeems30d: 76 },
-  { id: "r03", name: "$10 off any order",                cost: 500, category: "discount", tierMin: "Silver", redeems30d: 41 },
-  { id: "r04", name: "Free delivery (under 5km)",        cost: 250, category: "delivery", tierMin: "Silver", redeems30d: 83 },
-  { id: "r05", name: "Free main (up to $24)",            cost: 1000, category: "treat",   tierMin: "Gold",   redeems30d: 19 },
-  { id: "r06", name: "20% off a whole order (1 use)",    cost: 800, category: "discount", tierMin: "Gold",   redeems30d: 22 },
-  { id: "r07", name: "Bring a friend — free pizza",      cost: 1200, category: "treat",   tierMin: "VIP",    redeems30d: 6 },
-  { id: "r08", name: "Skip-the-queue priority prep",     cost: 0,    category: "status",  tierMin: "VIP",    redeems30d: 54 },
-];
+// The catalogue is shared with the ordering site and the app (../sample-business).
+const REDEMPTIONS: Redemption[] = redemptions;
 
 const CATEGORY_COLORS: Record<Redemption["category"], { label: string; color: string; bg: string }> = {
   treat:    { label: "Free item",    color: "#FFC14B", bg: "rgba(255,193,75,0.12)" },
