@@ -84,7 +84,6 @@
   --accent-soft: rgba(0, 182, 122, 0.12);
   --warn-text: #c2410c;
   --danger-text: #c81e3a;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 8px 20px rgba(0, 0, 0, 0.06);
   --logo-zentra: #0f1f2d;
   /* Brand green is 2.5 to 1 on the light page, so "Bite" takes the deeper green there (5.1 to 1) */
   --logo-bite: #007a52;
@@ -108,7 +107,6 @@
     --accent-soft: rgba(0, 182, 122, 0.14);
     --warn-text: #ff7a45;
     --danger-text: #ff6b7d;
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 20px rgba(0, 0, 0, 0.25);
     --logo-zentra: #ffffff;
     --logo-bite: #00b67a;
     --nav-bg: #0f1f2d;
@@ -130,7 +128,6 @@ html:has(.force-dark) {
   --accent-soft: rgba(0, 182, 122, 0.14);
   --warn-text: #ff7a45;
   --danger-text: #ff6b7d;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 20px rgba(0, 0, 0, 0.25);
   --logo-zentra: #ffffff;
   --logo-bite: #00b67a;
   --nav-bg: #0f1f2d;
