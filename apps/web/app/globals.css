@@ -6,15 +6,17 @@
       only these. They have a light and a dark version. The site follows the
       visitor's device setting unless they pick one with the theme switch,
       which sets data-theme="light" or "dark" on <html>.
-      Navy chapters (the homepage hero, "keep what you earn", the close and
-      the footer) are navy in both themes. .on-navy swaps the theme colours
-      for the navy ones inside them.
+      Navy chapters (the homepage hero, the tour, the close and the footer)
+      are navy in both themes. .on-navy swaps the theme colours for the navy
+      ones inside them.
 
    2. Brand constants (--navy, --cloud, --steel ...). The demo sandboxes
       under /demo/* use these and always stay dark.
 
    Brand: Zentra Green #00B67A, Navy #1C2D48, Near Black #0F1F2D,
    Steel #6B7C93, Cloud #F8FAFB, Mist #E2E8F0, Bite Orange #FF6B35.
+   The marketing site uses a deeper navy, #0E192C (picked 11 Nov, option B).
+   The demos keep #1C2D48.
    Buttons are green with near-black text (6.4 to 1) in both themes.
 
    The look follows the taste skill (design-taste-frontend): no eyebrows,
@@ -41,13 +43,14 @@
   --green-30: rgba(0, 182, 122, 0.3);
   --green-15: rgba(0, 182, 122, 0.15);
 
-  /* Navy chapters. Text on navy: 13.8, 11.6 and 7.5 to 1. */
-  --nv-bg: #1c2d48;
+  /* Navy chapters, the deeper navy. Text on it: 17.9, 15.0 and 9.6 to 1.
+     Raise is the step in tone that frames app screens and lit panels. */
+  --nv-bg: #0e192c;
   --nv-ink: #ffffff;
   --nv-ink-2: #e6ecf2;
   --nv-ink-3: #b4c0ce;
-  --nv-raise: #2a3f61;
-  --nv-dot: #4a5d7a;
+  --nv-raise: #1a2740;
+  --nv-dot: #3a4a63;
 
   /* One font for everything. The demos still ask for --font-inter. */
   --font-inter: var(--font-outfit);
@@ -68,15 +71,15 @@
 
   /* Theme colours, light */
   color-scheme: light;
-  --bg: #f8fafb;
-  --band: #eef2f5;
+  --bg: #ffffff;
+  --band: #f3f5f8;
   --surface: #ffffff;
-  --surface-2: #eef2f5;
+  --surface-2: #eef1f5;
   --border: #e2e8f0;
   --border-strong: #cbd5e1;
-  --text: #0f1f2d;
-  --text-2: #44546a;
-  --text-3: #5b6b80;
+  --text: #0e192c;
+  --text-2: #3d4a5c;
+  --text-3: #56657a;
   --accent: #00b67a;
   --accent-hover: #00a36d;
   --on-accent: #0f1f2d;
@@ -84,20 +87,21 @@
   --accent-soft: rgba(0, 182, 122, 0.12);
   --warn-text: #c2410c;
   --danger-text: #c81e3a;
-  --logo-zentra: #0f1f2d;
+  --logo-zentra: #0e192c;
   /* Brand green is 2.5 to 1 on the light page, so "Bite" takes the deeper green there (5.1 to 1) */
   --logo-bite: #007a52;
-  --nav-bg: #f8fafb;
+  --nav-bg: #ffffff;
 }
 
-/* Theme colours, dark. Same values in both blocks. */
+/* Theme colours, dark. Same values in both blocks. The ground is darker
+   than the navy chapters, so they still read as their own sections. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #0f1f2d;
-    --band: #162a3d;
-    --surface: #162a3d;
-    --surface-2: #1c2d48;
+    --bg: #0a111e;
+    --band: #111b2d;
+    --surface: #111b2d;
+    --surface-2: #1a2740;
     --border: rgba(255, 255, 255, 0.1);
     --border-strong: rgba(255, 255, 255, 0.2);
     --text: #f3f6f9;
@@ -109,10 +113,29 @@
     --danger-text: #ff6b7d;
     --logo-zentra: #ffffff;
     --logo-bite: #00b67a;
-    --nav-bg: #0f1f2d;
+    --nav-bg: #0a111e;
   }
 }
-:root[data-theme="dark"],
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0a111e;
+  --band: #111b2d;
+  --surface: #111b2d;
+  --surface-2: #1a2740;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.2);
+  --text: #f3f6f9;
+  --text-2: #b4c0ce;
+  --text-3: #8fa0b5;
+  --accent-text: #00b67a;
+  --accent-soft: rgba(0, 182, 122, 0.14);
+  --warn-text: #ff7a45;
+  --danger-text: #ff6b7d;
+  --logo-zentra: #ffffff;
+  --logo-bite: #00b67a;
+  --nav-bg: #0a111e;
+}
+/* The demo sandboxes keep the old dark colours */
 html:has(.force-dark) {
   color-scheme: dark;
   --bg: #0f1f2d;
@@ -135,7 +158,7 @@ html:has(.force-dark) {
 
 /* The homepage opens on navy, so the phone's browser bar stays navy when
    someone picks light or dark (theme-toggle.tsx reads --bar). */
-html:has(.hm-hero) { --bar: var(--navy); }
+html:has(.hm-hero) { --bar: var(--nv-bg); }
 
 /* Inside a navy chapter, in both themes */
 .on-navy {
@@ -195,8 +218,8 @@ a {
 
 h1, h2, h3, h4, h5 {
   font-family: var(--font-sans);
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-weight: 600;
+  letter-spacing: -0.025em;
   line-height: 1.12;
   color: var(--text);
   text-wrap: balance;
@@ -285,7 +308,7 @@ img, svg, video, canvas, iframe { max-width: 100%; height: auto; }
 }
 .h-card {
   font-size: 19px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.01em;
   line-height: 1.3;
 }
@@ -826,12 +849,13 @@ textarea.input { resize: vertical; }
 
 .hm-h2 {
   font-size: var(--fs-h2);
+  font-weight: 600;
   line-height: 1.04;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.035em;
 }
 .hm-h3 {
   font-size: var(--fs-h3);
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1.2;
   letter-spacing: -0.015em;
   color: var(--text);
@@ -869,9 +893,11 @@ textarea.input { resize: vertical; }
 
 /* 1. Hero ---------------------------------------------------------------- */
 
+/* Option B, picked 11 Nov: the words on the left, and one big real screen of
+   the CRM on the right running off the edge, with the ordering site on a
+   phone in front of it. */
 .hm-hero {
-  --g: 28px;
-  padding: calc(var(--nav-h) + env(safe-area-inset-top, 0px) + clamp(24px, 4vw, 56px)) 0 clamp(56px, 7vw, 104px);
+  padding: calc(var(--nav-h) + env(safe-area-inset-top, 0px) + clamp(24px, 4vw, 64px)) 0 clamp(64px, 7.5vw, 112px);
   overflow: clip;
 }
 .hm-hero-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 48px; }
@@ -879,17 +905,17 @@ textarea.input { resize: vertical; }
 /* Sized from the column it sits in: "Know your regulars." always holds one line. */
 .hm-h1 {
   font-size: min(64px, 11.2cqi);
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.045em;
   text-wrap: wrap;
 }
 .hm-h1 span { display: block; }
 .hm-hero-lead {
-  margin-top: 28px;
-  max-width: 36ch;
+  margin-top: 26px;
+  max-width: 34ch;
   font-size: var(--fs-lead);
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--nv-ink-2);
 }
 .hm-actions {
@@ -897,112 +923,77 @@ textarea.input { resize: vertical; }
   flex-wrap: wrap;
   align-items: center;
   gap: 12px 28px;
-  margin-top: 36px;
+  margin-top: 32px;
 }
-
-/* The three screens */
-.hm-shots {
+/* The three true things, each with a tick */
+.hm-proof {
+  list-style: none;
   display: grid;
-  grid-template-columns: minmax(0, 0.49fr) minmax(0, 1fr);
-  column-gap: var(--g);
-  row-gap: 28px;
-}
-.hm-shot { margin: 0; }
-.hm-shot-cart { grid-column: 1; grid-row: 1 / span 2; margin-top: clamp(72px, 10vw, 150px); }
-.hm-shot-profile { grid-column: 2; grid-row: 1; }
-.hm-shot-winback { grid-column: 2; grid-row: 2; }
-.hm-shot-frame {
-  position: relative;
-  overflow: hidden;
-  border-radius: 20px;
-  background: var(--near-black);
-}
-.hm-shot-cart .hm-shot-frame { border-radius: 26px; background: transparent; }
-.hm-shot-frame img { display: block; width: 100%; height: auto; }
-/* Desktop crops, each ending in a gap between rows of the panel: the profile
-   after its first row of figures (676 of 1762px), the win-back after the text
-   it sends and the note under it (604 of 1204px). */
-.hm-shot-profile .hm-shot-frame { aspect-ratio: 960 / 676; }
-.hm-shot-winback .hm-shot-frame { aspect-ratio: 840 / 604; }
-.hm-shot figcaption {
-  margin-top: 14px;
+  gap: 10px;
+  margin-top: 32px;
   font-size: 16px;
   line-height: 1.4;
   color: var(--nv-ink-2);
 }
-.hm-tag { display: block; font-size: 14px; font-weight: 600; color: var(--green); }
-.hm-shots-foot { margin-top: 6px; margin-left: calc((100% - var(--g)) * 0.49 / 1.49 + var(--g)); }
-.hm-dots { display: none; }
-.hm-note { font-size: 14px; line-height: 1.4; color: var(--nv-ink-3); }
+.hm-proof li { display: flex; align-items: center; gap: 10px; }
+.hm-proof svg { flex: none; color: var(--green); }
 
-/* They rise in once, left to right, 90ms apart */
-@media (prefers-reduced-motion: no-preference) {
-  .hm-shot { animation: hm-rise 800ms var(--ease-expo) both; animation-delay: calc(120ms + var(--i, 0) * 90ms); }
-}
-@keyframes hm-rise {
-  from { transform: translateY(32px); }
-}
+/* The stage: the CRM screen, and the phone in front of it */
+.hm-hs { position: relative; margin: 0; }
+.hm-hs-desk,
+.hm-hs-phone { overflow: hidden; background: var(--nv-raise); }
+.hm-hs-desk { padding: 8px; border-radius: 20px; }
+.hm-hs-phone { position: absolute; padding: 6px; border-radius: 34px; }
+.hm-hs img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: left top; }
+.hm-hs-desk img { aspect-ratio: 1440 / 900; border-radius: 13px; }
+.hm-hs-phone img { aspect-ratio: 390 / 800; border-radius: 28px; }
+.hm-hs figcaption { margin-top: 16px; font-size: 14px; line-height: 1.4; color: var(--nv-ink-3); }
 
+@media (min-width: 700px) {
+  .hm-hs { padding-bottom: 4%; }
+  .hm-hs-phone { left: 2%; bottom: 0; width: 25%; }
+  .hm-hs figcaption { margin-left: 30%; }
+}
 @media (min-width: 1200px) {
   .hm-hero-grid {
-    grid-template-columns: minmax(0, 1fr) clamp(640px, 56.8vw, 1000px);
-    gap: 56px;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: clamp(48px, 4.4vw, 80px);
     align-items: center;
   }
-  .hm-hero-text { padding-bottom: 40px; }
+  /* The CRM runs off the right edge: there's more of it than fits */
+  .hm-hs-desk { width: 128%; border-radius: 20px 0 0 20px; padding-right: 0; }
+  .hm-hs-desk img { border-radius: 13px 0 0 13px; }
+  .hm-hs-phone { left: -9%; width: 31%; }
+  .hm-hs figcaption { margin-left: 26%; }
 }
-/* Tablet: two lines, the screens below */
+/* Tablet: two lines, the stage below */
 @media (min-width: 700px) and (max-width: 1199px) {
   .hm-h1 { font-size: min(60px, 7.6cqi); }
   .hm-hero-lead { max-width: 44ch; }
 }
-/* Phone: two screens whole, the third a swipe away */
+/* Phone: the ordering site and the customer's profile, side by side and overlapping */
 @media (max-width: 699px) {
   .hm-h1 { font-size: min(40px, 11.2cqi); }
   .hm-hero-lead { margin-top: 16px; font-size: 18px; }
-  .hm-hero-grid { gap: 24px; }
+  .hm-hero-grid { gap: 32px; }
   .hm-actions { margin-top: 24px; gap: 4px; }
   .hm-actions .btn-primary { flex: 1 1 100%; }
-  /* The row runs to both screen edges, so the frame's side padding moves inside */
-  .hm-hero .wrap { padding-left: 0; padding-right: 0; }
-  .hm-hero-text,
-  .hm-shots-foot { padding-left: max(var(--margin), env(safe-area-inset-left, 0px)); padding-right: max(var(--margin), env(safe-area-inset-right, 0px)); }
-  .hm-shots {
-    /* Tall enough that the cart and the profile fill the width side by side:
-       (0.6478 + 0.5448) x h + the 18px gap = the screen less its 32px of margins */
-    --h: calc((100vw - 50px) / 1.1926);
-    display: flex;
-    gap: 18px;
-    padding: 0 var(--margin);
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scroll-snap-type: x mandatory;
-    scroll-padding: 0 var(--margin);
-    scrollbar-width: none;
-  }
-  .hm-shots::-webkit-scrollbar { display: none; }
-  .hm-shot { flex: 0 0 auto; scroll-snap-align: start; margin-top: 0; }
-  /* Each screen's width at the row's height, from its real size (780x1204, 960x1762, 840x1204) */
-  .hm-shot-cart { width: calc(var(--h) * 0.6478); }
-  .hm-shot-profile { width: calc(var(--h) * 0.5448); }
-  .hm-shot-winback { width: calc(var(--h) * 0.6977); }
-  .hm-shot-frame,
-  .hm-shot-profile .hm-shot-frame,
-  .hm-shot-winback .hm-shot-frame { aspect-ratio: auto; border-radius: 14px; }
-  .hm-shot-cart .hm-shot-frame { border-radius: 22px; }
-  .hm-shot figcaption { margin-top: 12px; font-size: 16px; line-height: 1.35; }
-  .hm-tag { font-size: 14px; }
-  .hm-shots-foot {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin: 14px 0 0;
-  }
-  .hm-dots { display: flex; gap: 6px; }
-  .hm-dots span { width: 6px; height: 6px; border-radius: 3px; background: var(--nv-dot); }
-  .hm-dots span.on { width: 18px; background: var(--green); }
-  .hm-note { font-size: 14px; }
+  .hm-proof { margin-top: 24px; }
+  .hm-hs { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  .hm-hs-phone { position: relative; grid-column: 1; grid-row: 1; z-index: 1; padding: 5px; border-radius: 30px; }
+  .hm-hs-phone img { aspect-ratio: 390 / 820; border-radius: 25px; }
+  .hm-hs-desk { grid-column: 2; grid-row: 1; margin: 16% 0 0 -6%; padding: 5px; border-radius: 16px; }
+  .hm-hs-desk img { aspect-ratio: 960 / 1480; border-radius: 12px; }
+  .hm-hs figcaption { grid-column: 1 / -1; font-size: 14px; }
+}
+
+/* The screens rise in once, the CRM then the phone */
+@media (prefers-reduced-motion: no-preference) {
+  .hm-hs-desk { animation: hm-rise 800ms var(--ease-expo) 120ms both; }
+  .hm-hs-phone { animation: hm-rise 800ms var(--ease-expo) 240ms both; }
+}
+@keyframes hm-rise {
+  from { transform: translateY(32px); }
 }
 
 /* 2. What do you run? --------------------------------------------------- */
@@ -1048,29 +1039,37 @@ textarea.input { resize: vertical; }
 
 /* 3. Follow one order --------------------------------------------------- */
 
-.hm-tour { padding: calc(var(--sec-pad) * 0.45) 0 var(--sec-pad); }
+/* A navy chapter. The stops are on the left, the lit one on a raised panel,
+   and the screen holds on the right. */
+.hm-tour { padding: var(--sec-pad) 0; }
 .hm-stops { list-style: none; }
 .hm-stop-text p { margin-top: 10px; font-size: 18px; line-height: 1.5; color: var(--text-2); max-width: 44ch; }
 .hm-tour-end { margin-top: 8px; font-size: 18px; }
 .hm-stage { display: none; }
+@media (min-width: 900px) {
+  .hm-tour .hm-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px 48px; flex-wrap: wrap; }
+  .hm-tour .hm-head .hm-lead { margin-top: 0; }
+}
 
 /* Desktop: the clip holds while the stops pass */
 @media (min-width: 1000px) {
   .hm-tour-grid {
     display: grid;
-    grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
-    gap: clamp(40px, 4.5vw, 72px);
+    grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+    gap: clamp(32px, 3.6vw, 56px);
   }
-  .hm-stage { display: block; container-type: inline-size; }
+  .hm-stops { order: 1; }
+  .hm-stage { order: 2; display: block; container-type: inline-size; }
   /* Held in the middle of the screen below the bar. The box is 62.5% as tall
-     as it is wide, plus the count under it. */
+     as it is wide, plus the frame and the count under it. */
   .hm-stage-inner {
     position: sticky;
-    top: max(calc(var(--nav-h) + 16px), calc(50svh + var(--nav-h) / 2 - (62.5cqi + 44px) / 2));
+    top: max(calc(var(--nav-h) + 16px), calc(50svh + var(--nav-h) / 2 - (62.5cqi + 64px) / 2));
     display: flex;
     flex-direction: column;
     gap: 14px;
   }
+  .hm-stage-frame { padding: 10px; border-radius: 22px; background: var(--nv-raise); }
   .hm-stage-box { position: relative; aspect-ratio: 16 / 10; }
   .hm-stage-clip {
     position: absolute;
@@ -1083,18 +1082,22 @@ textarea.input { resize: vertical; }
   .hm-stage-clip.on { opacity: 1; z-index: 1; }
   .hm-stage-screen > div { width: 100%; }
   /* The phone clip stands on a panel the size of the desktop clips, so the stage keeps its shape */
-  .hm-stage-phone { padding: 28px 0; border-radius: 12px; background: var(--band); }
+  .hm-stage-phone { padding: 24px 0; border-radius: 12px; background: var(--nv-bg); }
   .hm-stage-phone > div { height: 100%; aspect-ratio: 390 / 844; }
   .hm-count { font-size: 14px; color: var(--text-2); }
   .hm-stop {
-    min-height: 62svh;
+    min-height: 56svh;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    opacity: 0.45;
-    transition: opacity 260ms ease;
   }
-  .hm-stop.on { opacity: 1; }
+  .hm-stop-text {
+    padding: 24px 26px;
+    border-radius: 20px;
+    opacity: 0.5;
+    transition: opacity 260ms ease, background-color 260ms ease;
+  }
+  .hm-stop.on .hm-stop-text { opacity: 1; background: var(--nv-raise); }
   .hm-stop-clip { display: none; }
 }
 /* Phone and tablet: each stop with its own clip */
@@ -1119,27 +1122,22 @@ textarea.input { resize: vertical; }
 
 /* 4. Keep what you earn ------------------------------------------------- */
 
-.hm-keep { padding: var(--sec-pad) 0; overflow: clip; }
-.hm-keep-grid { display: grid; gap: 40px; align-items: center; }
-.hm-keep-text .hm-lead { margin-top: 20px; color: var(--nv-ink-2); }
+/* Light. Two panels side by side: on a delivery app, then on your own site in navy. */
+.hm-keep { padding: var(--sec-pad) 0; }
+.hm-keep-h { max-width: 18ch; }
+.hm-keep-cols { display: grid; gap: 12px; margin-top: clamp(32px, 4vw, 48px); }
+.hm-keep-card { padding: clamp(28px, 3vw, 40px); border-radius: 24px; background: var(--band); }
+.hm-keep-card.on-navy { background: var(--nv-bg); }
+.hm-keep-card p { margin-top: 12px; font-size: 18px; line-height: 1.55; color: var(--text-2); max-width: 42ch; }
 .hm-keep-line {
-  margin-top: 32px;
-  max-width: 24ch;
-  font-size: var(--fs-h3);
-  font-weight: 650;
-  line-height: 1.25;
-  letter-spacing: -0.015em;
+  margin-top: 28px;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
 }
-.hm-keep-fig { margin: 0; }
-.hm-keep-frame { overflow: hidden; border-radius: 12px; background: var(--near-black); }
-.hm-keep-frame img { display: block; width: 100%; height: auto; }
-.hm-keep-fig figcaption { margin-top: 14px; font-size: 14px; line-height: 1.4; color: var(--nv-ink-3); }
-@media (min-width: 1000px) {
-  .hm-keep-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(40px, 5vw, 80px); }
-  /* The board runs off the right edge: there's more of it than fits. It slides in from that side. */
-  .hm-keep-fig { margin-right: calc(-1 * max(var(--margin), env(safe-area-inset-right, 0px))); --rv-x: 48px; --rv-y: 0px; }
-  .hm-keep-frame { border-radius: 12px 0 0 12px; }
-  .hm-keep-fig figcaption { padding-right: var(--margin); }
+@media (min-width: 800px) {
+  .hm-keep-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 }
 
 /* 5. Switch on what you use --------------------------------------------- */
@@ -1212,58 +1210,35 @@ textarea.input { resize: vertical; }
   from { opacity: 0.4; transform: scale(0.98); }
 }
 
-/* 6. See it with your name on it ---------------------------------------- */
+/* 6. Set up from the site you have ------------------------------------- */
 
-.hm-own { padding: var(--sec-pad) 0; background: var(--band); }
-.hm-own-grid { display: grid; gap: 48px; align-items: center; }
-.hm-own-text .hm-lead { margin-top: 16px; }
-.hm-own-form { margin-top: 32px; display: grid; gap: 10px; max-width: 520px; }
-.hm-own-label { font-size: 16px; font-weight: 600; }
-.hm-own-input { min-height: 56px; font-size: 18px; padding: 12px 18px; border-radius: 14px; }
-.hm-own-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: 14px; }
-.hm-own-note { font-size: 16px; color: var(--text-2); }
-.hm-own-fig { margin: 0; justify-self: center; width: min(380px, 100%); --rv-y: 40px; --rv-s: 0.98; }
-/* The phone screen. The bar over its header shows the name typed. */
-.hm-own-phone {
-  --site-cream: #faf3e5;
-  --site-ink: #120c03;
-  position: relative;
-  container-type: inline-size;
-  overflow: hidden;
-  aspect-ratio: 390 / 700;
-  border-radius: 36px;
+.hm-setup { padding: var(--sec-pad) 0; background: var(--band); }
+.hm-setup-grid { display: grid; gap: 48px; align-items: center; }
+.hm-setup-text .hm-lead { margin-top: 16px; max-width: 44ch; }
+.hm-setup-list {
+  list-style: none;
+  display: grid;
+  gap: 12px 28px;
+  margin-top: 28px;
+  font-size: 18px;
+  line-height: 1.4;
 }
-/* The top of the screen: the name, the menu, the headline and the order button */
-.hm-own-phone img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
-.hm-own-bar {
-  position: absolute;
-  top: 0;
-  left: 14.6cqi;
-  right: 3cqi;
-  height: 12cqi;
-  display: flex;
-  align-items: center;
-  background: var(--site-cream);
-  color: var(--site-ink);
+.hm-setup-list li { display: flex; align-items: center; gap: 10px; }
+.hm-setup-list svg { flex: none; color: var(--accent-text); }
+.hm-setup-form { margin-top: 36px; display: grid; gap: 10px; max-width: 520px; }
+.hm-setup-label { font-size: 16px; font-weight: 600; }
+.hm-setup-input { min-height: 56px; font-size: 18px; padding: 12px 18px; border-radius: 14px; }
+.hm-setup-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: 14px; }
+.hm-setup-note { font-size: 16px; color: var(--text-2); }
+.hm-setup-fig { margin: 0; --rv-y: 40px; --rv-s: 0.98; }
+.hm-setup-frame { padding: 8px; border-radius: 22px; background: var(--nv-bg); }
+.hm-setup-frame img { display: block; width: 100%; height: auto; border-radius: 15px; }
+.hm-setup-fig figcaption { margin-top: 16px; font-size: 14px; line-height: 1.45; color: var(--text-2); }
+@media (min-width: 560px) {
+  .hm-setup-list { grid-template-columns: repeat(2, minmax(0, max-content)); }
 }
-.hm-own-bar span {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
-  overflow-wrap: anywhere;
-  font-weight: 700;
-  line-height: 1.08;
-  letter-spacing: -0.01em;
-  font-size: 4.9cqi;
-}
-.hm-own-bar.size-m span { font-size: 4.1cqi; }
-.hm-own-bar.size-s span { font-size: 3.3cqi; }
-.hm-own-fig figcaption { margin-top: 16px; font-size: 14px; line-height: 1.45; color: var(--text-2); }
-.hm-own-url { font-weight: 600; color: var(--text); overflow-wrap: anywhere; }
 @media (min-width: 1000px) {
-  .hm-own-grid { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(40px, 5vw, 80px); }
+  .hm-setup-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(40px, 5vw, 80px); }
 }
 
 /* 7. What happens next -------------------------------------------------- */
@@ -1286,22 +1261,12 @@ textarea.input { resize: vertical; }
   letter-spacing: -0.015em;
   max-width: 22ch;
 }
-/* Each sentence a step down and across */
+/* In order, left to right: two by two on a tablet, all four in a row on a computer */
+@media (min-width: 600px) {
+  .hm-stairs { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px; row-gap: 32px; }
+}
 @media (min-width: 900px) {
   .hm-stairs { grid-template-columns: repeat(4, minmax(0, 1fr)); column-gap: clamp(24px, 3vw, 48px); }
-  .hm-stairs li:nth-child(2) { margin-top: 64px; }
-  .hm-stairs li:nth-child(3) { margin-top: 128px; }
-  .hm-stairs li:nth-child(4) { margin-top: 192px; }
-}
-@media (max-width: 899px) {
-  .hm-stairs li:nth-child(2) { margin-left: min(8%, 40px); }
-  .hm-stairs li:nth-child(3) { margin-left: min(16%, 80px); }
-  .hm-stairs li:nth-child(4) { margin-left: min(24%, 120px); }
-}
-@media (max-width: 400px) {
-  .hm-stairs li:nth-child(2) { margin-left: 16px; }
-  .hm-stairs li:nth-child(3) { margin-left: 32px; }
-  .hm-stairs li:nth-child(4) { margin-left: 48px; }
 }
 
 /* 8. Questions ---------------------------------------------------------- */
@@ -1351,7 +1316,7 @@ textarea.input { resize: vertical; }
   place-items: center;
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.24); /* taste-skill-ignore: edge for dark grounds */
-  background: var(--navy);
+  background: var(--nv-bg);
   color: #ffffff;
   cursor: pointer;
   box-shadow: 0 6px 16px rgba(15, 31, 45, 0.24); /* taste-skill-ignore: floats over the page */

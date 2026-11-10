@@ -5,9 +5,10 @@ import Link from "next/link";
 import { AppScreen } from "../app-screen";
 import { useBusinessType, type BusinessType } from "./business-type";
 
-// 3. The tour: follow one order through the real app, in five stops.
-// Desktop: the screen holds still on the left while the stops pass on the
-// right. The stop at the middle of the screen is lit and its clip plays; the
+// 3. The tour: follow one order through the real app, in five stops. A navy
+// chapter (option B, 11 Nov).
+// Desktop: the screen holds still on the right while the stops pass on the
+// left. The stop at the middle of the screen is lit and its clip plays; the
 // others stay on their poster and don't load until they're reached.
 // Phone and tablet: no pinning. Each stop has its own clip above its words.
 
@@ -183,7 +184,7 @@ export function Tour() {
   }, []);
 
   return (
-    <section id="tour" ref={section} className="hm-tour" aria-labelledby="tour-title">
+    <section id="tour" ref={section} className="hm-tour on-navy" data-nav-tone="navy" aria-labelledby="tour-title">
       <div className="wrap">
         <div className="hm-head" data-reveal>
           <h2 id="tour-title" className="hm-h2" data-r style={{ "--i": 0 } as React.CSSProperties}>
@@ -198,23 +199,25 @@ export function Tour() {
           {/* Desktop stage: one clip at a time, held while the stops pass */}
           <div className="hm-stage">
             <div className="hm-stage-inner">
-              <div className="hm-stage-box">
-                {near &&
-                  CLIPS.map((c, i) => (
-                    <div
-                      key={c.id}
-                      className={`hm-stage-clip hm-stage-${c.variant}${i === active ? " on" : ""}`}
-                      aria-hidden={i === active ? undefined : true}
-                    >
-                      <AppScreen
-                        variant={c.variant}
-                        poster={`/media/app/${c.file}.webp`}
-                        sources={clipSources(c.file)}
-                        label={c.label}
-                        active={i === active}
-                      />
-                    </div>
-                  ))}
+              <div className="hm-stage-frame">
+                <div className="hm-stage-box">
+                  {near &&
+                    CLIPS.map((c, i) => (
+                      <div
+                        key={c.id}
+                        className={`hm-stage-clip hm-stage-${c.variant}${i === active ? " on" : ""}`}
+                        aria-hidden={i === active ? undefined : true}
+                      >
+                        <AppScreen
+                          variant={c.variant}
+                          poster={`/media/app/${c.file}.webp`}
+                          sources={clipSources(c.file)}
+                          label={c.label}
+                          active={i === active}
+                        />
+                      </div>
+                    ))}
+                </div>
               </div>
               <p className="hm-count" aria-hidden="true">
                 {active + 1} of {CLIPS.length}
