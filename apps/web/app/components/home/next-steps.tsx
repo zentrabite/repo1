@@ -1,5 +1,5 @@
-// 7. What happens next. Plain sentences in order, set as a staircase that
-// steps down and across the page, so the order shows without numbers.
+// 7. What happens next. Plain sentences in order, left to right, so the order
+// shows without numbers.
 
 const STEPS: React.ReactNode[] = [
   "You tell us about your business.",

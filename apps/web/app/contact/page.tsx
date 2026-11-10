@@ -142,11 +142,15 @@ export default function ContactPage() {
 
   useEffect(() => {
     openedAt.current = Date.now();
-    // "Book a call" on the homepage's "see it with your name on it" sends the
-    // name they typed as ?business=. Fill it in, unless they've started typing.
-    const business = new URLSearchParams(window.location.search).get("business");
-    const clean = business?.replace(/\s+/g, " ").trim().slice(0, LIMITS.businessName);
-    if (clean) setForm(f => (f.businessName ? f : { ...f, businessName: clean }));
+    // Links can fill in a field, unless they've started typing:
+    // ?business= puts a business name in, and the homepage's "set up from the
+    // site you have" sends their current web address as ?site=, which goes in
+    // the notes so we have it before the call.
+    const params = new URLSearchParams(window.location.search);
+    const business = params.get("business")?.replace(/\s+/g, " ").trim().slice(0, LIMITS.businessName);
+    if (business) setForm(f => (f.businessName ? f : { ...f, businessName: business }));
+    const site = params.get("site")?.replace(/\s+/g, "").slice(0, 200);
+    if (site) setForm(f => (f.notes ? f : { ...f, notes: `Our current website: ${site}`.slice(0, LIMITS.notes) }));
   }, []);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
