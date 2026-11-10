@@ -1,67 +1,62 @@
 import Link from "next/link";
-import { Logo } from "./logo";
 import { ThemeChoicePicker } from "./theme-toggle";
+import { Assistant } from "./assistant";
 import { LOGIN_URL } from "../../lib/config";
 
-const COLS = [
-  {
-    title: "Product",
-    links: [
-      { label: "Features", href: "/features" },
-      { label: "How it works", href: "/how-it-works" },
-      { label: "Pricing", href: "/pricing" },
-      { label: "Demo", href: "/demo" },
-    ],
-  },
-  {
-    title: "Company",
-    links: [
-      { label: "Contact", href: "/contact" },
-      { label: "Email us", href: "mailto:hello@zentrabite.com" },
-    ],
-  },
-  {
-    title: "Account",
-    links: [
-      { label: "Log in", href: LOGIN_URL },
-      { label: "Start 1-month free trial", href: "/contact" },
-      { label: "Book a demo", href: "mailto:hello@zentrabite.com?subject=Demo" },
-    ],
-  },
+// The footer on every marketing page. A navy close in both themes: a few
+// links, where we are and how to reach us, then the name at full width.
+// It also brings the floating website assistant, which comes last in the
+// tab order.
+
+const LINKS = [
+  { label: "Tour", href: "/#tour" },
+  { label: "Features", href: "/features" },
+  { label: "How it works", href: "/how-it-works" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "Demo", href: "/demo" },
+  { label: "Book a call", href: "/contact" },
 ];
 
 export function Footer() {
   return (
-    <footer className="site-footer">
-      <div className="container">
-        <div className="footer-grid">
-          <div>
-            <Logo />
-            <p className="muted" style={{ fontSize: 15, marginTop: 16, maxWidth: 300 }}>
-              Website, online ordering, customer list and rewards for small businesses.
+    <>
+    <footer className="site-footer on-navy" data-nav-tone="navy">
+      <div className="wrap">
+        <div className="ft-top">
+          <nav aria-label="Footer">
+            <ul className="ft-links">
+              {LINKS.map((l) => (
+                <li key={l.label}>
+                  <Link href={l.href}>{l.label}</Link>
+                </li>
+              ))}
+              <li>
+                <a href={LOGIN_URL}>Log in</a>
+              </li>
+            </ul>
+          </nav>
+          <div className="ft-contact">
+            <p>Built in Adelaide</p>
+            <p>
+              <a href="mailto:hello@zentrabite.com">hello@zentrabite.com</a>
             </p>
-            <p className="small" style={{ marginTop: 12 }}>Built in Adelaide</p>
           </div>
-
-          {COLS.map((col) => (
-            <div key={col.title}>
-              <h2 className="footer-title">{col.title}</h2>
-              <ul className="footer-links">
-                {col.links.map((l) => (
-                  <li key={l.label}>
-                    <Link href={l.href}>{l.label}</Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
         </div>
 
-        <div className="footer-base">
-          <div>© {new Date().getFullYear()} ZentraBite</div>
+        <div className="ft-mark" data-reveal aria-hidden="true">
+          <span className="ft-mark-line" data-r>
+            <span className="logo-zentra">Zentra</span>
+            <span className="logo-bite">Bite</span>
+          </span>
+        </div>
+
+        <div className="ft-base">
+          <p>© {new Date().getFullYear()} ZentraBite</p>
           <ThemeChoicePicker />
         </div>
       </div>
     </footer>
+    <Assistant />
+    </>
   );
 }
