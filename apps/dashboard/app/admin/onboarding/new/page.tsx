@@ -231,7 +231,7 @@ export default function NewOnboardingPage() {
           <input value={address} onChange={e => setAddress(e.target.value)} placeholder="12 King William St, Adelaide SA 5000" />
         </Field>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <div className="zb-stack" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <Field label="Suburb / city" check={checkFor("suburb", suburb)}>
             <input value={suburb} onChange={e => setSuburb(e.target.value)} placeholder="Bondi" />
           </Field>
@@ -269,7 +269,7 @@ export default function NewOnboardingPage() {
           <div style={{ fontSize: 12, fontWeight: 600, color: C.st, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 12 }}>
             Owner contact
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div className="zb-stack" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <Field label="Owner name">
               <input value={ownerName} onChange={e => setOwnerName(e.target.value)} placeholder="Jane Doe" />
             </Field>

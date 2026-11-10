@@ -69,7 +69,7 @@ export default function AICallsPage() {
 
   return (
     <div>
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
+      <div className="zb-head" style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
         <div>
           <h2 style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:20, color:"#fff" }}>AI Phone Agent</h2>
           <p style={{ color:C.st, fontSize:12, marginTop:2 }}>
@@ -101,7 +101,7 @@ export default function AICallsPage() {
           </label>
         </div>
 
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+        <div className="zb-stack" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
           <div>
             <label style={{ display:"block", fontSize:10, color:C.st, marginBottom:3 }}>Answer mode</label>
             <select value={profile.answer_mode} onChange={e => setProfile({ ...profile, answer_mode: e.target.value })}>

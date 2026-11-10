@@ -13,7 +13,7 @@ interface EmptyStateProps {
 
 export default function EmptyState({ icon: Icon, title, description }: EmptyStateProps) {
   return (
-    <div style={{
+    <div className="zb-empty" style={{
       display: "flex", flexDirection: "column", alignItems: "center",
       justifyContent: "center",
       padding: "52px 24px",

@@ -207,7 +207,7 @@ export default function DeliveryPage() {
       </div>
 
       {/* ── Tabs ── */}
-      <div style={{ display:"flex", gap:4, marginBottom:20 }}>
+      <div className="zb-wrap" style={{ display:"flex", gap:4, marginBottom:20 }}>
         {(["route","plan","analytics","jobs"] as const).map(t => (
           <button key={t} className={`bg-btn ${tab===t?"on":""}`} onClick={() => setTab(t)} style={{ textTransform:"capitalize" }}>
             {{ route:<><Icon name="automations" size={14} />Route Test</>, plan:<><Icon name="calendar" size={14} />7-Day Plan</>, analytics:<><Icon name="analytics" size={14} />Analytics</>, jobs:<><Icon name="receipt" size={14} />Recent Jobs</> }[t]}
@@ -217,7 +217,7 @@ export default function DeliveryPage() {
 
       {/* ══ ROUTE TEST ════════════════════════════════════════════════════ */}
       {tab === "route" && (
-        <div style={{ display:"grid", gridTemplateColumns:"360px 1fr", gap:16 }}>
+        <div className="zb-stack" style={{ display:"grid", gridTemplateColumns:"360px 1fr", gap:16 }}>
           {/* Input panel */}
           <div className="gc" style={{ padding:20 }}>
             <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:14, color:"#fff", marginBottom:14 }}>Route Parameters</div>
@@ -303,7 +303,7 @@ export default function DeliveryPage() {
                       <Badge type={decision.selectedProvider === "none" ? "inactive" : tier}>{tier}</Badge>
                     </div>
                   </div>
-                  <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10, marginTop:14 }}>
+                  <div className="zb-two" style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10, marginTop:14 }}>
                     {[
                       { label:"Provider cost",   value:`$${decision.providerCost.toFixed(2)}`,   color:C.r },
                       { label:"Customer fee",    value:`$${decision.customerFee.toFixed(2)}`,    color:C.cl },
@@ -316,7 +316,7 @@ export default function DeliveryPage() {
                       </div>
                     ))}
                   </div>
-                  <div style={{ display:"flex", gap:12, marginTop:10, fontSize:12, color:C.st }}>
+                  <div className="zb-wrap" style={{ display:"flex", gap:12, marginTop:10, fontSize:12, color:C.st }}>
                     <span style={{ display:"inline-flex", alignItems:"center", gap:6 }}><Icon name="hours" size={14} />Pickup in {decision.pickupEtaMin} min</span>
                     <span style={{ display:"inline-flex", alignItems:"center", gap:6 }}><Icon name="home" size={14} />Delivery in {decision.deliveryEtaMin} min</span>
                     <span style={{ display:"inline-flex", alignItems:"center", gap:6 }}><Icon name="money" size={14} />Customer total: ${feeTotal?.toFixed(2)} (delivery + service fee)</span>
@@ -326,7 +326,7 @@ export default function DeliveryPage() {
                 {/* All quotes grid */}
                 <div>
                   <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:13, color:"#fff", marginBottom:10 }}>All Provider Quotes</div>
-                  <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:8 }}>
+                  <div className="zb-two" style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:8 }}>
                     {decision.allQuotes.map(q => (
                       <QuoteCard key={q.provider} q={q} selected={q.provider === decision.selectedProvider} />
                     ))}
@@ -345,7 +345,7 @@ export default function DeliveryPage() {
           {weekLoading ? (
             <div style={{ fontSize:13, color:C.st }}>Loading…</div>
           ) : (
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:8 }}>
+            <div className="zb-week" style={{ display:"grid", gridTemplateColumns:"repeat(7,1fr)", gap:8 }}>
               {weekPlan.map((day, i) => {
                 const rec = day.recommendation;
                 const col = rec.provider === "none" ? C.st : rec.provider === "uber_direct" ? C.b : rec.provider === "tasker" ? C.g : C.o;
@@ -384,7 +384,7 @@ export default function DeliveryPage() {
           )}
           {!analyticsLoading && analytics && (
             <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10 }}>
+              <div className="zb-two" style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:10 }}>
                 {[
                   { label:"Total Jobs (30d)",  value:analytics.total,                         color:"#fff" },
                   { label:"Total Margin",       value:`$${analytics.totalMargin.toFixed(2)}`,  color:analytics.totalMargin>=0?C.g:C.r },
@@ -421,7 +421,7 @@ export default function DeliveryPage() {
       {/* ══ RECENT JOBS ════════════════════════════════════════════════════ */}
       {tab === "jobs" && (
         <div className="gc" style={{ overflow:"hidden" }}>
-          <table>
+          <table className="zb-table">
             <thead>
               <tr>{["Provider","Address","Tier","Provider Cost","Customer Fee","Margin","ETA","Status","Time"].map(h=><th key={h}>{h}</th>)}</tr>
             </thead>
@@ -435,15 +435,15 @@ export default function DeliveryPage() {
                 const margin = Number(j.delivery_margin ?? 0);
                 return (
                   <tr key={i}>
-                    <td><Icon name={meta.icon} size={14} accent={meta.accent} /> <span style={{ fontSize:12, color:meta.color, fontWeight:600 }}>{meta.label}</span></td>
-                    <td style={{ fontSize:11, color:C.st, maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{j.dropoff_address ?? "—"}</td>
-                    <td><Badge type={j.delivery_tier}>{j.delivery_tier}</Badge></td>
-                    <td style={{ fontSize:13, color:C.r, fontWeight:600 }}>${Number(j.provider_cost??0).toFixed(2)}</td>
-                    <td style={{ fontSize:13, color:C.cl, fontWeight:600 }}>${Number(j.customer_fee??0).toFixed(2)}</td>
-                    <td style={{ fontSize:13, fontWeight:700, color:margin>=0?C.g:C.r }}>${margin.toFixed(2)}</td>
-                    <td style={{ fontSize:12, color:C.st }}>{j.estimated_delivery_eta_min} min</td>
-                    <td><Badge type={j.status}>{j.status}</Badge></td>
-                    <td style={{ fontSize:11, color:C.st }}>{new Date(j.created_at).toLocaleString()}</td>
+                    <td data-first><Icon name={meta.icon} size={14} accent={meta.accent} /> <span style={{ fontSize:12, color:meta.color, fontWeight:600 }}>{meta.label}</span></td>
+                    <td data-wide style={{ fontSize:11, color:C.st, maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{j.dropoff_address ?? "—"}</td>
+                    <td data-label="Tier"><Badge type={j.delivery_tier}>{j.delivery_tier}</Badge></td>
+                    <td data-label="Provider cost" style={{ fontSize:13, color:C.r, fontWeight:600 }}>${Number(j.provider_cost??0).toFixed(2)}</td>
+                    <td data-label="Customer fee" style={{ fontSize:13, color:C.cl, fontWeight:600 }}>${Number(j.customer_fee??0).toFixed(2)}</td>
+                    <td data-label="Margin" style={{ fontSize:13, fontWeight:700, color:margin>=0?C.g:C.r }}>${margin.toFixed(2)}</td>
+                    <td data-label="ETA" style={{ fontSize:12, color:C.st }}>{j.estimated_delivery_eta_min} min</td>
+                    <td data-first data-end><Badge type={j.status}>{j.status}</Badge></td>
+                    <td data-label="Time" style={{ fontSize:11, color:C.st }}>{new Date(j.created_at).toLocaleString()}</td>
                   </tr>
                 );
               })}

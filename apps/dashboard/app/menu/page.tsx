@@ -48,6 +48,7 @@ function ImageUploadField({ imageUrl, onUrl, businessId }: { imageUrl: string; o
     <div style={{ marginBottom:16 }}>
       <label style={{ display:"block", marginBottom:6 }}>Photo</label>
       <div
+        className="zb-upload"
         onClick={() => !uploading && inputRef.current?.click()}
         style={{
           width:"100%", height:110, borderRadius:10, border:`2px dashed ${imageUrl ? "transparent" : C.mist}`,
@@ -181,7 +182,7 @@ export default function MenuPage() {
 
   return (
     <div>
-      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+      <div className="zb-head" style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
         <div>
           <h2 style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:20, color:"#fff" }}>Menu Builder</h2>
           <p style={{ color:C.st, fontSize:12 }}>Changes publish to your storefront instantly</p>
@@ -205,7 +206,7 @@ export default function MenuPage() {
 
           {section.items.map((item, ii) => (
             <div key={ii} className="gs" style={{ padding:"10px 16px", marginBottom:6 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+              <div className="zb-menu-row" style={{ display:"flex", alignItems:"center", gap:12 }}>
                 {/* Thumbnail */}
                 <div style={{ width:44, height:44, borderRadius:9, overflow:"hidden", flexShrink:0, background:"rgba(255,255,255,.04)", border:"1px solid rgba(255,255,255,.07)", display:"flex", alignItems:"center", justifyContent:"center" }}>
                   {(item as any).image_url ? (
@@ -214,14 +215,14 @@ export default function MenuPage() {
                     <Icon name="menu" size={20} />
                   )}
                 </div>
-                <div style={{ flex:1 }}>
+                <div className="zb-menu-text" style={{ flex:1 }}>
                   <div style={{ fontWeight:600, fontSize:14, color:item.available?"#fff":"#6B7C93" }}>{item.name}</div>
                   {item.description && <div style={{ fontSize:11, color:C.st, marginTop:2 }}>{item.description}</div>}
                 </div>
-                <div style={{ fontWeight:700, fontSize:14, fontFamily:"var(--font-outfit)", color:item.available?"#fff":"#6B7C93", minWidth:55, textAlign:"right" }}>
+                <div className="zb-menu-price" style={{ fontWeight:700, fontSize:14, fontFamily:"var(--font-outfit)", color:item.available?"#fff":"#6B7C93", minWidth:55, textAlign:"right" }}>
                   ${item.price.toFixed(2)}
                 </div>
-                <div onClick={() => toggle(item)} style={{ width:42, height:24, borderRadius:12, background:item.available?"rgba(0,182,122,.28)":"rgba(255,255,255,.08)", cursor:"pointer", position:"relative", border:`1px solid ${item.available?"rgba(0,182,122,.35)":"rgba(255,255,255,.08)"}`, flexShrink:0 }}>
+                <div className="zb-switch" onClick={() => toggle(item)} style={{ width:42, height:24, borderRadius:12, background:item.available?"rgba(0,182,122,.28)":"rgba(255,255,255,.08)", cursor:"pointer", position:"relative", border:`1px solid ${item.available?"rgba(0,182,122,.35)":"rgba(255,255,255,.08)"}`, flexShrink:0 }}>
                   <div style={{ width:18, height:18, borderRadius:"50%", background:item.available?C.g:"#6B7C93", position:"absolute", top:2.5, left:item.available?21:2.5, transition:"all .2s", boxShadow:"0 1px 4px rgba(0,0,0,.3)" }} />
                 </div>
                 <button className="bg-btn" style={{ fontSize:12, padding:"6px 12px", flexShrink:0 }} onClick={() => openEdit(item)}>Edit</button>
@@ -239,7 +240,7 @@ export default function MenuPage() {
         <div style={{ marginBottom:12 }}><label>Name</label><input value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} /></div>
         <div style={{ marginBottom:12 }}><label>Price ($)</label><input type="number" step="0.5" value={form.price} onChange={e=>setForm(f=>({...f,price:e.target.value}))} /></div>
         <div style={{ marginBottom:18 }}><label>Description</label><input value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))} placeholder="Optional" /></div>
-        <div style={{ display:"flex", gap:6, justifyContent:"space-between" }}>
+        <div className="zb-wrap" style={{ display:"flex", gap:6, justifyContent:"space-between" }}>
           <button className="bg-btn" style={{ color:C.r }} onClick={() => editingItem && handleDelete(editingItem)}>Delete</button>
           <div style={{ display:"flex", gap:6 }}>
             <button className="bg-btn" onClick={() => setEditingItem(null)}>Cancel</button>

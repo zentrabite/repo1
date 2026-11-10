@@ -16,7 +16,15 @@ const CLOUD = "#F8FAFB";
 const MIST  = "rgba(226,232,240,.09)";
 const HOVER_BG = "rgba(226,232,240,.06)";
 
-export default function DashboardSidebar() {
+interface DashboardSidebarProps {
+  /** Phone menu open (only matters under 820px wide, where the sidebar slides in). */
+  open?: boolean;
+  /** Close the phone menu, e.g. after tapping a link. */
+  onClose?: () => void;
+  ref?: React.Ref<HTMLElement>;
+}
+
+export default function DashboardSidebar({ open = false, onClose, ref }: DashboardSidebarProps) {
   const pathname  = usePathname();
   const { business, email, isSuperAdmin, role } = useBusiness();
   const [signingOut, setSigningOut] = useState(false);
@@ -46,7 +54,15 @@ export default function DashboardSidebar() {
   };
 
   return (
-    <aside style={{
+    <aside
+      ref={ref}
+      id="zb-sidebar"
+      className={`zb-sidebar${open ? " open" : ""}`}
+      // On a phone the open menu covers the page like a dialog
+      role={open ? "dialog" : undefined}
+      aria-modal={open ? true : undefined}
+      aria-label={open ? "Menu" : undefined}
+      style={{
       width: 240,
       background: "rgba(15,25,42,.92)",
       backdropFilter: "blur(28px)",
@@ -57,7 +73,7 @@ export default function DashboardSidebar() {
     }}>
 
       {/* ── Logo ── */}
-      <div style={{ padding: "22px 20px 16px", borderBottom: `1px solid ${MIST}` }}>
+      <div className="zb-sidebar-logo" style={{ padding: "22px 20px 16px", borderBottom: `1px solid ${MIST}` }}>
         <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
           <BrandMark size={34} />
           <div>
@@ -69,6 +85,12 @@ export default function DashboardSidebar() {
               Merchant CRM
             </div>
           </div>
+          {/* Phone menu only */}
+          <button type="button" className="zb-menu-close" data-menu-close onClick={onClose} aria-label="Close menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+              <path d="M6 6l12 12M18 6 6 18" />
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -82,7 +104,7 @@ export default function DashboardSidebar() {
             <Icon name="business" size={22} strokeWidth={1.75} />
           </div>
         )}
-        <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 14, color: CLOUD }}>
+        <div className="zb-break" style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 14, color: CLOUD }}>
           {bizName}
         </div>
         <div style={{ fontSize: 12, color: STEEL, marginTop: 2, fontFamily: "var(--font-inter)" }}>
@@ -110,6 +132,9 @@ export default function DashboardSidebar() {
             <Link
               key={item.href}
               href={item.href}
+              className="zb-nav-link"
+              aria-current={isActive ? "page" : undefined}
+              onClick={onClose}
               onMouseEnter={() => setHoveredHref(item.href)}
               onMouseLeave={() => setHoveredHref(null)}
               style={{
@@ -133,7 +158,7 @@ export default function DashboardSidebar() {
       {/* ── Super admin link ── */}
       {isSuperAdmin && (
         <div style={{ padding: "0 8px 4px" }}>
-          <Link href="/admin" style={{ display:"flex", alignItems:"center", gap:12, padding:"8px 12px", borderRadius:10, background:"rgba(255,71,87,.08)", border:"1px solid rgba(255,71,87,.15)", textDecoration:"none", color:"#FF4757", fontSize:12, fontFamily:"var(--font-inter)", fontWeight:600 }}>
+          <Link href="/admin" className="zb-nav-link" onClick={onClose} style={{ display:"flex", alignItems:"center", gap:12, padding:"8px 12px", borderRadius:10, background:"rgba(255,71,87,.08)", border:"1px solid rgba(255,71,87,.15)", textDecoration:"none", color:"#FF4757", fontSize:12, fontFamily:"var(--font-inter)", fontWeight:600 }}>
             Super Admin
           </Link>
         </div>
@@ -158,11 +183,12 @@ export default function DashboardSidebar() {
             <div style={{ fontFamily: "var(--font-inter)", fontSize: 12, color: CLOUD, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {bizName}
             </div>
-            {email && <div style={{ fontSize: 10, color: STEEL, marginTop: 1 }}>{email}</div>}
+            {email && <div className="zb-break" style={{ fontSize: 10, color: STEEL, marginTop: 1 }}>{email}</div>}
           </div>
         </div>
 
         <button
+          className="zb-nav-link"
           onClick={handleLogout}
           disabled={signingOut}
           style={{

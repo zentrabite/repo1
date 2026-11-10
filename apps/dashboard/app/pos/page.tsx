@@ -205,10 +205,10 @@ export default function POSPage() {
   const activeSection = menu.find(s => s.id === activeTab);
 
   return (
-    <div style={{ display:"grid", gridTemplateColumns:"1fr 400px", gap:0, height:"calc(100vh - 66px)", margin:"-32px -40px", overflow:"hidden" }}>
+    <div className="zb-pos" style={{ display:"grid", gridTemplateColumns:"1fr 400px", gap:0, height:"calc(100vh - 66px)", margin:"-32px -40px", overflow:"hidden" }}>
 
       {/* ── Left: Menu ─────────────────────────────────────────────────────── */}
-      <div style={{ display:"flex", flexDirection:"column", borderRight:`1px solid ${C.mist}`, overflow:"hidden" }}>
+      <div className="zb-pos-menu" style={{ display:"flex", flexDirection:"column", borderRight:`1px solid ${C.mist}`, overflow:"hidden" }}>
 
         {/* Category tabs */}
         <div style={{ display:"flex", gap:0, borderBottom:`1px solid ${C.mist}`, overflowX:"auto", flexShrink:0 }}>
@@ -226,13 +226,13 @@ export default function POSPage() {
         </div>
 
         {/* Items grid */}
-        <div style={{ flex:1, overflowY:"auto", padding:20 }}>
+        <div className="zb-pos-items" style={{ flex:1, overflowY:"auto", padding:20 }}>
           {loading ? (
             <div style={{ textAlign:"center", color:"rgba(255,255,255,.2)", padding:48 }}>Loading menu…</div>
           ) : menu.length === 0 ? (
             <div style={{ textAlign:"center", color:"rgba(255,255,255,.2)", padding:48 }}>No menu items yet — add items in Menu Builder</div>
           ) : (
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(160px, 1fr))", gap:10 }}>
+            <div className="zb-two" style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(160px, 1fr))", gap:10 }}>
               {(activeSection?.items ?? []).filter((i: MenuItem) => i.available).map((item: MenuItem) => (
                 <div
                   key={item.id}
@@ -263,7 +263,7 @@ export default function POSPage() {
       </div>
 
       {/* ── Right: Order panel ─────────────────────────────────────────────── */}
-      <div style={{ display:"flex", flexDirection:"column", background:"rgba(15,25,42,.7)", overflow:"hidden" }}>
+      <div className="zb-pos-order" style={{ display:"flex", flexDirection:"column", background:"rgba(15,25,42,.7)", overflow:"hidden" }}>
 
         {/* Header */}
         <div style={{ padding:"14px 20px", borderBottom:`1px solid ${C.mist}`, flexShrink:0 }}>
@@ -295,7 +295,7 @@ export default function POSPage() {
         </div>
 
         {/* Cart items */}
-        <div style={{ flex:1, overflowY:"auto", padding:"8px 0" }}>
+        <div className="zb-pos-cart" style={{ flex:1, overflowY:"auto", padding:"8px 0" }}>
           {cart.length === 0 ? (
             <div style={{ textAlign:"center", color:"rgba(255,255,255,.15)", padding:28, fontSize:13, fontFamily:"var(--font-inter)" }}>
               Tap items to add them
@@ -304,7 +304,7 @@ export default function POSPage() {
             <>
               {cart.map(item => (
                 <div key={item.id} style={{ padding:"9px 20px", display:"flex", alignItems:"center", gap:10, borderBottom:`1px solid ${C.mist}` }}>
-                  <div style={{ flex:1 }}>
+                  <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:13, color:C.cl }}>{item.name}</div>
                     <div style={{ fontSize:11, color:C.st }}>${(item.price * item.qty).toFixed(2)}</div>
                   </div>
