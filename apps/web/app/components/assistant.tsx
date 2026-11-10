@@ -9,10 +9,11 @@ import { OPEN_ASSISTANT } from "./assistant-trigger";
 // which have their own shell, never get it.
 //
 // - Closed by default. It never opens by itself and never nudges.
-// - Desktop: a 380 x 560 panel that grows out of the button's corner.
-// - Phone: a bottom sheet about 85% tall that leaves the page header in view.
-//   The page behind doesn't scroll while it's open.
-// - Escape, the close button or a tap outside closes it. Focus goes in on open
+// - A panel that grows out of the button's corner, 380 x 560 on a computer and
+//   nearly full width on a phone. The button stays below it and turns into an
+//   X while it's open, so the same spot opens and closes it.
+// - On a phone the page behind is dimmed and doesn't scroll while it's open.
+// - Escape, the X button or a tap outside closes it. Focus goes in on open
 //   and back to whatever opened it on close.
 // - The chat itself (AiChat and /api/ai-chat, with their limits and greeting)
 //   only loads when the button is first used.
@@ -71,21 +72,21 @@ export function Assistant() {
         return;
       }
       if (e.key !== "Tab" || !panel.current) return;
+      // Tab cycles through the panel and the X button below it.
       const focusable = [
         ...panel.current.querySelectorAll<HTMLElement>(
           'a[href], button:not([disabled]), input:not([disabled]), textarea, select, [tabindex]:not([tabindex="-1"])',
         ),
-      ].filter((el) => el.offsetParent !== null);
+        ...(button.current ? [button.current] : []),
+      ].filter((el) => el.offsetParent !== null || el === button.current);
       if (!focusable.length) return;
-      const first = focusable[0]!;
-      const last = focusable[focusable.length - 1]!;
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
+      // The X button sits before the panel in the page, so the browser's own
+      // order would leave the set. Step through the list ourselves, wrapping.
+      e.preventDefault();
+      const at = focusable.indexOf(document.activeElement as HTMLElement);
+      const step = e.shiftKey ? -1 : 1;
+      const next = at === -1 ? (e.shiftKey ? focusable.length - 1 : 0) : (at + step + focusable.length) % focusable.length;
+      focusable[next]!.focus();
     };
     const onDown = (e: PointerEvent) => {
       const t = e.target as Node;
@@ -112,7 +113,7 @@ export function Assistant() {
         input.focus({ preventScroll: true });
         return;
       }
-      panel.current?.querySelector<HTMLElement>(".zb-assist-close")?.focus({ preventScroll: true });
+      button.current?.focus({ preventScroll: true });
       if (tries++ < 20) t = window.setTimeout(focusIn, 100);
     };
     t = window.setTimeout(focusIn, 30);
@@ -162,8 +163,8 @@ export function Assistant() {
       <button
         ref={button}
         type="button"
-        className={`zb-assist-btn${blocked && !open ? " aside" : ""}`}
-        aria-label="Ask the assistant"
+        className={`zb-assist-btn${open ? " open" : ""}${blocked && !open ? " aside" : ""}`}
+        aria-label={open ? "Close the assistant" : "Ask the assistant"}
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls="zb-assistant"
@@ -171,7 +172,10 @@ export function Assistant() {
         onFocus={preload}
         onClick={() => (open ? hide() : show(button.current))}
       >
+        {/* Both icons sit on top of each other. Opening turns the chat bubble
+            away and turns the X in, so the button becomes the way to close. */}
         <svg
+          className="zb-assist-icon zb-assist-icon-chat"
           width="24"
           height="24"
           viewBox="0 0 24 24"
@@ -183,6 +187,19 @@ export function Assistant() {
           aria-hidden="true"
         >
           <path d="M20 11.5a7.5 7.5 0 0 1-11.2 6.5L4 19.5l1.5-4.6A7.5 7.5 0 1 1 20 11.5Z" />
+        </svg>
+        <svg
+          className="zb-assist-icon zb-assist-icon-close"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          aria-hidden="true"
+        >
+          <path d="M6 6l12 12M18 6 6 18" />
         </svg>
       </button>
 
@@ -197,20 +214,6 @@ export function Assistant() {
         aria-label="ZentraBite assistant"
         inert={!open}
       >
-        <button type="button" className="zb-assist-close" aria-label="Close the assistant" onClick={hide}>
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            aria-hidden="true"
-          >
-            <path d="M6 6l12 12M18 6 6 18" />
-          </svg>
-        </button>
         {loaded && <AiChat />}
       </div>
     </div>

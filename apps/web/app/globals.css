@@ -1338,12 +1338,13 @@ textarea.input { resize: vertical; }
 /* ── Website assistant (components/assistant.tsx) ──────────────────────── */
 
 /* A round button, bottom-right. Navy, not green, so it never competes with
-   "Book a call". It floats, so it may cast a shadow. */
+   "Book a call". It floats, so it may cast a shadow. While the panel is open
+   the chat bubble turns away and an X turns in, so the button closes it too. */
 .zb-assist-btn {
   position: fixed;
   right: max(20px, calc(12px + env(safe-area-inset-right, 0px)));
   bottom: max(20px, calc(12px + env(safe-area-inset-bottom, 0px)));
-  z-index: 45;
+  z-index: 48;
   width: 56px;
   height: 56px;
   display: grid;
@@ -1364,11 +1365,25 @@ textarea.input { resize: vertical; }
 .zb-assist-btn.aside { opacity: 0; transform: translateY(12px) scale(0.9); pointer-events: none; }
 .zb-assist-btn.aside:focus-visible { opacity: 1; transform: none; pointer-events: auto; }
 
+/* The two icons share one cell. Interruptible transitions, so a quick
+   double tap reverses mid-turn instead of jumping. */
+.zb-assist-icon {
+  grid-area: 1 / 1;
+  transition:
+    transform 260ms var(--ease-out),
+    opacity 180ms var(--ease-out);
+}
+.zb-assist-icon-close { opacity: 0; transform: rotate(-90deg) scale(0.6); }
+.zb-assist-btn.open .zb-assist-icon-chat { opacity: 0; transform: rotate(90deg) scale(0.6); }
+.zb-assist-btn.open .zb-assist-icon-close { opacity: 1; transform: none; }
+
+/* The panel grows out of the button's corner and shrinks back into it.
+   Opening is a touch slower than closing, so the close feels instant. */
 .zb-assist-panel {
   position: fixed;
   right: max(20px, calc(12px + env(safe-area-inset-right, 0px)));
   bottom: calc(max(20px, calc(12px + env(safe-area-inset-bottom, 0px))) + 68px);
-  z-index: 46;
+  z-index: 47;
   width: min(380px, calc(100vw - 40px));
   height: min(560px, calc(100dvh - 120px));
   display: flex;
@@ -1378,67 +1393,35 @@ textarea.input { resize: vertical; }
   background: var(--surface);
   color: var(--text);
   box-shadow: 0 2px 6px rgba(15, 31, 45, 0.12), 0 24px 48px rgba(15, 31, 45, 0.28); /* taste-skill-ignore: dialog */
-  transform-origin: bottom right;
+  transform-origin: calc(100% - 28px) calc(100% + 40px);
   opacity: 0;
-  transform: scale(0.95);
+  transform: translateY(8px) scale(0.92);
   visibility: hidden;
   transition:
-    opacity var(--t-ui) var(--ease-out),
-    transform var(--t-ui) var(--ease-out),
-    visibility 0s linear var(--t-ui);
+    opacity 160ms var(--ease-out),
+    transform 180ms var(--ease-out),
+    visibility 0s linear 180ms;
 }
 .zb-assist-panel.open {
   opacity: 1;
   transform: none;
   visibility: visible;
   transition:
-    opacity var(--t-ui) var(--ease-out),
-    transform var(--t-ui) var(--ease-out),
+    opacity 220ms var(--ease-out),
+    transform 320ms var(--ease-out),
     visibility 0s;
 }
 .zb-assist-scrim { display: none; }
-.zb-assist-close {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 2;
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  color: var(--text-2);
-  cursor: pointer;
-}
-.zb-assist-close:active { background: var(--surface-2); }
-@media (hover: hover) and (pointer: fine) {
-  .zb-assist-close:hover { color: var(--text); background: var(--surface-2); }
-}
-.zb-assist-loading { padding: 72px 20px 20px; color: var(--text-2); }
+.zb-assist-loading { padding: 20px; color: var(--text-2); }
 
-/* Phone: a bottom sheet that leaves the page header in view */
+/* Phone: the same panel, nearly full width, above the button. The page
+   behind is dimmed and held still. */
 @media (max-width: 640px) {
   .zb-assist-panel {
-    left: 0;
-    right: 0;
-    bottom: 0;
+    left: max(12px, env(safe-area-inset-left, 0px));
+    right: max(12px, env(safe-area-inset-right, 0px));
     width: auto;
-    height: min(85dvh, calc(100dvh - var(--nav-h) - env(safe-area-inset-top, 0px) - 8px));
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    border-radius: 20px 20px 0 0;
-    opacity: 1;
-    transform: translateY(100%);
-    transition:
-      transform 380ms var(--ease-drawer),
-      visibility 0s linear 380ms;
-  }
-  .zb-assist-panel.open {
-    transform: none;
-    transition:
-      transform 380ms var(--ease-drawer),
-      visibility 0s;
+    height: min(620px, calc(100dvh - var(--nav-h) - env(safe-area-inset-top, 0px) - max(20px, calc(12px + env(safe-area-inset-bottom, 0px))) - 84px));
   }
   .zb-assist-scrim {
     display: block;
@@ -1449,12 +1432,15 @@ textarea.input { resize: vertical; }
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transition: opacity 300ms ease, visibility 0s linear 300ms;
+    transition: opacity 180ms ease, visibility 0s linear 180ms;
   }
-  .zb-assist-scrim.open { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity 300ms ease, visibility 0s; }
-  .zb-assist-panel { z-index: 47; }
+  .zb-assist-scrim.open { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity 260ms ease, visibility 0s; }
 }
 @media (prefers-reduced-motion: reduce) {
+  .zb-assist-icon { transition: opacity 120ms ease; }
+  .zb-assist-icon-close,
+  .zb-assist-btn.open .zb-assist-icon-chat,
+  .zb-assist-btn.open .zb-assist-icon-close { transform: none; }
   .zb-assist-panel,
   .zb-assist-panel.open { transform: none; }
   .zb-assist-panel { transition: opacity var(--t-ui) ease, visibility 0s linear var(--t-ui); }
@@ -1473,7 +1459,7 @@ textarea.input { resize: vertical; }
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 64px 14px 18px;
+  padding: 14px 18px;
   background: var(--surface-2);
 }
 .chat-av {
