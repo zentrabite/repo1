@@ -42,6 +42,8 @@ export type AppScreenProps = {
   priority?: boolean;
   /** Show the pause button. On by default: a loop longer than 5 seconds needs a way to stop it. */
   pauseButton?: boolean;
+  /** False keeps the clip on its poster: it doesn't load or play. For a stage that shows one clip at a time. */
+  active?: boolean;
   className?: string;
   style?: CSSProperties;
 };
@@ -67,6 +69,7 @@ export function AppScreen({
   label,
   priority = false,
   pauseButton = true,
+  active = true,
   className,
   style,
 }: AppScreenProps) {
@@ -79,6 +82,8 @@ export function AppScreen({
   // the server render) is always the still.
   const [motionOk, setMotionOk] = useState(false);
   const [near, setNear] = useState(priority);
+  // Loads the first time it is both near the screen and active, then stays loaded.
+  const [wanted, setWanted] = useState(false);
   const [inView, setInView] = useState(false);
   const [tabShown, setTabShown] = useState(true);
   const [userPaused, setUserPaused] = useState(false);
@@ -116,8 +121,10 @@ export function AppScreen({
     };
   }, [hasVideo]);
 
-  const showVideo = hasVideo && motionOk && near;
-  const shouldPlay = showVideo && inView && tabShown && !userPaused;
+  if (near && active && !wanted) setWanted(true);
+
+  const showVideo = hasVideo && motionOk && wanted;
+  const shouldPlay = showVideo && active && inView && tabShown && !userPaused;
 
   useEffect(() => {
     const v = video.current;
@@ -143,6 +150,7 @@ export function AppScreen({
         ref={box}
         role="img"
         aria-label={label}
+        data-ui
         style={{
           position: "relative",
           aspectRatio: shape.ratio,
@@ -186,7 +194,7 @@ export function AppScreen({
         )}
       </div>
 
-      {pauseButton && showVideo && (
+      {pauseButton && showVideo && active && (
         <button
           type="button"
           className="story-pause"

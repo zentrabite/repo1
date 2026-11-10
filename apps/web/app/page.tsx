@@ -1,243 +1,58 @@
-import type { Metadata } from "next";
-import Link from "next/link";
+import type { Metadata, Viewport } from "next";
 import { Nav } from "./components/nav";
 import { Footer } from "./components/footer";
-import { FAQ } from "./components/faq";
-import { CTABanner } from "./components/cta-banner";
-import { HeroStory } from "./components/hero-story";
-import { AiChat } from "./components/ai-chat";
-import { FeatureExplorer } from "./components/feature-explorer";
-import { Icon, type IconName } from "./components/zb-icon";
+import { Hero } from "./components/home/hero";
+import { BusinessTypeProvider, BusinessTypeSwitch } from "./components/home/business-type";
+import { Tour } from "./components/home/tour";
+import { KeepEarnings } from "./components/home/keep-earnings";
+import { FeatureIndex } from "./components/home/feature-index";
+import { OwnSite } from "./components/home/own-site";
+import { NextSteps } from "./components/home/next-steps";
+import { Questions } from "./components/home/questions";
+import { Closing } from "./components/home/closing";
 
-// Marketing homepage. Seven sections, each with one job:
-// hero, the problem, how it works, who it's for, what's inside,
-// the website assistant, then questions and a call to action.
-
-const PROBLEMS = [
-  {
-    title: "The apps keep the customer",
-    body: "When someone orders through a delivery app, the app gets their details, not you. You pay a commission on every order and can't send them a thank you.",
-  },
-  {
-    title: "Regulars drift off quietly",
-    body: "Nobody tells you they've stopped coming. By the time you notice, they've found somewhere else.",
-  },
-  {
-    title: "Your tools don't talk",
-    body: "The till, the website, the booking app and the loyalty cards all keep their own lists. None of them tells you who's worth a call.",
-  },
-];
-
-const STEPS = [
-  {
-    title: "We set you up from your current website",
-    body: "Send us your website and we pull in your name, hours, menu or services, photos and colours. You check it and change anything you like.",
-  },
-  {
-    title: "Customers order or book on your own site",
-    body: "It lives at yourname.zentrabite.com or on your own domain. Card payments go through Stripe into your bank account.",
-  },
-  {
-    title: "Every customer lands in your list",
-    body: "Each order or booking saves the customer's details and history, and adds points to their rewards.",
-  },
-  {
-    title: "Regulars who go quiet get a text",
-    body: "You pick how long counts as quiet and what the offer is. ZentraBite sends it and shows you who came back.",
-  },
-];
-
-const WHO: { icon: IconName; title: string; types: string; body: string }[] = [
-  {
-    icon: "menu",
-    title: "Food",
-    types: "Restaurants, cafés, takeaways, food trucks, bakeries and bars",
-    body: "Online ordering with your menu, an orders board, a kitchen screen, POS and delivery. No commission on your direct orders.",
-  },
-  {
-    icon: "bag",
-    title: "Shops",
-    types: "Retail stores, boutiques, convenience stores and online sellers",
-    body: "Products and stock, a POS for the counter, click and collect, and orders you ship.",
-  },
-  {
-    icon: "salon",
-    title: "Salons, barbers and gyms",
-    types: "Hair, beauty, nails, barbers, gyms and personal trainers",
-    body: "Online booking, memberships and class timetables, with texts that get clients to book again.",
-  },
-  {
-    icon: "trades",
-    title: "Trades",
-    types: "Plumbers, electricians, cleaners and mechanics",
-    body: "Quotes, jobs and invoices, then a follow-up and a review request once the job's done.",
-  },
-];
+// The homepage. One action, "Book a call", asked three times: in the hero,
+// under "see your own site" and at the close. The only other action is the
+// live demo. Sections, each with one job:
+//   1. Hero: what this is, with three real screens
+//   2. What do you run? Changes the words in 3 to 6 for food, shops, salons and gyms, or trades
+//   3. Follow one order: the real app in five clips
+//   4. Keep what you earn: no commission, keep the delivery apps
+//   5. Switch on what you use: every part, each with its real screen
+//   6. See it with your name on it: the one thing to try
+//   7. What happens next
+//   8. Questions, with every answer on show
+//   9. The close, running into the footer
+// Proof is only what's true: the live demo, built in Adelaide, no commission
+// on direct orders and you keep your customer list. Every screen is our demo
+// restaurant with sample data, and says so.
 
 // Title and description come from app/layout.tsx.
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
+// The page opens on the navy hero in both themes, so the phone's browser bar is navy too.
+export const viewport: Viewport = {
+  themeColor: "#1c2d48",
+};
+
 export default function Home() {
   return (
     <>
-      <Nav />
+      <Nav startNavy />
       <main>
-        {/* 1. Hero */}
-        <section className="hero">
-          <div className="container hero-grid">
-            <div>
-              <h1 className="h-display">Know your regulars. Notice when they stop coming.</h1>
-              <p className="lead">
-                ZentraBite gives your business its own website, online ordering or booking, a customer list and
-                rewards. When a regular goes quiet, it sends them a text to bring them back.
-              </p>
-              <div className="btn-row">
-                <Link href="/contact" className="btn-primary btn-lg">
-                  Book a call
-                </Link>
-                <Link href="/demo" className="btn-secondary btn-lg">
-                  Try the demo
-                </Link>
-              </div>
-              <p className="hero-note">
-                Built in Adelaide for cafés, restaurants, shops, salons, gyms and trades. Launching soon.
-              </p>
-            </div>
-            <HeroStory />
-          </div>
-        </section>
-
-        {/* 2. The problem */}
-        <section className="section alt">
-          <div className="container">
-            <div className="section-head">
-              <span className="label">Why ZentraBite</span>
-              <h2 className="h-section">You work hard to win a customer. Then they&apos;re gone.</h2>
-            </div>
-            <div className="cols-3">
-              {PROBLEMS.map((p) => (
-                <div key={p.title} className="problem-item">
-                  <h3>{p.title}</h3>
-                  <p>{p.body}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* 3. How it works */}
-        <section className="section">
-          <div className="container how-grid">
-            <div>
-              <div className="section-head" style={{ marginBottom: 32 }}>
-                <span className="label">How it works</span>
-                <h2 className="h-section">Set it up once. It keeps working in the background.</h2>
-              </div>
-              <ol className="steps">
-                {STEPS.map((s) => (
-                  <li key={s.title}>
-                    <div>
-                      <h3>{s.title}</h3>
-                      <p>{s.body}</p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-              <p style={{ marginTop: 24 }}>
-                <Link href="/how-it-works" className="text-link">
-                  See how it all fits together
-                </Link>
-              </p>
-            </div>
-            <figure>
-              <div className="sms" role="img" aria-label="Example win-back text message from a restaurant to a customer">
-                <div className="sms-from">
-                  <b>Nonna&apos;s Kitchen</b>
-                  Text message
-                </div>
-                <div className="sms-bubble">Hi James, we haven&apos;t seen you in a while.</div>
-                <div className="sms-bubble">
-                  Here&apos;s $5 off your next order. Use code BACK5 at nonnas.zentrabite.com before Sunday.
-                </div>
-                <div className="sms-meta">Sent after 14 days without an order. You choose the timing and the offer.</div>
-              </div>
-            </figure>
-          </div>
-        </section>
-
-        {/* 4. Who it's for */}
-        <section className="section alt">
-          <div className="container">
-            <div className="section-head">
-              <span className="label">Who it&apos;s for</span>
-              <h2 className="h-section">For businesses that run on regulars.</h2>
-              <p className="lead">
-                It started with food. The same customer list, rewards and win-back texts work for any business where
-                people come back.
-              </p>
-            </div>
-            <div className="cols-4">
-              {WHO.map((w) => (
-                <div key={w.title} className="who-item">
-                  <div className="who-icon">
-                    <Icon name={w.icon} size={28} />
-                  </div>
-                  <h3>{w.title}</h3>
-                  <p className="who-types">{w.types}</p>
-                  <p>{w.body}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* 5. What's inside */}
-        <section id="features" className="section">
-          <div className="container">
-            <div className="section-head">
-              <span className="label">What&apos;s inside</span>
-              <h2 className="h-section">Switch on only what you use.</h2>
-              <p className="lead">
-                Every part shares the same customer list, so an order, a booking, a reward and a text all know who the
-                customer is. Pick a part to see how it works.
-              </p>
-            </div>
-            <FeatureExplorer />
-          </div>
-        </section>
-
-        {/* 6. The website assistant */}
-        <section id="ai-chat" className="section alt">
-          <div className="container ai-grid">
-            <div>
-              <span className="label">Ask a question</span>
-              <h2 className="h-section">Not sure if it suits you? Ask the assistant.</h2>
-              <p className="lead" style={{ marginTop: 16 }}>
-                It answers questions about ZentraBite, like what it would do for your kind of business or how
-                pricing works.
-              </p>
-              <p className="muted" style={{ marginTop: 16 }}>
-                Inside your account, a similar assistant answers questions about your own business. Who hasn&apos;t
-                been in for a month? What sold best last weekend?
-              </p>
-              <p style={{ marginTop: 24 }}>
-                <Link href="/contact" className="text-link">
-                  Rather talk to a person? Book a call
-                </Link>
-              </p>
-            </div>
-            <AiChat />
-          </div>
-        </section>
-
-        {/* 7. Questions and the call to action */}
-        <FAQ />
-        <CTABanner
-          title="Want ZentraBite for your business?"
-          body="We're starting with a small group of local businesses. Book a 15-minute call and we'll show you how it would work for yours. There'll be a 1-month free trial at launch."
-        />
+        <Hero />
+        <BusinessTypeProvider>
+          <BusinessTypeSwitch />
+          <Tour />
+          <KeepEarnings />
+          <FeatureIndex />
+          <OwnSite />
+        </BusinessTypeProvider>
+        <NextSteps />
+        <Questions />
+        <Closing />
       </main>
       <Footer />
     </>

@@ -142,6 +142,11 @@ export default function ContactPage() {
 
   useEffect(() => {
     openedAt.current = Date.now();
+    // "Book a call" on the homepage's "see it with your name on it" sends the
+    // name they typed as ?business=. Fill it in, unless they've started typing.
+    const business = new URLSearchParams(window.location.search).get("business");
+    const clean = business?.replace(/\s+/g, " ").trim().slice(0, LIMITS.businessName);
+    if (clean) setForm(f => (f.businessName ? f : { ...f, businessName: clean }));
   }, []);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
@@ -560,7 +565,7 @@ export default function ContactPage() {
         .ct-problem p { color: var(--text-2); }
         .ct-thanks { overflow-wrap: anywhere; }
         .ct-thanks h2:focus { outline: none; }
-        .ct-hp { position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+        .ct-hp { position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; white-space: nowrap; }
         @media (max-width: 520px) {
           .ct-submit { justify-items: stretch; }
           .ct-submit .btn-primary { width: 100%; }

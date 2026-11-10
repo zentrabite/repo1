@@ -1,28 +1,19 @@
-// ZentraBite logo: the app icon (public/brand/zentrabite-icon.svg) plus the
-// wordmark. Other logo variants live in docs/reference/brand/logo/.
-export function Logo({ size = 36 }: { size?: number }) {
+// ZentraBite logo. The wordmark on its own by default (the nav and footer),
+// or with the app icon (public/brand/zentrabite-icon.svg) when `mark` is set.
+// "Bite" uses --logo-bite: brand green on dark grounds, a deeper green on light
+// ones, where brand green is too faint to read (2.5 to 1). Other logo variants
+// live in docs/reference/brand/logo/.
+export function Logo({ size = 22, mark = false }: { size?: number; mark?: boolean }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/brand/zentrabite-icon.svg"
-        alt=""
-        width={size}
-        height={size}
-        style={{ display: "block", width: size, height: size, flexShrink: 0 }}
-      />
-      <div
-        style={{
-          fontFamily: "var(--font-outfit)",
-          fontWeight: 700,
-          fontSize: 20,
-          lineHeight: 1,
-          letterSpacing: "-0.01em",
-        }}
-      >
-        <span style={{ color: "var(--logo-zentra, var(--cloud))" }}>Zentra</span>
-        <span style={{ color: "var(--green)" }}>Bite</span>
-      </div>
-    </div>
+    <span className="logo" style={{ fontSize: size }}>
+      {mark && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src="/brand/zentrabite-icon.svg" alt="" width={size * 1.6} height={size * 1.6} className="logo-mark" />
+      )}
+      <span>
+        <span className="logo-zentra">Zentra</span>
+        <span className="logo-bite">Bite</span>
+      </span>
+    </span>
   );
 }
