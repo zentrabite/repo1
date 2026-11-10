@@ -565,7 +565,7 @@ export default function ContactPage() {
         .ct-problem p { color: var(--text-2); }
         .ct-thanks { overflow-wrap: anywhere; }
         .ct-thanks h2:focus { outline: none; }
-        .ct-hp { position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+        .ct-hp { position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; white-space: nowrap; }
         @media (max-width: 520px) {
           .ct-submit { justify-items: stretch; }
           .ct-submit .btn-primary { width: 100%; }

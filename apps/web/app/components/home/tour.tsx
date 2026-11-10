@@ -18,7 +18,8 @@ const CLIPS: Clip[] = [
     id: "storefront",
     variant: "phone",
     file: "storefront-phone",
-    label: "A restaurant's own ordering site on a phone. A pizza is added to the cart and the customer reaches checkout.",
+    label:
+      "A restaurant's own ordering site on a phone. A pizza is added to the cart and the customer reaches checkout.",
   },
   {
     id: "orders",
@@ -67,7 +68,10 @@ const STOPS: Record<BusinessType, Stop[]> = {
       title: "They're saved to your customer list.",
       body: "Their name, contact details, what they order and how often. It's your list, not a delivery app's.",
     },
-    { title: "They earn points.", body: "Points on every order, tiers for regulars and rewards they spend at checkout." },
+    {
+      title: "They earn points.",
+      body: "Points on every order, tiers for regulars and rewards they spend at checkout.",
+    },
     SAME_QUIET,
   ],
   shops: [
@@ -83,7 +87,10 @@ const STOPS: Record<BusinessType, Stop[]> = {
       title: "They're saved to your customer list.",
       body: "Their name, contact details, what they buy and how often. It's your list, not a marketplace's.",
     },
-    { title: "They earn points.", body: "Points on every purchase, tiers for regulars and rewards they spend at checkout." },
+    {
+      title: "They earn points.",
+      body: "Points on every purchase, tiers for regulars and rewards they spend at checkout.",
+    },
     SAME_QUIET,
   ],
   salons: [
@@ -137,7 +144,27 @@ export function Tour() {
   const { type } = useBusinessType();
   const stops = STOPS[type];
   const [active, setActive] = useState(0);
+  // The clips only go on the page once the tour scrolls into view, so their
+  // posters aren't part of the first load. Until then each one keeps its space.
+  const [near, setNear] = useState(false);
+  const section = useRef<HTMLElement | null>(null);
   const items = useRef<(HTMLLIElement | null)[]>([]);
+
+  useEffect(() => {
+    const el = section.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e?.isIntersecting) {
+          setNear(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   useEffect(() => {
     // A band across the middle of the screen: the stop inside it is the one shown.
@@ -156,7 +183,7 @@ export function Tour() {
   }, []);
 
   return (
-    <section id="tour" className="hm-tour" aria-labelledby="tour-title">
+    <section id="tour" ref={section} className="hm-tour" aria-labelledby="tour-title">
       <div className="wrap">
         <div className="hm-head" data-reveal>
           <h2 id="tour-title" className="hm-h2" data-r style={{ "--i": 0 } as React.CSSProperties}>
@@ -172,22 +199,22 @@ export function Tour() {
           <div className="hm-stage">
             <div className="hm-stage-inner">
               <div className="hm-stage-box">
-                {CLIPS.map((c, i) => (
-                  <div
-                    key={c.id}
-                    className={`hm-stage-clip hm-stage-${c.variant}${i === active ? " on" : ""}`}
-                    aria-hidden={i === active ? undefined : true}
-                  >
-                    <AppScreen
-                      variant={c.variant}
-                      poster={`/media/app/${c.file}.webp`}
-                      sources={clipSources(c.file)}
-                      label={c.label}
-                      active={i === active}
-                      pauseButton={false}
-                    />
-                  </div>
-                ))}
+                {near &&
+                  CLIPS.map((c, i) => (
+                    <div
+                      key={c.id}
+                      className={`hm-stage-clip hm-stage-${c.variant}${i === active ? " on" : ""}`}
+                      aria-hidden={i === active ? undefined : true}
+                    >
+                      <AppScreen
+                        variant={c.variant}
+                        poster={`/media/app/${c.file}.webp`}
+                        sources={clipSources(c.file)}
+                        label={c.label}
+                        active={i === active}
+                      />
+                    </div>
+                  ))}
               </div>
               <p className="hm-count" aria-hidden="true">
                 {active + 1} of {CLIPS.length}
@@ -206,13 +233,17 @@ export function Tour() {
                   }}
                   className={`hm-stop${i === active ? " on" : ""}`}
                 >
-                  <AppScreen
-                    className={`hm-stop-clip hm-stop-${c.variant}`}
-                    variant={c.variant}
-                    poster={`/media/app/${c.file}.webp`}
-                    sources={clipSources(c.file)}
-                    label={c.label}
-                  />
+                  {near ? (
+                    <AppScreen
+                      className={`hm-stop-clip hm-stop-${c.variant}`}
+                      variant={c.variant}
+                      poster={`/media/app/${c.file}.webp`}
+                      sources={clipSources(c.file)}
+                      label={c.label}
+                    />
+                  ) : (
+                    <div className={`hm-stop-clip hm-stop-${c.variant} hm-slot`} aria-hidden="true" />
+                  )}
                   <div className="hm-stop-text">
                     <h3 className="hm-h3">
                       <span key={type} className="hm-swap">

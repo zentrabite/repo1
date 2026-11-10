@@ -224,6 +224,7 @@ export function FeatureIndex() {
                     alt=""
                     width={1120}
                     height={700}
+                    loading="lazy"
                     decoding="async"
                   />
                 )}

@@ -58,7 +58,7 @@
   --nav-h: 76px;
   --sec-pad: clamp(64px, 7.2vw, 112px);
   --fs-h2: clamp(32px, 3.4vw, 48px);
-  --fs-h3: clamp(21px, 1.95vw, 28px);
+  --fs-h3: clamp(22px, 1.95vw, 28px);
   --fs-lead: clamp(18px, 1.4vw, 20px);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -642,10 +642,6 @@ img, svg, video, canvas, iframe { max-width: 100%; height: auto; }
 }
 .link-card .more { margin-top: 14px; color: var(--accent-text); font-weight: 600; font-size: 15px; }
 
-/* Rows of text separated by thin lines */
-.rule-list { list-style: none; border-top: 1px solid var(--border); }
-.rule-list > li { padding: 20px 0; border-bottom: 1px solid var(--border); }
-
 .tick-list { list-style: none; display: grid; gap: 12px; }
 .tick-list li {
   display: grid;
@@ -688,9 +684,10 @@ img, svg, video, canvas, iframe { max-width: 100%; height: auto; }
   .cta-band { grid-template-columns: 1fr; padding: 36px 24px; }
 }
 
-/* Questions on inner pages (native details and summary) */
-.faq { border-top: 1px solid var(--border); }
-.faq details { border-bottom: 1px solid var(--border); }
+/* Questions on inner pages (native details and summary). The pricing page
+   keeps its lines for now; the homepage's questions don't use these. */
+.faq { border-top: 1px solid var(--border); } /* taste-skill-ignore: inner pages, left as they are */
+.faq details { border-bottom: 1px solid var(--border); } /* taste-skill-ignore: inner pages, left as they are */
 .faq summary {
   list-style: none;
   cursor: pointer;
@@ -716,6 +713,57 @@ img, svg, video, canvas, iframe { max-width: 100%; height: auto; }
 }
 .faq details[open] summary::after { transform: translateY(3px) rotate(-135deg); }
 .faq .faq-a { padding: 0 0 24px; color: var(--text-2); max-width: 680px; }
+
+/* Click to show more (Expandable) */
+.more-details > summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--accent-text);
+  font-weight: 600;
+  font-size: 15px;
+}
+.more-details > summary::-webkit-details-marker { display: none; }
+.more-details > summary::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.15s;
+}
+.more-details[open] > summary::before { transform: rotate(45deg); }
+.more-details > .more-body { padding-top: 14px; color: var(--text-2); }
+
+/* Numbered setup steps on the how-it-works page. Left as they are until that
+   page is redone; the homepage tells its order by position instead. */
+.steps { list-style: none; counter-reset: step; display: grid; gap: 0; }
+.steps > li {
+  counter-increment: step;
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 18px;
+  padding: 22px 0;
+  border-top: 1px solid var(--border); /* taste-skill-ignore: inner page, left as it is */
+}
+.steps > li:last-child { border-bottom: 1px solid var(--border); } /* taste-skill-ignore: inner page, left as it is */
+.steps > li::before {
+  content: counter(step);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.steps h3 { font-size: 19px; margin: 4px 0 6px; }
+.steps p { color: var(--text-2); }
 
 /* Forms */
 .field { display: grid; gap: 8px; }
@@ -917,11 +965,14 @@ textarea.input { resize: vertical; }
   .hm-hero-grid { gap: 24px; }
   .hm-actions { margin-top: 24px; gap: 4px; }
   .hm-actions .btn-primary { flex: 1 1 100%; }
+  /* The row runs to both screen edges, so the frame's side padding moves inside */
+  .hm-hero .wrap { padding-left: 0; padding-right: 0; }
+  .hm-hero-text,
+  .hm-shots-foot { padding-left: max(var(--margin), env(safe-area-inset-left, 0px)); padding-right: max(var(--margin), env(safe-area-inset-right, 0px)); }
   .hm-shots {
     --h: calc((100vw - 50px) * 0.794);
     display: flex;
     gap: 18px;
-    margin: 0 calc(-1 * var(--margin));
     padding: 0 var(--margin);
     overflow-x: auto;
     overscroll-behavior-x: contain;
@@ -959,7 +1010,7 @@ textarea.input { resize: vertical; }
 .hm-switch-grid { display: grid; gap: 28px; align-items: end; }
 .hm-types { border: 0; min-width: 0; }
 .hm-types-row { display: flex; flex-wrap: wrap; gap: 10px; }
-.hm-type { position: relative; display: inline-flex; }
+.hm-type { position: relative; display: inline-flex; cursor: pointer; }
 .hm-type input {
   position: absolute;
   inset: 0;
@@ -1026,7 +1077,7 @@ textarea.input { resize: vertical; }
     display: flex;
     justify-content: center;
     opacity: 0;
-    transition: opacity 450ms ease;
+    transition: opacity 400ms ease;
   }
   .hm-stage-clip.on { opacity: 1; z-index: 1; }
   .hm-stage-screen > div { width: 100%; }
@@ -1049,6 +1100,19 @@ textarea.input { resize: vertical; }
   .hm-stop-clip { margin-bottom: 20px; }
   .hm-stop-phone { width: min(280px, 72%); }
 }
+/* The space a clip takes before it's put on the page (tour.tsx) */
+.hm-slot { border-radius: 12px; background: var(--surface-2); aspect-ratio: 16 / 10; }
+.hm-slot.hm-stop-phone { border-radius: 36px; aspect-ratio: 390 / 844; }
+@media (max-width: 699px) {
+  .hm-slot.hm-stop-screen { aspect-ratio: 4 / 3; }
+}
+/* Phone: the desktop clips lose the app's sidebar so the screen itself reads larger.
+   The ratio overrides the one AppScreen sets on its frame. */
+@media (max-width: 699px) {
+  .hm-stop-screen [data-ui] { aspect-ratio: 4 / 3 !important; }
+  .hm-stop-screen [data-ui] img,
+  .hm-stop-screen [data-ui] video { object-position: right center; }
+}
 
 /* 4. Keep what you earn ------------------------------------------------- */
 
@@ -1063,14 +1127,14 @@ textarea.input { resize: vertical; }
   line-height: 1.25;
   letter-spacing: -0.015em;
 }
-.hm-keep-fig { margin: 0; --rv-x: 48px; --rv-y: 0px; }
+.hm-keep-fig { margin: 0; }
 .hm-keep-frame { overflow: hidden; border-radius: 16px; background: var(--near-black); }
 .hm-keep-frame img { display: block; width: 100%; height: auto; }
 .hm-keep-fig figcaption { margin-top: 14px; font-size: 14px; line-height: 1.4; color: var(--nv-ink-3); }
 @media (min-width: 1000px) {
   .hm-keep-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(40px, 5vw, 80px); }
-  /* The board runs off the right edge: there's more of it than fits */
-  .hm-keep-fig { margin-right: calc(-1 * max(var(--margin), env(safe-area-inset-right, 0px))); }
+  /* The board runs off the right edge: there's more of it than fits. It slides in from that side. */
+  .hm-keep-fig { margin-right: calc(-1 * max(var(--margin), env(safe-area-inset-right, 0px))); --rv-x: 48px; --rv-y: 0px; }
   .hm-keep-frame { border-radius: 16px 0 0 16px; }
   .hm-keep-fig figcaption { padding-right: var(--margin); }
 }
@@ -1139,7 +1203,7 @@ textarea.input { resize: vertical; }
 }
 /* Each new screen settles in from a hair smaller */
 @media (min-width: 1000px) and (prefers-reduced-motion: no-preference) {
-  .hm-index-pic img { animation: hm-pic 220ms var(--ease-out); }
+  .hm-index-pic img { animation: hm-pic 180ms var(--ease-out); }
 }
 @keyframes hm-pic {
   from { opacity: 0.4; transform: scale(0.98); }
@@ -1226,9 +1290,14 @@ textarea.input { resize: vertical; }
   .hm-stairs li:nth-child(4) { margin-top: 192px; }
 }
 @media (max-width: 899px) {
-  .hm-stairs li:nth-child(2) { margin-left: 8%; }
-  .hm-stairs li:nth-child(3) { margin-left: 16%; }
-  .hm-stairs li:nth-child(4) { margin-left: 24%; }
+  .hm-stairs li:nth-child(2) { margin-left: min(8%, 40px); }
+  .hm-stairs li:nth-child(3) { margin-left: min(16%, 80px); }
+  .hm-stairs li:nth-child(4) { margin-left: min(24%, 120px); }
+}
+@media (max-width: 400px) {
+  .hm-stairs li:nth-child(2) { margin-left: 16px; }
+  .hm-stairs li:nth-child(3) { margin-left: 32px; }
+  .hm-stairs li:nth-child(4) { margin-left: 48px; }
 }
 
 /* 8. Questions ---------------------------------------------------------- */
@@ -1250,7 +1319,7 @@ textarea.input { resize: vertical; }
 .hm-close-grid { display: grid; gap: 24px; align-items: end; }
 .hm-close-side .hm-lead { color: var(--nv-ink-2); }
 .hm-close-side > div { margin-top: 24px; }
-@media (min-width: 1000px) {
+@media (min-width: 700px) {
   .hm-close-grid { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 48px; }
 }
 
@@ -1566,17 +1635,18 @@ textarea.input { resize: vertical; }
 .force-dark {
   background: var(--near-black);
   color: var(--cloud);
-  min-height: 100vh;
+  min-height: 100vh; /* taste-skill-ignore: demo sandboxes keep their look */
 }
 
 .glass {
   background: var(--navy-55);
-  backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px); /* taste-skill-ignore: demo sandboxes keep their look */
   border: 1px solid var(--mist-9);
   border-radius: 16px;
 }
 
-.eyebrow {
+/* The demos' own label. taste-skill-ignore: demo sandboxes keep their look */
+.eyebrow { /* taste-skill-ignore */
   display: inline-block;
   font-size: 12px;
   font-weight: 600;

@@ -75,7 +75,9 @@ export function OwnSite() {
               <Link href={href} className="btn-primary btn-lg">
                 Book a call
               </Link>
-              <p className="hm-own-note">{clean ? "We'll put your name on the form for you." : "No sign-up needed to try it."}</p>
+              <p className="hm-own-note">
+                {clean ? "We'll put your name on the form for you." : "No sign-up needed to try it."}
+              </p>
             </div>
           </div>
         </div>
@@ -96,8 +98,13 @@ export function OwnSite() {
             </div>
           </div>
           <figcaption>
-            A sample site. Yours would live at <span className="hm-own-url">{subdomain(clean)}.zentrabite.com</span> or on
-            your own domain.
+            A sample site. Yours would live at{" "}
+            <span className="hm-own-url">
+              {subdomain(clean)}
+              <wbr />
+              .zentrabite.com
+            </span>{" "}
+            or on your own domain.
           </figcaption>
         </figure>
       </div>

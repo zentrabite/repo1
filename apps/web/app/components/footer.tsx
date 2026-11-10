@@ -20,43 +20,43 @@ const LINKS = [
 export function Footer() {
   return (
     <>
-    <footer className="site-footer on-navy" data-nav-tone="navy">
-      <div className="wrap">
-        <div className="ft-top">
-          <nav aria-label="Footer">
-            <ul className="ft-links">
-              {LINKS.map((l) => (
-                <li key={l.label}>
-                  <Link href={l.href}>{l.label}</Link>
+      <footer className="site-footer on-navy" data-nav-tone="navy">
+        <div className="wrap">
+          <div className="ft-top">
+            <nav aria-label="Footer">
+              <ul className="ft-links">
+                {LINKS.map((l) => (
+                  <li key={l.label}>
+                    <Link href={l.href}>{l.label}</Link>
+                  </li>
+                ))}
+                <li>
+                  <a href={LOGIN_URL}>Log in</a>
                 </li>
-              ))}
-              <li>
-                <a href={LOGIN_URL}>Log in</a>
-              </li>
-            </ul>
-          </nav>
-          <div className="ft-contact">
-            <p>Built in Adelaide</p>
-            <p>
-              <a href="mailto:hello@zentrabite.com">hello@zentrabite.com</a>
-            </p>
+              </ul>
+            </nav>
+            <div className="ft-contact">
+              <p>Built in Adelaide</p>
+              <p>
+                <a href="mailto:hello@zentrabite.com">hello@zentrabite.com</a>
+              </p>
+            </div>
+          </div>
+
+          <div className="ft-mark" data-reveal aria-hidden="true">
+            <span className="ft-mark-line" data-r>
+              <span className="logo-zentra">Zentra</span>
+              <span className="logo-bite">Bite</span>
+            </span>
+          </div>
+
+          <div className="ft-base">
+            <p>© {new Date().getFullYear()} ZentraBite</p>
+            <ThemeChoicePicker />
           </div>
         </div>
-
-        <div className="ft-mark" data-reveal aria-hidden="true">
-          <span className="ft-mark-line" data-r>
-            <span className="logo-zentra">Zentra</span>
-            <span className="logo-bite">Bite</span>
-          </span>
-        </div>
-
-        <div className="ft-base">
-          <p>© {new Date().getFullYear()} ZentraBite</p>
-          <ThemeChoicePicker />
-        </div>
-      </div>
-    </footer>
-    <Assistant />
+      </footer>
+      <Assistant />
     </>
   );
 }
