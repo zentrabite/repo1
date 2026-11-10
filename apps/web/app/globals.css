@@ -919,9 +919,11 @@ textarea.input { resize: vertical; }
 }
 .hm-shot-cart .hm-shot-frame { border-radius: 26px; background: transparent; }
 .hm-shot-frame img { display: block; width: 100%; height: auto; }
-/* Desktop crops: the profile down to its first row of figures, the win-back to the message it sends */
-.hm-shot-profile .hm-shot-frame { aspect-ratio: 530 / 373; }
-.hm-shot-winback .hm-shot-frame { aspect-ratio: 3 / 2; }
+/* Desktop crops, each ending in a gap between rows of the panel: the profile
+   after its first row of figures (676 of 1762px), the win-back after the text
+   it sends and the note under it (604 of 1204px). */
+.hm-shot-profile .hm-shot-frame { aspect-ratio: 960 / 676; }
+.hm-shot-winback .hm-shot-frame { aspect-ratio: 840 / 604; }
 .hm-shot figcaption {
   margin-top: 14px;
   font-size: 16px;
@@ -966,7 +968,9 @@ textarea.input { resize: vertical; }
   .hm-hero-text,
   .hm-shots-foot { padding-left: max(var(--margin), env(safe-area-inset-left, 0px)); padding-right: max(var(--margin), env(safe-area-inset-right, 0px)); }
   .hm-shots {
-    --h: calc((100vw - 50px) * 0.794);
+    /* Tall enough that the cart and the profile fill the width side by side:
+       (0.6478 + 0.5448) x h + the 18px gap = the screen less its 32px of margins */
+    --h: calc((100vw - 50px) / 1.1926);
     display: flex;
     gap: 18px;
     padding: 0 var(--margin);
@@ -978,9 +982,10 @@ textarea.input { resize: vertical; }
   }
   .hm-shots::-webkit-scrollbar { display: none; }
   .hm-shot { flex: 0 0 auto; scroll-snap-align: start; margin-top: 0; }
-  .hm-shot-cart { width: calc(var(--h) * 0.6446); }
-  .hm-shot-profile { width: calc(var(--h) * 0.6154); }
-  .hm-shot-winback { width: calc(var(--h) * 0.7167); }
+  /* Each screen's width at the row's height, from its real size (780x1204, 960x1762, 840x1204) */
+  .hm-shot-cart { width: calc(var(--h) * 0.6478); }
+  .hm-shot-profile { width: calc(var(--h) * 0.5448); }
+  .hm-shot-winback { width: calc(var(--h) * 0.6977); }
   .hm-shot-frame,
   .hm-shot-profile .hm-shot-frame,
   .hm-shot-winback .hm-shot-frame { aspect-ratio: auto; border-radius: 14px; }

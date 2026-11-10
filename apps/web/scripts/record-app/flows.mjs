@@ -102,9 +102,8 @@ export const flows = [
     title: "Win-back campaigns",
     shows: "Win-back campaigns with their results. Two SMS campaigns are opened to show the personalised text each one sends.",
     chrome: CRM_CHROME,
-    // Ends with the second campaign open and cuts back to the list. Closing the
-    // panel leaves the rows 3px to the right (a quirk of the demo's row
-    // borders), which would show as a twitch at the loop point.
+    // Ends with the second campaign open and cuts back to the list, so the
+    // clip ends on a personalised message rather than on the empty list.
     async run(s) {
       const { page } = s;
       await s.hold(1300);
@@ -186,7 +185,7 @@ export const flows = [
       await s.hold(500);
       const addButton = page
         .locator("main div")
-        .filter({ hasText: "Prosciutto & Rocket", has: page.getByRole("button", { name: /Add to cart/ }) })
+        .filter({ hasText: "Veggie supreme", has: page.getByRole("button", { name: /Add to cart/ }) })
         .last()
         .getByRole("button", { name: /Add to cart/ });
       await s.tap(addButton);
@@ -198,7 +197,7 @@ export const flows = [
       await s.hold(300);
       await s.tap(nav.getByRole("button", { name: /Cart/ }));
       await s.hold(1300);
-      await s.tap(page.locator(".mh-cart-row", { hasText: "Garlic Bread" }).getByRole("button", { name: "+" }));
+      await s.tap(page.locator(".mh-cart-row", { hasText: "Garlic bread" }).getByRole("button", { name: "+" }));
       await s.hold(2000);
     },
   },

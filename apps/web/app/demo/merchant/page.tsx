@@ -6,15 +6,31 @@ import { Icon } from "../../components/zb-icon";
 import {
   brand,
   categories,
+  deliveryFee as deliveryFeeFor,
   featuredDeals,
   formatAUD,
+  itemNamed,
   loyalty,
-  menu,
+  member,
+  memberOrders,
   menuByCategory,
+  nextOrderNumber,
+  orderSummary,
+  orderWhen,
+  tierAfter,
+  tierFor,
   type MenuItem,
 } from "./data";
 
 type CartItem = { item: MenuItem; qty: number };
+type Tracked = { number: string; lines: CartItem[] };
+
+// Rewards quoted on the home page, with their real costs.
+const GARLIC = loyalty.unlocks.find((u) => u.id === "r02")!;
+const TEN_OFF = loyalty.unlocks.find((u) => u.id === "r03")!;
+
+// Sofia's order that's in the oven right now (#1293 in the CRM).
+const LIVE_ORDER: Tracked = { number: memberOrders[0]!.number, lines: memberOrders[0]!.lines };
 type View = "home" | "menu" | "cart" | "tracking" | "rewards" | "account";
 
 const TRACKING_STAGES = ["Received", "Preparing", "Out for delivery", "Delivered"] as const;
@@ -23,9 +39,11 @@ export default function MerchantStorefront() {
   const [view, setView] = useState<View>("home");
   const [activeCat, setActiveCat] = useState<string>(categories[0]!);
   const [cart, setCart] = useState<CartItem[]>([
-    { item: menu.find((m) => m.id === "m02")!, qty: 1 },
-    { item: menu.find((m) => m.id === "m12")!, qty: 1 },
+    { item: itemNamed("Pepperoni"), qty: 1 },
+    { item: itemNamed("Garlic bread"), qty: 1 },
   ]);
+  // "Track order" shows the order she already has in the oven, until she checks out a new one.
+  const [tracked, setTracked] = useState<Tracked>(LIVE_ORDER);
   const [trackStage, setTrackStage] = useState(1);
 
   // Auto-advance tracker for the demo
@@ -38,7 +56,7 @@ export default function MerchantStorefront() {
   }, [view]);
 
   const subtotal = useMemo(() => cart.reduce((s, c) => s + c.item.price * c.qty, 0), [cart]);
-  const deliveryFee = subtotal >= 50 ? 0 : 6;
+  const deliveryFee = deliveryFeeFor(subtotal);
   const total = subtotal + deliveryFee;
 
   function addToCart(item: MenuItem) {
@@ -97,12 +115,13 @@ export default function MerchantStorefront() {
           deliveryFee={deliveryFee}
           total={total}
           onCheckout={() => {
+            setTracked({ number: nextOrderNumber, lines: cart });
             setTrackStage(0);
             setView("tracking");
           }}
         />
       )}
-      {view === "tracking" && <TrackingView stage={trackStage} cart={cart} />}
+      {view === "tracking" && <TrackingView stage={trackStage} order={tracked} />}
       {view === "rewards" && <RewardsView />}
       {view === "account" && <AccountView />}
 
@@ -127,7 +146,7 @@ function DemoBadge() {
       }}
     >
       <Icon name="storefront" size={16} accent="currentColor" style={{ marginRight: 6 }} />
-      <span className="mh-badge-long">DEMO STOREFRONT — Harbour Lane is a fictional merchant powered by ZentraBite ·{" "}</span>
+      <span className="mh-badge-long">DEMO STOREFRONT. {brand.name} is a made-up restaurant powered by ZentraBite ·{" "}</span>
       <span className="mh-badge-short">Demo storefront ·{" "}</span>
       <Link href="/demo" style={{ color: "white", textDecoration: "underline" }}>
         Back to demo hub
@@ -355,10 +374,10 @@ function HomeView({ onShopNow, onTracker }: { onShopNow: () => void; onTracker: 
             <p style={{ fontSize: 16, opacity: 0.9, marginBottom: 16 }}>{loyalty.tagline}</p>
             <ul style={{ listStyle: "none", padding: 0, display: "grid", gap: 8 }}>
               {[
-                "Free garlic bread on your first order",
-                "Earn 1 point per $1 — unlock free pizzas, drinks, delivery",
-                "Birthday tiramisu, on us",
-                "Early access to new menu drops every Friday",
+                "Earn 1 point per $1, with bonus points when you order direct",
+                "Swap points for free garlic bread, free delivery or $10 off",
+                "Bonus points in your birthday week",
+                "Move up to Silver, Gold and VIP for bigger perks",
               ].map((p) => (
                 <li key={p} style={{ display: "flex", gap: 10, fontSize: 14.5 }}>
                   <span style={{ color: brand.primary }}><Icon name="sparkle" size={14} accent={brand.primary} /></span>
@@ -377,17 +396,17 @@ function HomeView({ onShopNow, onTracker }: { onShopNow: () => void; onTracker: 
           >
             <div style={{ fontSize: 12, color: "rgba(250,243,229,0.7)", marginBottom: 4 }}>You'd earn</div>
             <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 44, color: brand.primary }}>
-              28 pts
+              30 pts
             </div>
             <div style={{ fontSize: 13, opacity: 0.85, marginBottom: 18 }}>
-              on a typical $28 family pizza order
+              on a $30 order
             </div>
             <div style={{ height: 1, background: "rgba(250,243,229,0.16)", margin: "14px 0" }} />
             <div style={{ fontSize: 12, color: "rgba(250,243,229,0.6)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700, marginBottom: 8 }}>
-              5 orders gets you
+              Five orders gets you
             </div>
             <div style={{ fontSize: 14.5 }}>
-              Enough points for a free garlic bread (100 pts) — keep earning toward $10 off (500 pts).
+              A free garlic bread ({GARLIC.cost} pts). Keep earning for $10 off any order ({TEN_OFF.cost} pts).
             </div>
           </div>
         </div>
@@ -403,10 +422,10 @@ function HomeView({ onShopNow, onTracker }: { onShopNow: () => void; onTracker: 
             A neighbourhood pizzeria, run by people who eat here too.
           </h2>
           <p style={{ fontSize: 16, color: "rgba(26,22,18,0.7)", lineHeight: 1.7 }}>
-            Marco grew up in his nonna's kitchen in Naples, then spent 14 years in Sydney pizzerias before
-            opening Harbour Lane in 2019. We mill our own flour, ferment dough for 72 hours, and pull every
-            pizza from a wood-fired oven we shipped in from Modena. No corporate parent. No commissary.
-            Just the food we want to eat.
+            Marco learned to make pizza in his nonna&apos;s kitchen in Naples. He moved to Adelaide, cooked in
+            the city&apos;s pizzerias for ten years, and opened {brand.name} on Basil Lane in {brand.opened}.
+            We ferment our dough for 72 hours and bake every pizza in a wood-fired oven. No corporate
+            parent. Just the food we want to eat.
           </p>
         </div>
       </section>
@@ -572,7 +591,7 @@ function CartView({
               <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 18, marginBottom: 14 }}>Order summary</div>
               <div style={{ display: "grid", gap: 8, fontSize: 14 }}>
                 <Row k="Subtotal" v={formatAUD(subtotal)} />
-                <Row k={`Delivery${deliveryFee === 0 ? " (free over $50)" : ""}`} v={deliveryFee === 0 ? "FREE" : formatAUD(deliveryFee)} />
+                <Row k={`Delivery${deliveryFee === 0 ? (member.tier === "VIP" ? " (free for VIP)" : " (free over $50)") : ""}`} v={deliveryFee === 0 ? "FREE" : formatAUD(deliveryFee)} />
                 <div style={{ height: 1, background: "rgba(26,22,18,0.08)", margin: "8px 0" }} />
                 <Row k="Total" v={formatAUD(total)} bold />
               </div>
@@ -611,19 +630,19 @@ function CartView({
   );
 }
 
-function TrackingView({ stage, cart }: { stage: number; cart: CartItem[] }) {
+function TrackingView({ stage, order }: { stage: number; order: Tracked }) {
   return (
     <main style={{ padding: "32px 24px 80px" }}>
       <div style={{ maxWidth: 760, margin: "0 auto" }}>
         <div style={{ marginBottom: 18 }}>
           <div style={{ fontSize: 12, color: brand.primary, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-            Order #1289 · Confirmed
+            Order {order.number} · Confirmed
           </div>
           <h1 style={{ fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 32, margin: "6px 0 4px" }}>
             {TRACKING_STAGES[stage] === "Delivered" ? "Delivered. Enjoy" : `${TRACKING_STAGES[stage]}…`}
           </h1>
           <p style={{ color: "rgba(26,22,18,0.65)" }}>
-            ETA <strong>4:42 PM</strong> · Marco is firing your pizza. We'll text you when the rider grabs it.
+            ETA <strong>1:45 PM</strong> · Marco is firing your pizza. We&apos;ll text you when the rider grabs it.
           </p>
         </div>
 
@@ -678,10 +697,10 @@ function TrackingView({ stage, cart }: { stage: number; cart: CartItem[] }) {
         {stage >= 2 && (
           <div style={{ background: "white", borderRadius: 16, padding: 18, marginBottom: 18, display: "flex", alignItems: "center", gap: 14 }}>
             <div style={{ width: 48, height: 48, borderRadius: 999, background: brand.accent, color: brand.cream, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800 }}>
-              JT
+              TW
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700 }}>Jay T. is on the way</div>
+              <div style={{ fontWeight: 700 }}>Tom W. is on the way</div>
               <div style={{ fontSize: 13, color: "rgba(26,22,18,0.6)" }}>Internal driver · 5 mins away · <Icon name="delivery" size={16} accent={brand.primary} /></div>
             </div>
             <button style={{ padding: "8px 14px", borderRadius: 8, background: brand.ink, color: brand.cream, border: "none", fontWeight: 700, fontSize: 12.5, cursor: "pointer" }}>
@@ -693,7 +712,7 @@ function TrackingView({ stage, cart }: { stage: number; cart: CartItem[] }) {
         {/* Items */}
         <div style={{ background: "white", borderRadius: 16, padding: 18 }}>
           <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 15, marginBottom: 10 }}>Your order</div>
-          {cart.map((c) => (
+          {order.lines.map((c) => (
             <div key={c.item.id} style={{ display: "grid", gridTemplateColumns: "32px 1fr auto", gap: 12, padding: "8px 0", borderBottom: "1px solid rgba(26,22,18,0.06)", fontSize: 14 }}>
               <span style={{ fontSize: 22 }}>{c.item.emoji}</span>
               <span><strong>{c.qty}×</strong> {c.item.name}</span>
@@ -711,7 +730,10 @@ function TrackingView({ stage, cart }: { stage: number; cart: CartItem[] }) {
 }
 
 function RewardsView() {
-  const myPoints = 320;
+  const myPoints = member.points;
+  const tier = tierFor(myPoints);
+  const next = tierAfter(tier);
+  const progress = next ? Math.min(1, (myPoints - tier.min) / (next.min - tier.min)) : 1;
   return (
     <main style={{ padding: "32px 24px 80px" }}>
       <div style={{ maxWidth: 980, margin: "0 auto" }}>
@@ -734,15 +756,15 @@ function RewardsView() {
         >
           <div>
             <div style={{ fontSize: 12, opacity: 0.85, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>Your balance</div>
-            <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 56, lineHeight: 1, marginTop: 6 }}>{myPoints}</div>
-            <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>points · Silver tier <Icon name="tier" size={16} accent="#C0C7D1" /></div>
+            <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 56, lineHeight: 1, marginTop: 6 }}>{myPoints.toLocaleString("en-AU")}</div>
+            <div style={{ fontSize: 13, opacity: 0.85, marginTop: 4 }}>points · {tier.name} tier <Icon name={tier.name === "VIP" ? "vip" : "tier"} size={16} accent="#F3DFA2" /></div>
           </div>
           <div style={{ background: "rgba(255,255,255,0.16)", padding: 14, borderRadius: 12 }}>
-            <div style={{ fontSize: 12, opacity: 0.85, marginBottom: 6 }}>Next tier: Gold (500 pts)</div>
+            <div style={{ fontSize: 12, opacity: 0.85, marginBottom: 6 }}>{next ? `Next tier: ${next.name} (${next.min} pts)` : `${tier.name} is the top tier`}</div>
             <div style={{ height: 10, background: "rgba(255,255,255,0.2)", borderRadius: 999, overflow: "hidden" }}>
-              <div style={{ width: `${(myPoints / 500) * 100}%`, height: "100%", background: "white" }} />
+              <div style={{ width: `${progress * 100}%`, height: "100%", background: "white" }} />
             </div>
-            <div style={{ fontSize: 12, marginTop: 8, opacity: 0.9 }}>180 pts to go — order a family pizza to reach Gold.</div>
+            <div style={{ fontSize: 12, marginTop: 8, opacity: 0.9 }}>{next ? `${next.min - myPoints} pts to go.` : `You get ${tier.perks.slice(0, -1).join(", ").toLowerCase()} and ${tier.perks.at(-1)?.toLowerCase()}.`}</div>
           </div>
         </div>
 
@@ -750,7 +772,7 @@ function RewardsView() {
         <h2 style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 20, marginBottom: 12 }}>Available rewards</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, marginBottom: 28 }}>
           {loyalty.unlocks.map((u) => {
-            const can = myPoints >= u.cost;
+            const can = loyalty.canRedeem(u, member.tier, myPoints);
             return (
               <div
                 key={u.name}
@@ -781,7 +803,7 @@ function RewardsView() {
                     marginTop: "auto",
                   }}
                 >
-                  {can ? "Redeem" : `${u.cost - myPoints} pts to go`}
+                  {can ? "Redeem" : myPoints < u.cost ? `${u.cost - myPoints} pts to go` : `${u.tierMin} and up`}
                 </button>
               </div>
             );
@@ -820,12 +842,13 @@ function AccountView() {
         <h1 style={{ fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 32, marginBottom: 18 }}>Your account</h1>
         <div style={{ background: "white", borderRadius: 16, padding: 22, marginBottom: 14 }}>
           <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 16, marginBottom: 12 }}>Recent orders</div>
-          {[
-            { id: "#1289", date: "Today · 4:42 PM",     items: "Pepperoni · Garlic bread", total: 34, status: "In progress" },
-            { id: "#1276", date: "Apr 14 · 7:22 PM",    items: "Margherita · Tiramisu",     total: 33, status: "Delivered" },
-            { id: "#1264", date: "Apr 9 · 6:50 PM",     items: "Family Pack",                total: 62, status: "Delivered" },
-            { id: "#1242", date: "Apr 2 · 8:10 PM",     items: "Quattro Formaggi",            total: 27, status: "Delivered" },
-          ].map((o) => (
+          {memberOrders.slice(0, 4).map((m) => ({
+            id: m.number,
+            date: orderWhen(m.placedAt),
+            items: orderSummary(m),
+            total: m.total,
+            status: m.status === "delivered" ? "Delivered" : "In progress",
+          })).map((o) => (
             <div key={o.id} style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: 12, alignItems: "center", padding: "12px 0", borderTop: "1px solid rgba(26,22,18,0.06)" }}>
               <div>
                 <div style={{ fontWeight: 700, fontSize: 14 }}>{o.id} · {o.date}</div>
@@ -849,10 +872,10 @@ function AccountView() {
         </div>
 
         <div style={{ background: "white", borderRadius: 16, padding: 22, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }} className="mh-account-grid">
-          <Card title="Saved address" body="48 Coogee Bay Rd, Coogee NSW 2034" />
-          <Card title="Payment" body="Visa ending 6411 · Apple Pay" />
+          <Card title="Saved address" body={member.address} />
+          <Card title="Payment" body={`${member.card.brand} ending ${member.card.last4} · Apple Pay`} />
           <Card title="Notifications" body="SMS + push enabled" />
-          <Card title="Email" body="liam@example.com" />
+          <Card title="Email" body={member.email} />
         </div>
 
         <style>{`@media (max-width: 560px) { .mh-account-grid { grid-template-columns: 1fr !important; } }`}</style>

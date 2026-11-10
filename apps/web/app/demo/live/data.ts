@@ -2,6 +2,20 @@
 // Deterministic (no Math.random in render path) so hydration stays stable.
 
 import type { IconName } from "../../components/zb-icon";
+import {
+  sampleBusiness,
+  sampleCategories,
+  sampleCustomer,
+  sampleCustomerOrders,
+  sampleDeals,
+  sampleMenuItems,
+  sampleRewards,
+  sampleTiers,
+  line,
+  priced,
+  type SampleOrder,
+  type SampleReward,
+} from "../sample-business";
 
 export type OrderStatus = "new" | "cooking" | "ready" | "out" | "delivered" | "cancelled";
 export type OrderChannel = "storefront" | "pos" | "app" | "uber" | "doordash";
@@ -49,56 +63,98 @@ export type DemoCampaign = {
   recovered30d: number;
   revenue30d: number;
   template: string;
+  /** The customer the message preview is written for. Always someone this
+   *  campaign would actually send to, so the preview matches the customer list. */
+  previewCustomerId: string;
 };
 
-export const business = {
-  name: "Nonna's Kitchen",
-  type: "Pizzeria · Adelaide, SA",
+// The restaurant itself (name, address, phone, menu, rewards) comes from
+// ../sample-business, which the ordering site and the app read too.
+export const business: { name: string; type: string; address: string; phone: string; subdomain: string; closes: string; logo: string; today: string } = {
+  name: sampleBusiness.name,
+  type: `Pizzeria · ${sampleBusiness.city}, ${sampleBusiness.state}`,
+  address: sampleBusiness.address,
+  phone: sampleBusiness.phone,
+  subdomain: sampleBusiness.subdomain,
+  closes: sampleBusiness.closes,
   logo: "🍕",
   today: "Saturday, 18 Apr",
 };
 
 // ---- Customers ----
+// "Last order" matches each customer's latest order below. Phone numbers are
+// from the ACMA's fiction list and emails use example.com, so the screenshots
+// can't show a real person's details.
+const S = sampleCustomer;
 export const customers: DemoCustomer[] = [
-  { id: "c01", name: "Olivia Martin",    email: "olivia.m@gmail.com",       phone: "+61 412 558 901", tier: "VIP",    points: 1240, ltv: 2480.50, orders: 38, lastOrderAt: "2026-04-17T19:22:00", firstOrderAt: "2024-11-02T18:40:00", favourite: "Margherita + Garlic bread", postcode: "5000", status: "active" },
-  { id: "c02", name: "James Kim",        email: "james.kim@outlook.com",    phone: "+61 424 712 030", tier: "Gold",   points: 780,  ltv: 1642.20, orders: 27, lastOrderAt: "2026-04-16T20:05:00", firstOrderAt: "2024-09-22T19:10:00", favourite: "Pepperoni",                  postcode: "5006", status: "active" },
-  { id: "c03", name: "Priya Sharma",     email: "priya.s@yahoo.com",        phone: "+61 433 880 124", tier: "Gold",   points: 612,  ltv: 1288.00, orders: 22, lastOrderAt: "2026-04-18T12:40:00", firstOrderAt: "2024-12-12T13:22:00", favourite: "Quattro formaggi",           postcode: "5008", status: "active" },
-  { id: "c04", name: "Daniel O'Brien",   email: "dan.obrien@gmail.com",     phone: "+61 411 223 450", tier: "Silver", points: 320,  ltv: 782.80,  orders: 14, lastOrderAt: "2026-04-14T19:55:00", firstOrderAt: "2025-02-01T20:00:00", favourite: "Wagyu burger",               postcode: "5062", status: "active" },
-  { id: "c05", name: "Hana Tanaka",      email: "hana.tanaka@gmail.com",    phone: "+61 439 651 208", tier: "Silver", points: 285,  ltv: 624.50,  orders: 12, lastOrderAt: "2026-04-11T18:10:00", firstOrderAt: "2025-01-15T19:30:00", favourite: "Margherita",                 postcode: "5000", status: "active" },
-  { id: "c06", name: "Ethan Wright",     email: "e.wright@icloud.com",      phone: "+61 432 118 702", tier: "Silver", points: 240,  ltv: 548.20,  orders: 11, lastOrderAt: "2026-04-09T19:30:00", firstOrderAt: "2025-02-20T20:05:00", favourite: "Pepperoni + Wings",          postcode: "5063", status: "active" },
-  { id: "c07", name: "Mia Novak",        email: "mia.novak@gmail.com",      phone: "+61 438 002 551", tier: "Bronze", points: 95,   ltv: 218.40,  orders: 6,  lastOrderAt: "2026-04-05T12:15:00", firstOrderAt: "2025-09-01T18:20:00", favourite: "Hawaiian",                   postcode: "5067", status: "active" },
-  { id: "c08", name: "Lachlan Park",     email: "lachlan.p@outlook.com",    phone: "+61 422 559 104", tier: "Bronze", points: 60,   ltv: 142.80,  orders: 4,  lastOrderAt: "2026-03-28T19:40:00", firstOrderAt: "2025-11-12T19:30:00", favourite: "Veggie supreme",             postcode: "5015", status: "lapsing" },
-  { id: "c09", name: "Amelia Rossi",     email: "amelia.r@gmail.com",       phone: "+61 410 445 220", tier: "Silver", points: 210,  ltv: 486.00,  orders: 9,  lastOrderAt: "2026-03-15T20:05:00", firstOrderAt: "2025-03-18T19:00:00", favourite: "Quattro stagioni",           postcode: "5031", status: "lapsing" },
-  { id: "c10", name: "Henry Fitzgerald", email: "henry.fitz@gmail.com",     phone: "+61 437 776 091", tier: "Bronze", points: 40,   ltv: 92.40,   orders: 3,  lastOrderAt: "2026-02-22T18:30:00", firstOrderAt: "2025-12-04T19:10:00", favourite: "Margherita",                 postcode: "5045", status: "lapsed" },
-  { id: "c11", name: "Sofia De Luca",    email: "s.deluca@icloud.com",      phone: "+61 429 002 447", tier: "VIP",    points: 1580, ltv: 3240.00, orders: 52, lastOrderAt: "2026-04-18T13:10:00", firstOrderAt: "2024-06-18T12:40:00", favourite: "Margherita + Tiramisu",      postcode: "5000", status: "active" },
-  { id: "c12", name: "Noah Thompson",    email: "noah.t@gmail.com",         phone: "+61 413 881 209", tier: "Gold",   points: 520,  ltv: 1122.60, orders: 19, lastOrderAt: "2026-04-17T12:22:00", firstOrderAt: "2024-10-30T13:00:00", favourite: "Pepperoni",                  postcode: "5006", status: "active" },
-  { id: "c13", name: "Zara Ahmed",       email: "zara.ahmed@gmail.com",     phone: "+61 438 112 005", tier: "Silver", points: 190,  ltv: 412.00,  orders: 8,  lastOrderAt: "2026-04-10T20:15:00", firstOrderAt: "2025-04-22T19:40:00", favourite: "Veggie supreme",             postcode: "5067", status: "active" },
-  { id: "c14", name: "Max Bennett",      email: "max.bennett@outlook.com",  phone: "+61 422 665 009", tier: "Bronze", points: 70,   ltv: 164.80,  orders: 5,  lastOrderAt: "2026-04-02T19:40:00", firstOrderAt: "2025-08-10T19:30:00", favourite: "Wagyu burger",               postcode: "5015", status: "lapsing" },
-  { id: "c15", name: "Eva Petrov",       email: "eva.petrov@gmail.com",     phone: "+61 415 334 881", tier: "Silver", points: 170,  ltv: 388.00,  orders: 7,  lastOrderAt: "2026-04-12T19:30:00", firstOrderAt: "2025-05-08T20:10:00", favourite: "Margherita",                 postcode: "5031", status: "active" },
+  { id: "c01", name: "Olivia Martin",    email: "olivia.m@example.com",      phone: "+61 491 570 006", tier: "VIP",    points: 1240, ltv: 2480.50, orders: 38, lastOrderAt: "2026-04-18T11:40:00", firstOrderAt: "2024-11-02T18:40:00", favourite: "Margherita + Garlic bread", postcode: "5000", status: "active" },
+  { id: "c02", name: "James Kim",        email: "james.kim@example.com",     phone: "+61 491 570 110", tier: "Gold",   points: 780,  ltv: 1642.20, orders: 27, lastOrderAt: "2026-04-18T11:55:00", firstOrderAt: "2024-09-22T19:10:00", favourite: "Pepperoni",                  postcode: "5006", status: "active" },
+  { id: "c03", name: "Priya Sharma",     email: "priya.s@example.com",       phone: "+61 491 570 156", tier: "Gold",   points: 612,  ltv: 1288.00, orders: 22, lastOrderAt: "2026-04-18T12:40:00", firstOrderAt: "2024-12-12T13:22:00", favourite: "Quattro formaggi",           postcode: "5008", status: "active" },
+  { id: "c04", name: "Daniel O'Brien",   email: "dan.obrien@example.com",    phone: "+61 491 570 157", tier: "Silver", points: 320,  ltv: 782.80,  orders: 14, lastOrderAt: "2026-04-17T19:55:00", firstOrderAt: "2025-02-01T20:00:00", favourite: "Wagyu burger",               postcode: "5062", status: "active" },
+  { id: "c05", name: "Hana Tanaka",      email: "hana.tanaka@example.com",   phone: "+61 491 570 158", tier: "Silver", points: 285,  ltv: 624.50,  orders: 12, lastOrderAt: "2026-04-18T11:15:00", firstOrderAt: "2025-01-15T19:30:00", favourite: "Margherita",                 postcode: "5000", status: "active" },
+  { id: "c06", name: "Ethan Wright",     email: "e.wright@example.com",      phone: "+61 491 570 159", tier: "Silver", points: 240,  ltv: 548.20,  orders: 11, lastOrderAt: "2026-04-17T19:30:00", firstOrderAt: "2025-02-20T20:05:00", favourite: "Pepperoni + Wings",          postcode: "5063", status: "active" },
+  { id: "c07", name: "Mia Novak",        email: "mia.novak@example.com",     phone: "+61 491 570 313", tier: "Bronze", points: 95,   ltv: 218.40,  orders: 6,  lastOrderAt: "2026-04-14T12:15:00", firstOrderAt: "2025-09-01T18:20:00", favourite: "Hawaiian",                   postcode: "5067", status: "active" },
+  { id: "c08", name: "Lachlan Park",     email: "lachlan.p@example.com",     phone: "+61 491 570 737", tier: "Bronze", points: 60,   ltv: 142.80,  orders: 4,  lastOrderAt: "2026-03-28T19:40:00", firstOrderAt: "2025-11-12T19:30:00", favourite: "Veggie supreme",             postcode: "5015", status: "lapsing" },
+  { id: "c09", name: "Amelia Rossi",     email: "amelia.r@example.com",      phone: "+61 491 571 266", tier: "Silver", points: 210,  ltv: 486.00,  orders: 9,  lastOrderAt: "2026-03-15T20:05:00", firstOrderAt: "2025-03-18T19:00:00", favourite: "Quattro stagioni",           postcode: "5031", status: "lapsing" },
+  { id: "c10", name: "Henry Fitzgerald", email: "henry.fitz@example.com",    phone: "+61 491 571 491", tier: "Bronze", points: 40,   ltv: 92.40,   orders: 3,  lastOrderAt: "2026-02-14T18:30:00", firstOrderAt: "2025-12-04T19:10:00", favourite: "Margherita",                 postcode: "5045", status: "lapsed" },
+  { id: S.id,  name: S.name,             email: S.email,                     phone: S.phone,           tier: S.tier,   points: S.points, ltv: S.ltv, orders: S.orders, lastOrderAt: S.lastOrderAt, firstOrderAt: S.firstOrderAt, favourite: S.favourite,                postcode: S.postcode, status: "active" },
+  { id: "c12", name: "Noah Thompson",    email: "noah.t@example.com",        phone: "+61 491 572 549", tier: "Gold",   points: 520,  ltv: 1122.60, orders: 19, lastOrderAt: "2026-04-18T12:22:00", firstOrderAt: "2024-10-30T13:00:00", favourite: "Pepperoni",                  postcode: "5006", status: "active" },
+  { id: "c13", name: "Zara Ahmed",       email: "zara.ahmed@example.com",    phone: "+61 491 572 665", tier: "Silver", points: 190,  ltv: 412.00,  orders: 8,  lastOrderAt: "2026-04-17T20:15:00", firstOrderAt: "2025-04-22T19:40:00", favourite: "Veggie supreme",             postcode: "5067", status: "active" },
+  { id: "c14", name: "Max Bennett",      email: "max.bennett@example.com",   phone: "+61 491 572 983", tier: "Bronze", points: 70,   ltv: 164.80,  orders: 5,  lastOrderAt: "2026-04-02T19:40:00", firstOrderAt: "2025-08-10T19:30:00", favourite: "Wagyu burger",               postcode: "5015", status: "lapsing" },
+  { id: "c15", name: "Eva Petrov",       email: "eva.petrov@example.com",    phone: "+61 491 573 770", tier: "Silver", points: 170,  ltv: 388.00,  orders: 7,  lastOrderAt: "2026-04-17T19:30:00", firstOrderAt: "2025-05-08T20:10:00", favourite: "Margherita",                 postcode: "5031", status: "active" },
 ];
 
 // Customer lookup
 export const customerById: Record<string, DemoCustomer> = Object.fromEntries(customers.map((c) => [c.id, c]));
 
 // ---- Orders ----
-// Mix of statuses so the Orders page looks alive.
+// Mix of statuses so the Orders page looks alive. Lines come from the shared
+// menu (`line`), and subtotal and total are added up from them (`priced`).
+const forCustomer = (customerId: string, o: SampleOrder): DemoOrder => ({
+  ...o,
+  customerId,
+  customerName: customerById[customerId]!.name,
+});
+const [sofiaNow, sofiaWed, ...sofiaEarlier] = sampleCustomerOrders.map((o) => forCustomer(S.id, o));
+
 export const orders: DemoOrder[] = [
-  { id: "o1294", number: "#1294", customerId: "c03", customerName: "Priya Sharma",    placedAt: "2026-04-18T12:40:00", status: "new",       channel: "storefront", items: [{ name: "Margherita",     qty: 2, price: 18.5 }, { name: "Garlic bread", qty: 1, price: 7.5 }], subtotal: 44.5, fees: 1.28, tip: 3.0, total: 48.78, notes: "No basil please" },
-  { id: "o1293", number: "#1293", customerId: "c11", customerName: "Sofia De Luca",    placedAt: "2026-04-18T13:10:00", status: "cooking",   channel: "app",        items: [{ name: "Pepperoni",      qty: 1, price: 22.0 }, { name: "Tiramisu",     qty: 1, price: 8.5 }],  subtotal: 30.5, fees: 0.88, tip: 2.5, total: 33.88 },
-  { id: "o1292", number: "#1292", customerId: "c12", customerName: "Noah Thompson",    placedAt: "2026-04-18T12:22:00", status: "ready",     channel: "pos",        items: [{ name: "Quattro formaggi",qty: 1, price: 24.0 }, { name: "Coke",         qty: 2, price: 4.0 }],  subtotal: 32.0, fees: 0.00, tip: 0.0, total: 32.00 },
-  { id: "o1291", number: "#1291", customerId: "c02", customerName: "James Kim",        placedAt: "2026-04-18T11:55:00", status: "out",       channel: "uber",       items: [{ name: "Pepperoni",      qty: 2, price: 22.0 }, { name: "Wings",        qty: 1, price: 14.0 }], subtotal: 58.0, fees: 1.67, tip: 5.0, total: 64.67, deliveryEta: "12:35pm" },
-  { id: "o1290", number: "#1290", customerId: "c01", customerName: "Olivia Martin",    placedAt: "2026-04-18T11:40:00", status: "delivered", channel: "app",        items: [{ name: "Margherita",     qty: 1, price: 18.5 }, { name: "Garlic bread", qty: 1, price: 7.5 }, { name: "Sparkling water", qty: 1, price: 4.0 }], subtotal: 30.0, fees: 0.86, tip: 3.0, total: 33.86 },
-  { id: "o1289", number: "#1289", customerId: "c05", customerName: "Hana Tanaka",      placedAt: "2026-04-18T11:15:00", status: "delivered", channel: "storefront", items: [{ name: "Margherita",     qty: 1, price: 18.5 }, { name: "Caesar salad", qty: 1, price: 13.5 }], subtotal: 32.0, fees: 0.92, tip: 2.5, total: 35.42 },
-  { id: "o1288", number: "#1288", customerId: "c04", customerName: "Daniel O'Brien",   placedAt: "2026-04-17T19:55:00", status: "delivered", channel: "doordash",   items: [{ name: "Wagyu burger",   qty: 1, price: 26.5 }, { name: "Fries",        qty: 1, price: 7.0 }, { name: "Coke", qty: 1, price: 4.0 }], subtotal: 37.5, fees: 1.08, tip: 0.0, total: 38.58 },
-  { id: "o1287", number: "#1287", customerId: "c06", customerName: "Ethan Wright",     placedAt: "2026-04-17T19:30:00", status: "delivered", channel: "app",        items: [{ name: "Pepperoni",      qty: 1, price: 22.0 }, { name: "Wings",        qty: 1, price: 14.0 }], subtotal: 36.0, fees: 1.04, tip: 4.0, total: 41.04 },
-  { id: "o1286", number: "#1286", customerId: "c13", customerName: "Zara Ahmed",       placedAt: "2026-04-17T20:15:00", status: "delivered", channel: "storefront", items: [{ name: "Veggie supreme", qty: 1, price: 21.0 }, { name: "Garlic bread", qty: 1, price: 7.5 }], subtotal: 28.5, fees: 0.82, tip: 2.0, total: 31.32 },
-  { id: "o1285", number: "#1285", customerId: "c15", customerName: "Eva Petrov",       placedAt: "2026-04-17T19:30:00", status: "delivered", channel: "app",        items: [{ name: "Margherita",     qty: 1, price: 18.5 }],                                                                                   subtotal: 18.5, fees: 0.54, tip: 1.5, total: 20.54 },
-  { id: "o1284", number: "#1284", customerId: "c01", customerName: "Olivia Martin",    placedAt: "2026-04-16T19:22:00", status: "delivered", channel: "app",        items: [{ name: "Margherita",     qty: 1, price: 18.5 }, { name: "Tiramisu",     qty: 1, price: 8.5 }],  subtotal: 27.0, fees: 0.78, tip: 2.5, total: 30.28 },
-  { id: "o1283", number: "#1283", customerId: "c02", customerName: "James Kim",        placedAt: "2026-04-16T20:05:00", status: "delivered", channel: "pos",        items: [{ name: "Pepperoni",      qty: 1, price: 22.0 }, { name: "Coke",         qty: 1, price: 4.0 }],  subtotal: 26.0, fees: 0.00, tip: 0.0, total: 26.00 },
-  { id: "o1282", number: "#1282", customerId: "c11", customerName: "Sofia De Luca",    placedAt: "2026-04-15T19:40:00", status: "delivered", channel: "app",        items: [{ name: "Margherita",     qty: 2, price: 18.5 }, { name: "Tiramisu",     qty: 1, price: 8.5 }],  subtotal: 45.5, fees: 1.32, tip: 4.5, total: 51.32 },
-  { id: "o1281", number: "#1281", customerId: "c12", customerName: "Noah Thompson",    placedAt: "2026-04-15T12:22:00", status: "delivered", channel: "storefront", items: [{ name: "Pepperoni",      qty: 1, price: 22.0 }],                                                                                   subtotal: 22.0, fees: 0.64, tip: 2.0, total: 24.64 },
-  { id: "o1280", number: "#1280", customerId: "c07", customerName: "Mia Novak",        placedAt: "2026-04-14T12:15:00", status: "delivered", channel: "uber",       items: [{ name: "Hawaiian",       qty: 1, price: 20.5 }, { name: "Garlic bread", qty: 1, price: 7.5 }],  subtotal: 28.0, fees: 0.81, tip: 0.0, total: 28.81 },
+  { ...forCustomer("c03", { id: "o1294", number: "#1294", placedAt: "2026-04-18T12:40:00", status: "new", channel: "storefront", ...priced([line("Margherita", 2), line("Garlic bread")], 1.28, 3.0) }), notes: "No basil please" },
+  sofiaNow!,
+  forCustomer("c12", { id: "o1292", number: "#1292", placedAt: "2026-04-18T12:22:00", status: "ready",     channel: "pos",        ...priced([line("Quattro formaggi"), line("Coke", 2)], 0, 0) }),
+  { ...forCustomer("c02", { id: "o1291", number: "#1291", placedAt: "2026-04-18T11:55:00", status: "out", channel: "uber",       ...priced([line("Pepperoni", 2), line("Wings")], 1.67, 5.0) }), deliveryEta: "12:35pm" },
+  forCustomer("c01", { id: "o1290", number: "#1290", placedAt: "2026-04-18T11:40:00", status: "delivered", channel: "app",        ...priced([line("Margherita"), line("Garlic bread"), line("Sparkling water")], 0.86, 3.0) }),
+  forCustomer("c05", { id: "o1289", number: "#1289", placedAt: "2026-04-18T11:15:00", status: "delivered", channel: "storefront", ...priced([line("Margherita"), line("Caesar salad")], 0.92, 2.5) }),
+  forCustomer("c04", { id: "o1288", number: "#1288", placedAt: "2026-04-17T19:55:00", status: "delivered", channel: "doordash",   ...priced([line("Wagyu burger"), line("Fries"), line("Coke")], 1.08, 0) }),
+  forCustomer("c06", { id: "o1287", number: "#1287", placedAt: "2026-04-17T19:30:00", status: "delivered", channel: "app",        ...priced([line("Pepperoni"), line("Wings")], 1.04, 4.0) }),
+  forCustomer("c13", { id: "o1286", number: "#1286", placedAt: "2026-04-17T20:15:00", status: "delivered", channel: "storefront", ...priced([line("Veggie supreme"), line("Garlic bread")], 0.82, 2.0) }),
+  forCustomer("c15", { id: "o1285", number: "#1285", placedAt: "2026-04-17T19:30:00", status: "delivered", channel: "app",        ...priced([line("Margherita")], 0.54, 1.5) }),
+  forCustomer("c01", { id: "o1284", number: "#1284", placedAt: "2026-04-16T19:22:00", status: "delivered", channel: "app",        ...priced([line("Margherita"), line("Tiramisu")], 0.78, 2.5) }),
+  forCustomer("c02", { id: "o1283", number: "#1283", placedAt: "2026-04-16T20:05:00", status: "delivered", channel: "pos",        ...priced([line("Pepperoni"), line("Coke")], 0, 0) }),
+  sofiaWed!,
+  forCustomer("c12", { id: "o1281", number: "#1281", placedAt: "2026-04-15T12:22:00", status: "delivered", channel: "storefront", ...priced([line("Pepperoni")], 0.64, 2.0) }),
+  forCustomer("c07", { id: "o1280", number: "#1280", placedAt: "2026-04-14T12:15:00", status: "delivered", channel: "uber",       ...priced([line("Hawaiian"), line("Garlic bread")], 0.81, 0) }),
 ];
+
+// Older orders. They aren't on the live Orders board, only in a customer's
+// order history, so every customer's latest order is listed somewhere.
+export const pastOrders: DemoOrder[] = [
+  ...sofiaEarlier,
+  forCustomer("c14", { id: "o1236", number: "#1236", placedAt: "2026-04-02T19:40:00", status: "delivered", channel: "app",        ...priced([line("Wagyu burger"), line("Fries")], 0.97, 0) }),
+  forCustomer("c08", { id: "o1198", number: "#1198", placedAt: "2026-03-28T19:40:00", status: "delivered", channel: "uber",       ...priced([line("Veggie supreme"), line("Coke")], 0.73, 0) }),
+  forCustomer("c09", { id: "o1142", number: "#1142", placedAt: "2026-03-15T20:05:00", status: "delivered", channel: "storefront", ...priced([line("Quattro stagioni"), line("Garlic bread")], 0.9, 2.0) }),
+  forCustomer("c10", { id: "o1031", number: "#1031", placedAt: "2026-02-14T18:30:00", status: "delivered", channel: "doordash",   ...priced([line("Margherita"), line("Peroni")], 0.78, 0) }),
+];
+
+/** A customer's latest orders (up to `limit`, newest first) and how many more
+ *  they've placed. Three keeps the profile drawer on one screen. */
+export function customerOrderHistory(customerId: string, limit = 3) {
+  const c = customerById[customerId];
+  const all = [...orders, ...pastOrders]
+    .filter((o) => o.customerId === customerId)
+    .sort((a, b) => (a.placedAt < b.placedAt ? 1 : -1));
+  const shown = all.slice(0, limit);
+  return { shown, more: Math.max(0, (c?.orders ?? all.length) - shown.length), total: c?.orders ?? all.length };
+}
 
 // Most-recent-first
 export const ordersByRecent = [...orders].sort((a, b) => (a.placedAt < b.placedAt ? 1 : -1));
@@ -116,6 +172,7 @@ export const campaigns: DemoCampaign[] = [
     recovered30d: 22,
     revenue30d: 1_188.40,
     template: "Hey {name}, we miss you. Here's 20% off your next order with us. Code: COMEBACK20",
+    previewCustomerId: "c09", // Amelia: lapsing, last order 34 days ago
   },
   {
     id: "wb02",
@@ -126,7 +183,8 @@ export const campaigns: DemoCampaign[] = [
     sent30d: 12,
     recovered30d: 9,
     revenue30d: 428.00,
-    template: "Happy early birthday {name}! Enjoy +250 bonus points this week — on us.",
+    template: "Happy early birthday {name}! Enjoy +200 bonus points this week — on us.",
+    previewCustomerId: "c01", // Olivia: VIP
   },
   {
     id: "wb03",
@@ -138,6 +196,7 @@ export const campaigns: DemoCampaign[] = [
     recovered30d: 11,
     revenue30d: 492.20,
     template: "You left a {favourite} in your cart, {name}. Still warm from the oven — complete your order?",
+    previewCustomerId: "c06", // Ethan
   },
   {
     id: "wb04",
@@ -149,6 +208,7 @@ export const campaigns: DemoCampaign[] = [
     recovered30d: 4,
     revenue30d: 168.80,
     template: "{name}, it's been a while. One free garlic bread with your next order. Code: WELCOME",
+    previewCustomerId: "c10", // Henry: lapsed, last order 63 days ago
   },
   {
     id: "wb05",
@@ -160,6 +220,7 @@ export const campaigns: DemoCampaign[] = [
     recovered30d: 0,
     revenue30d: 0,
     template: "How was your {favourite}, {name}? Leave a quick review — takes 20 seconds.",
+    previewCustomerId: "c05", // Hana: order delivered this morning
   },
   {
     id: "wb06",
@@ -171,6 +232,7 @@ export const campaigns: DemoCampaign[] = [
     recovered30d: 0,
     revenue30d: 0,
     template: "Welcome to Gold, {name}. You now earn 1.5× points and get free delivery under $30.",
+    previewCustomerId: "c12", // Noah: just crossed 500 points
   },
 ];
 
@@ -271,11 +333,14 @@ export type DemoCall = {
   summary: string;
 };
 
+const lunchCombo = sampleDeals.find((d) => d.id === "d01")!;
+const familyPack = sampleDeals.find((d) => d.id === "d02")!;
+
 export const calls: DemoCall[] = [
   {
     id: "call-118",
     caller: "Olivia Martin",
-    phone: "+61 412 558 901",
+    phone: "+61 491 570 006",
     startedAt: "2026-04-18T13:02:00",
     durationSec: 84,
     outcome: "order_placed",
@@ -295,7 +360,7 @@ export const calls: DemoCall[] = [
   {
     id: "call-117",
     caller: "Unknown",
-    phone: "+61 401 552 008",
+    phone: "+61 491 573 087",
     startedAt: "2026-04-18T12:48:00",
     durationSec: 42,
     outcome: "question",
@@ -312,7 +377,7 @@ export const calls: DemoCall[] = [
   {
     id: "call-116",
     caller: "James Kim",
-    phone: "+61 424 712 030",
+    phone: "+61 491 570 110",
     startedAt: "2026-04-18T12:31:00",
     durationSec: 96,
     outcome: "booking",
@@ -329,7 +394,7 @@ export const calls: DemoCall[] = [
   {
     id: "call-115",
     caller: "Daniel O'Brien",
-    phone: "+61 411 223 450",
+    phone: "+61 491 570 157",
     startedAt: "2026-04-18T12:14:00",
     durationSec: 28,
     outcome: "transferred",
@@ -344,7 +409,7 @@ export const calls: DemoCall[] = [
   {
     id: "call-114",
     caller: "Unknown",
-    phone: "+61 433 778 220",
+    phone: "+61 491 574 118",
     startedAt: "2026-04-18T11:52:00",
     durationSec: 0,
     outcome: "missed",
@@ -356,26 +421,25 @@ export const calls: DemoCall[] = [
   },
   {
     id: "call-113",
-    caller: "Sofia De Luca",
-    phone: "+61 429 002 447",
+    caller: S.name,
+    phone: S.phone,
     startedAt: "2026-04-18T11:34:00",
     durationSec: 72,
-    outcome: "order_placed",
-    orderId: "o1293",
-    orderTotal: 33.88,
+    outcome: "booking",
     costCents: 10,
-    summary: "VIP customer ordered pepperoni + tiramisu. Tier upgrade to Platinum mentioned by AI (next bracket).",
+    summary: `VIP regular pre-ordered the ${familyPack.title.toLowerCase()} (${formatAUD(familyPack.price)}) for Sunday 6pm pickup. AI recognised her number.`,
     transcript: [
-      { who: "ai",     text: "Hi Sofia, thanks for calling — pepperoni and tiramisu again?" },
-      { who: "caller", text: "Haha you know me too well. Yes please, plus a Coke." },
-      { who: "ai",     text: "On it. By the way — you're 60 points away from our top tier. One more order this month and you unlock free delivery for life." },
-      { who: "caller", text: "Sweet! Okay, see you soon." },
+      { who: "ai",     text: "Hi Sofia, thanks for calling. What can I do for you?" },
+      { who: "caller", text: "Is the family pack on this weekend? I've got people over on Sunday." },
+      { who: "ai",     text: `It is. Margherita, pepperoni, garlic bread and tiramisu for ${formatAUD(familyPack.price)}. Want me to book it in for Sunday?` },
+      { who: "caller", text: "Yes please, 6pm pickup." },
+      { who: "ai",     text: "Done. We'll text you on Sunday when it's in the oven." },
     ],
   },
   {
     id: "call-112",
     caller: "Hana Tanaka",
-    phone: "+61 439 651 208",
+    phone: "+61 491 570 158",
     startedAt: "2026-04-18T11:08:00",
     durationSec: 38,
     outcome: "question",
@@ -384,7 +448,7 @@ export const calls: DemoCall[] = [
     transcript: [
       { who: "ai",     text: "Hi Hana! What can I get you?" },
       { who: "caller", text: "Just calling to see what your lunch special is today?" },
-      { who: "ai",     text: "It's the margherita + Caesar salad combo for $24 — saves you $7. Available till 3pm." },
+      { who: "ai",     text: `It's the margherita + Caesar salad combo for ${formatAUD(lunchCombo.price)}, which saves you ${formatAUD(lunchCombo.saves)}. Available until 3pm.` },
       { who: "caller", text: "Lovely thanks, I'll order online." },
     ],
   },
@@ -425,55 +489,14 @@ export type MenuCategory = {
   items: MenuItem[];
 };
 
-export const menu: MenuCategory[] = [
-  {
-    id: "pizzas",
-    name: "Pizzas",
-    items: [
-      { id: "p1", name: "Margherita",       price: 18.5, available: true,  emoji: "🍕", desc: "San Marzano tomato, fior di latte, basil",     popular: true },
-      { id: "p2", name: "Pepperoni",        price: 22.0, available: true,  emoji: "🍕", desc: "Cured pork pepperoni, mozzarella",              popular: true },
-      { id: "p3", name: "Quattro formaggi", price: 24.0, available: true,  emoji: "🍕", desc: "Mozzarella, gorgonzola, parmesan, taleggio" },
-      { id: "p4", name: "Veggie supreme",   price: 21.0, available: true,  emoji: "🍕", desc: "Capsicum, mushroom, olives, onion, rocket" },
-      { id: "p5", name: "Hawaiian",         price: 20.5, available: true,  emoji: "🍕", desc: "Ham, pineapple, mozzarella" },
-      { id: "p6", name: "Quattro stagioni", price: 23.5, available: false, emoji: "🍕", desc: "Out of artichoke — back tomorrow" },
-    ],
-  },
-  {
-    id: "burgers",
-    name: "Burgers",
-    items: [
-      { id: "b1", name: "Wagyu burger", price: 26.5, available: true, emoji: "🍔", desc: "180g wagyu, smoked cheddar, brioche", popular: true },
-      { id: "b2", name: "Chicken burger", price: 22.0, available: true, emoji: "🍔", desc: "Buttermilk fried chicken, slaw" },
-    ],
-  },
-  {
-    id: "sides",
-    name: "Sides",
-    items: [
-      { id: "s1", name: "Garlic bread",   price: 7.5, available: true, emoji: "🥖" },
-      { id: "s2", name: "Caesar salad",   price: 13.5, available: true, emoji: "🥗" },
-      { id: "s3", name: "Wings (8pc)",    price: 14.0, available: true, emoji: "🍗" },
-      { id: "s4", name: "Fries",          price: 7.0,  available: true, emoji: "🍟" },
-    ],
-  },
-  {
-    id: "drinks",
-    name: "Drinks",
-    items: [
-      { id: "d1", name: "Coke",            price: 4.0, available: true,  emoji: "🥤" },
-      { id: "d2", name: "Sparkling water", price: 4.0, available: true,  emoji: "💧" },
-      { id: "d3", name: "Peroni",          price: 8.5, available: true,  emoji: "🍺" },
-    ],
-  },
-  {
-    id: "desserts",
-    name: "Desserts",
-    items: [
-      { id: "ds1", name: "Tiramisu",       price: 8.5, available: true,  emoji: "🍰", desc: "Made fresh in-house" },
-      { id: "ds2", name: "Cannoli",        price: 6.5, available: true,  emoji: "🥐" },
-    ],
-  },
-];
+// The menu is the shared one in ../sample-business, grouped by category.
+export const menu: MenuCategory[] = sampleCategories.map((cat) => ({
+  id: cat.toLowerCase(),
+  name: cat,
+  items: sampleMenuItems
+    .filter((m) => m.category === cat)
+    .map(({ id, name, price, available, emoji, desc, popular }) => ({ id, name, price, available, emoji, desc, popular })),
+}));
 
 // ---- Drivers / Delivery ----
 export type DriverStatus = "idle" | "picking_up" | "delivering" | "returning";
@@ -531,12 +554,13 @@ export type RewardTier = {
   color: string;
 };
 
-export const rewardTiers: RewardTier[] = [
-  { name: "Bronze", min: 0,    multiplier: 1.0, perks: ["1 point per $1 spent"],                                  color: "#C28D5C" },
-  { name: "Silver", min: 200,  multiplier: 1.25, perks: ["1.25× points", "Free side every 5th order"],            color: "#B6C4D6" },
-  { name: "Gold",   min: 500,  multiplier: 1.5,  perks: ["1.5× points", "Free delivery under $30", "Birthday bonus"], color: "#FFC14B" },
-  { name: "VIP",    min: 1000, multiplier: 2.0,  perks: ["2× points", "Free delivery", "Priority support", "Off-menu items"], color: "#C9A24A" },
-];
+const TIER_COLOR: Record<RewardTier["name"], string> = { Bronze: "#C28D5C", Silver: "#B6C4D6", Gold: "#FFC14B", VIP: "#C9A24A" };
+
+// Tiers and the redemption catalogue are shared with the ordering site and the app.
+export const rewardTiers: RewardTier[] = sampleTiers.map((t) => ({ ...t, color: TIER_COLOR[t.name] }));
+
+export type Redemption = SampleReward;
+export const redemptions: Redemption[] = sampleRewards;
 
 export const earnRules = [
   { rule: "Order spend",          earn: "1 point per $1" },
@@ -944,7 +968,7 @@ export type DemoRoutingExample = {
 
 // Pre-baked example route — used as the default when the page loads.
 export const deliveryExampleRoute: DemoRoutingExample = {
-  pickup:    "Nonna's Kitchen, 142 Hutt St, Adelaide SA 5000",
+  pickup:    `${sampleBusiness.name}, ${sampleBusiness.address}`,
   dropoff:   "8 Grenfell St, Adelaide SA 5000",
   distanceKm: 4.2,
   orderValue: 48.78,

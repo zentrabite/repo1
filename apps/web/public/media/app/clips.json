@@ -1,6 +1,6 @@
 {
   "about": "Real screen recordings of the ZentraBite demo app (sample data). Made by apps/web/scripts/record-app. Each clip is muted and loops. Poster is the first frame.",
-  "generated": "2026-10-29",
+  "generated": "2026-11-10",
   "clips": [
     {
       "id": "orders",
@@ -15,7 +15,7 @@
         "height": 900
       },
       "fps": 30,
-      "duration": 7.9,
+      "duration": 8.1,
       "loop": "cut",
       "loopSsim": 0.655,
       "files": {
@@ -24,8 +24,8 @@
         "poster": "/media/app/orders-desktop.webp"
       },
       "bytes": {
-        "mp4": 115341,
-        "webm": 118265,
+        "mp4": 116091,
+        "webm": 115892,
         "poster": 49302
       },
       "encode": {
@@ -35,8 +35,8 @@
       },
       "capture": {
         "method": "screencast",
-        "pace": 9,
-        "testFps": 5
+        "pace": 1,
+        "testFps": 46.2
       }
     },
     {
@@ -52,7 +52,7 @@
         "height": 900
       },
       "fps": 30,
-      "duration": 8.57,
+      "duration": 8.47,
       "loop": "seamless",
       "loopSsim": 1,
       "files": {
@@ -61,9 +61,9 @@
         "poster": "/media/app/customer-desktop.webp"
       },
       "bytes": {
-        "mp4": 157152,
-        "webm": 202944,
-        "poster": 55206
+        "mp4": 159493,
+        "webm": 211853,
+        "poster": 55548
       },
       "encode": {
         "mp4Crf": 26,
@@ -72,8 +72,8 @@
       },
       "capture": {
         "method": "screencast",
-        "pace": 5,
-        "testFps": 9.2
+        "pace": 3,
+        "testFps": 19.2
       }
     },
     {
@@ -89,18 +89,18 @@
         "height": 900
       },
       "fps": 30,
-      "duration": 7.77,
+      "duration": 7.8,
       "loop": "cut",
-      "loopSsim": 0.875,
+      "loopSsim": 0.882,
       "files": {
         "mp4": "/media/app/winback-desktop.mp4",
         "webm": "/media/app/winback-desktop.webm",
         "poster": "/media/app/winback-desktop.webp"
       },
       "bytes": {
-        "mp4": 162844,
-        "webm": 173034,
-        "poster": 46624
+        "mp4": 171881,
+        "webm": 184715,
+        "poster": 46998
       },
       "encode": {
         "mp4Crf": 26,
@@ -109,8 +109,8 @@
       },
       "capture": {
         "method": "screencast",
-        "pace": 3,
-        "testFps": 19.5
+        "pace": 2,
+        "testFps": 23.5
       }
     },
     {
@@ -135,8 +135,8 @@
         "poster": "/media/app/rewards-desktop.webp"
       },
       "bytes": {
-        "mp4": 257153,
-        "webm": 254784,
+        "mp4": 267976,
+        "webm": 262451,
         "poster": 48882
       },
       "encode": {
@@ -146,8 +146,8 @@
       },
       "capture": {
         "method": "screencast",
-        "pace": 3,
-        "testFps": 20.4
+        "pace": 2,
+        "testFps": 39.6
       }
     },
     {
@@ -163,7 +163,7 @@
         "height": 900
       },
       "fps": 30,
-      "duration": 9.67,
+      "duration": 10.37,
       "loop": "seamless",
       "loopSsim": 1,
       "files": {
@@ -172,9 +172,9 @@
         "poster": "/media/app/pos-desktop.webp"
       },
       "bytes": {
-        "mp4": 152043,
-        "webm": 163170,
-        "poster": 42164
+        "mp4": 204053,
+        "webm": 226590,
+        "poster": 41712
       },
       "encode": {
         "mp4Crf": 26,
@@ -184,7 +184,7 @@
       "capture": {
         "method": "screencast",
         "pace": 2,
-        "testFps": 37.4
+        "testFps": 43.4
       }
     },
     {
@@ -200,7 +200,7 @@
         "height": 844
       },
       "fps": 30,
-      "duration": 10.23,
+      "duration": 10.27,
       "loop": "cut",
       "loopSsim": 0.556,
       "files": {
@@ -209,9 +209,9 @@
         "poster": "/media/app/storefront-phone.webp"
       },
       "bytes": {
-        "mp4": 155217,
-        "webm": 151601,
-        "poster": 22472
+        "mp4": 148961,
+        "webm": 141130,
+        "poster": 22182
       },
       "encode": {
         "mp4Crf": 26,
@@ -221,7 +221,7 @@
       "capture": {
         "method": "screencast",
         "pace": 1,
-        "testFps": 59.5
+        "testFps": 59.2
       }
     },
     {
@@ -237,7 +237,7 @@
         "height": 844
       },
       "fps": 30,
-      "duration": 9.27,
+      "duration": 8.5,
       "loop": "cut",
       "loopSsim": 0.619,
       "files": {
@@ -246,8 +246,8 @@
         "poster": "/media/app/crm-phone.webp"
       },
       "bytes": {
-        "mp4": 104364,
-        "webm": 130909,
+        "mp4": 101190,
+        "webm": 134542,
         "poster": 20510
       },
       "encode": {
@@ -258,7 +258,7 @@
       "capture": {
         "method": "screencast",
         "pace": 1,
-        "testFps": 61
+        "testFps": 60.9
       }
     }
   ]

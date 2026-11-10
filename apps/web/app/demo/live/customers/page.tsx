@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { customers, customerById, orders, formatAUD, formatDateTime, timeAgo } from "../data";
+import { customers, customerById, customerOrderHistory, formatAUD, formatDateTime, timeAgo } from "../data";
 import { Icon, type IconName } from "../../../components/zb-icon";
 
 type SortKey = "ltv" | "orders" | "lastOrder" | "name";
@@ -261,9 +261,9 @@ export default function DemoCustomersPage() {
 function CustomerDrawer({ customerId, onClose }: { customerId: string; onClose: () => void }) {
   const c = customerById[customerId]!;
   const tierColor = TIER_COLORS[c.tier]!;
-  const customerOrders = orders
-    .filter((o) => o.customerId === customerId)
-    .sort((a, b) => (a.placedAt < b.placedAt ? 1 : -1));
+  // The latest few orders, then a count of the rest, so the list agrees with "Total orders".
+  const history = customerOrderHistory(customerId);
+  const customerOrders = history.shown;
 
   return (
     <>
@@ -375,7 +375,7 @@ function CustomerDrawer({ customerId, onClose }: { customerId: string; onClose: 
           {/* Order history */}
           <div>
             <div style={{ fontSize: 11, color: "var(--steel)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600, marginBottom: 10 }}>
-              Order history · {customerOrders.length}
+              Order history · {history.total}
             </div>
             <div style={{ display: "grid", gap: 6 }}>
               {customerOrders.map((o) => (
@@ -402,8 +402,10 @@ function CustomerDrawer({ customerId, onClose }: { customerId: string; onClose: 
                   </div>
                 </div>
               ))}
-              {customerOrders.length === 0 && (
-                <div style={{ color: "var(--steel)", fontSize: 13, padding: 12 }}>No order history in demo data.</div>
+              {history.more > 0 && (
+                <div style={{ color: "var(--steel)", fontSize: 12.5, padding: "6px 12px 0" }}>
+                  and {history.more} earlier {history.more === 1 ? "order" : "orders"}
+                </div>
               )}
             </div>
           </div>

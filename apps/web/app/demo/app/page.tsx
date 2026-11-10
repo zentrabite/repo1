@@ -3,10 +3,10 @@
 /**
  * /demo/app
  *
- * Mobile-framed customer app for Harbour Lane Pizza Co.
- * Reuses the same brand, menu, deals and loyalty data as /demo/merchant
- * so the merchant website, the app, and the Super Admin all share one
- * source of truth — this is the "one platform" story in a single artefact.
+ * Mobile-framed customer app for Nonna's Kitchen, the made-up Adelaide
+ * pizzeria in every demo. The brand, menu, deals, rewards and the signed-in
+ * customer (Sofia De Luca, a VIP in the CRM) all come from ../sample-business
+ * through ../merchant/data, so the ordering site, the app and the CRM agree.
  *
  * Desktop: renders a 390×844 phone frame centered on a soft backdrop.
  * Mobile: collapses to fill the viewport.
@@ -23,6 +23,13 @@ import {
   featuredDeals,
   loyalty,
   formatAUD,
+  deliveryFee,
+  itemNamed,
+  member,
+  memberOrders,
+  nextOrderNumber,
+  orderDay,
+  orderSummary,
   type MenuItem,
 } from "../merchant/data";
 
@@ -44,27 +51,36 @@ type Tab = "home" | "menu" | "cart" | "rewards" | "orders" | "profile";
 type CartLine = { id: string; qty: number };
 type Tier = typeof loyalty.tiers[number];
 
-// ---- fake customer
+// ---- the signed-in customer: Sofia, the same VIP as in the CRM
 const CUSTOMER = {
-  name: "Liam",
-  points: 742,
-  tier: "Silver" as const,
-  memberSince: "Aug 2024",
+  name: member.firstName,
+  fullName: member.name,
+  points: member.points,
+  tier: member.tier,
+  memberSince: member.memberSince,
   savedCards: [
-    { brand: "Visa", last4: "4821", default: true },
+    { brand: member.card.brand, last4: member.card.last4, default: true },
     { brand: "Amex", last4: "3112", default: false },
   ],
   addresses: [
-    { label: "Home", line: "12 Windmill St, Millers Point NSW", default: true },
-    { label: "Work", line: "Level 4, 88 George St, Sydney NSW", default: false },
+    { label: "Home", line: member.address, default: true },
+    { label: "Work", line: "Rundle Mall, Adelaide SA 5000", default: false },
   ],
 };
 
-const PAST_ORDERS = [
-  { id: "o-9912", date: "12 Apr", total: 54.0, items: "Margherita · Carbonara · Tiramisu", status: "Delivered" },
-  { id: "o-9883", date: "04 Apr", total: 28.0, items: "Prosciutto & Rocket", status: "Delivered" },
-  { id: "o-9841", date: "27 Mar", total: 46.0, items: "Pizza + Pasta + Drink deal", status: "Delivered" },
-];
+// Her order in the oven now (#1293), then the ones before it.
+const LIVE_ORDER = memberOrders[0]!;
+const PAST_ORDERS = memberOrders.slice(1, 4).map((o) => ({
+  id: o.id,
+  date: orderDay(o.placedAt),
+  total: o.total,
+  items: orderSummary(o),
+  status: "Delivered",
+  itemIds: o.lines.map((l) => l.item.id),
+}));
+
+// "Order it again": what she's ordered lately, most recent first.
+const REGULARS = [...new Map(memberOrders.flatMap((o) => o.lines.map((l) => [l.item.id, l.item] as const))).values()].slice(0, 4);
 
 // ---- helpers (non-null guaranteed because loyalty.tiers is non-empty)
 function currentTier(points: number): Tier {
@@ -84,11 +100,13 @@ function nextTier(points: number): Tier {
 export default function CustomerApp() {
   const [tab, setTab] = useState<Tab>("home");
   const [cart, setCart] = useState<CartLine[]>([
-    { id: "m01", qty: 1 },
-    { id: "m13", qty: 1 },
+    { id: itemNamed("Margherita").id, qty: 1 },
+    { id: itemNamed("Tiramisu").id, qty: 1 },
   ]);
+  const [liveNumber, setLiveNumber] = useState<string>(LIVE_ORDER.number);
   const [category, setCategory] = useState<string>(categories[0] ?? "Pizza");
-  const [activeOrderStage, setActiveOrderStage] = useState<number>(0); // 0..3
+  // #1293 is already in the oven (Cooking in the CRM), so the live order starts at stage 1.
+  const [activeOrderStage, setActiveOrderStage] = useState<number>(1); // 0..3
   const [detailItem, setDetailItem] = useState<MenuItem | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -131,7 +149,7 @@ export default function CustomerApp() {
     [cart]
   );
   const subtotal = cartItems.reduce((s, l) => s + l.item.price * l.qty, 0);
-  const delivery = subtotal > 40 ? 0 : 5.9;
+  const delivery = deliveryFee(subtotal, CUSTOMER.tier);
   const total = subtotal + delivery;
   const pointsToEarn = Math.floor(total);
   const cartCount = cart.reduce((s, l) => s + l.qty, 0);
@@ -165,9 +183,7 @@ export default function CustomerApp() {
                 onBrowse={() => setTab("menu")}
                 onOpenItem={(it) => setDetailItem(it)}
                 onAddDeal={() => {
-                  addToCart("m01", 1);
-                  addToCart("m07", 1);
-                  addToCart("m16", 1);
+                  featuredDeals[0]!.items.forEach((name) => addToCart(itemNamed(name).id, 1));
                   setTab("cart");
                 }}
                 activeOrderStage={activeOrderStage}
@@ -191,6 +207,7 @@ export default function CustomerApp() {
                 pointsToEarn={pointsToEarn}
                 updateQty={updateQty}
                 onCheckout={() => {
+                  setLiveNumber(nextOrderNumber);
                   setActiveOrderStage(0);
                   setCart([]);
                   setTab("orders");
@@ -200,7 +217,7 @@ export default function CustomerApp() {
             )}
             {tab === "rewards" && <RewardsTab points={CUSTOMER.points} />}
             {tab === "orders" && (
-              <OrdersTab activeStage={activeOrderStage} onReorder={(ids) => ids.forEach((id) => addToCart(id))} />
+              <OrdersTab activeStage={activeOrderStage} liveNumber={liveNumber} onReorder={(ids) => ids.forEach((id) => addToCart(id))} />
             )}
             {tab === "profile" && <ProfileTab />}
           </div>
@@ -380,7 +397,7 @@ function HomeTab({
   const next = nextTier(points);
   const progress =
     next.min <= tier.min ? 1 : Math.min(1, (points - tier.min) / (next.min - tier.min));
-  const popular = menu.filter((m) => m.popular).slice(0, 4);
+  const popular = REGULARS;
   const deal = featuredDeals[0]!;
 
   return (
@@ -463,7 +480,7 @@ function HomeTab({
           <div style={{ fontSize: 11, opacity: 0.75, fontWeight: 700, letterSpacing: 1 }}>
             {loyalty.name.toUpperCase()} · {tier.name.toUpperCase()}
           </div>
-          <div style={{ fontSize: 11, opacity: 0.75 }}><Icon name="loyalty" size={14} accent={ORANGE} style={{ marginRight: 4 }} />{points} pts</div>
+          <div style={{ fontSize: 11, opacity: 0.75 }}><Icon name="loyalty" size={14} accent={ORANGE} style={{ marginRight: 4 }} />{points.toLocaleString("en-AU")} pts</div>
         </div>
         <div style={{ marginTop: 10 }}>
           <div
@@ -1044,7 +1061,7 @@ function RewardsTab({ points }: { points: number }) {
           {loyalty.name.toUpperCase()}
         </div>
         <div style={{ fontSize: 34, fontWeight: 800, marginTop: 4, lineHeight: 1 }}>
-          {points} pts
+          {points.toLocaleString("en-AU")} pts
         </div>
         <div style={{ fontSize: 12, opacity: 0.8, marginTop: 2 }}>
           {tier.name} member · since {CUSTOMER.memberSince}
@@ -1078,7 +1095,7 @@ function RewardsTab({ points }: { points: number }) {
       <SectionHeader title="Unlock with points" />
       <div style={{ display: "grid", gap: 10, marginBottom: 18 }}>
         {loyalty.unlocks.map((u) => {
-          const canRedeem = points >= u.cost;
+          const canRedeem = loyalty.canRedeem(u, currentTier(points).name, points);
           return (
             <div
               key={u.name}
@@ -1110,7 +1127,7 @@ function RewardsTab({ points }: { points: number }) {
                 <div style={{ fontSize: 13, fontWeight: 700, color: INK }}>{u.name}</div>
                 <div style={{ fontSize: 11, color: MUTED, marginTop: 2 }}>
                   {u.cost} pts
-                  {!canRedeem && ` · ${u.cost - points} to go`}
+                  {!canRedeem && (points < u.cost ? ` · ${u.cost - points} to go` : ` · ${u.tierMin} and up`)}
                 </div>
               </div>
               <button
@@ -1181,9 +1198,11 @@ function RewardsTab({ points }: { points: number }) {
 
 function OrdersTab({
   activeStage,
+  liveNumber,
   onReorder,
 }: {
   activeStage: number;
+  liveNumber: string;
   onReorder: (ids: string[]) => void;
 }) {
   const stages = [
@@ -1218,7 +1237,7 @@ function OrdersTab({
           >
             <div>
               <div style={{ fontSize: 11, color: ORANGE, fontWeight: 700, letterSpacing: 1 }}>
-                LIVE · ORDER #9921
+                LIVE · ORDER {liveNumber}
               </div>
               <div style={{ fontSize: 15, fontWeight: 700, color: INK, marginTop: 2 }}>
                 {currentStage.label}
@@ -1315,7 +1334,7 @@ function OrdersTab({
               </span>
             </div>
             <button
-              onClick={() => onReorder(["m01"])}
+              onClick={() => onReorder(o.itemIds)}
               style={{
                 marginTop: 8,
                 background: "transparent",
@@ -1375,9 +1394,9 @@ function ProfileTab() {
           {CUSTOMER.name[0]}
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 15, fontWeight: 800, color: INK }}>{CUSTOMER.name} Potter</div>
+          <div style={{ fontSize: 15, fontWeight: 800, color: INK }}>{CUSTOMER.fullName}</div>
           <div style={{ fontSize: 12, color: MUTED }}>
-            {CUSTOMER.tier} · <Icon name="loyalty" size={14} accent={ORANGE} style={{ marginRight: 4 }} />{CUSTOMER.points} pts
+            {CUSTOMER.tier} · <Icon name="loyalty" size={14} accent={ORANGE} style={{ marginRight: 4 }} />{CUSTOMER.points.toLocaleString("en-AU")} pts
           </div>
         </div>
       </div>

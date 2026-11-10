@@ -15,7 +15,7 @@ const SHOTS = [
     text: "A customer orders on your own site.",
     src: "/media/hero/site-cart-phone-crop.webp",
     w: 780,
-    h: 1210,
+    h: 1204,
     alt: "A customer's cart on a restaurant's own ordering site, with the points they'll earn and a checkout button.",
   },
   {
@@ -24,7 +24,7 @@ const SHOTS = [
     text: "They're saved to your customer list.",
     src: "/media/hero/crm-customer-profile-panel.webp",
     w: 960,
-    h: 1560,
+    h: 1762,
     alt: "A customer profile in the ZentraBite CRM, with their tier, points, contact details, lifetime value and orders.",
   },
   {
@@ -33,7 +33,7 @@ const SHOTS = [
     text: "If they go quiet, they get a text.",
     src: "/media/hero/crm-winback-panel.webp",
     w: 840,
-    h: 1172,
+    h: 1204,
     alt: "A 30-day win-back campaign in ZentraBite, with the text message a quiet customer receives.",
   },
 ] as const;
