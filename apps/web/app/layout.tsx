@@ -1,13 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
 // Plus Jakarta Sans is the marketing site's font (picked 11 Nov). Outfit stays
 // for the logo and the demos, which show the app in its own font.
-const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta", display: "swap" });
-const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit", display: "swap" });
+// The fonts live in app/fonts, so the build never downloads anything (random
+// Vercel build failures were most likely a failed Google Fonts download).
+const jakarta = localFont({ src: "./fonts/plus-jakarta-sans-latin-wght-normal.woff2", weight: "200 800", variable: "--font-jakarta", display: "swap" });
+const outfit = localFont({ src: "./fonts/outfit-latin-wght-normal.woff2", weight: "100 900", variable: "--font-outfit", display: "swap" });
 // Only the demos use the mono face, so it isn't preloaded on every page.
-const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap", preload: false });
+const mono = localFont({ src: "./fonts/jetbrains-mono-latin-wght-normal.woff2", weight: "100 800", variable: "--font-mono", display: "swap", preload: false });
 
 const SITE_URL = "https://zentrabite.com";
 const DESCRIPTION =

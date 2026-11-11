@@ -1,11 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit, Inter, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import DashboardShell from "@/components/dashboard-shell";
 
-const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit", display: "swap" });
-const inter  = Inter({  subsets: ["latin"], variable: "--font-inter",  display: "swap" });
-const mono   = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" });
+// The fonts live in app/fonts, so the build never downloads anything. Random
+// Vercel build failures were most likely a failed Google Fonts download.
+const outfit = localFont({ src: "./fonts/outfit-latin-wght-normal.woff2", weight: "100 900", variable: "--font-outfit", display: "swap" });
+const inter  = localFont({ src: "./fonts/inter-latin-wght-normal.woff2", weight: "100 900", variable: "--font-inter", display: "swap" });
+const mono   = localFont({ src: "./fonts/jetbrains-mono-latin-wght-normal.woff2", weight: "100 800", variable: "--font-mono", display: "swap" });
 
 export const metadata: Metadata = {
   title: "ZentraBite — Merchant CRM",
