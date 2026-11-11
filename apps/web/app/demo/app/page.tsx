@@ -15,6 +15,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Icon, type IconName } from "../../components/zb-icon";
+import { DealPhotos, FoodPhoto, NonnaMark, preloadMenuPhotos } from "../food-photo";
 import {
   brand,
   menu,
@@ -98,6 +99,7 @@ function nextTier(points: number): Tier {
 // =====================================================================
 
 export default function CustomerApp() {
+  preloadMenuPhotos();
   const [tab, setTab] = useState<Tab>("home");
   const [cart, setCart] = useState<CartLine[]>([
     { id: itemNamed("Margherita").id, qty: 1 },
@@ -421,7 +423,7 @@ function HomeTab({
             fontSize: 22,
           }}
         >
-          {brand.logoEmoji}
+          <NonnaMark size={44} title={brand.name} />
         </div>
       </div>
 
@@ -551,8 +553,8 @@ function HomeTab({
             Add to cart
           </button>
         </div>
-        <div style={{ position: "absolute", right: -10, top: -10, fontSize: 80, opacity: 0.15 }}>
-          {deal.emoji}
+        <div style={{ position: "absolute", right: 14, top: 14 }}>
+          <DealPhotos deal={deal} size={40} ring={ORANGE} />
         </div>
       </div>
 
@@ -591,7 +593,7 @@ function HomeTab({
                 marginBottom: 8,
               }}
             >
-              {it.emoji}
+              <FoodPhoto item={it} size="100%" radius={12} />
             </div>
             <div style={{ fontSize: 13, fontWeight: 700, color: INK, marginBottom: 2 }}>
               {it.name}
@@ -798,7 +800,7 @@ function MenuTab({
                   borderRadius: 12,
                 }}
               >
-                {it.emoji}
+                <FoodPhoto item={it} size={62} radius={12} />
               </div>
               <button
                 onClick={() => onAdd(it.id)}
@@ -889,7 +891,7 @@ function CartTab({
                 borderRadius: 10,
               }}
             >
-              {item.emoji}
+              <FoodPhoto item={item} size={50} radius={10} />
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: INK }}>{item.name}</div>
@@ -1586,15 +1588,14 @@ function ItemSheet({
         />
         <div
           style={{
-            fontSize: 72,
-            textAlign: "center",
+            height: 200,
+            overflow: "hidden",
             background: CREAM,
             borderRadius: 14,
-            padding: "20px 0",
             marginBottom: 12,
           }}
         >
-          {item.emoji}
+          <FoodPhoto item={item} size="100%" radius={14} />
         </div>
         <div style={{ fontSize: 18, fontWeight: 800, color: INK, marginBottom: 4 }}>
           {item.name}

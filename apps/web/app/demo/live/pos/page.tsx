@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { menu, formatAUD, type MenuItem } from "../data";
 import { Icon } from "../../../components/zb-icon";
+import { FoodPhoto, preloadMenuPhotos } from "../../food-photo";
 
 type CartLine = { item: MenuItem; qty: number };
 
@@ -22,6 +23,7 @@ function toast(text: string, kind: "success" | "info" = "success") {
 }
 
 export default function PosPage() {
+  preloadMenuPhotos();
   const [activeCat, setActiveCat] = useState(menu[0]?.id ?? "");
   const [cart, setCart] = useState<CartLine[]>([]);
   const [customerName, setCustomerName] = useState("");
@@ -177,7 +179,7 @@ export default function PosPage() {
                     Popular
                   </span>
                 )}
-                <div style={{ fontSize: 32, marginBottom: 6 }}>{item.emoji}</div>
+                <FoodPhoto item={item} size={56} radius={10} style={{ marginBottom: 8 }} />
                 <div style={{ fontWeight: 600, fontSize: 14, color: "var(--cloud)" }}>{item.name}</div>
                 {item.desc && <div style={{ fontSize: 11.5, color: "var(--steel)", marginTop: 3, lineHeight: 1.4 }}>{item.desc}</div>}
                 <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 16, color: "var(--green)", marginTop: 8 }}>
@@ -273,7 +275,7 @@ export default function PosPage() {
                     border: "1px solid var(--mist-9)",
                   }}
                 >
-                  <span style={{ fontSize: 22 }}>{line.item.emoji}</span>
+                  <FoodPhoto item={line.item} size={32} radius={8} />
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 600, color: "var(--cloud)" }}>{line.item.name}</div>
                     <div style={{ fontSize: 11.5, color: "var(--steel)" }}>{formatAUD(line.item.price)} each</div>

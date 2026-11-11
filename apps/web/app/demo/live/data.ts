@@ -77,7 +77,7 @@ export const business: { name: string; type: string; address: string; phone: str
   phone: sampleBusiness.phone,
   subdomain: sampleBusiness.subdomain,
   closes: sampleBusiness.closes,
-  logo: "🍕",
+  logo: "/media/demo/nonna-mark.svg",
   today: "Saturday, 18 Apr",
 };
 
@@ -120,16 +120,16 @@ const [sofiaNow, sofiaWed, ...sofiaEarlier] = sampleCustomerOrders.map((o) => fo
 export const orders: DemoOrder[] = [
   { ...forCustomer("c03", { id: "o1294", number: "#1294", placedAt: "2026-04-18T12:40:00", status: "new", channel: "storefront", ...priced([line("Margherita", 2), line("Garlic bread")], 1.28, 3.0) }), notes: "No basil please" },
   sofiaNow!,
-  forCustomer("c12", { id: "o1292", number: "#1292", placedAt: "2026-04-18T12:22:00", status: "ready",     channel: "pos",        ...priced([line("Quattro formaggi"), line("Coke", 2)], 0, 0) }),
+  forCustomer("c12", { id: "o1292", number: "#1292", placedAt: "2026-04-18T12:22:00", status: "ready",     channel: "pos",        ...priced([line("Quattro formaggi"), line("Cola", 2)], 0, 0) }),
   { ...forCustomer("c02", { id: "o1291", number: "#1291", placedAt: "2026-04-18T11:55:00", status: "out", channel: "uber",       ...priced([line("Pepperoni", 2), line("Wings")], 1.67, 5.0) }), deliveryEta: "12:35pm" },
   forCustomer("c01", { id: "o1290", number: "#1290", placedAt: "2026-04-18T11:40:00", status: "delivered", channel: "app",        ...priced([line("Margherita"), line("Garlic bread"), line("Sparkling water")], 0.86, 3.0) }),
   forCustomer("c05", { id: "o1289", number: "#1289", placedAt: "2026-04-18T11:15:00", status: "delivered", channel: "storefront", ...priced([line("Margherita"), line("Caesar salad")], 0.92, 2.5) }),
-  forCustomer("c04", { id: "o1288", number: "#1288", placedAt: "2026-04-17T19:55:00", status: "delivered", channel: "doordash",   ...priced([line("Wagyu burger"), line("Fries"), line("Coke")], 1.08, 0) }),
+  forCustomer("c04", { id: "o1288", number: "#1288", placedAt: "2026-04-17T19:55:00", status: "delivered", channel: "doordash",   ...priced([line("Wagyu burger"), line("Fries"), line("Cola")], 1.08, 0) }),
   forCustomer("c06", { id: "o1287", number: "#1287", placedAt: "2026-04-17T19:30:00", status: "delivered", channel: "app",        ...priced([line("Pepperoni"), line("Wings")], 1.04, 4.0) }),
   forCustomer("c13", { id: "o1286", number: "#1286", placedAt: "2026-04-17T20:15:00", status: "delivered", channel: "storefront", ...priced([line("Veggie supreme"), line("Garlic bread")], 0.82, 2.0) }),
   forCustomer("c15", { id: "o1285", number: "#1285", placedAt: "2026-04-17T19:30:00", status: "delivered", channel: "app",        ...priced([line("Margherita")], 0.54, 1.5) }),
   forCustomer("c01", { id: "o1284", number: "#1284", placedAt: "2026-04-16T19:22:00", status: "delivered", channel: "app",        ...priced([line("Margherita"), line("Tiramisu")], 0.78, 2.5) }),
-  forCustomer("c02", { id: "o1283", number: "#1283", placedAt: "2026-04-16T20:05:00", status: "delivered", channel: "pos",        ...priced([line("Pepperoni"), line("Coke")], 0, 0) }),
+  forCustomer("c02", { id: "o1283", number: "#1283", placedAt: "2026-04-16T20:05:00", status: "delivered", channel: "pos",        ...priced([line("Pepperoni"), line("Cola")], 0, 0) }),
   sofiaWed!,
   forCustomer("c12", { id: "o1281", number: "#1281", placedAt: "2026-04-15T12:22:00", status: "delivered", channel: "storefront", ...priced([line("Pepperoni")], 0.64, 2.0) }),
   forCustomer("c07", { id: "o1280", number: "#1280", placedAt: "2026-04-14T12:15:00", status: "delivered", channel: "uber",       ...priced([line("Hawaiian"), line("Garlic bread")], 0.81, 0) }),
@@ -140,9 +140,9 @@ export const orders: DemoOrder[] = [
 export const pastOrders: DemoOrder[] = [
   ...sofiaEarlier,
   forCustomer("c14", { id: "o1236", number: "#1236", placedAt: "2026-04-02T19:40:00", status: "delivered", channel: "app",        ...priced([line("Wagyu burger"), line("Fries")], 0.97, 0) }),
-  forCustomer("c08", { id: "o1198", number: "#1198", placedAt: "2026-03-28T19:40:00", status: "delivered", channel: "uber",       ...priced([line("Veggie supreme"), line("Coke")], 0.73, 0) }),
+  forCustomer("c08", { id: "o1198", number: "#1198", placedAt: "2026-03-28T19:40:00", status: "delivered", channel: "uber",       ...priced([line("Veggie supreme"), line("Cola")], 0.73, 0) }),
   forCustomer("c09", { id: "o1142", number: "#1142", placedAt: "2026-03-15T20:05:00", status: "delivered", channel: "storefront", ...priced([line("Quattro stagioni"), line("Garlic bread")], 0.9, 2.0) }),
-  forCustomer("c10", { id: "o1031", number: "#1031", placedAt: "2026-02-14T18:30:00", status: "delivered", channel: "doordash",   ...priced([line("Margherita"), line("Peroni")], 0.78, 0) }),
+  forCustomer("c10", { id: "o1031", number: "#1031", placedAt: "2026-02-14T18:30:00", status: "delivered", channel: "doordash",   ...priced([line("Margherita"), line("Lager")], 0.78, 0) }),
 ];
 
 /** A customer's latest orders (up to `limit`, newest first) and how many more
@@ -478,7 +478,7 @@ export type MenuItem = {
   name: string;
   price: number;
   available: boolean;
-  emoji: string;
+  photo: string;
   desc?: string;
   popular?: boolean;
 };
@@ -495,7 +495,7 @@ export const menu: MenuCategory[] = sampleCategories.map((cat) => ({
   name: cat,
   items: sampleMenuItems
     .filter((m) => m.category === cat)
-    .map(({ id, name, price, available, emoji, desc, popular }) => ({ id, name, price, available, emoji, desc, popular })),
+    .map(({ id, name, price, available, photo, desc, popular }) => ({ id, name, price, available, photo, desc, popular })),
 }));
 
 // ---- Drivers / Delivery ----
@@ -649,7 +649,7 @@ export const stockItems: StockItem[] = [
   { id: "s04", name: "San Marzano tomato",        category: "Produce",   supplier: "Veggie Co",     unit: "case",  onHand: 2,    reorderAt: 3,   parLevel: 6,   avgDailyUse: 0.6,  costPerUnit: 28.00, lastDelivery: "2026-04-13", expiresIn: 9,    aiSuggestOrder: 4,   status: "low",      linkedMenuItems: ["Margherita", "Pepperoni"] },
   { id: "s05", name: "Wagyu patty (180g)",        category: "Protein",   supplier: "Meatworks AU",  unit: "patty", onHand: 48,   reorderAt: 30,  parLevel: 120, avgDailyUse: 9,    costPerUnit: 6.80,  lastDelivery: "2026-04-17", expiresIn: 4,    aiSuggestOrder: 72,  status: "ok",       linkedMenuItems: ["Wagyu burger"] },
   { id: "s06", name: "Pad thai rice noodle",      category: "Dry goods", supplier: "Asian Pantry",  unit: "kg",    onHand: 1.2,  reorderAt: 3,   parLevel: 8,   avgDailyUse: 1.1,  costPerUnit: 4.20,  lastDelivery: "2026-04-08", expiresIn: null, aiSuggestOrder: 8,   status: "critical", linkedMenuItems: ["Pad thai"] },
-  { id: "s07", name: "Coke 330ml can",            category: "Beverages", supplier: "Coca-Cola AU",  unit: "can",   onHand: 184,  reorderAt: 120, parLevel: 480, avgDailyUse: 38,   costPerUnit: 1.20,  lastDelivery: "2026-04-15", expiresIn: 210,  aiSuggestOrder: 0,   status: "ok",       linkedMenuItems: ["Coke"] },
+  { id: "s07", name: "Cola 330ml bottle",         category: "Beverages", supplier: "SA Drinks Co",  unit: "can",   onHand: 184,  reorderAt: 120, parLevel: 480, avgDailyUse: 38,   costPerUnit: 1.20,  lastDelivery: "2026-04-15", expiresIn: 210,  aiSuggestOrder: 0,   status: "ok",       linkedMenuItems: ["Cola"] },
   { id: "s08", name: "Takeaway pizza box (14\")", category: "Packaging", supplier: "BoxPack",       unit: "box",   onHand: 42,   reorderAt: 80,  parLevel: 400, avgDailyUse: 32,   costPerUnit: 0.48,  lastDelivery: "2026-04-11", expiresIn: null, aiSuggestOrder: 360, status: "critical", linkedMenuItems: ["Margherita", "Pepperoni", "Quattro formaggi"] },
   { id: "s09", name: "Double cream",              category: "Dairy",     supplier: "La Casa Dairy", unit: "L",     onHand: 2.4,  reorderAt: 3,   parLevel: 8,   avgDailyUse: 0.9,  costPerUnit: 9.60,  lastDelivery: "2026-04-09", expiresIn: 2,    aiSuggestOrder: 6,   status: "expiring", linkedMenuItems: ["Tiramisu", "Pasta carbonara"] },
   { id: "s10", name: "Basil (fresh bunch)",       category: "Produce",   supplier: "Veggie Co",     unit: "bunch", onHand: 14,   reorderAt: 10,  parLevel: 30,  avgDailyUse: 3,    costPerUnit: 2.40,  lastDelivery: "2026-04-18", expiresIn: 3,    aiSuggestOrder: 0,   status: "ok",       linkedMenuItems: ["Margherita", "Pasta al pomodoro"] },

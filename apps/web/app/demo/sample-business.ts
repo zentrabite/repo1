@@ -42,7 +42,8 @@ export type SampleMenuItem = {
   category: SampleCategory;
   name: string;
   price: number;
-  emoji: string;
+  /** The dish's photo in public/media/demo/food (made with AI for the demo) */
+  photo: string;
   desc: string;
   /** false = 86'd in the CRM. The ordering site and the app hide it. */
   available: boolean;
@@ -51,23 +52,23 @@ export type SampleMenuItem = {
 };
 
 export const sampleMenu = [
-  { id: "p1",  category: "Pizzas",   name: "Margherita",       price: 18.5, emoji: "🍕", desc: "San Marzano tomato, fior di latte, basil",       available: true,  popular: true, vegetarian: true },
-  { id: "p2",  category: "Pizzas",   name: "Pepperoni",        price: 22.0, emoji: "🌶️", desc: "Cured pork pepperoni, mozzarella",               available: true,  popular: true },
-  { id: "p3",  category: "Pizzas",   name: "Quattro formaggi", price: 24.0, emoji: "🧀", desc: "Mozzarella, gorgonzola, parmesan, taleggio",     available: true,  vegetarian: true },
-  { id: "p4",  category: "Pizzas",   name: "Veggie supreme",   price: 21.0, emoji: "🫑", desc: "Capsicum, mushroom, olives, onion, rocket",      available: true,  vegetarian: true },
-  { id: "p5",  category: "Pizzas",   name: "Hawaiian",         price: 20.5, emoji: "🍍", desc: "Ham, pineapple, mozzarella",                     available: true },
-  { id: "p6",  category: "Pizzas",   name: "Quattro stagioni", price: 23.5, emoji: "🍄", desc: "Out of artichoke — back tomorrow",               available: false },
-  { id: "b1",  category: "Burgers",  name: "Wagyu burger",     price: 26.5, emoji: "🍔", desc: "180g wagyu, smoked cheddar, brioche",            available: true,  popular: true },
-  { id: "b2",  category: "Burgers",  name: "Chicken burger",   price: 22.0, emoji: "🍔", desc: "Buttermilk fried chicken, slaw",                 available: true },
-  { id: "s1",  category: "Sides",    name: "Garlic bread",     price: 7.5,  emoji: "🥖", desc: "Wood-fired, garlic butter, sea salt",            available: true,  vegetarian: true },
-  { id: "s2",  category: "Sides",    name: "Caesar salad",     price: 13.5, emoji: "🥗", desc: "Cos, croutons, parmesan, soft egg",              available: true },
-  { id: "s3",  category: "Sides",    name: "Wings",            price: 14.0, emoji: "🍗", desc: "8 pieces, smoky paprika glaze",                  available: true },
-  { id: "s4",  category: "Sides",    name: "Fries",            price: 7.0,  emoji: "🍟", desc: "Hand-cut, sea salt, aioli",                      available: true,  vegetarian: true },
-  { id: "d1",  category: "Drinks",   name: "Coke",             price: 4.0,  emoji: "🥤", desc: "330ml can",                                      available: true,  vegetarian: true },
-  { id: "d2",  category: "Drinks",   name: "Sparkling water",  price: 4.0,  emoji: "💧", desc: "500ml bottle",                                   available: true,  vegetarian: true },
-  { id: "d3",  category: "Drinks",   name: "Peroni",           price: 8.5,  emoji: "🍺", desc: "330ml bottle",                                   available: true,  vegetarian: true },
-  { id: "ds1", category: "Desserts", name: "Tiramisu",         price: 8.5,  emoji: "🍰", desc: "Mascarpone, espresso, savoiardi. Made in-house", available: true,  vegetarian: true },
-  { id: "ds2", category: "Desserts", name: "Cannoli",          price: 6.5,  emoji: "🥐", desc: "Ricotta, pistachio, orange peel",                available: true,  vegetarian: true },
+  { id: "p1",  category: "Pizzas",   name: "Margherita",       price: 18.5, photo: "/media/demo/food/margherita.webp", desc: "San Marzano tomato, fior di latte, basil",       available: true,  popular: true, vegetarian: true },
+  { id: "p2",  category: "Pizzas",   name: "Pepperoni",        price: 22.0, photo: "/media/demo/food/pepperoni.webp", desc: "Cured pork pepperoni, mozzarella",               available: true,  popular: true },
+  { id: "p3",  category: "Pizzas",   name: "Quattro formaggi", price: 24.0, photo: "/media/demo/food/quattro-formaggi.webp", desc: "Mozzarella, gorgonzola, parmesan, taleggio",     available: true,  vegetarian: true },
+  { id: "p4",  category: "Pizzas",   name: "Veggie supreme",   price: 21.0, photo: "/media/demo/food/veggie-supreme.webp", desc: "Capsicum, mushroom, olives, onion, rocket",      available: true,  vegetarian: true },
+  { id: "p5",  category: "Pizzas",   name: "Hawaiian",         price: 20.5, photo: "/media/demo/food/hawaiian.webp", desc: "Ham, pineapple, mozzarella",                     available: true },
+  { id: "p6",  category: "Pizzas",   name: "Quattro stagioni", price: 23.5, photo: "/media/demo/food/quattro-stagioni.webp", desc: "Out of artichoke. Back tomorrow.",               available: false },
+  { id: "b1",  category: "Burgers",  name: "Wagyu burger",     price: 26.5, photo: "/media/demo/food/wagyu-burger.webp", desc: "180g wagyu, smoked cheddar, brioche",            available: true,  popular: true },
+  { id: "b2",  category: "Burgers",  name: "Chicken burger",   price: 22.0, photo: "/media/demo/food/chicken-burger.webp", desc: "Buttermilk fried chicken, slaw",                 available: true },
+  { id: "s1",  category: "Sides",    name: "Garlic bread",     price: 7.5,  photo: "/media/demo/food/garlic-bread.webp", desc: "Wood-fired, garlic butter, sea salt",            available: true,  vegetarian: true },
+  { id: "s2",  category: "Sides",    name: "Caesar salad",     price: 13.5, photo: "/media/demo/food/caesar-salad.webp", desc: "Cos, croutons, parmesan, soft egg",              available: true },
+  { id: "s3",  category: "Sides",    name: "Wings",            price: 14.0, photo: "/media/demo/food/wings.webp", desc: "8 pieces, smoky paprika glaze",                  available: true },
+  { id: "s4",  category: "Sides",    name: "Fries",            price: 7.0,  photo: "/media/demo/food/fries.webp", desc: "Hand-cut, sea salt, aioli",                      available: true,  vegetarian: true },
+  { id: "d1",  category: "Drinks",   name: "Cola",             price: 4.0,  photo: "/media/demo/food/cola.webp", desc: "330ml bottle",                                   available: true,  vegetarian: true },
+  { id: "d2",  category: "Drinks",   name: "Sparkling water",  price: 4.0,  photo: "/media/demo/food/sparkling-water.webp", desc: "500ml bottle",                                   available: true,  vegetarian: true },
+  { id: "d3",  category: "Drinks",   name: "Lager",            price: 8.5,  photo: "/media/demo/food/lager.webp", desc: "330ml bottle",                                   available: true,  vegetarian: true },
+  { id: "ds1", category: "Desserts", name: "Tiramisu",         price: 8.5,  photo: "/media/demo/food/tiramisu.webp", desc: "Mascarpone, espresso, savoiardi. Made in-house", available: true,  vegetarian: true },
+  { id: "ds2", category: "Desserts", name: "Cannoli",          price: 6.5,  photo: "/media/demo/food/cannoli.webp", desc: "Ricotta, pistachio, orange peel",                available: true,  vegetarian: true },
 ] as const satisfies readonly SampleMenuItem[];
 
 export type SampleItemName = (typeof sampleMenu)[number]["name"];
@@ -167,17 +168,18 @@ export function canRedeem(r: SampleReward, tier: SampleTierName, points: number)
 // ---- Deals ---------------------------------------------------------------
 // Set prices for a few menu items. What you save is worked out from the menu.
 
-export type SampleDeal = { id: string; title: string; subtitle: string; items: SampleItemName[]; price: number; saves: number; emoji: string };
+export type SampleDeal = { id: string; title: string; subtitle: string; items: SampleItemName[]; price: number; saves: number };
 
-function deal(id: string, title: string, subtitle: string, items: SampleItemName[], price: number, emoji: string): SampleDeal {
+// Each deal shows its items' photos (DealPhotos in food-photo.tsx).
+function deal(id: string, title: string, subtitle: string, items: SampleItemName[], price: number): SampleDeal {
   const full = items.reduce((s, n) => s + menuItem(n).price, 0);
-  return { id, title, subtitle, items, price, saves: cents(full - price), emoji };
+  return { id, title, subtitle, items, price, saves: cents(full - price) };
 }
 
 export const sampleDeals: SampleDeal[] = [
-  deal("d01", "Lunch combo",         "Margherita + Caesar salad · until 3pm",  ["Margherita", "Caesar salad"], 24, "🍕🥗"),
-  deal("d02", "Family pack",         "Margherita, Pepperoni, garlic bread + tiramisu", ["Margherita", "Pepperoni", "Garlic bread", "Tiramisu"], 47.5, "👨‍👩‍👧"),
-  deal("d03", "Midweek pizza + beer", "Margherita + a Peroni · Tue – Thu",     ["Margherita", "Peroni"], 23, "🍺"),
+  deal("d01", "Lunch combo",         "Margherita + Caesar salad · until 3pm",  ["Margherita", "Caesar salad"], 24),
+  deal("d02", "Family pack",         "Margherita, Pepperoni, garlic bread + tiramisu", ["Margherita", "Pepperoni", "Garlic bread", "Tiramisu"], 47.5),
+  deal("d03", "Midweek pizza + beer", "Margherita + a lager · Tue – Thu",      ["Margherita", "Lager"], 23),
 ];
 
 // ---- The regular ---------------------------------------------------------
@@ -209,6 +211,6 @@ export const sampleCustomerOrders: SampleOrder[] = [
   { id: "o1293", number: "#1293", placedAt: "2026-04-18T13:10:00", status: "cooking",   channel: "app",        ...priced([line("Pepperoni"), line("Tiramisu")], 0.88, 2.5) },
   { id: "o1282", number: "#1282", placedAt: "2026-04-15T19:40:00", status: "delivered", channel: "app",        ...priced([line("Margherita", 2), line("Tiramisu")], 1.32, 4.5) },
   { id: "o1266", number: "#1266", placedAt: "2026-04-11T18:55:00", status: "delivered", channel: "storefront", ...priced([line("Margherita"), line("Garlic bread"), line("Tiramisu")], 1.0, 2.0) },
-  { id: "o1251", number: "#1251", placedAt: "2026-04-07T19:20:00", status: "delivered", channel: "app",        ...priced([line("Quattro formaggi"), line("Margherita"), line("Peroni", 2)], 1.73, 4.0) },
+  { id: "o1251", number: "#1251", placedAt: "2026-04-07T19:20:00", status: "delivered", channel: "app",        ...priced([line("Quattro formaggi"), line("Margherita"), line("Lager", 2)], 1.73, 4.0) },
   { id: "o1238", number: "#1238", placedAt: "2026-04-03T12:30:00", status: "delivered", channel: "pos",        ...priced([line("Margherita"), line("Sparkling water")], 0, 0) },
 ];

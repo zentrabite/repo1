@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { menu as initialMenu, formatAUD, type MenuCategory } from "../data";
 import { Icon } from "../../../components/zb-icon";
+import { FoodPhoto } from "../../food-photo";
 
 function toast(text: string) {
   if (typeof document === "undefined") return;
@@ -118,7 +119,7 @@ export default function MenuPage() {
                 opacity: item.available ? 1 : 0.55,
               }}
             >
-              <div style={{ fontSize: 28 }}>{item.emoji}</div>
+              <FoodPhoto item={item} size={44} radius={10} />
               <div>
                 <div style={{ fontWeight: 600, fontSize: 14, color: "var(--cloud)", display: "flex", alignItems: "center", gap: 8 }}>
                   {item.name}

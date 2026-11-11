@@ -158,7 +158,7 @@ export const flows = [
       await s.hold(550);
       await s.tap(tab("Drinks"));
       await s.hold(450);
-      await s.tap(item("Coke"));
+      await s.tap(item("Cola"));
       await s.hold(750);
       await s.tap(page.getByRole("button", { name: /^Place order/ }));
       await s.hold(1200);
@@ -181,13 +181,16 @@ export const flows = [
       await s.hold(1300);
       await s.tap(page.getByRole("button", { name: /Order now/ }));
       await s.hold(900);
-      await s.scroll(330, 900);
-      await s.hold(500);
       const addButton = page
         .locator("main div")
         .filter({ hasText: "Veggie supreme", has: page.getByRole("button", { name: /Add to cart/ }) })
         .last()
         .getByRole("button", { name: /Add to cart/ });
+      // Menu cards have a photo across the top since 12 Nov, so scroll to
+      // wherever Veggie supreme's button is, with its photo above it in view.
+      const to = await addButton.evaluate((el) => Math.round(el.getBoundingClientRect().top + window.scrollY - 560));
+      await s.scroll(to, 1100);
+      await s.hold(500);
       await s.tap(addButton);
       await s.hold(700);
       await s.scroll(0, 700);
