@@ -9,7 +9,7 @@ import BrandMark from "@/components/brand-mark";
 import { Icon } from "@/components/zb-icon";
 import { forgotPasswordErrorMessage, MSG } from "@/lib/auth-errors";
 
-const C = { g: "#00B67A", st: "#6B7C93", cl: "#F8FAFB", r: "#FF4757" };
+const C = { g: "#00AD82", st: "#6B7C93", cl: "#F8FAFB", r: "#FF4757" };
 
 export default function ForgotPasswordPage() {
   const [email,   setEmail]   = useState("");

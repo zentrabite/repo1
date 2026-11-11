@@ -212,7 +212,7 @@ export function buildSite(biz: SiteRow, cats: SiteCategory[], allItems: SiteItem
   const kicker = [cuisine ?? typeLabel, str(biz.suburb, 60)].filter(Boolean).join(" · ");
 
   const accentRaw = str(settings.branding?.accent_color, 7);
-  const accent = accentRaw && /^#[0-9a-f]{6}$/i.test(accentRaw) ? accentRaw : "#00B67A";
+  const accent = accentRaw && /^#[0-9a-f]{6}$/i.test(accentRaw) ? accentRaw : "#00AD82";
 
   const ownPhotos = (Array.isArray(site.photos) ? site.photos : [])
     .filter((u): u is string => typeof u === "string" && /^https:\/\//.test(u)).slice(0, 8)

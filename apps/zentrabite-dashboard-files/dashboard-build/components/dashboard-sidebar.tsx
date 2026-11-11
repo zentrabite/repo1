@@ -19,12 +19,12 @@ export default function DashboardSidebar() {
       {/* ── BRANDING ── */}
       <div className="flex items-center gap-3 border-b border-white/[0.06] px-5 py-5">
         {/* Green gradient logo mark */}
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#00B67A] to-[#00A06B] text-sm font-bold text-white shadow-lg shadow-[#00B67A]/20">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#00AD82] to-[#009872] text-sm font-bold text-white shadow-lg shadow-[#00AD82]/20">
           ZB
         </div>
         <div>
           <span className="font-heading text-[15px] font-extrabold tracking-tight text-white">
-            Zentra<span className="text-[#00B67A]">Bite</span>
+            Zentra<span className="text-[#00AD82]">Bite</span>
           </span>
           <p className="text-[10px] font-medium text-slate-500">Merchant CRM</p>
         </div>
@@ -46,7 +46,7 @@ export default function DashboardSidebar() {
                 text-[13px] font-medium transition-all duration-200
                 ${
                   isActive
-                    ? "border-l-2 border-[#00B67A] bg-[#00B67A]/10 font-semibold text-[#00B67A]"
+                    ? "border-l-2 border-[#00AD82] bg-[#00AD82]/10 font-semibold text-[#00AD82]"
                     : "border-l-2 border-transparent text-slate-400 hover:bg-white/[0.04] hover:text-slate-200"
                 }
               `}
@@ -54,7 +54,7 @@ export default function DashboardSidebar() {
               <Icon
                 size={18}
                 className={`flex-shrink-0 transition-colors ${
-                  isActive ? "text-[#00B67A]" : "text-slate-500 group-hover:text-slate-300"
+                  isActive ? "text-[#00AD82]" : "text-slate-500 group-hover:text-slate-300"
                 }`}
               />
               {item.label}

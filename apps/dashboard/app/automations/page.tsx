@@ -10,7 +10,7 @@ import { useBusiness } from "@/hooks/use-business";
 import { getCampaigns, updateCampaign, createCampaign, getSmsStats } from "@/lib/queries";
 import type { Campaign } from "@/lib/database.types";
 
-const C = { g:"#00B67A", o:"#FF6B35", st:"#6B7C93" };
+const C = { g:"#00AD82", o:"#FF6B35", st:"#6B7C93" };
 
 export default function AutomationsPage() {
   const { toast, show } = useToast();

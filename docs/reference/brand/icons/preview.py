@@ -28,7 +28,7 @@ def page(names, big=44, small=20):
         f'<div class="c"><div class="i">{svg(n, big)}</div><div class="s">{svg(n, small)}</div><div class="n">{n}</div></div>'
         for n in names)
     return f"""<!doctype html><html><head><style>
-    body{{margin:0;font-family:system-ui,sans-serif;background:#0F1F2D;color:#E6EDF5;--zb-ia:#00B67A;--zb-ib:#fff}}
+    body{{margin:0;font-family:system-ui,sans-serif;background:#0F1F2D;color:#E6EDF5;--zb-ia:#00AD82;--zb-ib:#fff}}
     .g{{display:grid;grid-template-columns:repeat(10,1fr);gap:10px;padding:18px}}
     .c{{background:rgba(28,45,72,.55);border:1px solid rgba(226,232,240,.08);border-radius:12px;padding:12px 6px 8px;display:flex;flex-direction:column;align-items:center;gap:8px}}
     .s{{color:#8FA0B5}} .n{{font-size:10.5px;color:#8FA0B5}}

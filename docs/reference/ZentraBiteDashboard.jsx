@@ -4,7 +4,7 @@ import { useState } from "react";
 const C = {
   nearBlack: "#0A1628",
   darkNavy:  "#0F1F2D",
-  green:     "#00B67A",
+  green:     "#00AD82",
   orange:    "#FF6B35",
   cloud:     "#E2E8F0",
   muted:     "#7A8FA6",
@@ -285,7 +285,7 @@ export default function ZentraBiteDashboard() {
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <div style={{
                 width: 36, height: 36, borderRadius: 10,
-                background: `linear-gradient(135deg, ${C.green}, #007A54)`,
+                background: `linear-gradient(135deg, ${C.green}, #037459)`,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontFamily: font.heading, fontWeight: 800, fontSize: 18, color: "#fff"
               }}>Z</div>
@@ -440,7 +440,7 @@ export default function ZentraBiteDashboard() {
                 }}>
                   <div style={{
                     width: 30, height: 30, borderRadius: "50%",
-                    background: `linear-gradient(135deg, ${C.green}, #007A54)`,
+                    background: `linear-gradient(135deg, ${C.green}, #037459)`,
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 13, fontWeight: 700, color: "#fff"
                   }}>L</div>

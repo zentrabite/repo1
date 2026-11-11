@@ -19,4 +19,4 @@ export default function PublicNotFound({ title, children }: { title: string; chi
 }
 
 /** Link style inside the message. */
-export const publicLinkStyle: React.CSSProperties = { color: "#007A52", fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 3 };
+export const publicLinkStyle: React.CSSProperties = { color: "#007457", fontWeight: 600, textDecoration: "underline", textUnderlineOffset: 3 };

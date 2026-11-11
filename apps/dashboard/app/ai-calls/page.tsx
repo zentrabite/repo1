@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
 import { getAiCallProfile, upsertAiCallProfile } from "@/lib/queries";
 
-const C = { g:"#00B67A", st:"#6B7C93", am:"#F59E0B" };
+const C = { g:"#00AD82", st:"#6B7C93", am:"#F59E0B" };
 
 const DEFAULTS = {
   enabled:          false,

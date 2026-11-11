@@ -22,7 +22,7 @@ import {
   deleteCatalogueItem,
 } from "@/lib/queries";
 
-const C = { g:"#00B67A", o:"#FF6B35", r:"#FF4757", am:"#F59E0B", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(226,232,240,.08)" };
+const C = { g:"#00AD82", o:"#FF6B35", r:"#FF4757", am:"#F59E0B", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(226,232,240,.08)" };
 
 // ─── Tier thresholds (cumulative points) ─────────────────────────────────────
 function tierOf(pts: number): "Gold" | "Silver" | "Bronze" {

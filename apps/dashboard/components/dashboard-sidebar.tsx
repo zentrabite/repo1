@@ -10,7 +10,7 @@ import { resolvePermissions } from "@/lib/permissions";
 import BrandMark from "@/components/brand-mark";
 
 const NAVY  = "#1C2D48";
-const GREEN = "#00B67A";
+const GREEN = "#00AD82";
 const STEEL = "#6B7C93";
 const CLOUD = "#F8FAFB";
 const MIST  = "rgba(226,232,240,.09)";
@@ -122,7 +122,7 @@ export default function DashboardSidebar({ open = false, onClose, ref }: Dashboa
           const NavIcon = item.icon;
 
           const background = isActive
-            ? "rgba(0,182,122,.11)"
+            ? "rgba(0,173,130,.11)"
             : isHovered
             ? HOVER_BG
             : "transparent";

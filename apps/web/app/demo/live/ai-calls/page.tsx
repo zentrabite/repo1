@@ -11,7 +11,7 @@ function toast(text: string) {
   el.textContent = text;
   el.style.cssText = `
     position: fixed; top: 60px; right: 20px; z-index: 999;
-    background: rgba(0,182,122,0.94); color: #0F1F2D;
+    background: rgba(0,173,130,0.94); color: #0F1F2D;
     padding: 10px 16px; border-radius: 10px; font-weight: 600;
     font-family: var(--font-inter); font-size: 13px;
     box-shadow: 0 12px 32px rgba(0,0,0,0.4);
@@ -63,8 +63,8 @@ export default function AiCallsPage() {
             style={{
               padding: "14px 16px",
               borderRadius: 14,
-              background: s.accent ? "rgba(0,182,122,0.08)" : "rgba(255,255,255,0.03)",
-              border: `1px solid ${s.accent ? "rgba(0,182,122,0.28)" : "var(--mist-9)"}`,
+              background: s.accent ? "rgba(0,173,130,0.08)" : "rgba(255,255,255,0.03)",
+              border: `1px solid ${s.accent ? "rgba(0,173,130,0.28)" : "var(--mist-9)"}`,
             }}
           >
             <div style={{ fontSize: 11, color: "var(--steel)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600 }}>
@@ -115,7 +115,7 @@ export default function AiCallsPage() {
                   gap: 12,
                   alignItems: "center",
                   padding: "14px 18px",
-                  background: isActive ? "rgba(0,182,122,0.07)" : "transparent",
+                  background: isActive ? "rgba(0,173,130,0.07)" : "transparent",
                   borderLeft: `3px solid ${isActive ? "var(--green)" : "transparent"}`,
                   borderBottom: "1px solid var(--mist-9)",
                   border: "none",
@@ -204,8 +204,8 @@ function CallDetail({ call }: { call: DemoCall }) {
             marginTop: 12,
             padding: "10px 12px",
             borderRadius: 10,
-            background: "rgba(0,182,122,0.10)",
-            border: "1px solid rgba(0,182,122,0.28)",
+            background: "rgba(0,173,130,0.10)",
+            border: "1px solid rgba(0,173,130,0.28)",
             fontSize: 13,
             color: "var(--cloud)",
           }}
@@ -264,7 +264,7 @@ function CallDetail({ call }: { call: DemoCall }) {
                   flex: 1,
                   padding: "8px 12px",
                   borderRadius: 10,
-                  background: isAi ? "rgba(0,182,122,0.08)" : "rgba(107,177,255,0.06)",
+                  background: isAi ? "rgba(0,173,130,0.08)" : "rgba(107,177,255,0.06)",
                   fontSize: 13.5,
                   color: "var(--cloud)",
                   lineHeight: 1.5,

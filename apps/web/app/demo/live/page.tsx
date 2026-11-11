@@ -202,8 +202,8 @@ export default function DemoDashboardPage() {
           style={{
             padding: 20,
             borderRadius: 14,
-            background: "linear-gradient(135deg, rgba(0,182,122,0.13), rgba(28,45,72,0.6))",
-            border: "1px solid rgba(0,182,122,0.28)",
+            background: "linear-gradient(135deg, rgba(0,173,130,0.13), rgba(28,45,72,0.6))",
+            border: "1px solid rgba(0,173,130,0.28)",
           }}
         >
           <div style={{ fontSize: 11, color: "var(--steel)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600 }}>
@@ -247,7 +247,7 @@ export default function DemoDashboardPage() {
               marginTop: 14,
               padding: "8px 12px",
               borderRadius: 8,
-              background: "rgba(0,182,122,0.12)",
+              background: "rgba(0,173,130,0.12)",
               color: "var(--green)",
               fontSize: 12.5,
               fontWeight: 600,
@@ -343,8 +343,8 @@ function RevenueChart() {
     <svg viewBox={`0 0 ${w} ${h}`} style={{ width: "100%", height: 140, display: "block", overflow: "visible" }}>
       <defs>
         <linearGradient id="rev-grad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="rgba(0,182,122,0.36)" />
-          <stop offset="100%" stopColor="rgba(0,182,122,0)" />
+          <stop offset="0%" stopColor="rgba(0,173,130,0.36)" />
+          <stop offset="100%" stopColor="rgba(0,173,130,0)" />
         </linearGradient>
       </defs>
       <path d={area} fill="url(#rev-grad)" />

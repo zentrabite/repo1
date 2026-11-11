@@ -12,7 +12,7 @@ import type { ImportedMenuCategory, StoredImport } from "@/lib/import/types";
 
 // ─── Theme ────────────────────────────────────────────────────────────────
 const C = {
-  g:    "#00B67A",
+  g:    "#00AD82",
   o:    "#FF6B35",
   r:    "#FF4757",
   y:    "#FFC14B",
@@ -190,7 +190,7 @@ export default function OnboardingWizard() {
           <h2 style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 22, color: C.cl, margin: 0 }}>
             {biz.name}
           </h2>
-          <span style={{ padding: "3px 10px", borderRadius: 999, background: "rgba(0,182,122,.12)", color: C.g, fontSize: 11, fontWeight: 600, fontFamily: "var(--font-outfit)" }}>
+          <span style={{ padding: "3px 10px", borderRadius: 999, background: "rgba(0,173,130,.12)", color: C.g, fontSize: 11, fontWeight: 600, fontFamily: "var(--font-outfit)" }}>
             ONBOARDING
           </span>
         </div>
@@ -215,12 +215,12 @@ export default function OnboardingWizard() {
                 title={s.label}
                 style={{
                   flex: 1,
-                  background: active ? "rgba(0,182,122,.10)" : done ? "rgba(0,182,122,.04)" : "transparent",
-                  border: `1px solid ${active ? C.g : done ? "rgba(0,182,122,.25)" : C.mist}`,
+                  background: active ? "rgba(0,173,130,.10)" : done ? "rgba(0,173,130,.04)" : "transparent",
+                  border: `1px solid ${active ? C.g : done ? "rgba(0,173,130,.25)" : C.mist}`,
                   borderRadius: 8,
                   padding: "8px 4px",
                   cursor: "pointer",
-                  color: active ? C.cl : done ? "rgba(0,182,122,.8)" : C.st,
+                  color: active ? C.cl : done ? "rgba(0,173,130,.8)" : C.st,
                   fontSize: 11,
                   fontFamily: "var(--font-inter)",
                   fontWeight: 600,
@@ -429,7 +429,7 @@ function StepBranding({ biz, save, show }: { biz: Biz; save: SaveFn; show: (m: s
       show("Logo saved ✓");
     } finally { setPulling(null); }
   }
-  const [color, setColor] = useState<string>(biz.settings?.branding?.accent_color ?? "#00B67A");
+  const [color, setColor] = useState<string>(biz.settings?.branding?.accent_color ?? "#00AD82");
   const [uploading, setUploading] = useState(false);
 
   async function handleLogo(file: File) {
@@ -591,7 +591,7 @@ function StepMenu({ biz, show }: { biz: Biz; show: (m: string) => void }) {
       )}
       {!importedMenu && !imp?.menu_seeded_at && imp?.checks.menu && <div style={importBox}><ImportCheck note={imp.checks.menu} /></div>}
       {seeded && (
-        <div style={{ padding: 10, background: "rgba(0,182,122,.08)", border: "1px solid rgba(0,182,122,.25)", borderRadius: 8, color: C.g, fontSize: 13, marginBottom: 16 }}>
+        <div style={{ padding: 10, background: "rgba(0,173,130,.08)", border: "1px solid rgba(0,173,130,.25)", borderRadius: 8, color: C.g, fontSize: 13, marginBottom: 16 }}>
           ✓ Menu seeded. Advance to the next step when ready.
         </div>
       )}
@@ -672,10 +672,10 @@ function StepPayments({ biz, save, show }: { biz: Biz; save: SaveFn; show: (m: s
             </div>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
-            <span style={{ ...pill, background: biz.stripe_charges_enabled ? "rgba(0,182,122,.14)" : "rgba(255,193,75,.14)", color: biz.stripe_charges_enabled ? C.g : C.y }}>
+            <span style={{ ...pill, background: biz.stripe_charges_enabled ? "rgba(0,173,130,.14)" : "rgba(255,193,75,.14)", color: biz.stripe_charges_enabled ? C.g : C.y }}>
               {biz.stripe_charges_enabled ? "Charges ✓" : "Charges —"}
             </span>
-            <span style={{ ...pill, background: biz.stripe_payouts_enabled ? "rgba(0,182,122,.14)" : "rgba(255,193,75,.14)", color: biz.stripe_payouts_enabled ? C.g : C.y }}>
+            <span style={{ ...pill, background: biz.stripe_payouts_enabled ? "rgba(0,173,130,.14)" : "rgba(255,193,75,.14)", color: biz.stripe_payouts_enabled ? C.g : C.y }}>
               {biz.stripe_payouts_enabled ? "Payouts ✓" : "Payouts —"}
             </span>
           </div>
@@ -845,7 +845,7 @@ function StepWebsite({ biz, save, show }: { biz: Biz; save: SaveFn; show: (m: st
 
   return (
     <Section title="Website" subtitle="Their site with ordering built in. Check it with the owner, then publish.">
-      <div style={{ ...importBox, background: published ? "rgba(0,182,122,.06)" : importBox.background, borderColor: published ? "rgba(0,182,122,.25)" : "rgba(255,193,75,.2)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+      <div style={{ ...importBox, background: published ? "rgba(0,173,130,.06)" : importBox.background, borderColor: published ? "rgba(0,173,130,.25)" : "rgba(255,193,75,.2)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         <div>
           <div style={{ fontSize: 13, fontWeight: 600, color: published ? C.g : C.cl }}>{published ? "Live" : "Not published yet"}</div>
           {address && <div style={{ fontSize: 12, color: C.st, marginTop: 3 }}>{address}{published ? "" : " shows a holding page until you publish"}</div>}
@@ -861,7 +861,7 @@ function StepWebsite({ biz, save, show }: { biz: Biz; save: SaveFn; show: (m: st
       <div style={label}>Look</div>
       <div className="zb-stack" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, margin: "6px 0 18px" }}>
         {LOOKS.map(l => (
-          <button key={l.id} onClick={() => setLook(l.id)} style={{ ...ghostBtn, textAlign: "left", borderColor: look === l.id ? C.g : C.mist, background: look === l.id ? "rgba(0,182,122,.08)" : "transparent" }}>
+          <button key={l.id} onClick={() => setLook(l.id)} style={{ ...ghostBtn, textAlign: "left", borderColor: look === l.id ? C.g : C.mist, background: look === l.id ? "rgba(0,173,130,.08)" : "transparent" }}>
             <div style={{ fontWeight: 600 }}>{l.label}</div>
             <div style={{ fontSize: 11, color: C.st, marginTop: 2 }}>{l.note}</div>
           </button>
@@ -959,7 +959,7 @@ function StepTeam({ biz, router, show }: { biz: Biz; router: any; show: (m: stri
         </div>
       )}
 
-      <div style={{ marginTop: 24, padding: 16, background: "rgba(0,182,122,.06)", border: "1px solid rgba(0,182,122,.25)", borderRadius: 10 }}>
+      <div style={{ marginTop: 24, padding: 16, background: "rgba(0,173,130,.06)", border: "1px solid rgba(0,173,130,.25)", borderRadius: 10 }}>
         <div style={{ fontWeight: 600, color: C.g, fontSize: 14, marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}><Icon name="done" size={16} />Onboarding complete</div>
         <div style={{ fontSize: 13, color: C.cl, lineHeight: 1.55 }}>
           The owner has a magic link in their inbox. You can impersonate them from the admin panel to verify

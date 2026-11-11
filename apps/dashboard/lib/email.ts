@@ -220,7 +220,7 @@ function receiptHtml(input: CustomerReceiptInput): string {
 
           ${storeUrl ? `
           <div style="text-align:center;margin-top:28px">
-            <a href="${escapeHtml(storeUrl)}" style="display:inline-block;padding:12px 22px;background:#00B67A;color:#fff;text-decoration:none;border-radius:10px;font-weight:600;font-size:14px">View or reorder →</a>
+            <a href="${escapeHtml(storeUrl)}" style="display:inline-block;padding:12px 22px;background:#00AD82;color:#fff;text-decoration:none;border-radius:10px;font-weight:600;font-size:14px">View or reorder →</a>
           </div>` : ""}
 
           <div style="margin-top:24px;padding-top:20px;border-top:1px solid #eceff4;font-size:12px;color:#6B7C93;line-height:1.6">

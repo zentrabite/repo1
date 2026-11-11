@@ -23,7 +23,7 @@ const config: Config = {
       // Usage: text-brand-green, bg-brand-navy, etc.
       colors: {
         brand: {
-          green: "#00B67A",
+          green: "#00AD82",
           orange: "#FF6B35",
           navy: "#0F1F2D",
           "near-black": "#0A1628",

@@ -15,18 +15,18 @@
         "height": 900
       },
       "fps": 30,
-      "duration": 7.7,
+      "duration": 7.8,
       "loop": "cut",
-      "loopSsim": 0.655,
+      "loopSsim": 0.656,
       "files": {
         "mp4": "/media/app/orders-desktop.mp4",
         "webm": "/media/app/orders-desktop.webm",
         "poster": "/media/app/orders-desktop.webp"
       },
       "bytes": {
-        "mp4": 113514,
-        "webm": 119671,
-        "poster": 49278
+        "mp4": 114185,
+        "webm": 117936,
+        "poster": 49148
       },
       "encode": {
         "mp4Crf": 26,
@@ -36,7 +36,7 @@
       "capture": {
         "method": "screencast",
         "pace": 2,
-        "testFps": 29
+        "testFps": 42
       }
     },
     {
@@ -61,9 +61,9 @@
         "poster": "/media/app/customer-desktop.webp"
       },
       "bytes": {
-        "mp4": 165419,
-        "webm": 207625,
-        "poster": 55658
+        "mp4": 159687,
+        "webm": 217411,
+        "poster": 55330
       },
       "encode": {
         "mp4Crf": 26,
@@ -72,8 +72,8 @@
       },
       "capture": {
         "method": "screencast",
-        "pace": 3,
-        "testFps": 19.4
+        "pace": 2,
+        "testFps": 42.7
       }
     },
     {
@@ -91,16 +91,16 @@
       "fps": 30,
       "duration": 7.77,
       "loop": "cut",
-      "loopSsim": 0.882,
+      "loopSsim": 0.883,
       "files": {
         "mp4": "/media/app/winback-desktop.mp4",
         "webm": "/media/app/winback-desktop.webm",
         "poster": "/media/app/winback-desktop.webp"
       },
       "bytes": {
-        "mp4": 171773,
-        "webm": 186407,
-        "poster": 47020
+        "mp4": 167010,
+        "webm": 183213,
+        "poster": 46518
       },
       "encode": {
         "mp4Crf": 26,
@@ -109,8 +109,8 @@
       },
       "capture": {
         "method": "screencast",
-        "pace": 3,
-        "testFps": 18
+        "pace": 2,
+        "testFps": 35.2
       }
     },
     {
@@ -126,7 +126,7 @@
         "height": 900
       },
       "fps": 30,
-      "duration": 8.3,
+      "duration": 8.27,
       "loop": "seamless",
       "loopSsim": 1,
       "files": {
@@ -135,9 +135,9 @@
         "poster": "/media/app/rewards-desktop.webp"
       },
       "bytes": {
-        "mp4": 272090,
-        "webm": 252949,
-        "poster": 48878
+        "mp4": 270672,
+        "webm": 250746,
+        "poster": 48338
       },
       "encode": {
         "mp4Crf": 26,
@@ -146,8 +146,8 @@
       },
       "capture": {
         "method": "screencast",
-        "pace": 3,
-        "testFps": 21.4
+        "pace": 2,
+        "testFps": 39.2
       }
     },
     {
@@ -163,7 +163,7 @@
         "height": 900
       },
       "fps": 30,
-      "duration": 9.57,
+      "duration": 9.63,
       "loop": "seamless",
       "loopSsim": 1,
       "files": {
@@ -172,9 +172,9 @@
         "poster": "/media/app/pos-desktop.webp"
       },
       "bytes": {
-        "mp4": 173765,
-        "webm": 185741,
-        "poster": 46654
+        "mp4": 174365,
+        "webm": 185310,
+        "poster": 46460
       },
       "encode": {
         "mp4Crf": 26,
@@ -183,8 +183,8 @@
       },
       "capture": {
         "method": "screencast",
-        "pace": 3,
-        "testFps": 19.9
+        "pace": 2,
+        "testFps": 43
       }
     },
     {
@@ -200,7 +200,7 @@
         "height": 844
       },
       "fps": 30,
-      "duration": 10.6,
+      "duration": 10.4,
       "loop": "cut",
       "loopSsim": 0.45,
       "files": {
@@ -209,8 +209,8 @@
         "poster": "/media/app/storefront-phone.webp"
       },
       "bytes": {
-        "mp4": 418071,
-        "webm": 397880,
+        "mp4": 417157,
+        "webm": 390424,
         "poster": 39184
       },
       "encode": {
@@ -221,7 +221,7 @@
       "capture": {
         "method": "screencast",
         "pace": 1,
-        "testFps": 60
+        "testFps": 60.3
       }
     },
     {
@@ -237,7 +237,7 @@
         "height": 844
       },
       "fps": 30,
-      "duration": 8.5,
+      "duration": 8.4,
       "loop": "cut",
       "loopSsim": 0.619,
       "files": {
@@ -246,9 +246,9 @@
         "poster": "/media/app/crm-phone.webp"
       },
       "bytes": {
-        "mp4": 103194,
-        "webm": 132444,
-        "poster": 20508
+        "mp4": 100294,
+        "webm": 132630,
+        "poster": 20366
       },
       "encode": {
         "mp4Crf": 26,
@@ -258,7 +258,7 @@
       "capture": {
         "method": "screencast",
         "pace": 1,
-        "testFps": 60.1
+        "testFps": 60.9
       }
     }
   ]

@@ -6,7 +6,7 @@ import { useState, useEffect, use } from "react";
 import { useSearchParams } from "next/navigation";
 import { Icon } from "@/components/zb-icon";
 
-const C = { g:"#00B67A", st:"#8B9DB5", cl:"#F8FAFB", navy:"#0F1F2D", card:"#1C2D48", mist:"rgba(255,255,255,.08)" };
+const C = { g:"#00AD82", st:"#8B9DB5", cl:"#F8FAFB", navy:"#0F1F2D", card:"#1C2D48", mist:"rgba(255,255,255,.08)" };
 
 export default function StorefrontSuccessPage({ params }: { params: Promise<{ subdomain: string }> }) {
   const { subdomain } = use(params);
@@ -47,7 +47,7 @@ export default function StorefrontSuccessPage({ params }: { params: Promise<{ su
       <div style={{ width:"100%", maxWidth:440, background:C.card, borderRadius:20, padding:"36px 28px", border:`1px solid ${C.mist}`, textAlign:"center" }}>
 
         {/* Animated tick */}
-        <div style={{ width:72, height:72, borderRadius:"50%", background:"rgba(0,182,122,.15)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 20px", fontSize:32 }}>
+        <div style={{ width:72, height:72, borderRadius:"50%", background:"rgba(0,173,130,.15)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 20px", fontSize:32 }}>
           <Icon name="check" size={32} />
         </div>
 
@@ -80,7 +80,7 @@ export default function StorefrontSuccessPage({ params }: { params: Promise<{ su
         )}
 
         {/* What's next */}
-        <div style={{ background:"rgba(0,182,122,.08)", borderRadius:10, padding:"12px 14px", marginBottom:24, textAlign:"left" }}>
+        <div style={{ background:"rgba(0,173,130,.08)", borderRadius:10, padding:"12px 14px", marginBottom:24, textAlign:"left" }}>
           <div style={{ fontSize:12, color:C.g, fontWeight:600, marginBottom:4 }}>What happens next?</div>
           <div style={{ fontSize:12, color:C.st, lineHeight:1.5 }}>
             The restaurant has received your order and will begin preparing it shortly. You'll be notified when it's ready.

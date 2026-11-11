@@ -12,7 +12,7 @@ import type { MenuItem } from "@/lib/database.types";
 import type { DeliveryFeeBreakdown } from "@/lib/delivery-types";
 
 const C = {
-  g:"#00B67A", o:"#FF6B35", r:"#FF4757", st:"#6B7C93",
+  g:"#00AD82", o:"#FF6B35", r:"#FF4757", st:"#6B7C93",
   cl:"#F8FAFB", navy:"#1C2D48", mist:"rgba(226,232,240,.08)",
 };
 
@@ -242,7 +242,7 @@ export default function POSPage() {
                     padding:16, cursor:"pointer", transition:"all .15s",
                     display:"flex", flexDirection:"column", gap:6,
                   }}
-                  onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(0,182,122,.3)")}
+                  onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(0,173,130,.3)")}
                   onMouseLeave={e => (e.currentTarget.style.borderColor = C.mist)}
                 >
                   {item.image_url ? (
@@ -281,7 +281,7 @@ export default function POSPage() {
                 onClick={() => setMode(m)}
                 style={{
                   padding:"8px 4px", borderRadius:8, border:`1px solid ${mode===m ? C.g : C.mist}`,
-                  background: mode===m ? "rgba(0,182,122,.15)" : "rgba(255,255,255,.04)",
+                  background: mode===m ? "rgba(0,173,130,.15)" : "rgba(255,255,255,.04)",
                   color: mode===m ? C.g : C.st,
                   fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:11,
                   cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", gap:2,
@@ -311,7 +311,7 @@ export default function POSPage() {
                   <div style={{ display:"flex", alignItems:"center", gap:6 }}>
                     <button onClick={() => updateQty(item.id, item.qty - 1)} style={{ width:26, height:26, borderRadius:6, background:"rgba(255,255,255,.08)", border:"none", color:C.cl, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center" }}>−</button>
                     <span style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:13, color:C.cl, minWidth:20, textAlign:"center" }}>{item.qty}</span>
-                    <button onClick={() => updateQty(item.id, item.qty + 1)} style={{ width:26, height:26, borderRadius:6, background:"rgba(0,182,122,.2)", border:"none", color:C.g, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
+                    <button onClick={() => updateQty(item.id, item.qty + 1)} style={{ width:26, height:26, borderRadius:6, background:"rgba(0,173,130,.2)", border:"none", color:C.g, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
                   </div>
                 </div>
               ))}
@@ -326,7 +326,7 @@ export default function POSPage() {
 
         {/* Delivery details (shown only in delivery mode) */}
         {mode === "delivery" && (
-          <div style={{ padding:"12px 20px", borderTop:`1px solid ${C.mist}`, flexShrink:0, background:"rgba(0,182,122,.04)" }}>
+          <div style={{ padding:"12px 20px", borderTop:`1px solid ${C.mist}`, flexShrink:0, background:"rgba(0,173,130,.04)" }}>
             <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:11, color:C.g, marginBottom:8, textTransform:"uppercase", letterSpacing:".5px", display:"flex", alignItems:"center", gap:6 }}><Icon name="delivery" size={14} />Delivery Details</div>
 
             {/* Address */}
@@ -347,7 +347,7 @@ export default function POSPage() {
                     onClick={() => setDistBand(b)}
                     style={{
                       padding:"6px 4px", borderRadius:6, border:`1px solid ${distBand===b ? C.g : C.mist}`,
-                      background: distBand===b ? "rgba(0,182,122,.15)" : "rgba(255,255,255,.04)",
+                      background: distBand===b ? "rgba(0,173,130,.15)" : "rgba(255,255,255,.04)",
                       color: distBand===b ? C.g : C.st,
                       fontSize:11, fontFamily:"var(--font-outfit)", fontWeight:600, cursor:"pointer",
                     }}
@@ -368,7 +368,7 @@ export default function POSPage() {
                     onClick={() => setDelivTier(t)}
                     style={{
                       padding:"6px 8px", borderRadius:6, border:`1px solid ${delivTier===t ? C.g : C.mist}`,
-                      background: delivTier===t ? "rgba(0,182,122,.15)" : "rgba(255,255,255,.04)",
+                      background: delivTier===t ? "rgba(0,173,130,.15)" : "rgba(255,255,255,.04)",
                       color: delivTier===t ? C.g : C.st,
                       fontSize:11, fontFamily:"var(--font-outfit)", fontWeight:600, cursor:"pointer",
                     }}
@@ -425,7 +425,7 @@ export default function POSPage() {
             {(["cash","card"] as PayMethod[]).map(m => (
               <button key={m} onClick={() => setPayMethod(m)} style={{
                 flex:1, padding:"9px 0", borderRadius:8, border:`1px solid ${payMethod===m ? C.g : C.mist}`,
-                background: payMethod===m ? "rgba(0,182,122,.15)" : "rgba(255,255,255,.04)",
+                background: payMethod===m ? "rgba(0,173,130,.15)" : "rgba(255,255,255,.04)",
                 color: payMethod===m ? C.g : C.st,
                 fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:13, cursor:"pointer",
               }}>

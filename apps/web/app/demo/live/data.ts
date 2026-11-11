@@ -284,7 +284,7 @@ export const channelLabel: Record<OrderChannel, string> = {
 };
 
 export const statusLabel: Record<OrderStatus, { label: string; color: string; bg: string }> = {
-  new:       { label: "New",             color: "#00B67A", bg: "rgba(0,182,122,0.14)" },
+  new:       { label: "New",             color: "#00AD82", bg: "rgba(0,173,130,0.14)" },
   cooking:   { label: "Cooking",         color: "#FF6B35", bg: "rgba(255,107,53,0.14)" },
   ready:     { label: "Ready",           color: "#FFC14B", bg: "rgba(255,193,75,0.14)" },
   out:       { label: "Out for delivery",color: "#6BB1FF", bg: "rgba(107,177,255,0.14)" },
@@ -465,7 +465,7 @@ export const callsTodayStats = {
 };
 
 export const callOutcomeLabel: Record<CallOutcome, { label: string; color: string; bg: string }> = {
-  order_placed: { label: "Order placed", color: "#00B67A", bg: "rgba(0,182,122,0.14)" },
+  order_placed: { label: "Order placed", color: "#00AD82", bg: "rgba(0,173,130,0.14)" },
   booking:      { label: "Booking",      color: "#6BB1FF", bg: "rgba(107,177,255,0.14)" },
   question:     { label: "Question",     color: "#C9A6FF", bg: "rgba(201,166,255,0.14)" },
   transferred:  { label: "Transferred",  color: "#FFC14B", bg: "rgba(255,193,75,0.14)" },
@@ -526,7 +526,7 @@ export const driverStatusLabel: Record<DriverStatus, { label: string; color: str
   idle:        { label: "Idle",          color: "#9CA8BD", bg: "rgba(156,168,189,0.14)" },
   picking_up:  { label: "Picking up",    color: "#FFC14B", bg: "rgba(255,193,75,0.14)" },
   delivering:  { label: "Delivering",    color: "#6BB1FF", bg: "rgba(107,177,255,0.14)" },
-  returning:   { label: "Returning",     color: "#00B67A", bg: "rgba(0,182,122,0.14)" },
+  returning:   { label: "Returning",     color: "#00AD82", bg: "rgba(0,173,130,0.14)" },
 };
 
 export const driverTypeLabel: Record<DemoDriver["type"], { label: string; color: string }> = {
@@ -802,7 +802,7 @@ export const fulfillmentStageLabel: Record<FulfillmentStage, { label: string; ic
   placed:    { label: "Placed",    icon: "receipt", color: "#818CF8" },
   picked:    { label: "Picked",    icon: "bag", color: "#63B3FF" },
   packed:    { label: "Packed",    icon: "package", color: "#F59E0B" },
-  shipped:   { label: "In transit", icon: "delivery", color: "#00B67A" },
+  shipped:   { label: "In transit", icon: "delivery", color: "#00AD82" },
   delivered: { label: "Delivered", icon: "done", color: "#6B7C93" },
 };
 
@@ -867,7 +867,7 @@ export const rosterRoleLabel: Record<RosterRole, { label: string; color: string;
   kitchen: { label: "Kitchen", color: "#FF6B35", bg: "rgba(255,107,53,0.12)",  icon: "kitchen" },
   front:   { label: "Front",   color: "#63B3FF", bg: "rgba(99,179,255,0.12)",  icon: "user" },
   driver:  { label: "Driver",  color: "#A855F7", bg: "rgba(168,85,247,0.12)",  icon: "drivers" },
-  manager: { label: "Manager", color: "#00B67A", bg: "rgba(0,182,122,0.12)",   icon: "key" },
+  manager: { label: "Manager", color: "#00AD82", bg: "rgba(0,173,130,0.12)",   icon: "key" },
 };
 
 export const rosterDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -912,7 +912,7 @@ export const reviewPlatformColor: Record<ReviewPlatform, { color: string; bg: st
   "Uber Eats": { color: "#06C167", bg: "rgba(6,193,103,0.14)" },
   DoorDash:    { color: "#FF3008", bg: "rgba(255,48,8,0.14)" },
   Yelp:        { color: "#D32323", bg: "rgba(211,35,35,0.14)" },
-  Direct:      { color: "#00B67A", bg: "rgba(0,182,122,0.14)" },
+  Direct:      { color: "#00AD82", bg: "rgba(0,173,130,0.14)" },
 };
 
 // ─── Smart Delivery Routing ──────────────────────────────────────────────────

@@ -10,7 +10,7 @@ function toast(text: string) {
   el.textContent = text;
   el.style.cssText = `
     position: fixed; top: 60px; right: 20px; z-index: 999;
-    background: rgba(0,182,122,0.94); color: #0F1F2D;
+    background: rgba(0,173,130,0.94); color: #0F1F2D;
     padding: 10px 16px; border-radius: 10px; font-weight: 600;
     font-family: var(--font-inter); font-size: 13px;
     box-shadow: 0 12px 32px rgba(0,0,0,0.4);
@@ -20,7 +20,7 @@ function toast(text: string) {
 }
 
 const CATEGORY_COLORS: Record<DemoAutomation["category"], { color: string; bg: string; icon: IconName; label: string }> = {
-  order:  { color: "#00B67A", bg: "rgba(0,182,122,0.14)",   icon: "orders", label: "Orders" },
+  order:  { color: "#00AD82", bg: "rgba(0,173,130,0.14)",   icon: "orders", label: "Orders" },
   review: { color: "#C9A6FF", bg: "rgba(201,166,255,0.14)", icon: "reviews", label: "Reviews" },
   stock:  { color: "#FFC14B", bg: "rgba(255,193,75,0.14)",  icon: "stock", label: "Stock" },
   staff:  { color: "#6BB1FF", bg: "rgba(107,177,255,0.14)", icon: "users", label: "Staff" },
@@ -199,8 +199,8 @@ function StatBox({ label, value, sub, accent }: { label: string; value: string; 
       style={{
         padding: "14px 16px",
         borderRadius: 14,
-        background: accent ? "rgba(0,182,122,0.08)" : "rgba(255,255,255,0.03)",
-        border: `1px solid ${accent ? "rgba(0,182,122,0.28)" : "var(--mist-9)"}`,
+        background: accent ? "rgba(0,173,130,0.08)" : "rgba(255,255,255,0.03)",
+        border: `1px solid ${accent ? "rgba(0,173,130,0.28)" : "var(--mist-9)"}`,
       }}
     >
       <div style={{ fontSize: 11, color: "var(--steel)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600 }}>

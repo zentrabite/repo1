@@ -221,8 +221,8 @@ export default function DemoReviewsPage() {
                     {r.replied && r.replyText && !isEditing && (
                       <div
                         style={{
-                          background: "rgba(0,182,122,0.07)",
-                          border: "1px solid rgba(0,182,122,0.2)",
+                          background: "rgba(0,173,130,0.07)",
+                          border: "1px solid rgba(0,173,130,0.2)",
                           borderRadius: 10,
                           padding: "10px 14px",
                           fontSize: 13,

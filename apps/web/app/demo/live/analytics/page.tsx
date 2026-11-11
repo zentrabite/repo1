@@ -13,7 +13,7 @@ export default function AnalyticsPage() {
 
   const SEGMENT_COLORS: Record<string, { color: string; label: string }> = {
     vips:    { color: "#C9A24A", label: "VIPs" },
-    regular: { color: "#00B67A", label: "Regulars" },
+    regular: { color: "#00AD82", label: "Regulars" },
     new:     { color: "#6BB1FF", label: "New" },
     lapsing: { color: "#FFC14B", label: "Lapsing" },
     lapsed:  { color: "#FF5A5A", label: "Lapsed" },

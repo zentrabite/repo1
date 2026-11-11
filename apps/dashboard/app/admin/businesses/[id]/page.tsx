@@ -17,7 +17,7 @@ import { Icon } from "@/components/zb-icon";
 import { useBusiness } from "@/hooks/use-business";
 
 const C = {
-  g:    "#00B67A",
+  g:    "#00AD82",
   o:    "#FF6B35",
   r:    "#FF4757",
   y:    "#FFC14B",
@@ -59,7 +59,7 @@ function toast(text: string, kind: "success" | "warn" | "error" = "success") {
   el.textContent = text;
   el.style.cssText = `
     position: fixed; top: 60px; right: 20px; z-index: 999;
-    background: ${kind === "success" ? "rgba(0,182,122,0.94)" : kind === "warn" ? "rgba(255,193,75,0.94)" : "rgba(255,71,87,0.95)"}; color: ${kind === "error" ? "#fff" : "#0F1F2D"};
+    background: ${kind === "success" ? "rgba(0,173,130,0.94)" : kind === "warn" ? "rgba(255,193,75,0.94)" : "rgba(255,71,87,0.95)"}; color: ${kind === "error" ? "#fff" : "#0F1F2D"};
     padding: 10px 16px; border-radius: 10px; font-weight: 600;
     font-family: var(--font-inter); font-size: 13px;
     box-shadow: 0 12px 32px rgba(0,0,0,0.4);
@@ -224,7 +224,7 @@ export default function AdminBusinessAboutPage() {
         <div
           style={{
             width: 72, height: 72, borderRadius: 16,
-            background: biz.logo_url ? `url(${biz.logo_url}) center/cover no-repeat` : "rgba(0,182,122,0.14)",
+            background: biz.logo_url ? `url(${biz.logo_url}) center/cover no-repeat` : "rgba(0,173,130,0.14)",
             display: "flex", alignItems: "center", justifyContent: "center",
             border: `1px solid ${C.mist}`,
             fontSize: 32,
@@ -254,7 +254,7 @@ export default function AdminBusinessAboutPage() {
               href={`tel:${form.contact_phone}`}
               style={{
                 padding: "8px 14px", borderRadius: 8,
-                background: "rgba(0,182,122,0.14)", border: `1px solid ${C.g}`,
+                background: "rgba(0,173,130,0.14)", border: `1px solid ${C.g}`,
                 color: C.g, fontSize: 13, fontWeight: 700, textDecoration: "none",
                 fontFamily: "var(--font-inter)", textAlign: "center",
               }}
@@ -267,7 +267,7 @@ export default function AdminBusinessAboutPage() {
               href={`tel:${form.owner_phone}`}
               style={{
                 padding: "8px 14px", borderRadius: 8,
-                background: "rgba(0,182,122,0.14)", border: `1px solid ${C.g}`,
+                background: "rgba(0,173,130,0.14)", border: `1px solid ${C.g}`,
                 color: C.g, fontSize: 13, fontWeight: 700, textDecoration: "none",
                 fontFamily: "var(--font-inter)", textAlign: "center",
               }}

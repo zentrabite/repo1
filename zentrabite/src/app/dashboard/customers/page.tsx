@@ -7,7 +7,7 @@ export default function CustomersPage() {
     <PlaceholderPage
       title="Customers"
       description="Full CRM — search, segment, and view every customer's profile and order history."
-      accentColor="#00B67A"
+      accentColor="#00AD82"
     />
   );
 }

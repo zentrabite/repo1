@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
 import { getReviews, updateReview } from "@/lib/queries";
 
-const C = { g:"#00B67A", o:"#FF6B35", r:"#FF4757", am:"#F59E0B", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(226,232,240,.08)" };
+const C = { g:"#00AD82", o:"#FF6B35", r:"#FF4757", am:"#F59E0B", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(226,232,240,.08)" };
 
 type Review = {
   id: string;
@@ -152,7 +152,7 @@ export default function ReviewsPage() {
                   <p style={{ fontSize:13, color:C.cl, lineHeight:1.6, margin:"0 0 8px" }}>{r.comment}</p>
                 )}
                 {r.replied && r.reply_text && (
-                  <div style={{ background:"rgba(0,182,122,.07)", border:"1px solid rgba(0,182,122,.15)", borderRadius:8, padding:"8px 12px", fontSize:12, color:C.g }}>
+                  <div style={{ background:"rgba(0,173,130,.07)", border:"1px solid rgba(0,173,130,.15)", borderRadius:8, padding:"8px 12px", fontSize:12, color:C.g }}>
                     <strong>Your reply:</strong> {r.reply_text}
                   </div>
                 )}

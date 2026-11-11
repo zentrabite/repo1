@@ -21,7 +21,7 @@ const config: Config = {
       colors: {
         brand: {
           navy:       "#1C2D48",   // Navigation, card surfaces, logo mark bg
-          green:      "#00B67A",   // CTAs, active, success — primary action
+          green:      "#00AD82",   // CTAs, active, success — primary action
           orange:     "#FF6B35",   // Alerts, urgency, Uber badges — accent only
           nearBlack:  "#0F1F2D",   // Page background
           steel:      "#6B7C93",   // Labels, secondary text, metadata

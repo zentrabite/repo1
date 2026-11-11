@@ -10,7 +10,7 @@ import BrandMark from "@/components/brand-mark";
 import PasswordInput from "@/components/password-input";
 import { loginErrorMessage, MSG } from "@/lib/auth-errors";
 
-const C = { g: "#00B67A", st: "#6B7C93", cl: "#F8FAFB", r: "#FF4757" };
+const C = { g: "#00AD82", st: "#6B7C93", cl: "#F8FAFB", r: "#FF4757" };
 
 // ── Inner component ───────────────────────────────────────────────────────────
 // useSearchParams() must live inside a <Suspense> boundary in Next.js 15+.

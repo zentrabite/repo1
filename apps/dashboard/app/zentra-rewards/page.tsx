@@ -11,7 +11,7 @@ import {
 } from "@/lib/queries";
 import type { WinbackRule } from "@/lib/database.types";
 
-const C = { g:"#00B67A", r:"#DC3545", be:"#63B3FF", st:"#6B7C93" };
+const C = { g:"#00AD82", r:"#DC3545", be:"#63B3FF", st:"#6B7C93" };
 
 const BLANK_FORM = {
   name: "",
@@ -149,7 +149,7 @@ export default function WinBackPage() {
                 </div>
                 <div className="zb-wrap" style={{ display:"flex", gap:6 }}>
                   <button className="bg-btn" onClick={() => loadFromRule(r)}>Edit</button>
-                  <button className="bg-btn" onClick={() => toggle(r)} style={{ color: r.is_active ? C.r : C.g, borderColor: r.is_active ? "rgba(220,53,69,.2)" : "rgba(0,182,122,.2)" }}>
+                  <button className="bg-btn" onClick={() => toggle(r)} style={{ color: r.is_active ? C.r : C.g, borderColor: r.is_active ? "rgba(220,53,69,.2)" : "rgba(0,173,130,.2)" }}>
                     {r.is_active ? "Pause" : "Resume"}
                   </button>
                   <button className="bg-btn" onClick={() => remove(r.id)} style={{ color:C.r }}>Delete</button>

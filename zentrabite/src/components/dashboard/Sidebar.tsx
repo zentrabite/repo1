@@ -33,7 +33,7 @@ export default function Sidebar() {
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{
             width: 36, height: 36, borderRadius: 10,
-            background: `linear-gradient(135deg, ${C.green}, #007A54)`,
+            background: `linear-gradient(135deg, ${C.green}, #037459)`,
             display: "flex", alignItems: "center", justifyContent: "center",
             fontFamily: font.heading, fontWeight: 800, fontSize: 18, color: "#fff",
           }}>Z</div>

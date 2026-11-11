@@ -247,11 +247,11 @@ function welcomeHtml(input: { businessName: string; ownerName: string; actionLin
             Your dashboard for <strong>${escapeHtml(businessName)}</strong> is set up and ready. Click below to set a password and log in.
           </p>
           <div style="text-align:center;margin:24px 0 18px">
-            <a href="${escapeHtml(actionLink)}" style="display:inline-block;padding:13px 26px;background:#00B67A;color:#fff;text-decoration:none;border-radius:10px;font-weight:600;font-size:14px">Set password & log in →</a>
+            <a href="${escapeHtml(actionLink)}" style="display:inline-block;padding:13px 26px;background:#00AD82;color:#fff;text-decoration:none;border-radius:10px;font-weight:600;font-size:14px">Set password & log in →</a>
           </div>
           <p style="font-size:13px;color:#6B7C93;margin:0;line-height:1.6">
             Link not working? Paste it into your browser:<br>
-            <a href="${escapeHtml(actionLink)}" style="color:#00B67A;word-break:break-all">${escapeHtml(actionLink)}</a>
+            <a href="${escapeHtml(actionLink)}" style="color:#00AD82;word-break:break-all">${escapeHtml(actionLink)}</a>
           </p>
         </td></tr>
       </table>

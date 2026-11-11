@@ -26,7 +26,7 @@ export default function AnalyticsPage() {
         <div className="rounded-2xl border border-white/[0.07] bg-[#1c2d48]/45 p-6 backdrop-blur-xl">
           <h3 className="mb-4 font-heading text-sm font-semibold text-white">Channel Split</h3>
           <div className="mb-3 flex gap-1">
-            <div className="flex h-11 items-center justify-center rounded-l-xl bg-gradient-to-r from-[#00B67A] to-[#00B67A]/70 font-heading text-[15px] font-bold text-white" style={{ flex: 72 }}>72%</div>
+            <div className="flex h-11 items-center justify-center rounded-l-xl bg-gradient-to-r from-[#00AD82] to-[#00AD82]/70 font-heading text-[15px] font-bold text-white" style={{ flex: 72 }}>72%</div>
             <div className="flex h-11 items-center justify-center rounded-r-xl bg-gradient-to-r from-[#FF6B35]/70 to-[#FF6B35] font-heading text-[15px] font-bold text-white" style={{ flex: 28 }}>28%</div>
           </div>
           <div className="flex justify-between text-xs text-slate-400">
@@ -38,7 +38,7 @@ export default function AnalyticsPage() {
         <div className="rounded-2xl border border-white/[0.07] bg-[#1c2d48]/45 p-6 backdrop-blur-xl">
           <h3 className="mb-4 font-heading text-sm font-semibold text-white">Customer Segments</h3>
           {[
-            { label: "VIP", count: 184, color: "#00B67A", pct: 40 },
+            { label: "VIP", count: 184, color: "#00AD82", pct: 40 },
             { label: "At Risk", count: 127, color: "#FF6B35", pct: 28 },
             { label: "New", count: 89, color: "#3B82F6", pct: 19 },
           ].map((seg) => (
@@ -72,11 +72,11 @@ export default function AnalyticsPage() {
             </div>
             <span className="flex-1 text-[13px] font-medium text-white">{c.name}</span>
             <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${
-              c.segment === "VIP" ? "bg-[#00B67A]/15 text-[#00B67A]" :
+              c.segment === "VIP" ? "bg-[#00AD82]/15 text-[#00AD82]" :
               c.segment === "New" ? "bg-blue-500/12 text-blue-400" :
               "bg-white/[0.06] text-slate-400"
             }`}>{c.segment}</span>
-            <span className="font-heading text-[13px] font-bold text-[#00B67A]">{c.spent}</span>
+            <span className="font-heading text-[13px] font-bold text-[#00AD82]">{c.spent}</span>
           </div>
         ))}
       </div>

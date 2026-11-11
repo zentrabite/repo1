@@ -9,7 +9,7 @@ function toast(text: string) {
   el.textContent = text;
   el.style.cssText = `
     position: fixed; top: 60px; right: 20px; z-index: 999;
-    background: rgba(0,182,122,0.94); color: #0F1F2D;
+    background: rgba(0,173,130,0.94); color: #0F1F2D;
     padding: 10px 16px; border-radius: 10px; font-weight: 600;
     font-family: var(--font-inter); font-size: 13px;
     box-shadow: 0 12px 32px rgba(0,0,0,0.4);
@@ -98,8 +98,8 @@ export default function SettingsPage() {
               style={{
                 padding: 18,
                 borderRadius: 12,
-                background: "linear-gradient(140deg, rgba(0,182,122,0.12), rgba(107,177,255,0.06))",
-                border: "1px solid rgba(0,182,122,0.28)",
+                background: "linear-gradient(140deg, rgba(0,173,130,0.12), rgba(107,177,255,0.06))",
+                border: "1px solid rgba(0,173,130,0.28)",
                 marginBottom: 14,
               }}
             >
@@ -155,7 +155,7 @@ export default function SettingsPage() {
                     width: 32,
                     height: 32,
                     borderRadius: 999,
-                    background: "rgba(0,182,122,0.18)",
+                    background: "rgba(0,173,130,0.18)",
                     color: "var(--green)",
                     display: "flex",
                     alignItems: "center",

@@ -13,7 +13,7 @@ const COLUMNS = [
   { status: "Preparing", color: "#F59E0B", orders: [
     { id: "ORD-1002", customer: "Emma J.", items: "Pad Thai", total: 24, time: "12 min ago" },
   ]},
-  { status: "Ready", color: "#00B67A", orders: [
+  { status: "Ready", color: "#00AD82", orders: [
     { id: "ORD-1003", customer: "Noah W.", items: "Latte x2", total: 14, time: "18 min ago" },
   ]},
   { status: "Delivered", color: "#6B7C93", orders: [
@@ -52,7 +52,7 @@ export default function OrdersPage() {
                   </div>
                   <p className="mb-2 text-xs text-slate-400">{order.items}</p>
                   <div className="flex items-center justify-between">
-                    <span className="rounded-full bg-[#00B67A]/10 px-2.5 py-0.5 text-[10px] font-semibold text-[#00B67A]">Direct</span>
+                    <span className="rounded-full bg-[#00AD82]/10 px-2.5 py-0.5 text-[10px] font-semibold text-[#00AD82]">Direct</span>
                     <span className="text-[13px] font-bold text-white">${order.total}</span>
                   </div>
                   <p className="mt-1.5 text-[10px] text-slate-500">{order.time}</p>

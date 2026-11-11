@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
 import { getDrivers, createDriver, updateDriver, deleteDriver } from "@/lib/queries";
 
-const C = { g:"#00B67A", o:"#FF6B35", r:"#FF4757", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(226,232,240,.08)" };
+const C = { g:"#00AD82", o:"#FF6B35", r:"#FF4757", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(226,232,240,.08)" };
 
 type Driver = {
   id: string;
@@ -120,7 +120,7 @@ export default function DriversPage() {
       </div>
 
       {/* ── Info banner — no numbers yet ── */}
-      <div style={{ display:"flex", alignItems:"flex-start", gap:10, padding:"12px 16px", marginBottom:16, borderRadius:10, background:"rgba(0,182,122,.06)", border:"1px solid rgba(0,182,122,.18)" }}>
+      <div style={{ display:"flex", alignItems:"flex-start", gap:10, padding:"12px 16px", marginBottom:16, borderRadius:10, background:"rgba(0,173,130,.06)", border:"1px solid rgba(0,173,130,.18)" }}>
         <span style={{ fontSize:16, flexShrink:0 }}>ℹ️</span>
         <div style={{ fontSize:12, color:C.g, lineHeight:1.6 }}>
           <strong>Rates &amp; capacity not yet configured.</strong> Once you have the numbers, head to{" "}

@@ -48,7 +48,7 @@ export default function StatCard({ label, value, subtitle, icon, accent, delay =
         fontSize: 30,
         fontWeight: 700,
         fontFamily: "var(--font-outfit)",
-        color: useAccent ? "#00B67A" : "#F8FAFB",
+        color: useAccent ? "#00AD82" : "#F8FAFB",
         lineHeight: 1,
         letterSpacing: "-0.5px",
       }}>

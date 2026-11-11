@@ -71,7 +71,7 @@ export default function TopBar() {
         >
           <div style={{
             width: 30, height: 30, borderRadius: "50%",
-            background: `linear-gradient(135deg, ${C.green}, #007A54)`,
+            background: `linear-gradient(135deg, ${C.green}, #037459)`,
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: 13, fontWeight: 700, color: "#fff",
           }}>L</div>

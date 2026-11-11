@@ -15,7 +15,7 @@ import BrandMark from "@/components/brand-mark";
 import PasswordInput from "@/components/password-input";
 import { Icon } from "@/components/zb-icon";
 
-const C = { g:"#00B67A", o:"#FF6B35", r:"#FF4757", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(226,232,240,.08)" };
+const C = { g:"#00AD82", o:"#FF6B35", r:"#FF4757", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(226,232,240,.08)" };
 
 // ─── Section heading ──────────────────────────────────────────────────────────
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -44,10 +44,10 @@ function StatusPill({ active, label }: { active: boolean; label: string }) {
     <span style={{
       display:"inline-flex", alignItems:"center", gap:6,
       padding:"4px 12px", borderRadius:999,
-      background: active ? "rgba(0,182,122,.12)" : "rgba(107,124,147,.14)",
+      background: active ? "rgba(0,173,130,.12)" : "rgba(107,124,147,.14)",
       color: active ? C.g : C.st,
       fontFamily:"var(--font-outfit)", fontSize:12, fontWeight:600,
-      border: `1px solid ${active ? "rgba(0,182,122,.25)" : "rgba(107,124,147,.2)"}`,
+      border: `1px solid ${active ? "rgba(0,173,130,.25)" : "rgba(107,124,147,.2)"}`,
     }}>
       <span style={{ width:6, height:6, borderRadius:"50%", background: active ? C.g : C.st, flexShrink:0 }} />
       {label}
@@ -62,8 +62,8 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
       onClick={() => onChange(!on)}
       style={{
         width:44, height:24, borderRadius:12, flexShrink:0,
-        background: on ? "rgba(0,182,122,.3)" : "rgba(226,232,240,.1)",
-        border: `1px solid ${on ? "rgba(0,182,122,.4)" : C.mist}`,
+        background: on ? "rgba(0,173,130,.3)" : "rgba(226,232,240,.1)",
+        border: `1px solid ${on ? "rgba(0,173,130,.4)" : C.mist}`,
         cursor:"pointer", position:"relative", transition:"all .2s",
       }}
     >
@@ -419,7 +419,7 @@ function SettingsContent() {
             {storefrontUrl && (
               <div style={{
                 marginBottom:14, padding:"10px 12px",
-                background:"rgba(0,182,122,.05)", border:"1px solid rgba(0,182,122,.18)", borderRadius:10,
+                background:"rgba(0,173,130,.05)", border:"1px solid rgba(0,173,130,.18)", borderRadius:10,
               }}>
                 <div style={{ fontFamily:"var(--font-inter)", fontSize:11, color:C.st, marginBottom:4 }}>
                   Your public storefront
@@ -574,7 +574,7 @@ function SettingsContent() {
                       <div style={{ fontFamily:"var(--font-inter)", fontSize:13, color:C.st, lineHeight:1.6, marginBottom:16 }}>
                         Your Stripe Express account is fully onboarded. Payments go direct to your bank (minus Stripe&apos;s processing fee).
                       </div>
-                      <div style={{ padding:"12px 16px", background:"rgba(0,182,122,.06)", border:"1px solid rgba(0,182,122,.15)", borderRadius:10, marginBottom:16 }}>
+                      <div style={{ padding:"12px 16px", background:"rgba(0,173,130,.06)", border:"1px solid rgba(0,173,130,.15)", borderRadius:10, marginBottom:16 }}>
                         <div style={{ fontFamily:"var(--font-inter)", fontSize:12, color:C.g, fontWeight:600 }}>
                           ✓ Charges enabled · ✓ Payouts enabled
                         </div>
@@ -677,7 +677,7 @@ function SettingsContent() {
               </div>
             ) : (
               <div>
-                <div style={{ padding:"12px 16px", background:"rgba(0,182,122,.06)", border:"1px solid rgba(0,182,122,.15)", borderRadius:10, marginBottom:16 }}>
+                <div style={{ padding:"12px 16px", background:"rgba(0,173,130,.06)", border:"1px solid rgba(0,173,130,.15)", borderRadius:10, marginBottom:16 }}>
                   <div style={{ fontFamily:"var(--font-inter)", fontSize:13, color:C.g, fontWeight:600 }}>
                     {subscriptionStatus === "trialing"
                       ? (trialEnds ? `✓ Free trial active. It ends on ${trialEnds}, and your first payment is taken then.` : "✓ Free trial active")
@@ -895,7 +895,7 @@ function SettingsContent() {
                 <span style={{
                   padding:"3px 10px", borderRadius:999, fontSize:11, fontWeight:600,
                   fontFamily:"var(--font-outfit)",
-                  background: m.role==="Owner" ? "rgba(0,182,122,.12)" : "rgba(107,124,147,.14)",
+                  background: m.role==="Owner" ? "rgba(0,173,130,.12)" : "rgba(107,124,147,.14)",
                   color: m.role==="Owner" ? C.g : C.st,
                 }}>
                   {m.role}
@@ -959,8 +959,8 @@ function SettingsContent() {
                           style={{
                             display:"flex", alignItems:"center", gap:8,
                             padding:"6px 10px", borderRadius:8,
-                            background: on ? "rgba(0,182,122,.06)" : "transparent",
-                            border: `1px solid ${on ? "rgba(0,182,122,.22)" : C.mist}`,
+                            background: on ? "rgba(0,173,130,.06)" : "transparent",
+                            border: `1px solid ${on ? "rgba(0,173,130,.22)" : C.mist}`,
                             cursor:"pointer", fontFamily:"var(--font-inter)", fontSize:12,
                             color: on ? C.cl : C.st,
                           }}

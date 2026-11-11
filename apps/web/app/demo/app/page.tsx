@@ -751,7 +751,7 @@ function MenuTab({
                     style={{
                       fontSize: 9,
                       fontWeight: 700,
-                      background: "#E0F5EC",
+                      background: "#E1F4EE",
                       color: FOREST,
                       padding: "1px 5px",
                       borderRadius: 4,
@@ -924,7 +924,7 @@ function CartTab({
       {/* Reward teaser */}
       <div
         style={{
-          background: "#E0F5EC",
+          background: "#E1F4EE",
           color: FOREST,
           padding: "10px 14px",
           borderRadius: 12,
@@ -1326,7 +1326,7 @@ function OrdersTab({
                 style={{
                   fontSize: 10,
                   fontWeight: 700,
-                  background: "#E0F5EC",
+                  background: "#E1F4EE",
                   color: FOREST,
                   padding: "2px 7px",
                   borderRadius: 4,

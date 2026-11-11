@@ -50,7 +50,7 @@ type AdminBiz = {
   owner:              { name: string | null; email: string | null; phone: string | null } | null;
 };
 
-const C = { g:"#00B67A", o:"#FF6B35", r:"#FF4757", y:"#FFC14B", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(226,232,240,.09)" };
+const C = { g:"#00AD82", o:"#FF6B35", r:"#FF4757", y:"#FFC14B", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(226,232,240,.09)" };
 
 function toast(text: string, kind: "success" | "warn" | "error" = "success") {
   if (typeof document === "undefined") return;
@@ -58,7 +58,7 @@ function toast(text: string, kind: "success" | "warn" | "error" = "success") {
   el.textContent = text;
   el.style.cssText = `
     position: fixed; top: 60px; right: 20px; z-index: 999;
-    background: ${kind === "success" ? "rgba(0,182,122,0.94)" : kind === "warn" ? "rgba(255,193,75,0.94)" : "rgba(255,71,87,0.95)"}; color: ${kind === "error" ? "#fff" : "#0F1F2D"};
+    background: ${kind === "success" ? "rgba(0,173,130,0.94)" : kind === "warn" ? "rgba(255,193,75,0.94)" : "rgba(255,71,87,0.95)"}; color: ${kind === "error" ? "#fff" : "#0F1F2D"};
     padding: 10px 16px; border-radius: 10px; font-weight: 600;
     font-family: var(--font-inter); font-size: 13px;
     box-shadow: 0 12px 32px rgba(0,0,0,0.4);
@@ -269,7 +269,7 @@ export default function AdminPage() {
                       alignItems: "center",
                       width: "100%",
                       padding: "12px 14px",
-                      background: on ? "rgba(0,182,122,0.10)" : "transparent",
+                      background: on ? "rgba(0,173,130,0.10)" : "transparent",
                       border: "none",
                       borderBottom: `1px solid ${C.mist}`,
                       borderLeft: `3px solid ${on ? C.g : "transparent"}`,
@@ -340,8 +340,8 @@ export default function AdminPage() {
                     style={{
                       padding: "9px 16px",
                       borderRadius: 8,
-                      background: "rgba(0,182,122,0.12)",
-                      border: "1px solid rgba(0,182,122,0.35)",
+                      background: "rgba(0,173,130,0.12)",
+                      border: "1px solid rgba(0,173,130,0.35)",
                       color: C.g,
                       fontSize: 13,
                       fontWeight: 700,
@@ -381,7 +381,7 @@ export default function AdminPage() {
                       padding: "8px 14px",
                       borderRadius: 8,
                       border: "none",
-                      background: tab === t ? "rgba(0,182,122,0.14)" : "transparent",
+                      background: tab === t ? "rgba(0,173,130,0.14)" : "transparent",
                       color: tab === t ? C.g : C.st,
                       fontWeight: 600,
                       fontSize: 13.5,
@@ -423,7 +423,7 @@ export default function AdminPage() {
                             padding: "14px 16px",
                             borderRadius: 10,
                             border: `1px solid ${on ? C.g : C.mist}`,
-                            background: on ? "rgba(0,182,122,0.10)" : "rgba(28,45,72,.5)",
+                            background: on ? "rgba(0,173,130,0.10)" : "rgba(28,45,72,.5)",
                             cursor: saving ? "wait" : "pointer",
                             textAlign: "left",
                             fontFamily: "var(--font-inter)",
@@ -490,8 +490,8 @@ export default function AdminPage() {
                         onClick={() => router.push(`/admin/businesses/${active.id}`)}
                         style={{
                           padding: "8px 14px", borderRadius: 8,
-                          background: "rgba(0,182,122,0.12)", color: C.g,
-                          border: "1px solid rgba(0,182,122,0.35)",
+                          background: "rgba(0,173,130,0.12)", color: C.g,
+                          border: "1px solid rgba(0,173,130,0.35)",
                           fontSize: 13, fontWeight: 700, cursor: "pointer",
                           fontFamily: "var(--font-inter)",
                         }}
@@ -561,8 +561,8 @@ function Kpi({ label, value, sub, accent }: { label: string; value: string; sub?
       style={{
         padding: "14px 16px",
         borderRadius: 12,
-        background: accent ? "rgba(0,182,122,0.08)" : "rgba(28,45,72,.5)",
-        border: `1px solid ${accent ? "rgba(0,182,122,0.28)" : C.mist}`,
+        background: accent ? "rgba(0,173,130,0.08)" : "rgba(28,45,72,.5)",
+        border: `1px solid ${accent ? "rgba(0,173,130,0.28)" : C.mist}`,
         fontFamily: "var(--font-inter)",
       }}
     >

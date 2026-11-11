@@ -27,7 +27,7 @@ export default function DashboardTopbar() {
         </h1>
         <p className="flex items-center gap-2 text-xs text-slate-500">
           {currentPage?.description ?? "Overview"}
-          <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-[#00B67A]" />
+          <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-[#00AD82]" />
         </p>
       </div>
 
@@ -47,11 +47,11 @@ export default function DashboardTopbar() {
         <button className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04] transition-colors hover:bg-white/[0.08]">
           <Bell size={15} className="text-slate-400" />
           {/* Green dot for unread notifications */}
-          <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-[#00B67A]" />
+          <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-[#00AD82]" />
         </button>
 
         {/* User avatar */}
-        <div className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg bg-gradient-to-br from-[#00B67A] to-[#00A06B] text-xs font-bold text-white shadow-md shadow-[#00B67A]/20 transition-transform hover:scale-105">
+        <div className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg bg-gradient-to-br from-[#00AD82] to-[#009872] text-xs font-bold text-white shadow-md shadow-[#00AD82]/20 transition-transform hover:scale-105">
           ZB
         </div>
       </div>

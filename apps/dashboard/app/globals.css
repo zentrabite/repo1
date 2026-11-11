@@ -4,7 +4,7 @@
 
 /* ── Brand token reference ────────────────────────────────────────────────────
    Navy:        #1C2D48  — navigation, card surfaces
-   Green:       #00B67A  — CTAs, active states, success
+   Green:       #00AD82  — CTAs, active states, success
    Orange:      #FF6B35  — alerts, urgency, Uber/aggregator
    Near Black:  #0F1F2D  — page background
    Steel:       #6B7C93  — labels, secondary text
@@ -28,7 +28,7 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.24); }
-::selection { background: #00B67A; color: #fff; }
+::selection { background: #00AD82; color: #fff; }
 
 /* ── Animations ── */
 @keyframes fadeIn {
@@ -57,7 +57,7 @@ body {
    otherwise leave them stuck on. */
 @media (hover: hover) and (pointer: fine) {
   .gc:hover {
-    border-color: rgba(0, 182, 122, .22);
+    border-color: rgba(0, 173, 130, .22);
     box-shadow: 0 8px 32px rgba(0, 0, 0, .2);
   }
 }
@@ -75,7 +75,7 @@ body {
 
 /* ── Primary button — Green fill, white text ── */
 .bp {
-  background: #00B67A;
+  background: #00AD82;
   color: #fff;
   padding: 11px 24px;
   border-radius: 10px;
@@ -85,7 +85,7 @@ body {
   border: none;
   cursor: pointer;
   transition: background .18s, transform .15s, box-shadow .18s;
-  box-shadow: 0 2px 14px rgba(0, 182, 122, .3);
+  box-shadow: 0 2px 14px rgba(0, 173, 130, .3);
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -93,9 +93,9 @@ body {
 }
 @media (hover: hover) and (pointer: fine) {
   .bp:hover {
-    background: #00a36d;
+    background: #009b74;
     transform: translateY(-1px);
-    box-shadow: 0 5px 20px rgba(0, 182, 122, .4);
+    box-shadow: 0 5px 20px rgba(0, 173, 130, .4);
   }
 }
 .bp:active { transform: translateY(0); }
@@ -120,7 +120,7 @@ body {
 @media (hover: hover) and (pointer: fine) {
   .bg-btn:hover { background: rgba(255,255,255,.07); color: #F8FAFB; border-color: rgba(226,232,240,.2); }
 }
-.bg-btn.on    { background: rgba(0,182,122,.12); color: #00B67A; border-color: rgba(0,182,122,.35); }
+.bg-btn.on    { background: rgba(0,173,130,.12); color: #00AD82; border-color: rgba(0,173,130,.35); }
 
 /* ── Badge pill — always 999px radius (brand spec) ── */
 .bd {
@@ -177,7 +177,7 @@ input, select, textarea {
   box-sizing: border-box;
 }
 input:focus, select:focus, textarea:focus {
-  border-color: rgba(0, 182, 122, .5);
+  border-color: rgba(0, 173, 130, .5);
   background: rgba(28, 45, 72, .8);
 }
 input::placeholder { color: rgba(248,250,251,.25); }
@@ -202,7 +202,7 @@ input::-ms-reveal, input::-ms-clear { display: none; }
   background: transparent; color: #6B7C93; transition: color .15s, background .15s;
 }
 .zb-eye:hover { color: #F8FAFB; background: rgba(255, 255, 255, .06); }
-.zb-eye:focus-visible { outline: 2px solid rgba(0, 182, 122, .6); outline-offset: 1px; color: #F8FAFB; }
+.zb-eye:focus-visible { outline: 2px solid rgba(0, 173, 130, .6); outline-offset: 1px; color: #F8FAFB; }
 .zb-eye g { transform-box: fill-box; transform-origin: center; transition: transform .22s ease, opacity .16s ease; }
 .zb-eye-open { transform: scaleY(.08); opacity: 0; }
 .zb-eye-open.on { transform: scaleY(1); opacity: 1; }
@@ -225,7 +225,7 @@ label {
 .ld {
   width: 8px; height: 8px;
   border-radius: 50%;
-  background: #00B67A;
+  background: #00AD82;
   animation: pulse 2s infinite;
   display: inline-block;
   flex-shrink: 0;
@@ -290,12 +290,12 @@ label {
   transition: transform .15s ease, background .15s ease;
 }
 .toggle input[type="checkbox"]:checked {
-  background: rgba(0,182,122,.25);
-  border-color: rgba(0,182,122,.4);
+  background: rgba(0,173,130,.25);
+  border-color: rgba(0,173,130,.4);
 }
 .toggle input[type="checkbox"]:checked::after {
   transform: translateX(16px);
-  background: #00B67A;
+  background: #00AD82;
 }
 .toggle span {
   font-size: 11px;
@@ -304,7 +304,7 @@ label {
   letter-spacing: .5px;
 }
 .toggle input[type="checkbox"]:checked + span {
-  color: #00B67A;
+  color: #00AD82;
 }
 
 /* ── Phones and small tablets (820px and under) ───────────────────────────────
@@ -403,7 +403,7 @@ button, a, select, label, summary, [role="button"] { touch-action: manipulation;
   }
   .zb-menu-btn:active, .zb-menu-close:active { transform: scale(.96); }
   .zb-menu-btn, .zb-menu-close { transition: transform 120ms var(--zb-ease-out); }
-  .zb-menu-btn:focus-visible, .zb-menu-close:focus-visible { outline: 2px solid rgba(0, 182, 122, .7); outline-offset: 2px; }
+  .zb-menu-btn:focus-visible, .zb-menu-close:focus-visible { outline: 2px solid rgba(0, 173, 130, .7); outline-offset: 2px; }
   .zb-topbar-title { flex: 1; min-width: 0; }
   .zb-topbar-title h1 {
     font-size: 17px !important; line-height: 1.25 !important;

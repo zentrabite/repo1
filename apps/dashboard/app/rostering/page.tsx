@@ -8,7 +8,7 @@ import { useBusiness } from "@/hooks/use-business";
 import { getShifts, createShift, updateShift, deleteShift, getRevenueByDay } from "@/lib/queries";
 import type { RosterShift } from "@/lib/database.types";
 
-const C = { g:"#00B67A", o:"#FF6B35", am:"#F59E0B", st:"#6B7C93", r:"#DC3545", be:"#63B3FF" };
+const C = { g:"#00AD82", o:"#FF6B35", am:"#F59E0B", st:"#6B7C93", r:"#DC3545", be:"#63B3FF" };
 const ROLE_COLORS: Record<string, string> = {
   kitchen: C.am, front: C.be, driver: C.o, manager: C.g,
 };

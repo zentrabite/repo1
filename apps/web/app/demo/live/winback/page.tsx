@@ -7,7 +7,7 @@ import { Icon, type IconName } from "../../../components/zb-icon";
 import { showOnPhone } from "../show-on-phone";
 
 const STATUS_COLORS: Record<DemoCampaign["status"], { color: string; bg: string; label: string }> = {
-  live:   { color: "#00B67A", bg: "rgba(0,182,122,0.14)",  label: "Live" },
+  live:   { color: "#00AD82", bg: "rgba(0,173,130,0.14)",  label: "Live" },
   paused: { color: "#FFC14B", bg: "rgba(255,193,75,0.14)", label: "Paused" },
   draft:  { color: "#9CA8BD", bg: "rgba(156,168,189,0.14)", label: "Draft" },
 };
@@ -23,7 +23,7 @@ function toast(text: string) {
   el.textContent = text;
   el.style.cssText = `
     position: fixed; top: 60px; right: 20px; z-index: 999;
-    background: rgba(0,182,122,0.94); color: #0F1F2D;
+    background: rgba(0,173,130,0.94); color: #0F1F2D;
     padding: 10px 16px; border-radius: 10px; font-weight: 600;
     font-family: var(--font-inter); font-size: 13px;
     box-shadow: 0 12px 32px rgba(0,0,0,0.4);
@@ -184,7 +184,7 @@ export default function WinbackPage() {
                   gap: 10,
                   alignItems: "center",
                   padding: "14px 18px",
-                  background: isActive ? "rgba(0,182,122,0.07)" : "transparent",
+                  background: isActive ? "rgba(0,173,130,0.07)" : "transparent",
                   border: "none",
                   borderLeft: `3px solid ${isActive ? "var(--green)" : "transparent"}`,
                   borderBottom: "1px solid var(--mist-9)",
@@ -369,8 +369,8 @@ function CampaignDetail({
           style={{
             padding: "4px 10px",
             borderRadius: 999,
-            background: live ? "rgba(0,182,122,0.14)" : "rgba(255,193,75,0.14)",
-            color: live ? "#00B67A" : "#FFC14B",
+            background: live ? "rgba(0,173,130,0.14)" : "rgba(255,193,75,0.14)",
+            color: live ? "#00AD82" : "#FFC14B",
             fontSize: 12,
             fontWeight: 700,
           }}

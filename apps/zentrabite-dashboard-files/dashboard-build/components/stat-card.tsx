@@ -14,14 +14,14 @@ interface StatCardProps {
 
 export default function StatCard({ label, value, subtitle, icon, accent }: StatCardProps) {
   return (
-    <div className="group flex-1 rounded-2xl border border-white/[0.07] bg-[#1c2d48]/45 p-5 backdrop-blur-xl transition-all duration-300 hover:border-[#00B67A]/20 hover:shadow-lg hover:shadow-black/20">
+    <div className="group flex-1 rounded-2xl border border-white/[0.07] bg-[#1c2d48]/45 p-5 backdrop-blur-xl transition-all duration-300 hover:border-[#00AD82]/20 hover:shadow-lg hover:shadow-black/20">
       <div className="mb-2 flex items-start justify-between">
         <span className="font-heading text-xs font-medium text-slate-400">{label}</span>
         {icon && <span className="text-base opacity-50">{icon}</span>}
       </div>
       <div
         className={`font-heading text-[28px] font-bold leading-none ${
-          accent ? "text-[#00B67A]" : "text-white"
+          accent ? "text-[#00AD82]" : "text-white"
         }`}
       >
         {value}

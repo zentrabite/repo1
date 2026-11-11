@@ -10,7 +10,7 @@ export default function Toast({ message, visible }: { message: string; visible: 
         zIndex: 200,
         padding: "9px 20px",
         borderRadius: 10,
-        background: "rgba(0,182,122,.92)",
+        background: "rgba(0,173,130,.92)",
         color: "#fff",
         fontFamily: "var(--font-outfit)",
         fontWeight: 600,

@@ -14,7 +14,7 @@ const BIZ_TYPES = [
   "retail", "salon", "gym", "service", "other",
 ] as const;
 
-const C = { g:"#00B67A", st:"#6B7C93", cl:"#F8FAFB", y:"#FFC14B", mist:"rgba(226,232,240,.09)", bg:"rgba(28,45,72,.5)" };
+const C = { g:"#00AD82", st:"#6B7C93", cl:"#F8FAFB", y:"#FFC14B", mist:"rgba(226,232,240,.09)", bg:"rgba(28,45,72,.5)" };
 
 function slugify(input: string): string {
   return input.toLowerCase()

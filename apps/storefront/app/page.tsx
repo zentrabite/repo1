@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { getBusinessBySubdomain, getMenuByBusiness } from "@/lib/supabase";
 
-const C = { g:"#00B67A", o:"#FF6B35", st:"#6B7C93", navy:"#1C2D48", bg:"#0F1F2D" };
+const C = { g:"#00AD82", o:"#FF6B35", st:"#6B7C93", navy:"#1C2D48", bg:"#0F1F2D" };
 
 interface CartItem    { id:string; name:string; price:number; qty:number; }
 interface MenuItem    { id:string; name:string; price:number; description:string|null; dietary_tags:string[]; }
@@ -142,7 +142,7 @@ export default function StorefrontPage() {
 
   if (loading) return (
     <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", background:C.bg }}>
-      <div style={{ width:36, height:36, borderRadius:"50%", border:`3px solid rgba(0,182,122,.2)`, borderTopColor:C.g, animation:"spin .8s linear infinite" }} />
+      <div style={{ width:36, height:36, borderRadius:"50%", border:`3px solid rgba(0,173,130,.2)`, borderTopColor:C.g, animation:"spin .8s linear infinite" }} />
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
@@ -200,7 +200,7 @@ export default function StorefrontPage() {
                       {item.dietary_tags?.length > 0 && (
                         <div style={{ display:"flex", gap:4, marginTop:6, flexWrap:"wrap" }}>
                           {item.dietary_tags.map(tag => (
-                            <span key={tag} style={{ fontSize:10, padding:"2px 7px", borderRadius:999, background:"rgba(0,182,122,.12)", color:C.g, fontWeight:600 }}>{tag}</span>
+                            <span key={tag} style={{ fontSize:10, padding:"2px 7px", borderRadius:999, background:"rgba(0,173,130,.12)", color:C.g, fontWeight:600 }}>{tag}</span>
                           ))}
                         </div>
                       )}
@@ -270,7 +270,7 @@ export default function StorefrontPage() {
                         onClick={() => setFulfilMode(m)}
                         style={{
                           padding:"12px 8px", borderRadius:10, border:`1px solid ${fulfilMode===m ? C.g : "rgba(255,255,255,.1)"}`,
-                          background: fulfilMode===m ? "rgba(0,182,122,.1)" : "rgba(255,255,255,.04)",
+                          background: fulfilMode===m ? "rgba(0,173,130,.1)" : "rgba(255,255,255,.04)",
                           color: fulfilMode===m ? C.g : C.st,
                           fontSize:13, fontWeight:600, cursor:"pointer",
                           display:"flex", flexDirection:"column", alignItems:"center", gap:4,
@@ -285,7 +285,7 @@ export default function StorefrontPage() {
 
                 {/* ── Delivery details ────────────────────────────────────── */}
                 {fulfilMode === "delivery" && (
-                  <div style={{ padding:"16px 20px", borderBottom:"1px solid rgba(255,255,255,.06)", background:"rgba(0,182,122,.03)" }}>
+                  <div style={{ padding:"16px 20px", borderBottom:"1px solid rgba(255,255,255,.06)", background:"rgba(0,173,130,.03)" }}>
                     <div style={{ fontSize:12, color:C.g, fontWeight:700, marginBottom:10, textTransform:"uppercase", letterSpacing:".4px" }}>Delivery Details</div>
 
                     {/* Address */}
@@ -306,7 +306,7 @@ export default function StorefrontPage() {
                             onClick={() => setDistBand(b)}
                             style={{
                               padding:"8px 4px", borderRadius:7, border:`1px solid ${distBand===b ? C.g : "rgba(255,255,255,.1)"}`,
-                              background: distBand===b ? "rgba(0,182,122,.12)" : "rgba(255,255,255,.04)",
+                              background: distBand===b ? "rgba(0,173,130,.12)" : "rgba(255,255,255,.04)",
                               color: distBand===b ? C.g : C.st,
                               fontSize:11, fontWeight:600, cursor:"pointer",
                             }}
@@ -327,7 +327,7 @@ export default function StorefrontPage() {
                             onClick={() => setDelivTier(t)}
                             style={{
                               padding:"8px 4px", borderRadius:7, border:`1px solid ${delivTier===t ? C.g : "rgba(255,255,255,.1)"}`,
-                              background: delivTier===t ? "rgba(0,182,122,.12)" : "rgba(255,255,255,.04)",
+                              background: delivTier===t ? "rgba(0,173,130,.12)" : "rgba(255,255,255,.04)",
                               color: delivTier===t ? C.g : C.st,
                               fontSize:11, fontWeight:600, cursor:"pointer",
                             }}

@@ -14,7 +14,7 @@ const TIER_COLORS: Record<string, { color: string; bg: string }> = {
 };
 
 const STATUS_COLORS: Record<string, { color: string; bg: string; label: string }> = {
-  active:  { color: "#00B67A", bg: "rgba(0,182,122,0.14)",  label: "Active" },
+  active:  { color: "#00AD82", bg: "rgba(0,173,130,0.14)",  label: "Active" },
   lapsing: { color: "#FFC14B", bg: "rgba(255,193,75,0.14)", label: "Lapsing" },
   lapsed:  { color: "#FF5A5A", bg: "rgba(255,90,90,0.12)",  label: "Lapsed" },
 };
@@ -177,7 +177,7 @@ export default function DemoCustomersPage() {
                 gridTemplateColumns: "1.5fr 1fr 90px 110px 110px 100px 100px",
                 gap: 10,
                 padding: "14px 16px",
-                background: isSelected ? "rgba(0,182,122,0.08)" : i % 2 ? "transparent" : "rgba(15,25,42,0.22)",
+                background: isSelected ? "rgba(0,173,130,0.08)" : i % 2 ? "transparent" : "rgba(15,25,42,0.22)",
                 borderBottom: "1px solid var(--mist-9)",
                 border: "none",
                 width: "100%",
