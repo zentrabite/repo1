@@ -6,9 +6,11 @@
       only these. They have a light and a dark version. The site follows the
       visitor's device setting unless they pick one with the theme switch,
       which sets data-theme="light" or "dark" on <html>.
-      Navy chapters (the homepage hero, the tour, the close and the footer)
-      are navy in both themes. .on-navy swaps the theme colours for the navy
-      ones inside them.
+      Navy chapters (the homepage close and the footer) are navy in both
+      themes. .on-navy swaps the theme colours for the navy ones inside them.
+      Since 11 Nov (round 3) the homepage opens on white, with the CRM
+      running down into a green band (.hm-green, near-black words in both
+      themes). --mint is the soft green field a small cut of the app sits on.
 
    2. Brand constants (--navy, --cloud, --steel ...). The demo sandboxes
       under /demo/* use these and always stay dark.
@@ -19,10 +21,14 @@
    The demos keep #1C2D48.
    Buttons are green with near-black text (6.4 to 1) in both themes.
 
+   Type is Plus Jakarta Sans (picked 11 Nov). The logo keeps Outfit
+   (--font-logo), and so do the demos.
+
    The look follows the taste skill (design-taste-frontend): no eyebrows,
-   no hairlines or outlined boxes, no shadows on things at rest, no
-   gradients or glows, flat pill buttons, surfaces told apart by a step in
-   tone. Real app screens (marked data-ui) keep their own borders.
+   no hairlines or outlined boxes, no gradients or glows, flat pill buttons,
+   surfaces told apart by a step in tone. Real app screens (marked data-ui)
+   keep their own borders. Shadows only on what floats: the sticky bar, the
+   assistant, dialogs, and the app cards laid over the hero's screen.
    ───────────────────────────────────────────────────────────────────────── */
 
 :root {
@@ -52,14 +58,18 @@
   --nv-raise: #1a2740;
   --nv-dot: #3a4a63;
 
-  /* One font for everything. The demos still ask for --font-inter. */
+  /* Plus Jakarta Sans for the site, Outfit for the logo. The demos still ask
+     for --font-inter, which stays Outfit, like the app itself. */
   --font-inter: var(--font-outfit);
-  --font-sans: var(--font-outfit), "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: var(--font-jakarta), "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-logo: var(--font-outfit), "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
 
   /* Frame, type and motion */
   --margin: clamp(16px, 2.2vw, 32px);
   --nav-h: 76px;
   --sec-pad: clamp(64px, 7.2vw, 112px);
+  /* How far the hero's CRM screen runs down into the green band */
+  --hero-ov: clamp(140px, 19vw, 300px);
   --fs-h2: clamp(32px, 3.4vw, 48px);
   --fs-h3: clamp(22px, 1.95vw, 28px);
   --fs-lead: clamp(18px, 1.4vw, 20px);
@@ -85,6 +95,7 @@
   --on-accent: #0f1f2d;
   --accent-text: #007a52;
   --accent-soft: rgba(0, 182, 122, 0.12);
+  --mint: #e8f6ef;
   --warn-text: #c2410c;
   --danger-text: #c81e3a;
   --logo-zentra: #0e192c;
@@ -109,6 +120,7 @@
     --text-3: #8fa0b5;
     --accent-text: #00b67a;
     --accent-soft: rgba(0, 182, 122, 0.14);
+    --mint: #0f2a26;
     --warn-text: #ff7a45;
     --danger-text: #ff6b7d;
     --logo-zentra: #ffffff;
@@ -118,6 +130,7 @@
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
+  --mint: #0f2a26;
   --bg: #0a111e;
   --band: #111b2d;
   --surface: #111b2d;
@@ -138,6 +151,7 @@
 /* The demo sandboxes keep the old dark colours */
 html:has(.force-dark) {
   color-scheme: dark;
+  --font-sans: var(--font-logo);
   --bg: #0f1f2d;
   --band: #162a3d;
   --surface: #162a3d;
@@ -155,10 +169,6 @@ html:has(.force-dark) {
   --logo-bite: #00b67a;
   --nav-bg: #0f1f2d;
 }
-
-/* The homepage opens on navy, so the phone's browser bar stays navy when
-   someone picks light or dark (theme-toggle.tsx reads --bar). */
-html:has(.hm-hero) { --bar: var(--nv-bg); }
 
 /* Inside a navy chapter, in both themes */
 .on-navy {
@@ -479,7 +489,7 @@ img, svg, video, canvas, iframe { max-width: 100%; height: auto; }
   display: inline-flex;
   align-items: center;
   gap: 0.45em;
-  font-family: var(--font-sans);
+  font-family: var(--font-logo);
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.02em;
@@ -630,6 +640,7 @@ img, svg, video, canvas, iframe { max-width: 100%; height: auto; }
 /* Fitted to the frame: "ZentraBite" is 4.5em wide at this tracking. */
 .ft-mark-line {
   display: block;
+  font-family: var(--font-logo);
   font-size: calc(100cqi / 4.53);
   font-weight: 700;
   letter-spacing: -0.045em;
@@ -893,115 +904,45 @@ textarea.input { resize: vertical; }
 
 /* 1. Hero ---------------------------------------------------------------- */
 
-/* Option B, picked 11 Nov: the words on the left, and one big real screen of
-   the CRM on the right running off the edge, with the ordering site on a
-   phone in front of it. */
-.hm-hero {
-  padding: calc(var(--nav-h) + env(safe-area-inset-top, 0px) + clamp(24px, 4vw, 64px)) 0 clamp(64px, 7.5vw, 112px);
-  overflow: clip;
+/* Picked 11 Nov (round 3): D2's layout with D1's headline. Centred words on
+   the page's own ground, then one wide CRM screen that runs down into the
+   green band (--hero-ov), with two app cards laid on it. */
+.hm-hero { padding-top: calc(var(--nav-h) + env(safe-area-inset-top, 0px) + clamp(40px, 6vw, 88px)); }
+.hm-hero-top {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
-.hm-hero-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 48px; }
-.hm-hero-text { container-type: inline-size; }
-/* Sized from the column it sits in: "Know your regulars." always holds one line. */
+/* "for local businesses." is about 9 em wide, so 10cqi always holds it on one line */
 .hm-h1 {
-  font-size: min(64px, 11.2cqi);
+  font-size: min(76px, 10cqi);
   font-weight: 600;
-  line-height: 1;
-  letter-spacing: -0.045em;
-  text-wrap: wrap;
+  line-height: 1.04;
+  letter-spacing: -0.04em;
 }
 .hm-h1 span { display: block; }
 .hm-hero-lead {
-  margin-top: 26px;
-  max-width: 34ch;
-  font-size: var(--fs-lead);
-  line-height: 1.55;
-  color: var(--nv-ink-2);
+  margin-top: 24px;
+  max-width: 36ch;
+  font-size: clamp(18px, 1.6vw, 21px);
+  line-height: 1.5;
+  color: var(--text);
 }
 .hm-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
   gap: 12px 28px;
   margin-top: 32px;
 }
-/* The three true things, each with a tick */
-.hm-proof {
-  list-style: none;
-  display: grid;
-  gap: 10px;
-  margin-top: 32px;
-  font-size: 16px;
-  line-height: 1.4;
-  color: var(--nv-ink-2);
-}
-.hm-proof li { display: flex; align-items: center; gap: 10px; }
-.hm-proof svg { flex: none; color: var(--green); }
 
-/* The stage: the CRM screen, and the phone in front of it */
-.hm-hs { position: relative; margin: 0; }
-.hm-hs-desk,
-.hm-hs-phone { overflow: hidden; background: var(--nv-raise); }
-.hm-hs-desk { padding: 8px; border-radius: 20px; }
-.hm-hs-phone { position: absolute; padding: 6px; border-radius: 34px; }
-.hm-hs img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: left top; }
-.hm-hs-desk img { aspect-ratio: 1440 / 900; border-radius: 13px; }
-.hm-hs-phone img { aspect-ratio: 390 / 800; border-radius: 28px; }
-.hm-hs figcaption { margin-top: 16px; font-size: 14px; line-height: 1.4; color: var(--nv-ink-3); }
-
-@media (min-width: 700px) {
-  .hm-hs { padding-bottom: 4%; }
-  .hm-hs-phone { left: 2%; bottom: 0; width: 25%; }
-  .hm-hs figcaption { margin-left: 30%; }
-}
-@media (min-width: 1200px) {
-  .hm-hero-grid {
-    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-    gap: clamp(48px, 4.4vw, 80px);
-    align-items: center;
-  }
-  /* The CRM runs off the right edge: there's more of it than fits */
-  .hm-hs-desk { width: 128%; border-radius: 20px 0 0 20px; padding-right: 0; }
-  .hm-hs-desk img { border-radius: 13px 0 0 13px; }
-  .hm-hs-phone { left: -9%; width: 31%; }
-  .hm-hs figcaption { margin-left: 26%; }
-}
-/* Tablet: two lines, the stage below */
-@media (min-width: 700px) and (max-width: 1199px) {
-  .hm-h1 { font-size: min(60px, 7.6cqi); }
-  .hm-hero-lead { max-width: 44ch; }
-}
-/* Phone: the ordering site and the customer's profile, side by side and overlapping */
-@media (max-width: 699px) {
-  .hm-h1 { font-size: min(40px, 11.2cqi); }
-  .hm-hero-lead { margin-top: 16px; font-size: 18px; }
-  .hm-hero-grid { gap: 32px; }
-  .hm-actions { margin-top: 24px; gap: 4px; }
-  .hm-actions .btn-primary { flex: 1 1 100%; }
-  .hm-proof { margin-top: 24px; }
-  .hm-hs { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
-  .hm-hs-phone { position: relative; grid-column: 1; grid-row: 1; z-index: 1; padding: 5px; border-radius: 30px; }
-  .hm-hs-phone img { aspect-ratio: 390 / 820; border-radius: 25px; }
-  .hm-hs-desk { grid-column: 2; grid-row: 1; margin: 16% 0 0 -6%; padding: 5px; border-radius: 16px; }
-  .hm-hs-desk img { aspect-ratio: 960 / 1480; border-radius: 12px; }
-  .hm-hs figcaption { grid-column: 1 / -1; font-size: 14px; }
-}
-
-/* The screens rise in once, the CRM then the phone */
-@media (prefers-reduced-motion: no-preference) {
-  .hm-hs-desk { animation: hm-rise 800ms var(--ease-expo) 120ms both; }
-  .hm-hs-phone { animation: hm-rise 800ms var(--ease-expo) 240ms both; }
-}
-@keyframes hm-rise {
-  from { transform: translateY(32px); }
-}
-
-/* 2. What do you run? --------------------------------------------------- */
-
-.hm-switch { padding: var(--sec-pad) 0 calc(var(--sec-pad) * 0.55); }
-.hm-switch-grid { display: grid; gap: 28px; align-items: end; }
-.hm-types { border: 0; min-width: 0; }
-.hm-types-row { display: flex; flex-wrap: wrap; gap: 10px; }
+/* What do you run? A row of chips, and the line they change */
+.hm-pick { display: flex; flex-direction: column; align-items: center; margin-top: clamp(40px, 4.4vw, 56px); }
+.hm-pick-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; }
+.hm-pick-label { margin-right: 6px; font-size: 16px; font-weight: 600; }
 .hm-type { position: relative; display: inline-flex; cursor: pointer; }
 .hm-type input {
   position: absolute;
@@ -1015,12 +956,12 @@ textarea.input { resize: vertical; }
 .hm-type span {
   display: inline-flex;
   align-items: center;
-  min-height: 56px;
-  padding: 0 24px;
+  min-height: 44px;
+  padding: 0 18px;
   border-radius: 999px;
   background: var(--surface-2);
   color: var(--text);
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 600;
   white-space: nowrap;
   transition: transform var(--t-press) var(--ease-out);
@@ -1028,19 +969,127 @@ textarea.input { resize: vertical; }
 .hm-type input:checked + span { background: var(--text); color: var(--bg); }
 .hm-type input:focus-visible + span { outline: 3px solid var(--accent-text); outline-offset: 3px; }
 .hm-type:active span { transform: scale(0.97); }
-.hm-types-who { margin-top: 16px; font-size: 18px; line-height: 1.45; color: var(--text-2); }
-@media (min-width: 1000px) {
-  .hm-switch-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 48px; }
+.hm-pick-line { margin-top: 16px; max-width: 46ch; min-height: 3em; font-size: 17px; line-height: 1.5; color: var(--text); }
+
+/* The screen, on top of the green band that follows */
+.hm-shot-wrap {
+  position: relative;
+  z-index: 1;
+  margin-top: clamp(40px, 5vw, 64px);
+  margin-bottom: calc(-1 * var(--hero-ov));
 }
-@media (max-width: 520px) {
-  .hm-types-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .hm-type span { width: 100%; justify-content: center; padding: 0 12px; font-size: 18px; min-height: 52px; white-space: normal; text-align: center; line-height: 1.15; }
+.hm-shot { max-width: 1120px; margin: 0 auto; }
+.hm-shot-stage { position: relative; }
+.hm-shot-screen { overflow: hidden; padding: 8px; border-radius: 20px; background: var(--nv-bg); }
+.hm-shot-screen img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1440 / 900;
+  object-fit: cover;
+  object-position: center top;
+  border-radius: 13px;
+}
+.hm-shot figcaption { margin-top: 16px; text-align: center; font-size: 14px; font-weight: 500; color: var(--near-black); }
+
+/* App cards laid on the screen. They're pieces of the app, so they keep the
+   app's white in both themes, and a little lift because they sit over it. */
+.hm-card {
+  position: absolute;
+  z-index: 1;
+  border-radius: 16px;
+  background: #ffffff;
+  color: var(--nv-bg);
+  text-align: left;
+  box-shadow: 0 16px 40px rgba(14, 25, 44, 0.2); /* taste-skill-ignore: card floating over the app screen */
+}
+.hm-card-person { display: flex; align-items: center; gap: 12px; padding: 14px 20px 14px 14px; left: 3%; top: 44%; }
+.hm-card-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 22px;
+  background: #fff1d6;
+  color: #7a5300;
+  font-size: 15px;
+  font-weight: 700;
+}
+.hm-card-who { display: flex; flex-direction: column; gap: 2px; font-size: 14px; line-height: 1.35; color: #3d4a5c; }
+.hm-card-who b { font-size: 16px; font-weight: 700; color: var(--nv-bg); }
+.hm-card-text { right: 3%; top: 14%; max-width: 320px; padding: 14px 16px; border-radius: 16px 16px 4px 16px; }
+.hm-card-note { font-size: 13px; font-weight: 600; line-height: 1.35; color: #3d4a5c; }
+.hm-card-msg { margin-top: 6px; font-size: 16px; line-height: 1.4; }
+@media (min-width: 1240px) {
+  .hm-card-person { left: -32px; }
+  .hm-card-text { right: -32px; }
+}
+/* Phone: one customer's profile, with the text card over its foot */
+@media (max-width: 699px) {
+  /* Still two lines: "for local businesses." holds one line at 10.6cqi */
+  .hm-h1 { font-size: min(44px, 10.6cqi); line-height: 1.06; }
+  .hm-hero-lead { margin-top: 16px; font-size: 18px; }
+  .hm-actions { align-self: stretch; margin-top: 24px; gap: 4px; }
+  .hm-actions .btn-primary { flex: 1 1 100%; }
+  .hm-pick-label { flex-basis: 100%; margin: 0 0 4px; }
+  .hm-pick-line { font-size: 16px; }
+  .hm-shot-wrap { margin-top: 32px; }
+  .hm-shot-screen { padding: 6px; border-radius: 18px; }
+  .hm-shot-screen img { aspect-ratio: 960 / 1100; border-radius: 13px; }
+  .hm-card-person { display: none; }
+  .hm-card-text { top: auto; right: 12px; left: 12px; bottom: -36px; max-width: none; }
+  .hm-shot figcaption { margin-top: 52px; }
+}
+
+/* The screen rises in once */
+@media (prefers-reduced-motion: no-preference) {
+  .hm-shot-stage { animation: hm-rise 800ms var(--ease-expo) 120ms both; }
+}
+@keyframes hm-rise {
+  from { transform: translateY(32px); }
+}
+
+/* 2. The green band ---------------------------------------------------- */
+
+/* Brand green with near-black words, in both themes. It starts under the
+   hero's screen, so its top padding clears the part that runs into it. */
+.hm-green {
+  --text: var(--near-black);
+  --text-2: var(--near-black);
+  --accent-text: var(--near-black);
+  background: var(--green);
+  color: var(--near-black);
+  padding: calc(var(--hero-ov) + 40px) 0 var(--sec-pad);
+}
+.hm-ticks {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px 48px;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.hm-ticks li { display: flex; align-items: center; gap: 10px; }
+.hm-ticks svg { flex: none; }
+.hm-keep-grid { display: grid; gap: 24px; margin-top: clamp(64px, 8vw, 112px); }
+.hm-keep-text p { font-size: var(--fs-lead); line-height: 1.55; max-width: 46ch; }
+.hm-keep-text p + p { margin-top: 14px; }
+.hm-keep-text .hm-link { margin-top: 10px; }
+@media (min-width: 1000px) {
+  .hm-keep-grid { grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); gap: clamp(40px, 5vw, 80px); align-items: start; }
+}
+@media (max-width: 699px) {
+  .hm-ticks { flex-direction: column; align-items: flex-start; gap: 12px; max-width: 360px; margin: 0 auto; }
 }
 
 /* 3. Follow one order --------------------------------------------------- */
 
-/* A navy chapter. The stops are on the left, the lit one on a raised panel,
-   and the screen holds on the right. */
+/* On the page's own ground. The stops are on the left, the lit one on a
+   panel one step darker, and the screen holds on the right in a navy frame. */
 .hm-tour { padding: var(--sec-pad) 0; }
 .hm-stops { list-style: none; }
 .hm-stop-text p { margin-top: 10px; font-size: 18px; line-height: 1.5; color: var(--text-2); max-width: 44ch; }
@@ -1069,7 +1118,7 @@ textarea.input { resize: vertical; }
     flex-direction: column;
     gap: 14px;
   }
-  .hm-stage-frame { padding: 10px; border-radius: 22px; background: var(--nv-raise); }
+  .hm-stage-frame { padding: 10px; border-radius: 22px; background: var(--nv-bg); }
   .hm-stage-box { position: relative; aspect-ratio: 16 / 10; }
   .hm-stage-clip {
     position: absolute;
@@ -1082,7 +1131,7 @@ textarea.input { resize: vertical; }
   .hm-stage-clip.on { opacity: 1; z-index: 1; }
   .hm-stage-screen > div { width: 100%; }
   /* The phone clip stands on a panel the size of the desktop clips, so the stage keeps its shape */
-  .hm-stage-phone { padding: 24px 0; border-radius: 12px; background: var(--nv-bg); }
+  .hm-stage-phone { padding: 24px 0; border-radius: 12px; background: var(--nv-raise); }
   .hm-stage-phone > div { height: 100%; aspect-ratio: 390 / 844; }
   .hm-count { font-size: 14px; color: var(--text-2); }
   .hm-stop {
@@ -1097,7 +1146,7 @@ textarea.input { resize: vertical; }
     opacity: 0.5;
     transition: opacity 260ms ease, background-color 260ms ease;
   }
-  .hm-stop.on .hm-stop-text { opacity: 1; background: var(--nv-raise); }
+  .hm-stop.on .hm-stop-text { opacity: 1; background: var(--band); }
   .hm-stop-clip { display: none; }
 }
 /* Phone and tablet: each stop with its own clip */
@@ -1120,24 +1169,29 @@ textarea.input { resize: vertical; }
   .hm-stop-screen [data-ui] video { object-position: right center; }
 }
 
-/* 4. Keep what you earn ------------------------------------------------- */
+/* 4. Win-back ---------------------------------------------------------- */
 
-/* Light. Two panels side by side: on a delivery app, then on your own site in navy. */
-.hm-keep { padding: var(--sec-pad) 0; }
-.hm-keep-h { max-width: 18ch; }
-.hm-keep-cols { display: grid; gap: 12px; margin-top: clamp(32px, 4vw, 48px); }
-.hm-keep-card { padding: clamp(28px, 3vw, 40px); border-radius: 24px; background: var(--band); }
-.hm-keep-card.on-navy { background: var(--nv-bg); }
-.hm-keep-card p { margin-top: 12px; font-size: 18px; line-height: 1.55; color: var(--text-2); max-width: 42ch; }
-.hm-keep-line {
-  margin-top: 28px;
-  font-size: 20px;
-  font-weight: 600;
-  line-height: 1.4;
-  letter-spacing: -0.01em;
+/* A small cut of the app on a soft mint field, the words beside it (from
+   option D1, asked for by Deon on 11 Nov). Words first on a phone. */
+.hm-wb { padding: var(--sec-pad) 0; }
+.hm-wb-grid { display: grid; gap: 40px; align-items: center; }
+.hm-wb-text .hm-lead { margin-top: 20px; max-width: 40ch; }
+.hm-wb-text .hm-link { margin-top: 12px; font-size: 18px; }
+.hm-wb-fig {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+  padding: clamp(32px, 4vw, 56px) clamp(20px, 3vw, 32px) clamp(24px, 3vw, 40px);
+  border-radius: 28px;
+  background: var(--mint);
+  --rv-y: 32px;
 }
-@media (min-width: 800px) {
-  .hm-keep-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.hm-wb-fig img { display: block; width: min(360px, 100%); height: auto; border-radius: 18px; }
+.hm-wb-fig figcaption { margin-top: 16px; font-size: 14px; color: var(--text-2); }
+@media (min-width: 1000px) {
+  .hm-wb-grid { grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); gap: clamp(40px, 5vw, 80px); }
+  .hm-wb-fig { order: -1; }
 }
 
 /* 5. Switch on what you use --------------------------------------------- */

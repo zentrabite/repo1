@@ -1,7 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit, JetBrains_Mono } from "next/font/google";
+import { Outfit, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
+// Plus Jakarta Sans is the marketing site's font (picked 11 Nov). Outfit stays
+// for the logo and the demos, which show the app in its own font.
+const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta", display: "swap" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit", display: "swap" });
 // Only the demos use the mono face, so it isn't preloaded on every page.
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap", preload: false });
@@ -72,7 +75,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en-AU" className={`${outfit.variable} ${mono.variable}`} suppressHydrationWarning>
+    <html lang="en-AU" className={`${jakarta.variable} ${outfit.variable} ${mono.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>

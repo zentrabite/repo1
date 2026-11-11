@@ -5,8 +5,9 @@ import Link from "next/link";
 import { AppScreen } from "../app-screen";
 import { useBusinessType, type BusinessType } from "./business-type";
 
-// 3. The tour: follow one order through the real app, in five stops. A navy
-// chapter (option B, 11 Nov).
+// 3. The tour: follow one order through the real app, in four stops. On the
+// page's own ground since 11 Nov (round 3). It ends on points, and the
+// win-back section after it is the payoff.
 // Desktop: the screen holds still on the right while the stops pass on the
 // left. The stop at the middle of the screen is lit and its clip plays; the
 // others stay on their poster and don't load until they're reached.
@@ -40,20 +41,9 @@ const CLIPS: Clip[] = [
     file: "rewards-desktop",
     label: "Rewards in ZentraBite. The tier ladder and points, then a reward is redeemed from the catalogue.",
   },
-  {
-    id: "winback",
-    variant: "screen",
-    file: "winback-desktop",
-    label: "Win-back campaigns in ZentraBite. A campaign is opened to show the personalised text it sends.",
-  },
 ];
 
 type Stop = { title: string; body: string };
-
-const SAME_QUIET: Stop = {
-  title: "If they go quiet, they get a text.",
-  body: "You pick how long counts as quiet and what the offer is. ZentraBite sends it and shows you who came back.",
-};
 
 const STOPS: Record<BusinessType, Stop[]> = {
   food: [
@@ -73,7 +63,6 @@ const STOPS: Record<BusinessType, Stop[]> = {
       title: "They earn points.",
       body: "Points on every order, tiers for regulars and rewards they spend at checkout.",
     },
-    SAME_QUIET,
   ],
   shops: [
     {
@@ -92,7 +81,6 @@ const STOPS: Record<BusinessType, Stop[]> = {
       title: "They earn points.",
       body: "Points on every purchase, tiers for regulars and rewards they spend at checkout.",
     },
-    SAME_QUIET,
   ],
   salons: [
     {
@@ -108,10 +96,6 @@ const STOPS: Record<BusinessType, Stop[]> = {
       body: "Their name, contact details, what they book and how often. It's your list, not a booking app's.",
     },
     { title: "They earn points.", body: "Points on every visit, tiers for regulars and rewards they spend next time." },
-    {
-      title: "If they don't rebook, they get a text.",
-      body: "You pick how long counts as quiet and what the offer is. ZentraBite sends it and shows you who came back.",
-    },
   ],
   trades: [
     {
@@ -127,10 +111,6 @@ const STOPS: Record<BusinessType, Stop[]> = {
       body: "Their name, address, what you did and when. It's your list, not a lead site's.",
     },
     { title: "They earn points.", body: "Points on every job, so they call you first next time." },
-    {
-      title: "When they're due, they get a text.",
-      body: "A reminder when it's time for the next service. You pick the timing and the message.",
-    },
   ],
 };
 
@@ -184,7 +164,7 @@ export function Tour() {
   }, []);
 
   return (
-    <section id="tour" ref={section} className="hm-tour on-navy" data-nav-tone="navy" aria-labelledby="tour-title">
+    <section id="tour" ref={section} className="hm-tour" aria-labelledby="tour-title">
       <div className="wrap">
         <div className="hm-head" data-reveal>
           <h2 id="tour-title" className="hm-h2" data-r style={{ "--i": 0 } as React.CSSProperties}>
