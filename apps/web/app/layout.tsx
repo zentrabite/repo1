@@ -9,7 +9,7 @@ import "./globals.css";
 const jakarta = localFont({ src: "./fonts/plus-jakarta-sans-latin-wght-normal.woff2", weight: "200 800", variable: "--font-jakarta", display: "swap" });
 const outfit = localFont({ src: "./fonts/outfit-latin-wght-normal.woff2", weight: "100 900", variable: "--font-outfit", display: "swap" });
 // Only the demos use the mono face, so it isn't preloaded on every page.
-const mono = localFont({ src: "./fonts/jetbrains-mono-latin-wght-normal.woff2", weight: "100 800", variable: "--font-mono", display: "swap", preload: false });
+const mono = localFont({ src: "./fonts/jetbrains-mono-latin-wght-normal.woff2", weight: "100 800", variable: "--font-mono", display: "swap", preload: false }); // taste-skill-ignore: demos only
 
 const SITE_URL = "https://zentrabite.com";
 const DESCRIPTION =

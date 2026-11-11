@@ -27,7 +27,7 @@ const ROWS: Row[] = [
     name: "Ordering and bookings",
     short: "Your menu, products or services, with card payments.",
     preview: "pv-ordering",
-    alt: "The ordering menu on a phone, with pizzas and an add to cart button on each.",
+    alt: "The ordering menu, with a photo of each pizza and an add to cart button.",
   },
   {
     slug: "pos",
