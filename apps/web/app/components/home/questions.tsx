@@ -46,9 +46,9 @@ export function Questions() {
         <h2 id="faq-title" className="hm-h2">
           Questions
         </h2>
-        <dl className="hm-faq-list" data-reveal>
-          {ITEMS.map((item, i) => (
-            <div key={item.q} className="hm-faq-row" data-r style={{ "--i": i } as React.CSSProperties}>
+        <dl className="hm-faq-list">
+          {ITEMS.map((item) => (
+            <div key={item.q} className="hm-faq-row">
               <dt className="hm-h3">{item.q}</dt>
               <dd>{item.a}</dd>
             </div>

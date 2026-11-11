@@ -8,7 +8,8 @@ export const metadata: Metadata = {
 
 // The demos were built for the browser's normal safe area, so they keep it
 // (the marketing pages use viewport-fit=cover, see app/layout.tsx).
-export const viewport: Viewport = { viewportFit: "auto" };
+// The demos stay dark, so the phone's browser bar does too.
+export const viewport: Viewport = { viewportFit: "auto", themeColor: "#0f1f2d" };
 
 export default function DemoLiveLayout({ children }: { children: React.ReactNode }) {
   // The demos always stay dark, whatever theme the visitor picked.

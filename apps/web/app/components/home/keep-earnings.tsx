@@ -1,65 +1,82 @@
 "use client";
 
+import Link from "next/link";
 import { useBusinessType, type BusinessType } from "./business-type";
 
-// 4. Keep what you earn. Answers "why not just use the delivery apps?" side by
-// side: what a delivery app does, then what your own site does. Then: keep
-// the delivery apps running while regulars move across.
+// 2. The green band. The hero's CRM screen runs down into it. First the four
+// true things, then "why not just use the delivery apps?": what an app or
+// marketplace does, what your own site does, and keep the apps running while
+// your regulars move across. Green with near-black words.
 
 const HEAD: Record<BusinessType, string> = {
-  food: "No commission on your direct orders.",
-  shops: "No commission on your direct orders.",
-  salons: "No commission on your bookings.",
-  trades: "No commission on your jobs.",
+  order: "Keep the order and the customer.",
+  book: "Keep the booking and the client.",
+  quote: "Keep the job and the customer.",
 };
 
-const THEM: Record<BusinessType, { name: string; text: string }> = {
-  food: { name: "On a delivery app", text: "They take a cut of every order. The customer's details stay with them." },
-  shops: { name: "On a marketplace", text: "They take a cut of every sale. The customer's details stay with them." },
-  salons: { name: "On a booking app", text: "Many charge for bookings they send you. The client's details stay with them." },
-  trades: { name: "On a lead site", text: "You pay for the leads they send you. The customer's details stay with them." },
+const THEM: Record<BusinessType, string> = {
+  order: "On a delivery app or marketplace, they take a cut of every sale and keep the customer's details. On your own site, you keep both.",
+  book: "On a booking app, many charge for the bookings they send you and keep the client's details. On your own site, you keep both.",
+  quote: "On a lead site, you pay for the leads they send you and they keep the customer's details. On your own site, you keep both.",
 };
 
 const KEEP: Record<BusinessType, string> = {
-  food: "Keep Uber Eats running while your regulars move across.",
-  shops: "Keep selling on marketplaces while your regulars move across.",
-  salons: "Keep your booking app running while your regulars move across.",
-  trades: "Keep your lead sites running while your regulars come to you direct.",
+  order: "Keep Uber Eats or your marketplace running while your regulars move across.",
+  book: "Keep your booking app running while your regulars move across.",
+  quote: "Keep your lead sites running while your regulars come to you direct.",
 };
+
+const TICKS = [
+  "No commission on direct orders",
+  "Your customer list is yours",
+  "Built in Adelaide",
+  "1-month free trial at launch",
+];
+
+function Tick() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M5 12.5l4.5 4.5L19 7.5" />
+    </svg>
+  );
+}
 
 export function KeepEarnings() {
   const { type } = useBusinessType();
   return (
-    <section className="hm-keep" aria-labelledby="keep-title" data-reveal>
+    <section className="hm-green" aria-labelledby="keep-title">
       <div className="wrap">
-        <h2 id="keep-title" className="hm-h2 hm-keep-h" data-r style={{ "--i": 0 } as React.CSSProperties}>
-          <span key={type} className="hm-swap">
-            {HEAD[type]}
-          </span>
-        </h2>
-        <div className="hm-keep-cols">
-          <div className="hm-keep-card" data-r style={{ "--i": 1 } as React.CSSProperties}>
-            <h3 className="hm-h3">
-              <span key={type} className="hm-swap">
-                {THEM[type].name}
-              </span>
-            </h3>
+        <ul className="hm-ticks" aria-label="What's true" data-reveal>
+          {TICKS.map((t, i) => (
+            <li key={t} data-r style={{ "--i": i } as React.CSSProperties}>
+              <Tick />
+              {t}
+            </li>
+          ))}
+        </ul>
+        <div className="hm-keep-grid">
+          <h2 id="keep-title" className="hm-h2">
+            <span key={type} className="hm-swap">
+              {HEAD[type]}
+            </span>
+          </h2>
+          <div className="hm-keep-text">
             <p>
               <span key={type} className="hm-swap">
-                {THEM[type].text}
+                {THEM[type]}
               </span>
             </p>
-          </div>
-          <div className="hm-keep-card on-navy" data-r style={{ "--i": 2 } as React.CSSProperties}>
-            <h3 className="hm-h3">On your own site</h3>
-            <p>You pay a monthly fee and Stripe&apos;s card fees. Every customer is yours to export any time.</p>
+            <p>
+              <span key={type} className="hm-swap">
+                {KEEP[type]}
+              </span>{" "}
+              You pay a monthly fee and Stripe&apos;s card fees, and every customer is yours to export any time.
+            </p>
+            <Link href="/features/storefronts" className="hm-link">
+              See how your own site works
+            </Link>
           </div>
         </div>
-        <p className="hm-keep-line" data-r style={{ "--i": 3 } as React.CSSProperties}>
-          <span key={type} className="hm-swap">
-            {KEEP[type]}
-          </span>
-        </p>
       </div>
     </section>
   );

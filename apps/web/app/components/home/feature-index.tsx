@@ -86,20 +86,15 @@ const FINE = "(hover: hover) and (pointer: fine)";
 const REST = ROWS.find((r) => r.slug === "crm")!;
 
 const USED: Record<BusinessType, { who: string; line: string; slugs: string[] }> = {
-  food: { who: "food businesses", line: "Food businesses tend to use all of them.", slugs: ROWS.map((r) => r.slug) },
-  shops: {
-    who: "shops",
-    line: "Lit up: what shops usually switch on.",
-    slugs: ["custom-website", "storefronts", "pos", "crm", "winback", "sms-email", "reviews", "stock-take"],
-  },
-  salons: {
-    who: "salons and gyms",
-    line: "Lit up: what salons and gyms usually switch on.",
+  order: { who: "places that take orders", line: "Places that take orders can use all of them.", slugs: ROWS.map((r) => r.slug) },
+  book: {
+    who: "places that take bookings",
+    line: "Lit up: the parts that suit bookings.",
     slugs: ["custom-website", "storefronts", "pos", "crm", "winback", "sms-email", "reviews"],
   },
-  trades: {
-    who: "trades",
-    line: "Lit up: what trades usually switch on.",
+  quote: {
+    who: "places that quote for jobs",
+    line: "Lit up: the parts that suit quotes and jobs.",
     slugs: ["custom-website", "storefronts", "crm", "sms-email", "reviews"],
   },
 };
@@ -164,11 +159,11 @@ export function FeatureIndex() {
   return (
     <section className="hm-index" aria-labelledby="index-title">
       <div className="wrap">
-        <div className="hm-head hm-index-head" data-reveal>
-          <h2 id="index-title" className="hm-h2" data-r style={{ "--i": 0 } as React.CSSProperties}>
+        <div className="hm-head hm-index-head">
+          <h2 id="index-title" className="hm-h2">
             Switch on what you use.
           </h2>
-          <p className="hm-lead" data-r style={{ "--i": 1 } as React.CSSProperties}>
+          <p className="hm-lead">
             Every part shares one customer list.{" "}
             <span key={type} className="hm-swap hm-index-who">
               {used.line}
@@ -186,10 +181,10 @@ export function FeatureIndex() {
           }}
         >
           <ul className="hm-index-list">
-            {ROWS.map((r, i) => {
+            {ROWS.map((r) => {
               const on = used.slugs.includes(r.slug);
               return (
-                <li key={r.slug} data-r style={{ "--i": i } as React.CSSProperties}>
+                <li key={r.slug}>
                   <Link
                     ref={(el) => {
                       rows.current[r.slug] = el;
@@ -214,7 +209,7 @@ export function FeatureIndex() {
             style={{ transform: `translateY(${y}px)` }}
             aria-hidden="true"
           >
-            <div className="hm-index-in" data-r style={{ "--i": 2 } as React.CSSProperties}>
+            <div className="hm-index-in" data-r>
               <div className="hm-index-pic" data-ui>
                 {ready && (
                   // eslint-disable-next-line @next/next/no-img-element
