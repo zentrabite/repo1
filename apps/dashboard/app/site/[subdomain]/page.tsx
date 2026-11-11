@@ -11,7 +11,7 @@ import type { Metadata, Viewport } from "next";
 import { cache } from "react";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { Bricolage_Grotesque, Fraunces } from "next/font/google";
+import localFont from "next/font/local";
 import { loadSite as loadSiteUncached, type SiteData, type SiteLook } from "@/lib/site";
 import { requireBusiness } from "@/lib/request-business";
 import { siteUrl, tenantFromHost } from "@/lib/tenant";
@@ -20,8 +20,9 @@ import "./site.css";
 
 export const dynamic = "force-dynamic";
 
-const bricolage = Bricolage_Grotesque({ subsets: ["latin"], weight: ["700", "800"], variable: "--font-bricolage", display: "swap" });
-const fraunces  = Fraunces({ subsets: ["latin"], weight: ["600", "700"], variable: "--font-fraunces", display: "swap" });
+// Stored in app/fonts, so the build never downloads them (see app/layout.tsx).
+const bricolage = localFont({ src: "../../fonts/bricolage-grotesque-latin-wght-normal.woff2", weight: "200 800", variable: "--font-bricolage", display: "swap" });
+const fraunces  = localFont({ src: "../../fonts/fraunces-latin-wght-normal.woff2", weight: "100 900", variable: "--font-fraunces", display: "swap" });
 
 type Props = { params: Promise<{ subdomain: string }> };
 
