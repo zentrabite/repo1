@@ -2,10 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Nav } from "../components/nav";
 import { Footer } from "../components/footer";
-import { CTABanner } from "../components/cta-banner";
-import { Icon } from "../components/zb-icon";
-import { FEATURE_GROUPS } from "./groups";
-import { getFeature } from "./data";
+import { Closing } from "../components/home/closing";
+import { BusinessTypeProvider } from "../components/home/business-type";
+import { FeatureDirectory } from "./feature-directory";
+import { FeatureScreen } from "./feature-screen";
+import { VISUALS } from "./media";
+
+// Every part of ZentraBite (12 Nov, in the homepage's style): a plain
+// headline and Book a call beside the customer list every part shares, then
+// "How do your customers buy?" and the parts by group, each with its screen.
 
 export const metadata: Metadata = {
   title: "Features",
@@ -15,51 +20,40 @@ export const metadata: Metadata = {
 };
 
 export default function FeaturesPage() {
+  const crm = VISUALS.crm;
   return (
     <>
       <Nav />
       <main>
-        <section className="page-top">
-          <div className="container">
-            <div className="section-head">
-              <span className="label">Features</span>
-              <h1 className="h-page">Everything inside ZentraBite.</h1>
-              <p className="lead">
-                Every part shares the same customer list, and you only switch on what your business uses. Pick one to
-                see how it works.
+        <section className="fp-top fd-top" aria-labelledby="features-title">
+          <div className="wrap fd-top-grid">
+            <div>
+              <h1 id="features-title" className="fp-h1 fd-h1">
+                Every part of ZentraBite.
+              </h1>
+              <p className="fp-lead">
+                They all share one customer list, and you only switch on what your business uses.
               </p>
-            </div>
-
-            {FEATURE_GROUPS.map((g) => (
-              <div key={g.id} className="fx-group">
-                <div className="fx-group-head">
-                  <span className="ex-ico" aria-hidden>
-                    <Icon name={g.icon} size={22} />
-                  </span>
-                  <h2 className="h-card" style={{ fontSize: 24 }}>
-                    {g.title}
-                  </h2>
-                </div>
-                <p className="muted">{g.note}</p>
-                <div className="fx-grid">
-                  {g.items.map((item) => {
-                    const f = getFeature(item.slug);
-                    if (!f) return null;
-                    return (
-                      <Link key={item.slug} href={`/features/${item.slug}`} className="link-card">
-                        <Icon name={f.icon} size={26} />
-                        <h3 className="h-card">{item.name}</h3>
-                        <p>{f.tagline}</p>
-                        <span className="more">Read more →</span>
-                      </Link>
-                    );
-                  })}
-                </div>
+              <div className="hm-actions fp-actions">
+                <Link href="/contact" className="btn-primary btn-lg">
+                  Book a call
+                </Link>
+                <Link href="/demo/live" className="hm-link">
+                  Try the live demo
+                </Link>
               </div>
-            ))}
+            </div>
+            {crm && (
+              <div className="fp-enter">
+                <FeatureScreen visual={crm} priority caption="The customer list every part shares. Our demo restaurant, sample data." />
+              </div>
+            )}
           </div>
         </section>
-        <CTABanner />
+        <BusinessTypeProvider>
+          <FeatureDirectory />
+        </BusinessTypeProvider>
+        <Closing />
       </main>
       <Footer />
     </>
