@@ -16,7 +16,7 @@
    Steel #6B7C93, Cloud #F8FAFB, Mist #E2E8F0, Bite Orange #FF6B35.
    The marketing site uses a deeper navy, #0E192C (picked 11 Nov, option B).
    The demos keep #1C2D48.
-   Buttons are green with near-black text (6.4 to 1).
+   Buttons are green with near-black text (5.8 to 1).
 
    Type is Plus Jakarta Sans (picked 11 Nov). The logo keeps Outfit
    (--font-logo), and so do the demos.
@@ -95,7 +95,7 @@
   --warn-text: #c2410c;
   --danger-text: #c81e3a;
   --logo-zentra: #0e192c;
-  /* Brand green is 2.5 to 1 on the light page, so "Bite" takes the deeper green there (5.1 to 1) */
+  /* Brand green is 2.9 to 1 on the light page, so "Bite" takes the deeper green there (5.8 to 1) */
   --logo-bite: #007457;
   --nav-bg: #ffffff;
 }
