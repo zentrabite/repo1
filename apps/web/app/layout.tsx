@@ -35,14 +35,10 @@ export const metadata: Metadata = {
 // viewport-fit=cover lets the page run edge to edge on phones with a notch.
 // globals.css pads the nav, page sides and footer back out with
 // env(safe-area-inset-*). The demos switch it off in their layouts.
-// The browser bar colour follows the device here. theme-toggle.tsx updates it
-// when someone picks light or dark.
+// The site is light only (12 Nov), so the phone's browser bar is white.
 export const viewport: Viewport = {
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F8FAFB" },
-    { media: "(prefers-color-scheme: dark)", color: "#0F1F2D" },
-  ],
+  themeColor: "#ffffff",
 };
 
 // Structured data so search engines know who we are.
@@ -67,18 +63,11 @@ const JSON_LD = {
   ],
 };
 
-// Sets the saved light or dark choice before the page draws, so there's no
-// flash of the wrong theme. With no saved choice the CSS follows the device.
-const THEME_SCRIPT = `try{var t=localStorage.getItem("zb-theme");if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t)}catch(e){}`;
-
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en-AU" className={`${jakarta.variable} ${outfit.variable} ${mono.variable}`} suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
-      </head>
       <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
         {children}

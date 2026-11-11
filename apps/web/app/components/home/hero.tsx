@@ -1,9 +1,7 @@
 import Link from "next/link";
-import { BusinessTypePicker } from "./business-type";
 
-// 1. Hero. Picked 11 Nov (round 3): D2's layout with D1's headline. White in
-// light mode, the page's own ground in dark mode. The headline says what this
-// is, then one sentence, the one action, and "What do you run?". Under it, one
+// 1. Hero. Picked 11 Nov (round 3): D2's layout with D1's headline, on white.
+// The headline says what this is, then one sentence and the one action. Under it, one
 // wide real screen of the CRM (the customer list) running down into the green
 // band of the next section, with two cards laid on it: a regular, and the text
 // a quiet customer gets. On a phone the screen is a customer's profile instead.
@@ -25,7 +23,6 @@ export function Hero() {
             Try the live demo
           </Link>
         </div>
-        <BusinessTypePicker />
       </div>
 
       <div className="wrap hm-shot-wrap">

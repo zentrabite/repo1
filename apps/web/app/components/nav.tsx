@@ -3,12 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Logo } from "./logo";
-import { ThemeButton, ThemeChoicePicker } from "./theme-toggle";
 import { RevealObserver } from "./reveal";
 import { LOGIN_URL } from "../../lib/config";
 
 // The bar at the top of every marketing page: the wordmark, three links,
-// Log in, the light/dark switch and "Book a call".
+// Log in and "Book a call".
 // It's fixed. Over a navy section (marked data-nav-tone="navy") it turns navy
 // too, as a hard cut. On a phone the links fold into a "Menu" sheet.
 
@@ -118,7 +117,6 @@ export function Nav({ startNavy = false }: { startNavy?: boolean }) {
           </nav>
 
           <div className="site-nav-actions">
-            <ThemeButton />
             <Link href="/contact" className="btn-primary nav-cta">
               Book a call
             </Link>
@@ -148,9 +146,6 @@ export function Nav({ startNavy = false }: { startNavy?: boolean }) {
             <Link href="/contact" className="btn-primary btn-lg menu-cta" onClick={close}>
               Book a call
             </Link>
-            <div className="menu-theme">
-              <ThemeChoicePicker />
-            </div>
           </nav>
         </div>
       </header>

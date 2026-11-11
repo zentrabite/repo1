@@ -13,14 +13,14 @@ const STEPS: React.ReactNode[] = [
 
 export function NextSteps() {
   return (
-    <section className="hm-next" aria-labelledby="next-title" data-reveal>
+    <section className="hm-next" aria-labelledby="next-title">
       <div className="wrap">
-        <h2 id="next-title" className="hm-h2" data-r style={{ "--i": 0 } as React.CSSProperties}>
+        <h2 id="next-title" className="hm-h2">
           Here&apos;s what happens next.
         </h2>
         <ol className="hm-stairs">
           {STEPS.map((s, i) => (
-            <li key={i} data-r style={{ "--i": i + 1 } as React.CSSProperties}>
+            <li key={i}>
               {s}
             </li>
           ))}

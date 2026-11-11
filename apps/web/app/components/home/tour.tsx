@@ -3,11 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AppScreen } from "../app-screen";
-import { useBusinessType, type BusinessType } from "./business-type";
+import { BusinessTypePicker, useBusinessType, type BusinessType } from "./business-type";
 
-// 3. The tour: follow one order through the real app, in four stops. On the
-// page's own ground since 11 Nov (round 3). It ends on points, and the
-// win-back section after it is the payoff.
+// 3. The tour: follow one order through the real app, in five stops, ending
+// on the win-back text. On white since 11 Nov (round 3). It opens with "How do
+// your customers buy?", which changes the words here and in the sections after.
 // Desktop: the screen holds still on the right while the stops pass on the
 // left. The stop at the middle of the screen is lit and its clip plays; the
 // others stay on their poster and don't load until they're reached.
@@ -41,48 +41,40 @@ const CLIPS: Clip[] = [
     file: "rewards-desktop",
     label: "Rewards in ZentraBite. The tier ladder and points, then a reward is redeemed from the catalogue.",
   },
+  {
+    id: "winback",
+    variant: "screen",
+    file: "winback-desktop",
+    label: "Win-back campaigns in ZentraBite. A campaign is opened to show the personalised text it sends.",
+  },
 ];
 
 type Stop = { title: string; body: string };
 
 const STOPS: Record<BusinessType, Stop[]> = {
-  food: [
+  order: [
     {
       title: "A customer orders on your own site.",
-      body: "Your menu, your prices, your name at the top. They pay by card, Apple Pay or Google Pay through Stripe.",
+      body: "Your menu or products, your prices, your name at the top. They pay by card, Apple Pay or Google Pay through Stripe.",
     },
     {
       title: "It lands on your orders board.",
-      body: "Orders from your site, the counter and the delivery apps, all on one board. Staff move each one from New to Cooking to Ready.",
+      body: "Orders from your site, the counter and the delivery apps, all on one board. Staff move each one along until it's ready.",
     },
     {
       title: "They're saved to your customer list.",
-      body: "Their name, contact details, what they order and how often. It's your list, not a delivery app's.",
+      body: "Their name, contact details, what they buy and how often. It's your list, not a delivery app's.",
     },
     {
       title: "They earn points.",
       body: "Points on every order, tiers for regulars and rewards they spend at checkout.",
     },
-  ],
-  shops: [
     {
-      title: "A customer buys on your own site.",
-      body: "Your products, your prices, your name at the top. They pay by card, Apple Pay or Google Pay through Stripe.",
-    },
-    {
-      title: "It lands on your orders board.",
-      body: "Online orders and counter sales in one place, ready to pack, collect or post.",
-    },
-    {
-      title: "They're saved to your customer list.",
-      body: "Their name, contact details, what they buy and how often. It's your list, not a marketplace's.",
-    },
-    {
-      title: "They earn points.",
-      body: "Points on every purchase, tiers for regulars and rewards they spend at checkout.",
+      title: "If they go quiet, they get a text.",
+      body: "You pick how long counts as quiet and what the offer is. ZentraBite sends it and shows you who came back.",
     },
   ],
-  salons: [
+  book: [
     {
       title: "A client books on your own site.",
       body: "Your services, times and prices, with your name at the top. They pay by card through Stripe.",
@@ -96,8 +88,12 @@ const STOPS: Record<BusinessType, Stop[]> = {
       body: "Their name, contact details, what they book and how often. It's your list, not a booking app's.",
     },
     { title: "They earn points.", body: "Points on every visit, tiers for regulars and rewards they spend next time." },
+    {
+      title: "If they don't rebook, they get a text.",
+      body: "You pick how long counts as quiet and what the offer is. ZentraBite sends it and shows you who came back.",
+    },
   ],
-  trades: [
+  quote: [
     {
       title: "A customer asks for a job on your own site.",
       body: "Your services and the areas you cover, with your name at the top. They send the details and you reply with a quote.",
@@ -111,7 +107,17 @@ const STOPS: Record<BusinessType, Stop[]> = {
       body: "Their name, address, what you did and when. It's your list, not a lead site's.",
     },
     { title: "They earn points.", body: "Points on every job, so they call you first next time." },
+    {
+      title: "When they're due, they get a text.",
+      body: "A reminder when it's time for the next service. You pick the timing and the message.",
+    },
   ],
+};
+
+const TITLE: Record<BusinessType, string> = {
+  order: "Follow one order.",
+  book: "Follow one booking.",
+  quote: "Follow one job.",
 };
 
 function clipSources(file: string) {
@@ -166,13 +172,16 @@ export function Tour() {
   return (
     <section id="tour" ref={section} className="hm-tour" aria-labelledby="tour-title">
       <div className="wrap">
-        <div className="hm-head" data-reveal>
-          <h2 id="tour-title" className="hm-h2" data-r style={{ "--i": 0 } as React.CSSProperties}>
-            Follow one order.
-          </h2>
-          <p className="hm-lead" data-r style={{ "--i": 1 } as React.CSSProperties}>
-            This is the real app, with our demo restaurant&apos;s sample data.
-          </p>
+        <div className="hm-head hm-tour-head">
+          <div>
+            <h2 id="tour-title" className="hm-h2">
+              <span key={type} className="hm-swap">
+                {TITLE[type]}
+              </span>
+            </h2>
+            <p className="hm-lead">This is the real app, with our demo restaurant&apos;s sample data.</p>
+          </div>
+          <BusinessTypePicker />
         </div>
 
         <div className="hm-tour-grid">

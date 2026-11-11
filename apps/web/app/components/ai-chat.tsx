@@ -115,13 +115,13 @@ export function AiChat() {
 
   return (
     <div className="chat">
+      {/* The header: our app icon, not a generic AI sparkle (12 Nov) */}
       <div className="chat-hdr">
-        <div className="chat-av">
-          <Icon name="ai" size={18} />
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="chat-av" src="/brand/zentrabite-icon.svg" width={40} height={40} alt="" />
         <div>
-          <div className="chat-nm">ZentraBite assistant</div>
-          <div className="chat-st">Answers questions about ZentraBite</div>
+          <div className="chat-nm">Ask ZentraBite</div>
+          <div className="chat-st">Our AI assistant</div>
         </div>
       </div>
       <div className="chat-msgs" ref={scrollRef} aria-live="polite">

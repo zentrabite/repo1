@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { ThemeChoicePicker } from "./theme-toggle";
 import { Assistant } from "./assistant";
 import { LOGIN_URL } from "../../lib/config";
 
-// The footer on every marketing page. A navy close in both themes: a few
+// The footer on every marketing page. A navy close: a few
 // links, where we are and how to reach us, then the name at full width.
 // It also brings the floating website assistant, which comes last in the
 // tab order.
@@ -52,7 +51,6 @@ export function Footer() {
 
           <div className="ft-base">
             <p>© {new Date().getFullYear()} ZentraBite</p>
-            <ThemeChoicePicker />
           </div>
         </div>
       </footer>

@@ -11,19 +11,17 @@ import { useBusinessType, type BusinessType } from "./business-type";
 // address. "Book a call" carries it to the contact form (/contact?site=...),
 // which puts it in their notes so we have it before the call.
 
-// What the import fills in, by business type
+// What the import fills in, by how customers buy
 const FILLS: Record<BusinessType, string[]> = {
-  food: ["Your name and logo", "Your menu and prices", "Your opening hours", "Your photos and colours"],
-  shops: ["Your name and logo", "Your products and prices", "Your opening hours", "Your photos and colours"],
-  salons: ["Your name and logo", "Your services and prices", "Your opening hours", "Your photos and colours"],
-  trades: ["Your name and logo", "Your services and prices", "Your hours and contact details", "Your photos and colours"],
+  order: ["Your name and logo", "Your menu or products, with prices", "Your opening hours", "Your photos and colours"],
+  book: ["Your name and logo", "Your services and prices", "Your opening hours", "Your photos and colours"],
+  quote: ["Your name and logo", "Your services and prices", "Your hours and contact details", "Your photos and colours"],
 };
 
 const STARTER: Record<BusinessType, string> = {
-  food: "No website yet? We can start from your menu.",
-  shops: "No website yet? We can start from your product list.",
-  salons: "No website yet? We can start from your price list.",
-  trades: "No website yet? We can start from your list of services.",
+  order: "No website yet? We can start from your menu or product list.",
+  book: "No website yet? We can start from your price list.",
+  quote: "No website yet? We can start from your list of services.",
 };
 
 // Same idea as the contact form's limits: long enough for any real address.
@@ -45,16 +43,16 @@ export function SetUp() {
   const href = clean ? `/contact?site=${encodeURIComponent(clean)}` : "/contact";
 
   return (
-    <section className="hm-setup" aria-labelledby="setup-title" data-reveal>
+    <section className="hm-setup" aria-labelledby="setup-title">
       <div className="wrap hm-setup-grid">
         <div className="hm-setup-text">
-          <h2 id="setup-title" className="hm-h2" data-r style={{ "--i": 0 } as React.CSSProperties}>
+          <h2 id="setup-title" className="hm-h2">
             Set up from the site you have.
           </h2>
-          <p className="hm-lead" data-r style={{ "--i": 1 } as React.CSSProperties}>
+          <p className="hm-lead">
             Send us your current website. We use it to fill in your new one, and you check it all before it goes live.
           </p>
-          <ul className="hm-setup-list" data-r style={{ "--i": 2 } as React.CSSProperties}>
+          <ul className="hm-setup-list">
             {FILLS[type].map((f) => (
               <li key={`${type}-${f}`}>
                 <Tick />
@@ -62,7 +60,7 @@ export function SetUp() {
               </li>
             ))}
           </ul>
-          <div className="hm-setup-form" data-r style={{ "--i": 3 } as React.CSSProperties}>
+          <div className="hm-setup-form">
             <label htmlFor={id} className="hm-setup-label">
               Your current website
             </label>
@@ -88,8 +86,15 @@ export function SetUp() {
           </div>
         </div>
 
-        <figure className="hm-setup-fig" data-r style={{ "--i": 1 } as React.CSSProperties}>
+        <figure className="hm-setup-fig" data-reveal>
           <div className="hm-setup-frame" data-ui>
+            {/* Blocks over the screen that clear one after another as it scrolls
+                into view, like the import filling the site in (globals.css) */}
+            <div className="hm-sk" aria-hidden="true">
+              {[0, 1, 2, 3].map((i) => (
+                <span key={i} style={{ "--i": i } as React.CSSProperties} />
+              ))}
+            </div>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/media/hero/pv-website.webp"
