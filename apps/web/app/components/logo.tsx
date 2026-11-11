@@ -1,7 +1,7 @@
 // ZentraBite logo. The wordmark on its own by default (the nav and footer),
 // or with the app icon (public/brand/zentrabite-icon.svg) when `mark` is set.
 // "Bite" uses --logo-bite: brand green on dark grounds, a deeper green on light
-// ones, where brand green is too faint to read (2.5 to 1). Other logo variants
+// ones, where brand green is too faint to read (2.9 to 1). Other logo variants
 // live in docs/reference/brand/logo/.
 export function Logo({ size = 22, mark = false }: { size?: number; mark?: boolean }) {
   return (
