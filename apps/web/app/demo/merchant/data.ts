@@ -27,7 +27,6 @@ import {
 export const brand = {
   name: sampleBusiness.name,
   tagline: "Wood-fired. Neighbourhood. Forever.",
-  logoEmoji: "🍕",
   primary: "#E8641F",       // warm orange
   primaryDark: "#C24A10",
   cream: "#FAF3E5",
@@ -45,13 +44,13 @@ export type MenuItem = {
   name: string;
   description: string;
   price: number;
-  emoji: string;
+  photo: string;
   popular?: boolean;
   vegetarian?: boolean;
 };
 
-function toMenuItem({ id, category, name, desc, price, emoji, popular, vegetarian }: SampleMenuItem): MenuItem {
-  return { id, category, name, description: desc, price, emoji, popular, vegetarian };
+function toMenuItem({ id, category, name, desc, price, photo, popular, vegetarian }: SampleMenuItem): MenuItem {
+  return { id, category, name, description: desc, price, photo, popular, vegetarian };
 }
 
 // Items the restaurant has 86'd in the CRM don't show here.

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Icon } from "../../components/zb-icon";
+import { DealPhotos, FoodPhoto, NonnaMark, preloadMenuPhotos } from "../food-photo";
 import {
   brand,
   categories,
@@ -36,6 +37,7 @@ type View = "home" | "menu" | "cart" | "tracking" | "rewards" | "account";
 const TRACKING_STAGES = ["Received", "Preparing", "Out for delivery", "Delivered"] as const;
 
 export default function MerchantStorefront() {
+  preloadMenuPhotos();
   const [view, setView] = useState<View>("home");
   const [activeCat, setActiveCat] = useState<string>(categories[0]!);
   const [cart, setCart] = useState<CartItem[]>([
@@ -146,7 +148,7 @@ function DemoBadge() {
       }}
     >
       <Icon name="storefront" size={16} accent="currentColor" style={{ marginRight: 6 }} />
-      <span className="mh-badge-long">DEMO STOREFRONT. {brand.name} is a made-up restaurant powered by ZentraBite ·{" "}</span>
+      <span className="mh-badge-long">DEMO STOREFRONT. {brand.name} is a made-up restaurant with AI-made photos, powered by ZentraBite ·{" "}</span>
       <span className="mh-badge-short">Demo storefront ·{" "}</span>
       <Link href="/demo" style={{ color: "white", textDecoration: "underline" }}>
         Back to demo hub
@@ -178,7 +180,7 @@ function Topbar({ view, setView, cartCount }: { view: View; setView: (v: View) =
           onClick={() => setView("home")}
           style={{ display: "flex", alignItems: "center", gap: 10, background: "none", border: "none", cursor: "pointer", color: brand.ink }}
         >
-          <span style={{ fontSize: 28 }}>{brand.logoEmoji}</span>
+          <NonnaMark size={34} />
           <span style={{ fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 19 }}>{brand.name}</span>
         </button>
 
@@ -296,21 +298,15 @@ function HomeView({ onShopNow, onTracker }: { onShopNow: () => void; onTracker: 
             </div>
           </div>
 
-          {/* Hero image — gradient pizza tile */}
-          <div
-            style={{
-              borderRadius: 20,
-              padding: 36,
-              background: `radial-gradient(circle at 30% 30%, ${brand.primary}, ${brand.primaryDark})`,
-              minHeight: 320,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "0 30px 80px rgba(232,100,31,0.35)",
-            }}
-          >
-            <div style={{ fontSize: 180, lineHeight: 1, filter: "drop-shadow(0 20px 40px rgba(0,0,0,0.3))" }}>🍕</div>
-          </div>
+          {/* Hero photo: the oven (made with AI for the demo, like the menu photos) */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/media/demo/food/kitchen.webp"
+            alt="A margherita going into the wood-fired oven."
+            width={1600}
+            height={1194}
+            style={{ display: "block", width: "100%", height: "100%", minHeight: 320, maxHeight: 440, objectFit: "cover", borderRadius: 20 }}
+          />
         </div>
       </section>
 
@@ -330,7 +326,7 @@ function HomeView({ onShopNow, onTracker }: { onShopNow: () => void; onTracker: 
                   boxShadow: "0 6px 20px rgba(0,0,0,0.04)",
                 }}
               >
-                <div style={{ fontSize: 36, marginBottom: 8 }}>{d.emoji}</div>
+                <div style={{ marginBottom: 14 }}><DealPhotos deal={d} size={48} /></div>
                 <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 18 }}>{d.title}</div>
                 <div style={{ color: "rgba(26,22,18,0.65)", fontSize: 13.5, marginTop: 4, marginBottom: 14 }}>{d.subtitle}</div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
@@ -477,22 +473,22 @@ function MenuView({
           })}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 16 }}>
           {(menuByCategory[activeCat] || []).map((m) => (
             <div
               key={m.id}
               style={{
-                padding: 20,
+                overflow: "hidden",
                 borderRadius: 16,
                 background: "white",
                 border: "1px solid rgba(26,22,18,0.08)",
                 display: "flex",
-                gap: 14,
-                alignItems: "flex-start",
+                flexDirection: "column",
               }}
             >
-              <div style={{ fontSize: 44, lineHeight: 1, flexShrink: 0 }}>{m.emoji}</div>
-              <div style={{ flex: 1 }}>
+              {/* The dish's photo across the top of its card */}
+              <FoodPhoto item={m} size="100%" radius={0} style={{ height: "auto", aspectRatio: "4 / 3" }} />
+              <div style={{ flex: 1, padding: "16px 18px 18px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
                   <div>
                     <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 16, display: "flex", gap: 6, alignItems: "center" }}>
@@ -570,7 +566,7 @@ function CartView({
                     borderBottom: "1px solid rgba(26,22,18,0.06)",
                   }}
                 >
-                  <div style={{ fontSize: 28 }}>{c.item.emoji}</div>
+                  <FoodPhoto item={c.item} size={44} radius={10} />
                   <div>
                     <div style={{ fontWeight: 700, fontSize: 14.5 }}>{c.item.name}</div>
                     <div style={{ fontSize: 12, color: "rgba(26,22,18,0.55)" }}>{formatAUD(c.item.price)} each</div>
@@ -714,7 +710,7 @@ function TrackingView({ stage, order }: { stage: number; order: Tracked }) {
           <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 15, marginBottom: 10 }}>Your order</div>
           {order.lines.map((c) => (
             <div key={c.item.id} style={{ display: "grid", gridTemplateColumns: "32px 1fr auto", gap: 12, padding: "8px 0", borderBottom: "1px solid rgba(26,22,18,0.06)", fontSize: 14 }}>
-              <span style={{ fontSize: 22 }}>{c.item.emoji}</span>
+              <FoodPhoto item={c.item} size={32} radius={8} />
               <span><strong>{c.qty}×</strong> {c.item.name}</span>
               <span style={{ fontFamily: "var(--font-outfit)", fontWeight: 700 }}>{formatAUD(c.item.price * c.qty)}</span>
             </div>
