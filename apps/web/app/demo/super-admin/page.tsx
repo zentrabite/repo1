@@ -86,12 +86,12 @@ const TENANTS: Tenant[] = [
 
 const PLAN_COLORS: Record<Tenant["plan"], { color:string; bg:string }> = {
   Starter: { color:"#6BB1FF", bg:"rgba(107,177,255,0.14)" },
-  Growth:  { color:"#00B67A", bg:"rgba(0,182,122,0.14)" },
+  Growth:  { color:"#00AD82", bg:"rgba(0,173,130,0.14)" },
   Scale:   { color:"#FFC14B", bg:"rgba(255,193,75,0.14)" },
 };
 
 const HEALTH_COLORS: Record<Tenant["health"], { color:string; bg:string; dot:string }> = {
-  Healthy:  { color:"#00B67A", bg:"rgba(0,182,122,0.12)",  dot:"#00B67A" },
+  Healthy:  { color:"#00AD82", bg:"rgba(0,173,130,0.12)",  dot:"#00AD82" },
   Warning:  { color:"#F59E0B", bg:"rgba(245,158,11,0.12)", dot:"#F59E0B" },
   Critical: { color:"#FF4757", bg:"rgba(255,71,87,0.12)",  dot:"#FF4757" },
 };
@@ -109,7 +109,7 @@ function toast(text: string) {
   if (typeof document === "undefined") return;
   const el = document.createElement("div");
   el.textContent = text;
-  el.style.cssText = `position:fixed;top:60px;right:20px;z-index:9999;background:rgba(0,182,122,.94);color:#0F1F2D;padding:10px 16px;border-radius:10px;font-weight:600;font-family:var(--font-inter);font-size:13px;box-shadow:0 12px 32px rgba(0,0,0,.4);`;
+  el.style.cssText = `position:fixed;top:60px;right:20px;z-index:9999;background:rgba(0,173,130,.94);color:#0F1F2D;padding:10px 16px;border-radius:10px;font-weight:600;font-family:var(--font-inter);font-size:13px;box-shadow:0 12px 32px rgba(0,0,0,.4);`;
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 2200);
 }
@@ -126,7 +126,7 @@ const HEALTH_METRICS = [
   { label:"Storage bucket",     value:"4.1 GB",    status:"ok",   detail:"business-logos · 48 GB limit" },
 ];
 
-const STATUS_COL: Record<string,string> = { ok:"#00B67A", warn:"#F59E0B", error:"#FF4757" };
+const STATUS_COL: Record<string,string> = { ok:"#00AD82", warn:"#F59E0B", error:"#FF4757" };
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 type Screen = "list" | "detail" | "health" | "catalogue";
@@ -211,7 +211,7 @@ export default function SuperAdminPage() {
                 <span style={{ color:CL }}>Zentra</span><span style={{ color:G }}>Bite</span>
               </div>
             </div>
-            <div style={{ fontSize:11, color:"var(--green)", fontWeight:600, marginTop:8, padding:"3px 8px", borderRadius:6, background:"rgba(0,182,122,.12)", display:"inline-flex", alignItems:"center", gap:5 }}><Icon name="lock" size={14} />Super Admin</div>
+            <div style={{ fontSize:11, color:"var(--green)", fontWeight:600, marginTop:8, padding:"3px 8px", borderRadius:6, background:"rgba(0,173,130,.12)", display:"inline-flex", alignItems:"center", gap:5 }}><Icon name="lock" size={14} />Super Admin</div>
           </div>
 
           {/* Platform stats */}
@@ -235,7 +235,7 @@ export default function SuperAdminPage() {
               { id:"health",    label:"Platform Health", icon:"health" },
               { id:"catalogue", label:"Module Catalogue",icon:"modules" },
             ] as const).map(n => (
-              <button key={n.id} onClick={() => { setScreen(n.id); setMenuOpen(false); }} style={{ display:"flex", alignItems:"center", gap:8, width:"100%", padding:"9px 11px", borderRadius:9, marginBottom:2, border:"none", cursor:"pointer", fontSize:13, fontWeight: screen===n.id ? 600 : 400, color: screen===n.id ? G : ST, background: screen===n.id ? "rgba(0,182,122,.11)" : "transparent", borderLeft:`2px solid ${screen===n.id ? G : "transparent"}`, textAlign:"left" }}>
+              <button key={n.id} onClick={() => { setScreen(n.id); setMenuOpen(false); }} style={{ display:"flex", alignItems:"center", gap:8, width:"100%", padding:"9px 11px", borderRadius:9, marginBottom:2, border:"none", cursor:"pointer", fontSize:13, fontWeight: screen===n.id ? 600 : 400, color: screen===n.id ? G : ST, background: screen===n.id ? "rgba(0,173,130,.11)" : "transparent", borderLeft:`2px solid ${screen===n.id ? G : "transparent"}`, textAlign:"left" }}>
                 <Icon name={n.icon} size={14} />{n.label}
               </button>
             ))}
@@ -243,7 +243,7 @@ export default function SuperAdminPage() {
 
           {/* CTA */}
           <div style={{ padding:14, borderTop:`1px solid ${M9}` }}>
-            <Link href="/contact" style={{ display:"block", padding:"10px 12px", borderRadius:10, background:"rgba(0,182,122,.10)", border:"1px solid rgba(0,182,122,.28)", color:G, fontSize:12, fontWeight:600, textAlign:"center", textDecoration:"none" }}>
+            <Link href="/contact" style={{ display:"block", padding:"10px 12px", borderRadius:10, background:"rgba(0,173,130,.10)", border:"1px solid rgba(0,173,130,.28)", color:G, fontSize:12, fontWeight:600, textAlign:"center", textDecoration:"none" }}>
               Start your 1-month free trial →
             </Link>
           </div>
@@ -284,14 +284,14 @@ export default function SuperAdminPage() {
                 />
                 <div className="sa-fgroup" data-label="Plan">
                 {["All","Starter","Growth","Scale"].map(p => (
-                  <button key={p} onClick={() => setPlanFilter(p)} style={{ padding:"7px 14px", borderRadius:8, border:`1px solid ${planFilter===p?"rgba(0,182,122,.4)":M9}`, background:planFilter===p?"rgba(0,182,122,.10)":N40, color:planFilter===p?G:ST, fontSize:12.5, fontWeight:planFilter===p?700:400, cursor:"pointer" }}>{p}</button>
+                  <button key={p} onClick={() => setPlanFilter(p)} style={{ padding:"7px 14px", borderRadius:8, border:`1px solid ${planFilter===p?"rgba(0,173,130,.4)":M9}`, background:planFilter===p?"rgba(0,173,130,.10)":N40, color:planFilter===p?G:ST, fontSize:12.5, fontWeight:planFilter===p?700:400, cursor:"pointer" }}>{p}</button>
                 ))}
                 </div>
                 <div className="sa-fgroup" data-label="Health">
                 {["All","Healthy","Warning","Critical"].map(h => {
                   const hc = h !== "All" ? HEALTH_COLORS[h as Tenant["health"]] : null;
                   return (
-                    <button key={h} onClick={() => setHealthFilter(h)} style={{ padding:"7px 14px", borderRadius:8, border:`1px solid ${healthFilter===h?(hc?.color ?? G)+"66":M9}`, background:healthFilter===h?(hc?.bg ?? "rgba(0,182,122,.10)"):"transparent", color:healthFilter===h?(hc?.color ?? G):ST, fontSize:12.5, fontWeight:healthFilter===h?700:400, cursor:"pointer" }}>{h}</button>
+                    <button key={h} onClick={() => setHealthFilter(h)} style={{ padding:"7px 14px", borderRadius:8, border:`1px solid ${healthFilter===h?(hc?.color ?? G)+"66":M9}`, background:healthFilter===h?(hc?.bg ?? "rgba(0,173,130,.10)"):"transparent", color:healthFilter===h?(hc?.color ?? G):ST, fontSize:12.5, fontWeight:healthFilter===h?700:400, cursor:"pointer" }}>{h}</button>
                   );
                 })}
                 </div>
@@ -315,7 +315,7 @@ export default function SuperAdminPage() {
                       return (
                         <tr key={t.id} style={{ borderBottom: i<filtered.length-1?`1px solid ${M9}`:"none", cursor:"pointer", background:"rgba(255,255,255,.01)" }}
                           onClick={() => openDetail(t.id)}
-                          onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,182,122,.04)")}
+                          onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,173,130,.04)")}
                           onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,.01)")}
                         >
                           <td style={{ padding:"12px 16px" }}>
@@ -370,14 +370,14 @@ export default function SuperAdminPage() {
                   { id:"usage",   label:"Usage & Billing", icon:"chart" },
                   { id:"ops",     label:"Ops",             icon:"ops" },
                 ] as const).map(t => (
-                  <button key={t.id} onClick={() => setDetailTab(t.id)} style={{ padding:"10px 18px", border:"none", borderRadius:"8px 8px 0 0", background:detailTab===t.id?"rgba(0,182,122,.12)":"transparent", color:detailTab===t.id?G:ST, fontSize:13.5, fontWeight:detailTab===t.id?700:400, cursor:"pointer", borderBottom:`2px solid ${detailTab===t.id?G:"transparent"}`, marginBottom:-1, display:"inline-flex", alignItems:"center", gap:6 }}><Icon name={t.icon} size={16} />{t.label}</button>
+                  <button key={t.id} onClick={() => setDetailTab(t.id)} style={{ padding:"10px 18px", border:"none", borderRadius:"8px 8px 0 0", background:detailTab===t.id?"rgba(0,173,130,.12)":"transparent", color:detailTab===t.id?G:ST, fontSize:13.5, fontWeight:detailTab===t.id?700:400, cursor:"pointer", borderBottom:`2px solid ${detailTab===t.id?G:"transparent"}`, marginBottom:-1, display:"inline-flex", alignItems:"center", gap:6 }}><Icon name={t.icon} size={16} />{t.label}</button>
                 ))}
               </div>
 
               {/* ─ Modules & Plan tab ─ */}
               {detailTab === "modules" && (
                 <div>
-                  <div style={{ marginBottom:16, padding:"12px 16px", borderRadius:10, background:"rgba(0,182,122,.06)", border:"1px solid rgba(0,182,122,.18)", fontSize:13, color:G }}>
+                  <div style={{ marginBottom:16, padding:"12px 16px", borderRadius:10, background:"rgba(0,173,130,.06)", border:"1px solid rgba(0,173,130,.18)", fontSize:13, color:G }}>
                     Toggle any module on or off below. Changes take effect immediately for the merchant.
                     <strong> Demo: </strong>toggles are interactive but reset on reload.
                   </div>
@@ -386,11 +386,11 @@ export default function SuperAdminPage() {
                       const on = tenant.modules[m.key] ?? false;
                       const depBlocked = m.deps.some(d => !tenant.modules[d]);
                       return (
-                        <div key={m.key} style={{ padding:"14px 16px", borderRadius:12, background:"rgba(255,255,255,.02)", border:`1px solid ${on?"rgba(0,182,122,.25)":M9}`, opacity: depBlocked ? 0.5 : 1 }}>
+                        <div key={m.key} style={{ padding:"14px 16px", borderRadius:12, background:"rgba(255,255,255,.02)", border:`1px solid ${on?"rgba(0,173,130,.25)":M9}`, opacity: depBlocked ? 0.5 : 1 }}>
                           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
                             <div style={{ fontSize:20, marginBottom:2 }}><Icon name={m.icon} size={20} /></div>
                             {/* Toggle */}
-                            <div onClick={() => !depBlocked && toggleModule(m.key)} style={{ width:40, height:22, borderRadius:11, background:on?"rgba(0,182,122,.3)":"rgba(255,255,255,.08)", cursor:depBlocked?"not-allowed":"pointer", position:"relative", border:`1px solid ${on?"rgba(0,182,122,.4)":"rgba(255,255,255,.06)"}`, flexShrink:0 }}>
+                            <div onClick={() => !depBlocked && toggleModule(m.key)} style={{ width:40, height:22, borderRadius:11, background:on?"rgba(0,173,130,.3)":"rgba(255,255,255,.08)", cursor:depBlocked?"not-allowed":"pointer", position:"relative", border:`1px solid ${on?"rgba(0,173,130,.4)":"rgba(255,255,255,.06)"}`, flexShrink:0 }}>
                               <div style={{ width:16, height:16, borderRadius:"50%", background:on?G:ST, position:"absolute", top:2, left:on?20:2, transition:"all .2s" }} />
                             </div>
                           </div>
@@ -439,7 +439,7 @@ export default function SuperAdminPage() {
                       <div key={month} style={{ display:"flex", justifyContent:"space-between", padding:"8px 0", borderBottom:i<2?`1px solid ${M9}`:"none", fontSize:13 }}>
                         <span style={{ color:CL }}>{month}</span>
                         <div style={{ display:"flex", gap:12, alignItems:"center" }}>
-                          <Pill color="#00B67A" bg="rgba(0,182,122,.12)">Paid</Pill>
+                          <Pill color="#00AD82" bg="rgba(0,173,130,.12)">Paid</Pill>
                           <span style={{ color:G, fontWeight:600 }}>${tenant.mrr}</span>
                           <button onClick={() => toast("Invoice downloaded (demo only)")} style={{ padding:"3px 10px", borderRadius:6, background:"transparent", border:`1px solid ${M9}`, color:ST, fontSize:11, cursor:"pointer" }}>PDF</button>
                         </div>
@@ -472,7 +472,7 @@ export default function SuperAdminPage() {
                     <div style={{ padding:"14px 16px", borderRadius:12, background:N40, border:`1px solid ${M9}` }}>
                       <div style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:14, color:CL, marginBottom:10 }}>Actions</div>
                       <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-                        <button onClick={() => toast(`Impersonating ${tenant.name} (demo only)`)} style={{ padding:"10px 14px", borderRadius:9, background:"rgba(0,182,122,.10)", border:"1px solid rgba(0,182,122,.28)", color:G, fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left" }}>
+                        <button onClick={() => toast(`Impersonating ${tenant.name} (demo only)`)} style={{ padding:"10px 14px", borderRadius:9, background:"rgba(0,173,130,.10)", border:"1px solid rgba(0,173,130,.28)", color:G, fontSize:13, fontWeight:600, cursor:"pointer", textAlign:"left" }}>
                           <Icon name="user" size={16} style={{ marginRight:6 }} />Impersonate merchant →
                         </button>
                         <button onClick={() => toast("Password reset email sent (demo only)")} style={{ padding:"10px 14px", borderRadius:9, background:N40, border:`1px solid ${M9}`, color:CL, fontSize:13, cursor:"pointer", textAlign:"left" }}>

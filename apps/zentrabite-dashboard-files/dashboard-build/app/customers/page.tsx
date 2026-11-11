@@ -21,14 +21,14 @@ export default function CustomersPage() {
         <input
           type="text"
           placeholder="Search name or phone..."
-          className="flex-1 rounded-lg border border-white/[0.08] bg-white/[0.04] px-4 py-2.5 text-[13px] text-slate-300 placeholder-slate-600 outline-none transition-colors focus:border-[#00B67A]/40"
+          className="flex-1 rounded-lg border border-white/[0.08] bg-white/[0.04] px-4 py-2.5 text-[13px] text-slate-300 placeholder-slate-600 outline-none transition-colors focus:border-[#00AD82]/40"
         />
         {["All", "VIP", "At Risk", "New"].map((filter) => (
           <button
             key={filter}
             className={`rounded-lg border px-4 py-2.5 font-heading text-xs font-medium transition-all ${
               filter === "All"
-                ? "border-[#00B67A]/25 bg-[#00B67A]/10 text-[#00B67A]"
+                ? "border-[#00AD82]/25 bg-[#00AD82]/10 text-[#00AD82]"
                 : "border-white/[0.08] bg-white/[0.04] text-slate-400 hover:bg-white/[0.08] hover:text-slate-200"
             }`}
           >
@@ -79,13 +79,13 @@ export default function CustomersPage() {
                 <td className="px-4 py-3">
                   <span className={`rounded-full px-3 py-0.5 text-[11px] font-semibold ${
                     c.channel === "Direct"
-                      ? "bg-[#00B67A]/10 text-[#00B67A]"
+                      ? "bg-[#00AD82]/10 text-[#00AD82]"
                       : "bg-[#FF6B35]/10 text-[#FF6B35]"
                   }`}>{c.channel}</span>
                 </td>
                 <td className="px-4 py-3">
                   <span className={`rounded-full px-3 py-0.5 text-[11px] font-semibold ${
-                    c.segment === "VIP" ? "bg-[#00B67A]/15 text-[#00B67A]" :
+                    c.segment === "VIP" ? "bg-[#00AD82]/15 text-[#00AD82]" :
                     c.segment === "At Risk" ? "bg-[#FF6B35]/12 text-[#FF6B35]" :
                     c.segment === "New" ? "bg-blue-500/12 text-blue-400" :
                     "bg-white/[0.06] text-slate-400"

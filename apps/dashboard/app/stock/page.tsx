@@ -16,7 +16,7 @@ import {
   type StockItem,
 } from "@/lib/stock-queries";
 
-const C = { g: "#00B67A", st: "#6B7C93", o: "#FF6B35", r: "#FF4757", mist: "rgba(255,255,255,.07)" };
+const C = { g: "#00AD82", st: "#6B7C93", o: "#FF6B35", r: "#FF4757", mist: "rgba(255,255,255,.07)" };
 const StockIcon = iconComponent("stock");
 
 function statusFor(it: StockItem) {

@@ -399,7 +399,7 @@ setLogoUrl((business as any).logo_url ?? null);
         style={{ width: 48, height: 48, borderRadius: 10, objectFit: "cover", border: "1px solid rgba(255,255,255,.1)" }}
       />
     ) : (
-      <div style={{ width: 48, height: 48, borderRadius: 10, background: "#00B67A", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: "#1C2D48", fontWeight: 800 }}>
+      <div style={{ width: 48, height: 48, borderRadius: 10, background: "#00AD82", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: "#1C2D48", fontWeight: 800 }}>
         ZB
       </div>
     )}

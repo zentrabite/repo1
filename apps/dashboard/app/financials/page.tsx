@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
 import { getAnalytics } from "@/lib/queries";
 
-const C = { g:"#00B67A", o:"#FF6B35", r:"#FF4757", vi:"#A855F7", st:"#6B7C93" };
+const C = { g:"#00AD82", o:"#FF6B35", r:"#FF4757", vi:"#A855F7", st:"#6B7C93" };
 
 function SourceRow({ label, rev, fee, color, total }: { label:string; rev:number; fee:number; color:string; total:number }) {
   const pct = total > 0 ? Math.round(rev / total * 100) : 0;
@@ -125,7 +125,7 @@ export default function FinancialsPage() {
                 )}
               </div>
               <div className="zb-wrap" style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:C.st, marginBottom:20 }}>
-                <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Icon name="dot" size={14} accent="#00B67A" />Direct (full margin)</span>
+                <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Icon name="dot" size={14} accent="#00AD82" />Direct (full margin)</span>
                 <span style={{ display:"inline-flex", alignItems:"center", gap:4 }}><Icon name="dot" size={14} accent="#FF6B35" />Aggregators (−30%)</span>
               </div>
             </>
@@ -135,7 +135,7 @@ export default function FinancialsPage() {
             </div>
           )}
 
-          <div style={{ padding:"14px", background:"rgba(0,182,122,.06)", border:"1px solid rgba(0,182,122,.15)", borderRadius:10 }}>
+          <div style={{ padding:"14px", background:"rgba(0,173,130,.06)", border:"1px solid rgba(0,173,130,.15)", borderRadius:10 }}>
             <div style={{ fontSize:13, color:C.g, fontWeight:600, marginBottom:4, display:"flex", alignItems:"center", gap:6 }}>
               <Icon name="insight" size={16} />Save ${aggFees > 0 ? aggFees.toLocaleString() : "—"} in fees
             </div>
@@ -162,9 +162,9 @@ export default function FinancialsPage() {
             className="zb-tap"
             style={{
               padding:"8px 16px", borderRadius:8,
-              background:"rgba(0,182,122,.12)", color:C.g,
+              background:"rgba(0,173,130,.12)", color:C.g,
               fontSize:12, fontWeight:600, fontFamily:"var(--font-outfit)",
-              border:"1px solid rgba(0,182,122,.25)",
+              border:"1px solid rgba(0,173,130,.25)",
               textDecoration:"none", whiteSpace:"nowrap",
             }}
           >

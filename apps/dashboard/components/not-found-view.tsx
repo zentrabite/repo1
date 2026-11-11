@@ -43,7 +43,7 @@ export default function NotFoundView({ onRestaurantHost }: { onRestaurantHost: b
       <div style={{ width: "100%", maxWidth: 460 }}>
         <div className="gc" style={{ padding: "40px 28px", textAlign: "center" }}>
           <BrandMark size={48} style={{ margin: "0 auto 22px" }} />
-          <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 600, fontSize: 12, color: "#00B67A", letterSpacing: ".1em", textTransform: "uppercase", marginBottom: 10 }}>
+          <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 600, fontSize: 12, color: "#00AD82", letterSpacing: ".1em", textTransform: "uppercase", marginBottom: 10 }}>
             Error 404
           </div>
           <h1 style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 28, color: "#F8FAFB", margin: "0 0 10px", letterSpacing: "-.01em" }}>

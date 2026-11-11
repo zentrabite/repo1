@@ -54,7 +54,7 @@ export default function RootLayout({
       <body className="bg-[#080E18] font-body text-slate-300 antialiased">
         {/* Background glow effects (matches demo) */}
         <div className="pointer-events-none fixed inset-0 z-0">
-          <div className="absolute -top-[20%] -left-[10%] h-[50%] w-[50%] bg-[radial-gradient(circle,rgba(0,182,122,0.06)_0%,transparent_70%)]" />
+          <div className="absolute -top-[20%] -left-[10%] h-[50%] w-[50%] bg-[radial-gradient(circle,rgba(0,173,130,0.06)_0%,transparent_70%)]" />
           <div className="absolute -bottom-[20%] -right-[10%] h-[50%] w-[50%] bg-[radial-gradient(circle,rgba(255,107,53,0.04)_0%,transparent_70%)]" />
         </div>
 

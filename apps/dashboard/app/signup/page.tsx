@@ -11,7 +11,7 @@ import PasswordInput from "@/components/password-input";
 import { Icon } from "@/components/zb-icon";
 import { signupErrorMessage } from "@/lib/auth-errors";
 
-const C = { g:"#00B67A", st:"#6B7C93", cl:"#F8FAFB", r:"#FF4757" };
+const C = { g:"#00AD82", st:"#6B7C93", cl:"#F8FAFB", r:"#FF4757" };
 
 // The deal, shown before the button. Keep it in step with the code:
 //   • signup itself creates the account and business, no card, no charge

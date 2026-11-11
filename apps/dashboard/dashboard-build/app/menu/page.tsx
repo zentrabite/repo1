@@ -66,7 +66,7 @@ export default function MenuPage() {
                   <p className="text-[13px] font-semibold text-white">{item.name}</p>
                   <div className="mt-1 flex gap-1.5">
                     {item.tags.map((tag) => (
-                      <span key={tag} className="rounded-full border border-[#00B67A]/15 bg-[#00B67A]/10 px-2 py-0.5 text-[10px] text-[#00B67A]">
+                      <span key={tag} className="rounded-full border border-[#00AD82]/15 bg-[#00AD82]/10 px-2 py-0.5 text-[10px] text-[#00AD82]">
                         {tag}
                       </span>
                     ))}
@@ -83,14 +83,14 @@ export default function MenuPage() {
                   onClick={() => toggle(key, isOn)}
                   className={`relative h-6 w-11 rounded-full border transition-all ${
                     isOn
-                      ? "border-[#00B67A]/30 bg-[#00B67A]/30"
+                      ? "border-[#00AD82]/30 bg-[#00AD82]/30"
                       : "border-white/[0.08] bg-white/[0.1]"
                   }`}
                 >
                   <div
                     className={`absolute top-[3px] h-[18px] w-[18px] rounded-full transition-all ${
                       isOn
-                        ? "left-[21px] bg-[#00B67A] shadow-md shadow-[#00B67A]/40"
+                        ? "left-[21px] bg-[#00AD82] shadow-md shadow-[#00AD82]/40"
                         : "left-[3px] bg-slate-500"
                     }`}
                   />

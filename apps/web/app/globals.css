@@ -12,7 +12,7 @@
    2. Brand constants (--navy, --cloud, --steel ...). The demo sandboxes
       under /demo/* use these and always stay dark.
 
-   Brand: Zentra Green #00B67A, Navy #1C2D48, Near Black #0F1F2D,
+   Brand: Zentra Green #00AD82, Navy #1C2D48, Near Black #0F1F2D,
    Steel #6B7C93, Cloud #F8FAFB, Mist #E2E8F0, Bite Orange #FF6B35.
    The marketing site uses a deeper navy, #0E192C (picked 11 Nov, option B).
    The demos keep #1C2D48.
@@ -31,8 +31,8 @@
 :root {
   /* Brand constants (demo sandboxes, and the navy chapters) */
   --navy: #1c2d48;
-  --green: #00b67a;
-  --green-dark: #00a36d;
+  --green: #00ad82;
+  --green-dark: #009b74;
   --orange: #ff6b35;
   --near-black: #0f1f2d;
   --steel: #6b7c93;
@@ -43,8 +43,8 @@
   --mist-6: rgba(226, 232, 240, 0.06);
   --navy-55: rgba(28, 45, 72, 0.55);
   --navy-40: rgba(28, 45, 72, 0.4);
-  --green-30: rgba(0, 182, 122, 0.3);
-  --green-15: rgba(0, 182, 122, 0.15);
+  --green-30: rgba(0, 173, 130, 0.3);
+  --green-15: rgba(0, 173, 130, 0.15);
 
   /* Navy chapters, the deeper navy. Text on it: 17.9, 15.0 and 9.6 to 1.
      Raise is the step in tone that frames app screens and lit panels. */
@@ -87,16 +87,16 @@
   --text: #0e192c;
   --text-2: #3d4a5c;
   --text-3: #56657a;
-  --accent: #00b67a;
-  --accent-hover: #00a36d;
+  --accent: #00ad82;
+  --accent-hover: #009b74;
   --on-accent: #0f1f2d;
-  --accent-text: #007a52;
-  --accent-soft: rgba(0, 182, 122, 0.12);
+  --accent-text: #007457;
+  --accent-soft: rgba(0, 173, 130, 0.12);
   --warn-text: #c2410c;
   --danger-text: #c81e3a;
   --logo-zentra: #0e192c;
   /* Brand green is 2.5 to 1 on the light page, so "Bite" takes the deeper green there (5.1 to 1) */
-  --logo-bite: #007a52;
+  --logo-bite: #007457;
   --nav-bg: #ffffff;
 }
 
@@ -113,12 +113,12 @@ html:has(.force-dark) {
   --text: #f3f6f9;
   --text-2: #b4c0ce;
   --text-3: #8fa0b5;
-  --accent-text: #00b67a;
-  --accent-soft: rgba(0, 182, 122, 0.14);
+  --accent-text: #00ad82;
+  --accent-soft: rgba(0, 173, 130, 0.14);
   --warn-text: #ff7a45;
   --danger-text: #ff6b7d;
   --logo-zentra: #ffffff;
-  --logo-bite: #00b67a;
+  --logo-bite: #00ad82;
   --nav-bg: #0f1f2d;
 }
 
@@ -1762,7 +1762,7 @@ textarea.input { resize: vertical; }
   padding: 6px 12px;
   border-radius: 999px;
   background: var(--green-15);
-  border: 1px solid rgba(0, 182, 122, 0.28);
+  border: 1px solid rgba(0, 173, 130, 0.28);
 }
 
 /* ── Motion ───────────────────────────────────────────────────────────── */

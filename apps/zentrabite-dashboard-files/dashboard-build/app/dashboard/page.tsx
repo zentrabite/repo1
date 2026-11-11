@@ -48,7 +48,7 @@ export default function DashboardPage() {
                   >
                     <div className="flex w-full flex-col gap-0.5">
                       <div
-                        className="w-full rounded-t bg-gradient-to-t from-[#00B67A]/40 to-[#00B67A]"
+                        className="w-full rounded-t bg-gradient-to-t from-[#00AD82]/40 to-[#00AD82]"
                         style={{ height: h1 }}
                       />
                       <div
@@ -66,7 +66,7 @@ export default function DashboardPage() {
           </div>
           <div className="mt-4 flex gap-5">
             <div className="flex items-center gap-2 text-[11px] text-slate-400">
-              <div className="h-2.5 w-2.5 rounded-sm bg-[#00B67A]" /> Direct
+              <div className="h-2.5 w-2.5 rounded-sm bg-[#00AD82]" /> Direct
             </div>
             <div className="flex items-center gap-2 text-[11px] text-slate-400">
               <div className="h-2.5 w-2.5 rounded-sm bg-[#FF6B35]" />{" "}
@@ -80,7 +80,7 @@ export default function DashboardPage() {
           <h3 className="mb-4 font-heading text-sm font-semibold text-white">
             Win-Back Engine
           </h3>
-          <p className="font-heading text-3xl font-bold text-[#00B67A]">
+          <p className="font-heading text-3xl font-bold text-[#00AD82]">
             $8,460
           </p>
           <p className="mb-5 text-[11px] text-slate-500">
@@ -130,7 +130,7 @@ export default function DashboardPage() {
               <span
                 className={`rounded-full px-3 py-0.5 text-[11px] font-semibold ${
                   order.channel === "Direct"
-                    ? "bg-[#00B67A]/10 text-[#00B67A]"
+                    ? "bg-[#00AD82]/10 text-[#00AD82]"
                     : "bg-[#FF6B35]/10 text-[#FF6B35]"
                 }`}
               >

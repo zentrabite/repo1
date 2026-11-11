@@ -13,7 +13,7 @@ function toast(text: string, kind: "success" | "info" = "success") {
   el.textContent = text;
   el.style.cssText = `
     position: fixed; top: 60px; right: 20px; z-index: 999;
-    background: ${kind === "success" ? "rgba(0,182,122,0.94)" : "rgba(107,177,255,0.94)"}; color: #0F1F2D;
+    background: ${kind === "success" ? "rgba(0,173,130,0.94)" : "rgba(107,177,255,0.94)"}; color: #0F1F2D;
     padding: 10px 16px; border-radius: 10px; font-weight: 600;
     font-family: var(--font-inter); font-size: 13px;
     box-shadow: 0 12px 32px rgba(0,0,0,0.4);
@@ -236,7 +236,7 @@ export default function PosPage() {
                   padding: "8px 6px",
                   borderRadius: 10,
                   border: `1px solid ${orderType === t.key ? "var(--green)" : "var(--mist-9)"}`,
-                  background: orderType === t.key ? "rgba(0,182,122,0.10)" : "transparent",
+                  background: orderType === t.key ? "rgba(0,173,130,0.10)" : "transparent",
                   color: orderType === t.key ? "var(--green)" : "var(--steel)",
                   fontSize: 12,
                   fontWeight: 600,
@@ -351,7 +351,7 @@ export default function PosPage() {
                   padding: "8px 6px",
                   borderRadius: 10,
                   border: `1px solid ${payment === p.key ? "var(--green)" : "var(--mist-9)"}`,
-                  background: payment === p.key ? "rgba(0,182,122,0.10)" : "transparent",
+                  background: payment === p.key ? "rgba(0,173,130,0.10)" : "transparent",
                   color: payment === p.key ? "var(--green)" : "var(--steel)",
                   fontSize: 12,
                   fontWeight: 600,

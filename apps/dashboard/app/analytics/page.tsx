@@ -10,7 +10,7 @@ import {
   getRepeatRate, getSmsStats, getAnalytics,
 } from "@/lib/queries";
 
-const C = { g:"#00B67A", o:"#FF6B35", am:"#F59E0B", be:"#63B3FF", st:"#6B7C93", r:"#DC3545" };
+const C = { g:"#00AD82", o:"#FF6B35", am:"#F59E0B", be:"#63B3FF", st:"#6B7C93", r:"#DC3545" };
 
 const RANGES = [7, 30, 90] as const;
 

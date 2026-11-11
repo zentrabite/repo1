@@ -3,7 +3,7 @@
    class starts with zs- so nothing leaks into the CRM. Brand colour comes in
    as --a (accent) and --aT (text on accent). */
 
-.zsite{container-type:inline-size;--a:#00B67A;--aT:#fff;--sbg:#FFFFFF;--sfg:#121212;--ssurf:#F4F3F1;--smuted:#5C5C5C;--sline:#E4E2DF;
+.zsite{container-type:inline-size;--a:#00AD82;--aT:#fff;--sbg:#FFFFFF;--sfg:#121212;--ssurf:#F4F3F1;--smuted:#5C5C5C;--sline:#E4E2DF;
   --sa2:color-mix(in srgb,var(--a) 82%,#000);--disp:var(--font-bricolage),var(--font-outfit),system-ui,sans-serif;
   background:var(--sbg);color:var(--sfg);font-family:var(--font-outfit),system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15.5px;line-height:1.55;min-height:100vh;position:relative}
 .zsite.zs-look-warm{--sbg:#16130F;--sfg:#F3ECE2;--ssurf:#221D18;--smuted:#B4A897;--sline:#3A3129;--sa2:color-mix(in srgb,var(--a) 62%,#fff);--disp:var(--font-fraunces),Georgia,serif}

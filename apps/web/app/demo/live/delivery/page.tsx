@@ -409,8 +409,8 @@ function WeekPlan() {
         style={{
           padding: "12px 16px",
           borderRadius: 10,
-          background: "rgba(0,182,122,0.07)",
-          border: "1px solid rgba(0,182,122,0.18)",
+          background: "rgba(0,173,130,0.07)",
+          border: "1px solid rgba(0,173,130,0.18)",
           fontSize: 12.5,
           color: "var(--green)",
         }}
@@ -444,7 +444,7 @@ function Analytics() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10, marginTop: 12 }}>
           {a.providerBreakdown.map((p) => {
             const meta: DeliveryProviderMeta = p.provider === "in_house"
-              ? { label: "In-house drivers", color: "#00B67A", icon: "drivers" }
+              ? { label: "In-house drivers", color: "#00AD82", icon: "drivers" }
               : deliveryProviderMeta[p.provider];
             return (
               <div
@@ -506,7 +506,7 @@ function RecentJobs() {
       </div>
       {deliveryRecentJobs.map((j, i) => {
         const meta: DeliveryProviderMeta = j.provider === "in_house"
-          ? { label: "In-house", color: "#00B67A", icon: "drivers" }
+          ? { label: "In-house", color: "#00AD82", icon: "drivers" }
           : deliveryProviderMeta[j.provider];
         const status = deliveryStatusLabel[j.status];
         return (
@@ -683,7 +683,7 @@ function round2(n: number) {
 }
 
 function accentToRgba(color: string) {
-  if (color.startsWith("var(")) return "rgba(0,182,122,0.10)";
+  if (color.startsWith("var(")) return "rgba(0,173,130,0.10)";
   if (color.startsWith("#") && color.length === 7) {
     const r = parseInt(color.slice(1, 3), 16);
     const g = parseInt(color.slice(3, 5), 16);

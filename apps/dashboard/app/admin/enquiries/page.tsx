@@ -22,7 +22,7 @@ import Toast from "@/components/toast";
 import { iconComponent } from "@/components/zb-icon";
 import { MODULE_LABELS, type EnquiryRow, type EnquiryStatus } from "@/lib/enquiries";
 
-const C = { g: "#00B67A", r: "#FF4757", st: "#6B7C93", cl: "#F8FAFB", mist: "rgba(226,232,240,.09)" };
+const C = { g: "#00AD82", r: "#FF4757", st: "#6B7C93", cl: "#F8FAFB", mist: "rgba(226,232,240,.09)" };
 
 const STATUS_LABEL: Record<EnquiryStatus, string> = { new: "New", contacted: "Contacted", closed: "Closed" };
 // Existing badge colours: blue for new, amber while we're talking, grey when done.
@@ -340,7 +340,7 @@ export default function AdminEnquiriesPage() {
         .enq-actions .bg-btn:disabled { opacity: .55; cursor: wait; }
         .enq-error { color: ${C.r}; font-size: 12.5px; font-family: var(--font-inter); }
         .enq-table a:focus-visible, .enq-table button:focus-visible, .enq-back:focus-visible {
-          outline: 2px solid rgba(0,182,122,.7); outline-offset: 2px; border-radius: 4px;
+          outline: 2px solid rgba(0,173,130,.7); outline-offset: 2px; border-radius: 4px;
         }
 
         /* Narrow: every row becomes a card */

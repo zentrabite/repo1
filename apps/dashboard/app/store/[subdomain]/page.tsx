@@ -6,7 +6,7 @@ import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/zb-icon";
 
-const BASE = { g:"#00B67A", st:"#8B9DB5", cl:"#F8FAFB", navy:"#0F1F2D", card:"#1C2D48", mist:"rgba(255,255,255,.08)", r:"#FF4757" };
+const BASE = { g:"#00AD82", st:"#8B9DB5", cl:"#F8FAFB", navy:"#0F1F2D", card:"#1C2D48", mist:"rgba(255,255,255,.08)", r:"#FF4757" };
 
 // Readable text colour on the restaurant's brand colour.
 function textOn(hex: string): string {

@@ -2,7 +2,7 @@
 
 Vector sources for the ZB logo, rebuilt in Oct 2026 from the approved app icon. Straight edges are true lines and the bowls are true arcs, so these scale to any size.
 
-Colours are the brand tokens. Zentra Green `#00B67A`, Navy `#1C2D48`, White `#FFFFFF`.
+Colours are the brand tokens. Zentra Green `#00AD82`, Navy `#1C2D48`, White `#FFFFFF`. The green changed from `#00B67A` on 12 Nov 2026, because the old green was too close to Uber Eats green.
 
 | File | Use it for |
 |---|---|

@@ -28,7 +28,7 @@ import { supabase } from "@/lib/supabase";
 import { Icon, type IconName } from "@/components/zb-icon";
 import type { Order } from "@/lib/database.types";
 
-const C = { g: "#00B67A", o: "#FF6B35", r: "#DC3545", st: "#6B7C93", mist: "#E2E8F0" };
+const C = { g: "#00AD82", o: "#FF6B35", r: "#DC3545", st: "#6B7C93", mist: "#E2E8F0" };
 
 const STAGE_LABEL: Record<FulfillmentStage, string> = {
   placed:    "Placed",
@@ -323,7 +323,7 @@ export default function FulfillmentPage() {
                             borderRadius: 999,
                             border: `1px solid ${on ? C.g : "rgba(226,232,240,.14)"}`,
                             background: on
-                              ? "rgba(0,182,122,.12)"
+                              ? "rgba(0,173,130,.12)"
                               : isCurrent
                               ? "rgba(245,158,11,.1)"
                               : "transparent",
@@ -405,8 +405,8 @@ export default function FulfillmentPage() {
                         gap: 12,
                         padding: "10px 12px",
                         borderRadius: 8,
-                        background: on ? "rgba(0,182,122,.08)" : "rgba(28,45,72,.35)",
-                        border: `1px solid ${on ? "rgba(0,182,122,.3)" : "rgba(226,232,240,.08)"}`,
+                        background: on ? "rgba(0,173,130,.08)" : "rgba(28,45,72,.35)",
+                        border: `1px solid ${on ? "rgba(0,173,130,.3)" : "rgba(226,232,240,.08)"}`,
                       }}
                     >
                       <span

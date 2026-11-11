@@ -10,7 +10,7 @@ import { useBusiness } from "@/hooks/use-business";
 import { getMenu, toggleMenuItemAvailability, updateMenuItem, createMenuItem, createMenuCategory, deleteMenuItem } from "@/lib/queries";
 import type { MenuCategory, MenuItem } from "@/lib/database.types";
 
-const C = { g:"#00B67A", st:"#6B7C93", r:"#FF4757", mist:"rgba(255,255,255,.07)" };
+const C = { g:"#00AD82", st:"#6B7C93", r:"#FF4757", mist:"rgba(255,255,255,.07)" };
 const MenuIcon = iconComponent("menu");
 
 type MenuSection = MenuCategory & { items: MenuItem[] };
@@ -222,7 +222,7 @@ export default function MenuPage() {
                 <div className="zb-menu-price" style={{ fontWeight:700, fontSize:14, fontFamily:"var(--font-outfit)", color:item.available?"#fff":"#6B7C93", minWidth:55, textAlign:"right" }}>
                   ${item.price.toFixed(2)}
                 </div>
-                <div className="zb-switch" onClick={() => toggle(item)} style={{ width:42, height:24, borderRadius:12, background:item.available?"rgba(0,182,122,.28)":"rgba(255,255,255,.08)", cursor:"pointer", position:"relative", border:`1px solid ${item.available?"rgba(0,182,122,.35)":"rgba(255,255,255,.08)"}`, flexShrink:0 }}>
+                <div className="zb-switch" onClick={() => toggle(item)} style={{ width:42, height:24, borderRadius:12, background:item.available?"rgba(0,173,130,.28)":"rgba(255,255,255,.08)", cursor:"pointer", position:"relative", border:`1px solid ${item.available?"rgba(0,173,130,.35)":"rgba(255,255,255,.08)"}`, flexShrink:0 }}>
                   <div style={{ width:18, height:18, borderRadius:"50%", background:item.available?C.g:"#6B7C93", position:"absolute", top:2.5, left:item.available?21:2.5, transition:"all .2s", boxShadow:"0 1px 4px rgba(0,0,0,.3)" }} />
                 </div>
                 <button className="bg-btn" style={{ fontSize:12, padding:"6px 12px", flexShrink:0 }} onClick={() => openEdit(item)}>Edit</button>

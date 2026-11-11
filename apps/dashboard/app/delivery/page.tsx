@@ -16,7 +16,7 @@ import { supabase } from "@/lib/supabase";
 import { Icon, type IconName } from "@/components/zb-icon";
 import type { DeliveryPrediction, RoutingDecision, ProviderQuote, ProviderId } from "@/lib/delivery-types";
 
-const C = { g:"#00B67A", o:"#FF6B35", b:"#3B82F6", r:"#FF4757", am:"#F59E0B", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(255,255,255,.07)" };
+const C = { g:"#00AD82", o:"#FF6B35", b:"#3B82F6", r:"#FF4757", am:"#F59E0B", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(255,255,255,.07)" };
 
 const PROVIDER_META: Record<string, { label:string; color:string; icon:IconName; accent?:string }> = {
   uber_direct: { label:"Uber Direct",   color:"#3B82F6",  icon:"car" },
@@ -365,7 +365,7 @@ export default function DeliveryPage() {
               })}
             </div>
           )}
-          <div style={{ marginTop:20, padding:"12px 16px", borderRadius:10, background:"rgba(0,182,122,.06)", border:"1px solid rgba(0,182,122,.16)", fontSize:12, color:C.g }}>
+          <div style={{ marginTop:20, padding:"12px 16px", borderRadius:10, background:"rgba(0,173,130,.06)", border:"1px solid rgba(0,173,130,.16)", fontSize:12, color:C.g }}>
             This plan uses the historical volume prediction engine. Once you run live routes through the routing test, the analytics tab will show actual provider performance data.
           </div>
         </div>

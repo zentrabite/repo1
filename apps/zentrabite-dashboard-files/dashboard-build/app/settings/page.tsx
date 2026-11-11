@@ -65,7 +65,7 @@ export default function SettingsPage() {
               </button>
             </div>
             {[
-              { email: "admin@sorrentos.com.au", role: "Owner", color: "bg-[#00B67A]/10 text-[#00B67A]" },
+              { email: "admin@sorrentos.com.au", role: "Owner", color: "bg-[#00AD82]/10 text-[#00AD82]" },
               { email: "sarah@email.com", role: "Manager", color: "bg-blue-500/12 text-blue-400" },
               { email: "jake@email.com", role: "Staff", color: "bg-white/[0.06] text-slate-400" },
             ].map((member) => (

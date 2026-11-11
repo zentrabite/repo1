@@ -13,7 +13,7 @@ function OrderConfirmedContent() {
     <div style={{ minHeight:"100vh", background:"#0F1F2D", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
       <div style={{ maxWidth:440, width:"100%", textAlign:"center" }}>
         {/* Success icon */}
-        <div style={{ width:72, height:72, borderRadius:"50%", background:"rgba(0,182,122,.15)", border:"2px solid rgba(0,182,122,.3)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 20px", fontSize:32 }}>
+        <div style={{ width:72, height:72, borderRadius:"50%", background:"rgba(0,173,130,.15)", border:"2px solid rgba(0,173,130,.3)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 20px", fontSize:32 }}>
           ✅
         </div>
 
@@ -38,7 +38,7 @@ function OrderConfirmedContent() {
 
         <Link
           href="/"
-          style={{ display:"inline-block", padding:"12px 28px", background:"#00B67A", borderRadius:10, color:"#fff", fontWeight:600, fontSize:14, textDecoration:"none" }}
+          style={{ display:"inline-block", padding:"12px 28px", background:"#00AD82", borderRadius:10, color:"#fff", fontWeight:600, fontSize:14, textDecoration:"none" }}
         >
           Order Again
         </Link>

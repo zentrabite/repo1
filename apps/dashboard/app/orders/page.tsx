@@ -12,7 +12,7 @@ import { supabase } from "@/lib/supabase";
 import type { Order } from "@/lib/database.types";
 import { Icon, type IconName } from "@/components/zb-icon";
 
-const C = { g:"#00B67A", o:"#FF6B35", r:"#DC3545", st:"#6B7C93" };
+const C = { g:"#00AD82", o:"#FF6B35", r:"#DC3545", st:"#6B7C93" };
 
 type SourceFilter = "All" | "direct" | "uber_eats" | "menulog" | "pos";
 type FulfillFilter = "All" | "delivery";
@@ -226,7 +226,7 @@ export default function OrdersPage() {
 
             {/* Delivery breakdown (only for delivery orders with a fee) */}
             {selected.fulfillment_type === "delivery" && (
-              <div style={{ background:"rgba(0,182,122,.06)", border:"1px solid rgba(0,182,122,.15)", borderRadius:10, padding:"12px 14px", marginBottom:14 }}>
+              <div style={{ background:"rgba(0,173,130,.06)", border:"1px solid rgba(0,173,130,.15)", borderRadius:10, padding:"12px 14px", marginBottom:14 }}>
                 <div style={{ fontSize:11, color:C.g, fontWeight:700, marginBottom:8, textTransform:"uppercase", letterSpacing:".4px", display:"flex", alignItems:"center", gap:6 }}><Icon name="delivery" size={14} />Delivery</div>
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
                   <div>

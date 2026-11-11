@@ -101,8 +101,8 @@ export function isIconName(x: unknown): x is IconName {
 
 const MODE: Record<Mode, Record<string, string>> = {
   s: {},
-  a: { stroke: "var(--zb-ia, #00B67A)" },
-  f: { fill: "var(--zb-ia, #00B67A)", stroke: "none" },
+  a: { stroke: "var(--zb-ia, #00AD82)" },
+  f: { fill: "var(--zb-ia, #00AD82)", stroke: "none" },
   c: { fill: "currentColor", stroke: "none" },
   w: { stroke: "var(--zb-ib, #FFFFFF)" },
 };

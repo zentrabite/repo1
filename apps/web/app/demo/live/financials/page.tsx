@@ -251,8 +251,8 @@ export default function FinancialsPage() {
               marginTop: 18,
               padding: 14,
               borderRadius: 12,
-              background: "rgba(0,182,122,0.08)",
-              border: "1px solid rgba(0,182,122,0.25)",
+              background: "rgba(0,173,130,0.08)",
+              border: "1px solid rgba(0,173,130,0.25)",
             }}
           >
             <div style={{ fontSize: 11, color: "var(--steel)", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600 }}>
@@ -313,8 +313,8 @@ function StatCard({
       style={{
         padding: "16px 18px",
         borderRadius: 14,
-        background: accent ? "rgba(0,182,122,0.08)" : "rgba(255,255,255,0.03)",
-        border: `1px solid ${accent ? "rgba(0,182,122,0.28)" : "var(--mist-9)"}`,
+        background: accent ? "rgba(0,173,130,0.08)" : "rgba(255,255,255,0.03)",
+        border: `1px solid ${accent ? "rgba(0,173,130,0.28)" : "var(--mist-9)"}`,
         backdropFilter: "blur(8px)",
       }}
     >
@@ -452,8 +452,8 @@ function RevenueChart() {
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", aspectRatio: `${W} / ${H}`, display: "block" }}>
       <defs>
         <linearGradient id="rev-fin-grad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#00B67A" stopOpacity="0.44" />
-          <stop offset="100%" stopColor="#00B67A" stopOpacity="0" />
+          <stop offset="0%" stopColor="#00AD82" stopOpacity="0.44" />
+          <stop offset="100%" stopColor="#00AD82" stopOpacity="0" />
         </linearGradient>
       </defs>
 
@@ -482,11 +482,11 @@ function RevenueChart() {
       ))}
 
       <path d={pathArea} fill="url(#rev-fin-grad)" />
-      <path d={pathLine} fill="none" stroke="#00B67A" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" />
+      <path d={pathLine} fill="none" stroke="#00AD82" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" />
 
       {/* points */}
       {data.map((d, i) => (
-        <circle key={i} cx={x(i)} cy={y(d.revenue)} r={2.6} fill="#00B67A" />
+        <circle key={i} cx={x(i)} cy={y(d.revenue)} r={2.6} fill="#00AD82" />
       ))}
 
       {/* X-axis labels (every other day) */}

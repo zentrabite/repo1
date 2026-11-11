@@ -162,7 +162,7 @@ export default function DemoFulfillmentPage() {
                   gap: 14,
                   padding: 16,
                   borderRadius: 14,
-                  background: selectedId === s.id ? "rgba(0,182,122,0.08)" : "var(--navy-40)",
+                  background: selectedId === s.id ? "rgba(0,173,130,0.08)" : "var(--navy-40)",
                   border: "1px solid var(--mist-9)",
                   cursor: "pointer",
                   fontFamily: "inherit",
@@ -208,7 +208,7 @@ export default function DemoFulfillmentPage() {
                           borderRadius: 999,
                           border: `1px solid ${on ? "var(--green)" : "var(--mist-9)"}`,
                           background: on
-                            ? "rgba(0,182,122,0.12)"
+                            ? "rgba(0,173,130,0.12)"
                             : isCurrent
                             ? "rgba(245,158,11,0.1)"
                             : "transparent",
@@ -405,8 +405,8 @@ function ShipmentDrawer({
                       gap: 12,
                       padding: "10px 12px",
                       borderRadius: 10,
-                      background: on ? "rgba(0,182,122,0.08)" : "var(--navy-40)",
-                      border: `1px solid ${on ? "rgba(0,182,122,0.3)" : "var(--mist-9)"}`,
+                      background: on ? "rgba(0,173,130,0.08)" : "var(--navy-40)",
+                      border: `1px solid ${on ? "rgba(0,173,130,0.3)" : "var(--mist-9)"}`,
                     }}
                   >
                     <span
@@ -552,9 +552,9 @@ function StatChip({
         padding: "14px 16px",
         borderRadius: 14,
         background: active
-          ? "rgba(0,182,122,0.12)"
+          ? "rgba(0,173,130,0.12)"
           : "var(--navy-40)",
-        border: `1px solid ${active ? "rgba(0,182,122,0.35)" : "var(--mist-9)"}`,
+        border: `1px solid ${active ? "rgba(0,173,130,0.35)" : "var(--mist-9)"}`,
         textAlign: "left",
         cursor: "pointer",
         fontFamily: "inherit",

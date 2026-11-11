@@ -20,7 +20,7 @@ function toast(text: string, tone: "ok" | "warn" = "ok") {
   el.textContent = text;
   el.style.cssText = `
     position: fixed; top: 60px; right: 20px; z-index: 999;
-    background: ${tone === "warn" ? "rgba(255,107,53,0.94)" : "rgba(0,182,122,0.94)"};
+    background: ${tone === "warn" ? "rgba(255,107,53,0.94)" : "rgba(0,173,130,0.94)"};
     color: #0F1F2D;
     padding: 10px 16px; border-radius: 10px; font-weight: 600;
     font-family: var(--font-inter); font-size: 13px;
@@ -175,7 +175,7 @@ export default function StockPage() {
                     alignItems: "center",
                     gap: 12,
                     padding: "14px 18px",
-                    background: isSel ? "rgba(0,182,122,0.08)" : "transparent",
+                    background: isSel ? "rgba(0,173,130,0.08)" : "transparent",
                     cursor: "pointer",
                     textAlign: "left",
                     color: "var(--cloud)",
@@ -422,8 +422,8 @@ function StockDetail({
             marginTop: 14,
             padding: 14,
             borderRadius: 12,
-            background: "rgba(0,182,122,0.08)",
-            border: "1px solid rgba(0,182,122,0.35)",
+            background: "rgba(0,173,130,0.08)",
+            border: "1px solid rgba(0,173,130,0.35)",
           }}
         >
           <div style={{ fontSize: 12, color: "var(--green)", fontWeight: 700, marginBottom: 6 }}>
@@ -492,8 +492,8 @@ function Mini({ label, value }: { label: string; value: string }) {
 
 function Insight({ tone, title, body }: { tone: "ok" | "warn"; title: string; body: string }) {
   const color = tone === "warn" ? "var(--orange)" : "var(--green)";
-  const bg = tone === "warn" ? "rgba(255,107,53,0.08)" : "rgba(0,182,122,0.08)";
-  const border = tone === "warn" ? "rgba(255,107,53,0.28)" : "rgba(0,182,122,0.28)";
+  const bg = tone === "warn" ? "rgba(255,107,53,0.08)" : "rgba(0,173,130,0.08)";
+  const border = tone === "warn" ? "rgba(255,107,53,0.28)" : "rgba(0,173,130,0.28)";
   return (
     <div style={{ padding: 12, borderRadius: 10, background: bg, border: `1px solid ${border}` }}>
       <div style={{ fontSize: 13, fontWeight: 700, color, marginBottom: 3 }}>{title}</div>

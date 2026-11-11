@@ -148,7 +148,7 @@ export default function DemoOrdersPage() {
                 gridTemplateColumns: "90px 1.3fr 1.4fr 110px 110px 110px 120px",
                 gap: 10,
                 padding: "14px 16px",
-                background: isSelected ? "rgba(0,182,122,0.08)" : i % 2 ? "transparent" : "rgba(15,25,42,0.22)",
+                background: isSelected ? "rgba(0,173,130,0.08)" : i % 2 ? "transparent" : "rgba(15,25,42,0.22)",
                 borderBottom: "1px solid var(--mist-9)",
                 border: "none",
                 width: "100%",

@@ -7,7 +7,7 @@ export default function MenuPage() {
     <PlaceholderPage
       title="Menu"
       description="Drag-to-reorder categories, toggle availability, upload images, and manage modifiers."
-      accentColor="#00B67A"
+      accentColor="#00AD82"
     />
   );
 }

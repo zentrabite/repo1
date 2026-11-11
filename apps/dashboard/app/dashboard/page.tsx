@@ -15,7 +15,7 @@ import {
 import type { Order, AiRecommendation } from "@/lib/database.types";
 import { Icon } from "@/components/zb-icon";
 
-const C = { g:"#00B67A", o:"#FF6B35", am:"#F59E0B", st:"#6B7C93", r:"#DC3545", b:"#63B3FF" };
+const C = { g:"#00AD82", o:"#FF6B35", am:"#F59E0B", st:"#6B7C93", r:"#DC3545", b:"#63B3FF" };
 
 interface Stats {
   todayOrders: number; todayRevenue: number; directPct: number;
@@ -271,7 +271,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Row 5 — AI copilot */}
-      <div className="gc" style={{ padding:20, marginBottom:14, background:"linear-gradient(135deg,rgba(0,182,122,.04),rgba(99,179,255,.02))" }}>
+      <div className="gc" style={{ padding:20, marginBottom:14, background:"linear-gradient(135deg,rgba(0,173,130,.04),rgba(99,179,255,.02))" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
           <div>
             <div style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:14, color:"#fff", display:"flex", alignItems:"center", gap:6 }}><Icon name="copilot" size={16} />AI copilot</div>

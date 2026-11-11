@@ -11,7 +11,7 @@ import PasswordInput from "@/components/password-input";
 import { Icon } from "@/components/zb-icon";
 import { resetLinkErrorMessage, resetUpdateErrorMessage } from "@/lib/auth-errors";
 
-const C = { g: "#00B67A", st: "#6B7C93", cl: "#F8FAFB", r: "#FF4757" };
+const C = { g: "#00AD82", st: "#6B7C93", cl: "#F8FAFB", r: "#FF4757" };
 
 // ── Parse Supabase recovery tokens out of the URL hash ──────────────────────
 // The email link lands here as /reset-password#access_token=…&refresh_token=…

@@ -2,7 +2,7 @@
 export const C = {
   nearBlack: "#0A1628",
   darkNavy:  "#0F1F2D",
-  green:     "#00B67A",
+  green:     "#00AD82",
   orange:    "#FF6B35",
   cloud:     "#E2E8F0",
   muted:     "#7A8FA6",

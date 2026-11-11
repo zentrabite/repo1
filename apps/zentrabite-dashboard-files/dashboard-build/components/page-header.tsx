@@ -23,7 +23,7 @@ export default function PageHeader({ title, subtitle, action }: PageHeaderProps)
         )}
       </div>
       {action && (
-        <button className="rounded-xl bg-gradient-to-r from-[#00B67A] to-[#00A06B] px-5 py-2.5 text-[13px] font-semibold text-white shadow-lg shadow-[#00B67A]/25 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#00B67A]/30 active:translate-y-0">
+        <button className="rounded-xl bg-gradient-to-r from-[#00AD82] to-[#009872] px-5 py-2.5 text-[13px] font-semibold text-white shadow-lg shadow-[#00AD82]/25 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#00AD82]/30 active:translate-y-0">
           {action.label}
         </button>
       )}

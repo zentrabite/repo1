@@ -177,12 +177,12 @@ function inviteHtml(input: {
           </p>
 
           <div style="text-align:center;margin:24px 0 18px">
-            <a href="${escapeHtml(actionLink)}" style="display:inline-block;padding:13px 26px;background:#00B67A;color:#fff;text-decoration:none;border-radius:10px;font-weight:600;font-size:14px">Accept invite →</a>
+            <a href="${escapeHtml(actionLink)}" style="display:inline-block;padding:13px 26px;background:#00AD82;color:#fff;text-decoration:none;border-radius:10px;font-weight:600;font-size:14px">Accept invite →</a>
           </div>
 
           <p style="font-size:13px;color:#6B7C93;margin:0;line-height:1.6">
             If the button doesn't work, paste this link into your browser:<br>
-            <a href="${escapeHtml(actionLink)}" style="color:#00B67A;word-break:break-all">${escapeHtml(actionLink)}</a>
+            <a href="${escapeHtml(actionLink)}" style="color:#00AD82;word-break:break-all">${escapeHtml(actionLink)}</a>
           </p>
 
           <div style="margin-top:24px;padding-top:20px;border-top:1px solid #eceff4;font-size:12px;color:#6B7C93;line-height:1.6">

@@ -25,12 +25,12 @@ export default function EmptyState({ icon: Icon, title, description }: EmptyStat
       {/* Icon — green tinted background (active indicator per brand iconography spec) */}
       <div style={{
         width: 52, height: 52, borderRadius: 14,
-        background: "rgba(0,182,122,.1)",
-        border: "1px solid rgba(0,182,122,.2)",
+        background: "rgba(0,173,130,.1)",
+        border: "1px solid rgba(0,173,130,.2)",
         display: "flex", alignItems: "center", justifyContent: "center",
         marginBottom: 16,
       }}>
-        <Icon size={24} strokeWidth={1.5} style={{ color: "#00B67A" }} />
+        <Icon size={24} strokeWidth={1.5} style={{ color: "#00AD82" }} />
       </div>
 
       {/* Title — Outfit H3 */}

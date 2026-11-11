@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { navigation } from "@/lib/navigation";
 
 const NAVY  = "#1C2D48";
-const GREEN = "#00B67A";
+const GREEN = "#00AD82";
 const STEEL = "#6B7C93";
 const CLOUD = "#F8FAFB";
 const MIST  = "rgba(226,232,240,.09)";
@@ -108,7 +108,7 @@ export default function DashboardTopbar({ menuOpen = false, onMenu, menuButtonRe
           fontSize: 13, fontFamily: "var(--font-outfit)", fontWeight: 800,
           color: NAVY,   // ← Navy on Green
           cursor: "pointer",
-          boxShadow: "0 2px 12px rgba(0,182,122,.3)",
+          boxShadow: "0 2px 12px rgba(0,173,130,.3)",
         }}>
           ZB
         </div>

@@ -7,7 +7,7 @@ export default function AnalyticsPage() {
     <PlaceholderPage
       title="Analytics"
       description="Revenue trends, customer LTV, channel performance, and Win-Back ROI over time."
-      accentColor="#00B67A"
+      accentColor="#00AD82"
     />
   );
 }

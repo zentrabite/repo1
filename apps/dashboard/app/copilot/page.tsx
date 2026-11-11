@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/zb-icon";
 
 const C = {
-  g: "#00B67A",
+  g: "#00AD82",
   o: "#FF6B35",
   st: "#6B7C93",
   cl: "#F8FAFB",
@@ -31,7 +31,7 @@ function renderMarkdown(raw: string): string {
     .replace(/>/g, "&gt;");
   html = html.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
   html = html.replace(/(^|[^\w])_([^_\n]+)_/g, "$1<em>$2</em>");
-  html = html.replace(/`([^`\n]+)`/g, "<code style=\"background:rgba(0,182,122,.12);color:#00B67A;padding:1px 6px;border-radius:4px;font-size:12.5px\">$1</code>");
+  html = html.replace(/`([^`\n]+)`/g, "<code style=\"background:rgba(0,173,130,.12);color:#00AD82;padding:1px 6px;border-radius:4px;font-size:12.5px\">$1</code>");
   html = html.replace(/^\s*[-*]\s+(.+)$/gm, "• $1");
   html = html.replace(/\n/g, "<br>");
   return html;
@@ -192,8 +192,8 @@ export default function CopilotPage() {
               maxWidth: "85%",
               padding: "10px 14px",
               borderRadius: m.role === "u" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
-              background: m.role === "u" ? "rgba(0,182,122,.16)" : "rgba(226,232,240,.06)",
-              border: m.role === "u" ? "1px solid rgba(0,182,122,.25)" : `1px solid ${C.mist}`,
+              background: m.role === "u" ? "rgba(0,173,130,.16)" : "rgba(226,232,240,.06)",
+              border: m.role === "u" ? "1px solid rgba(0,173,130,.25)" : `1px solid ${C.mist}`,
               fontFamily: "var(--font-inter)", fontSize: 13.5, lineHeight: 1.55,
               color: m.role === "u" ? C.cl : C.cl,
               wordBreak: "break-word",
@@ -224,8 +224,8 @@ export default function CopilotPage() {
                 onClick={() => send(s)}
                 style={{
                   padding: "8px 12px", borderRadius: 999,
-                  background: "rgba(0,182,122,.08)",
-                  border: "1px solid rgba(0,182,122,.2)",
+                  background: "rgba(0,173,130,.08)",
+                  border: "1px solid rgba(0,173,130,.2)",
                   color: C.g, fontSize: 12, cursor: "pointer",
                   fontFamily: "var(--font-outfit)", fontWeight: 500,
                 }}
@@ -265,7 +265,7 @@ export default function CopilotPage() {
             style={{
               display: "flex", alignItems: "center", gap: 6,
               padding: "10px 16px", borderRadius: 10,
-              background: busy || !input.trim() ? "rgba(0,182,122,.2)" : C.g,
+              background: busy || !input.trim() ? "rgba(0,173,130,.2)" : C.g,
               border: "none", color: "#fff", fontSize: 13, fontWeight: 600,
               cursor: busy || !input.trim() ? "not-allowed" : "pointer",
               fontFamily: "var(--font-outfit)",
