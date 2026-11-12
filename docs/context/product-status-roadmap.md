@@ -1,71 +1,56 @@
-# ZentraBite — Product Status & Roadmap
-_Last updated: April 2026_
+# ZentraBite product status
 
----
+_Last updated: 12 November 2026. This replaces the April 2026 version, which is in the git history._
 
-## ✅ Working Now
+This is the short status for anyone reading the code. The team keeps the full dated list, with every pull request, outside the repo.
 
-- [ ] Auth — login, signup, session handling (cookie-based)
-- [ ] Dashboard — real stats from Supabase (revenue, orders, customers)
-- [ ] Customers — view, add manually, segments, order history
-- [ ] Menu — add/edit/delete categories and items
-- [ ] Automations — create SMS campaigns, run manually, real sent/converted stats
-- [ ] Settings — business profile, Stripe Connect (saves account ID), subscription checkout
-- [ ] Financials — real revenue data, margin breakdown, direct vs aggregator split
-- [ ] Orders page — view and filter orders
-- [ ] Analytics page
-- [ ] Rewards page — points leaderboard
-- [ ] Stripe webhook — orders, customers, and points update automatically on payment
-- [ ] Vercel deployment + daily automation cron job (9am)
-- [ ] RLS — row-level security on all Supabase tables
+## What ZentraBite is
 
----
+A website and CRM for local businesses. Their own site takes the orders, and their customer list brings people back. Food businesses that rely on delivery apps are the first and clearest example. It's also meant for shops, salons, gyms and trades.
 
-## 🔴 Must Have Before Launch
+Sign-ups aren't open yet, and no price has been set.
 
-These are table-stakes — clients will expect them on day one.
+## Live now
 
-- [ ] **Client storefront** — public ordering page at `yourbusiness.zentrabite.com` where customers browse menu and place orders
-- [ ] **Order intake** — way for restaurants to take phone/walk-in orders manually; or QR menu for dine-in customers
-- [ ] **Twilio SMS tested end-to-end** — confirm real messages send to Australian numbers before charging clients
-- [ ] **Stripe subscription live** — add real product/price ID to `.env` so clients can actually pay $500/mo
-- [ ] **Multi-tenant isolation tested** — verify two restaurant accounts are fully isolated (RLS working in production)
-- [ ] **Password reset flow** — "Forgot password" link on login page so clients don't get locked out
+- **Marketing site** at zentrabite.com (`apps/web`). The homepage and the 18 feature pages were redone in November 2026. The how it works, pricing and contact pages are still in the older style.
+- **Demos** under zentrabite.com/demo. The CRM, the POS, the demo restaurant's own site, its customer app and super admin. All sample data.
+- **Merchant CRM** at dashboard.zentrabite.com (`apps/dashboard`). Dashboard, AI Copilot, Orders, Fulfillment, POS, Menu, Stock, AI Calls, Delivery, Drivers, Reviews, Customers, Rewards, Win-Back, Automations, Analytics, Financials, Rostering and Settings, plus a super admin panel. It works on phones.
+- **A site for each business** at `name.zentrabite.com`, with ordering at `/order`. The older ordering page at `/store/[subdomain]` still works.
+- **Staff onboarding wizard.** It can read a business's existing website and pre-fill the name, hours, menu, logo, colours and photos.
+- **Login, signup and password reset.**
+- **Payments in Stripe test mode.** Customer payments go to the business's own Stripe Connect account. Stripe's webhook saves the order, the customer and their points.
+- **Database.** Supabase, 27 tables, row level security on every table, migrations 001 to 017.
+- **Scheduled jobs.** Nightly analytics, birthday points and win-back run in Supabase. Automations and trial reminders run on Vercel cron.
 
----
+## Built, but not finished
 
-## 🟡 Important — Launch Without If Needed
+- **Texts.** The code sends win-back and order texts with an opt-out, but no real text has been sent yet. It needs a paid Twilio number.
+- **Email.** The code sends invites and marketing emails with an unsubscribe link, but the sending domain isn't verified yet.
+- **Delivery.** It quotes and recommends a courier but doesn't book one.
+- **AI calls.** The page is there. It needs a voice provider.
+- **Xero.** A sales export file, not a live sync.
+- **Pay with points.** Shown at checkout, not yet deducted on the server.
+- **Super admin suspend and delete.** Placeholders.
 
-Can go live without these but should be built soon after.
+## Not built yet
 
-- [ ] **POS screen** — basic order-taking screen for front-of-house staff on tablet
-- [ ] **CSV customer import** — restaurants have existing lists they'll want to bulk-upload
-- [ ] **Xero integration** — accounting sync (Restoplus also has this as "coming soon")
-- [ ] **AI calls** — automated voice follow-up calls (placeholder page exists)
-- [ ] **BiteBack network** — aggregator offer marketplace concept
-- [ ] **Email campaigns** — currently SMS-only; email expands reach significantly
-- [ ] **Richer analytics charts** — more detailed revenue and retention charts
+- A Website page in the CRM so owners can edit their own site.
+- An installable app version of each business's site.
+- Connecting a domain a business already owns.
+- Bookings, quotes and jobs for businesses that don't take orders.
 
----
+## Before the first paying business
 
-## 🔵 Competitive Advantages Over Restoplus
+1. Run a real order end to end, from the ordering page to the order board, the customer record and the points.
+2. Create a second test business and confirm neither can see the other's data.
+3. Send a real test text and a real test email.
+4. Switch Stripe from test mode to live, and set the price.
+5. Publish the terms and privacy pages once a solicitor has checked them.
+6. Move the database to a paid plan with backups.
 
-- Automated win-back engine with configurable triggers, discounts, and cooldowns
-- Transparent flat pricing ($500/mo — Restoplus hides pricing behind "get a quote")
-- Customer segmentation (VIP / At Risk / New) built in
-- Aggregator fee calculator showing restaurants exactly what they're losing
-- Fully self-serve — no sales call needed to get started
-- No POS lock-in — sits on top of whatever system they already use
+## Leftovers in the repo
 
----
-
-## 🗓 Suggested Launch Order
-
-1. Confirm Twilio sends real SMS ✓
-2. Add Stripe price ID → subscription billing live ✓
-3. Build password reset page ✓
-4. Test two-account isolation ✓
-5. Build basic client storefront (direct ordering page)
-6. Soft launch with 2–3 pilot restaurants
-7. Build POS screen + CSV import based on pilot feedback
-8. Xero, AI calls, email campaigns in order of client demand
+- `apps/storefront` isn't deployed. The live ordering pages are in `apps/dashboard`.
+- `zentrabite/` at the top level and `apps/zentrabite-dashboard-files/` are old April 2026 builds.
+- `apps/dashboard/supabase/migrations/007_stock.sql` is a stray copy. The real migrations are in `supabase/migrations`.
+- `docs/reference/archive/` holds old design experiments.

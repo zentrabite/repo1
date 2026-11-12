@@ -1,5 +1,8 @@
 # Ship the Business OS upgrade — full runbook
 
+> **Mostly a record, from April 2026.** Steps 1 to 5 describe a one-off upgrade that shipped long ago. The domain is zentrabite.com (the site) and dashboard.zentrabite.com (the CRM), not zentrabite.com.au. Changes now go up as pull requests, and Vercel builds a preview for each one. The environment variable names are still a useful list, but check them against the Vercel project before trusting them. For what's live now, see [product-status-roadmap.md](./product-status-roadmap.md).
+
+
 Everything from the upgrade brief is built and type-clean. None of it is on
 the live site yet because git pushes from the Cowork sandbox can't auth to
 GitHub. This file walks you through the **5 steps to get it live** plus the
