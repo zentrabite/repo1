@@ -1,5 +1,8 @@
 # ZentraBite CRM — Developer Blueprint
 
+> **Note, 12 November 2026.** Written in April 2026 as a forward-looking spec. Use it for what each page is meant to do. It's out of date on the stack (the apps run Next.js 16 and React 19) and on status. For what's live now, see [product-status-roadmap.md](./product-status-roadmap.md).
+
+
 > **Purpose.** This document combines the original Phase 1 foundation brief with the full developer-ready breakdown of every CRM page. It is a forward-looking spec — a blueprint for how the system should work, what each page does, what tables back it, and what features would make the product stronger.
 >
 > For the *current* state of each page (what's live, what's mocked, what's pending) see [`crm-breakdown.md`](./crm-breakdown.md). For overall architecture see [`system-architecture.md`](./system-architecture.md).

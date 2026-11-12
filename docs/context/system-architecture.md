@@ -1,5 +1,7 @@
 # ZentraBite — System Architecture
 
+> **Note, 12 November 2026.** This file was written in April 2026. The wiring it describes still holds, but its status notes (what's pending, what's mocked) are out of date. For what's live now, see [product-status-roadmap.md](./product-status-roadmap.md). The domains were corrected to zentrabite.com and the win-back page to `/zentra-rewards` on 12 November.
+>
 > Source of truth for **how the CRM works**. For UI/visual patterns, see `docs/reference/`.
 > For page-by-page behaviour, see [crm-breakdown.md](./crm-breakdown.md).
 > For strategic direction and rebuild plan, see [rebuild-brief.md](./rebuild-brief.md).
@@ -18,11 +20,11 @@ Each tenant (a `business`) only sees the modules enabled for it. Billing is driv
 
 ```
 apps/
-  web/              Marketing site + public demo sandboxes (zentrabite.com.au)
+  web/              Marketing site + public demo sandboxes (zentrabite.com)
                     — /, /how-it-works, /features, /pricing, /industries,
                       /demo, /demo/live/*, /demo/merchant, /demo/app,
                       /demo/super-admin, /contact
-  dashboard/        Production merchant CRM (dashboard.zentrabite.com.au)
+  dashboard/        Production merchant CRM (dashboard.zentrabite.com)
                     — real Supabase-backed app, 19 modules under /app/*
   docs/             Next.js docs app (scaffolded)
   storefront/       Tenant-facing storefront build
@@ -56,7 +58,7 @@ Tenant-scoped by `business_id` with RLS policies locking each merchant to their 
 
 **Retention**
 - `campaigns` — generic trigger-based automations (`/automations` page).
-- `winback_rules` — lapsed-customer rules (`/biteback` page). Separate model from `campaigns`.
+- `winback_rules` — lapsed-customer rules (`/zentra-rewards` page). Separate model from `campaigns`.
 - `campaign_events` — sends + `redeemed` events with `revenue_attributed`.
 - `sms_logs` — Twilio send log.
 
@@ -105,7 +107,7 @@ Billing recalculates base plan + usage when modules change.
 | `/delivery` | orders (history), drivers | campaign_events | — (Uber Direct/DoorDash pending) |
 | `/customers` | customers | sms_logs, campaign_events (via SMS/AI call) | Twilio |
 | `/rewards` | customers.points_balance | — (redemption server-side pending) | POS earn rule |
-| `/biteback` | winback_rules, campaign_events | winback_rules | **Cron evaluator pending** |
+| `/zentra-rewards` | winback_rules, campaign_events | winback_rules | **Cron evaluator pending** |
 | `/automations` | campaigns | campaign_events | `/api/automations/run` |
 | `/analytics` | orders, analytics_daily | — | nightly analytics job |
 | `/financials` | analytics_daily, businesses.settings | — | subscription_fee set per tenant |
@@ -191,7 +193,7 @@ super_admin toggles tenant.modules
 From the breakdown + deploy runbook:
 
 1. **Recipes / stock deduct.** No `recipes` or `product_components` table yet. Blocks `/analytics` margin view and auto-deduct on order.completed.
-2. **Winback cron.** `/biteback` rules exist but no evaluator job sending messages + closing attribution.
+2. **Winback cron.** `/zentra-rewards` rules exist but no evaluator job sending messages + closing attribution.
 3. **Dispatch integration.** `/delivery` only *recommends* — Uber Direct / DoorDash booking not wired.
 4. **Stripe Terminal** not hooked in POS — `source='pos'` is recorded without a card charge.
 5. **Reward redemption server side.** Pay-with-points UI on `/rewards` has no server handler.

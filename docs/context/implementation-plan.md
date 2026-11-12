@@ -1,4 +1,7 @@
 # ZentraBite — Implementation Plan
+
+> **Record only, from April 2026.** Much of this plan has been done or replaced since. Don't treat it as the list of outstanding work. The win-back page is now `/zentra-rewards`, not `/biteback`. For what's live now and what's left, see [product-status-roadmap.md](./product-status-roadmap.md).
+
 _Source of truth for all outstanding fixes and builds. Work through each phase in order — later phases depend on earlier ones._
 
 ---

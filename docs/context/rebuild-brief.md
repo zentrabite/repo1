@@ -1,5 +1,8 @@
 # ZentraBite — Full Product Rebuild Brief & Implementation Plan
 
+> **Note, 12 November 2026.** Written in April 2026. The positioning (one system for small operators) still holds. The marketing site it describes has been redesigned twice since, so follow the marketing site rules in the root `CLAUDE.md` for how the site looks, and note the domain is zentrabite.com. For what's live now, see [product-status-roadmap.md](./product-status-roadmap.md).
+
+
 _Sections 1–15 are the strategic direction. Section 16 is the code, shipping in this commit alongside this document._
 
 ---

@@ -1,3 +1,5 @@
+> **Record only, from April 2026.** This was a handover email to a developer. Most of it has been done or replaced since. The domain is zentrabite.com, not zentrabite.com.au, and the schema is now at migration 017. For what's live now, see [product-status-roadmap.md](./product-status-roadmap.md).
+
 **To:** [Developer email]
 **Subject:** ZentraBite — Dev Handover & Outstanding Task List
 
