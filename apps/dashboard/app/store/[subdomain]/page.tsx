@@ -2,11 +2,17 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, useMemo, use } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/zb-icon";
 import { OptionPicker, missingGroup } from "@/components/option-picker";
 import { cheapestPrice, lineKey, optionsLabel, priceSelection, pricesVary, readOptions, type OptionGroup } from "@/lib/menu-options";
+import { DEFAULT_TIMEZONE, pickupPlan, shopTime, type OrderingRules } from "@/lib/pickup-times";
+
+// The ordering rules as /api/store/[subdomain] sends them.
+type OrderingInfo = { hours: OrderingRules["week"]; timezone: string; prep_minutes: number; paused: boolean; now: string };
+const rulesFrom = (o: OrderingInfo): OrderingRules =>
+  ({ week: o.hours ?? null, timezone: o.timezone, prepMinutes: o.prep_minutes, paused: o.paused });
 
 const BASE = { g:"#00AD82", st:"#8B9DB5", cl:"#F8FAFB", navy:"#0F1F2D", card:"#1C2D48", mist:"rgba(255,255,255,.08)", r:"#FF4757" };
 
@@ -43,6 +49,11 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
   const [notice,    setNotice]    = useState("");
   const [siteHref,  setSiteHref]  = useState<string | null>(null);
   const [picking,   setPicking]   = useState<Picking | null>(null);
+  // Pick-up time: "asap" or the ISO time of a slot. The server's clock is
+  // used, so a phone set to the wrong time still sees the right choices.
+  const [pickup,      setPickup]      = useState<string>("asap");
+  const [clockOffset, setClockOffset] = useState(0);
+  const [tick,        setTick]        = useState(0);
 
   // Brand colour on buttons and prices, ZentraBite green if none is set.
   const accent = biz?.accent_color ?? BASE.g;
@@ -55,6 +66,10 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
         if (data.error) { setError(data.error); setLoading(false); return; }
         setBiz(data.business);
         setMenu(data.menu);
+        const ordering = data.business?.ordering as OrderingInfo | undefined;
+        const offset = ordering?.now ? Date.parse(ordering.now) - Date.now() : 0;
+        setClockOffset(Number.isFinite(offset) ? offset : 0);
+        const shut = ordering ? ["paused", "closed"].includes(pickupPlan(rulesFrom(ordering), new Date(Date.now() + offset)).state) : false;
         if (data.menu.length > 0) setActiveTab(data.menu[0].id);
         // Link back to their website. On name.zentrabite.com that's "/".
         if (data.business?.has_website) {
@@ -63,7 +78,7 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
         // "+" on the website links here with ?add=<item id>. An item with
         // options opens its picker instead of going straight in the order.
         const add = new URLSearchParams(window.location.search).get("add");
-        if (add && data.business?.taking_orders) {
+        if (add && data.business?.taking_orders && !shut) {
           for (const section of data.menu) {
             const item = section.items.find((i: { id: string }) => i.id === add);
             if (item) {
@@ -111,6 +126,25 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
     else setCart(prev => prev.map(c => c.key === key ? { ...c, qty } : c));
   };
 
+  // Refresh the pick-up choices every half minute while the page is open.
+  useEffect(() => {
+    const t = setInterval(() => setTick(x => x + 1), 30_000);
+    return () => clearInterval(t);
+  }, []);
+
+  const tz = (biz?.ordering?.timezone as string | undefined) ?? DEFAULT_TIMEZONE;
+  const plan = useMemo(
+    () => (biz?.ordering ? pickupPlan(rulesFrom(biz.ordering as OrderingInfo), new Date(Date.now() + clockOffset)) : null),
+    // tick re-runs this as time passes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [biz, clockOffset, tick],
+  );
+  const canOrder = Boolean(biz?.taking_orders) && plan?.state !== "paused" && plan?.state !== "closed";
+  // The picked time if it's still on offer, otherwise the first choice.
+  const slotIsos = plan && (plan.state === "open" || plan.state === "later") ? plan.slots.map(d => d.toISOString()) : [];
+  const asapOk = plan?.state === "open" || plan?.state === "anytime" || !plan;
+  const pickupChoice = (pickup === "asap" && asapOk) || slotIsos.includes(pickup) ? pickup : (asapOk ? "asap" : slotIsos[0] ?? "asap");
+
   const total = cart.reduce((s, c) => s + c.price * c.qty, 0);
   const cartCount = cart.reduce((s, c) => s + c.qty, 0);
 
@@ -121,7 +155,7 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
       const res = await fetch("/api/store/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subdomain, items: cart.map(c => ({ id: c.id, qty: c.qty, options: c.options })), customer }),
+        body: JSON.stringify({ subdomain, items: cart.map(c => ({ id: c.id, qty: c.qty, options: c.options })), customer, pickup: pickupChoice }),
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
@@ -188,6 +222,20 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
           </div>
         )}
 
+        {/* Paused, closed, or open later today */}
+        {biz?.taking_orders && plan && (plan.state === "paused" || plan.state === "closed") && (
+          <div style={{ marginTop:16, padding:"12px 14px", borderRadius:12, background:"rgba(255,193,75,.1)", border:"1px solid rgba(255,193,75,.3)", color:"#FFC14B", fontSize:13, lineHeight:1.5 }}>
+            {plan.state === "paused"
+              ? <>We&apos;ve paused online orders for now.{biz.phone ? <> Call <a href={`tel:${String(biz.phone).replace(/[^\d+]/g, "")}`} style={{ color:"#FFC14B", fontWeight:700 }}>{biz.phone}</a> to order.</> : " Please try again soon."}</>
+              : <>We&apos;re closed for online orders right now.{plan.nextOpen ? ` ${plan.nextOpen}.` : ""}</>}
+          </div>
+        )}
+        {biz?.taking_orders && plan?.state === "later" && plan.slots[0] && (
+          <div style={{ marginTop:16, padding:"12px 14px", borderRadius:12, background:`color-mix(in srgb, ${C.g} 12%, transparent)`, color:C.cl, fontSize:13, lineHeight:1.5 }}>
+            We&apos;re not open yet. Order now for pick-up from {shopTime(plan.slots[0], tz)}.
+          </div>
+        )}
+
         {/* Category tabs */}
         {menu.length > 1 && (
           <div style={{ display:"flex", gap:8, overflowX:"auto", padding:"16px 0", scrollbarWidth:"none" }}>
@@ -225,7 +273,7 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
                     <div style={{ fontWeight:700, fontSize:15, color:C.g }}>
                       {pricesVary(groups) ? `From $${cheapestPrice(Number(item.price), groups).toFixed(2)}` : `$${Number(item.price).toFixed(2)}`}
                     </div>
-                    {!biz?.taking_orders ? null : groups.length ? (
+                    {!canOrder ? null : groups.length ? (
                       <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                         {countInCart > 0 && <span style={{ fontSize:12, color:C.st }}>{countInCart} in order</span>}
                         <button onClick={() => addToCart(item)} style={{ padding:"7px 18px", borderRadius:8, background:C.g, border:"none", color:C.onG, fontWeight:700, fontSize:13, cursor:"pointer" }}>Add</button>
@@ -268,6 +316,21 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
                 </div>
               </div>
             ))}
+
+            {/* Pick-up time */}
+            {plan && plan.state !== "paused" && plan.state !== "closed" && (
+              <div style={{ padding:"16px 0", borderBottom:`1px solid ${C.mist}` }}>
+                <label htmlFor="pickup-time" style={{ display:"block", fontWeight:700, fontSize:15, color:C.cl, marginBottom:10 }}>Pick-up time</label>
+                {plan.state === "anytime" ? (
+                  <div style={{ fontSize:13, color:C.st }}>As soon as possible, about {shopTime(plan.asap, tz)}</div>
+                ) : (
+                  <select id="pickup-time" value={pickupChoice} onChange={e => setPickup(e.target.value)} style={{ width:"100%", minHeight:44, background:"rgba(255,255,255,.06)", border:`1px solid ${C.mist}`, color:C.cl, borderRadius:8, padding:"10px 12px", fontSize:14, boxSizing:"border-box" }}>
+                    {plan.state === "open" && <option value="asap">As soon as possible, about {shopTime(plan.asap, tz)}</option>}
+                    {plan.slots.map(d => <option key={d.toISOString()} value={d.toISOString()}>Today at {shopTime(d, tz)}</option>)}
+                  </select>
+                )}
+              </div>
+            )}
 
             <div style={{ padding:"16px 0", borderBottom:`1px solid ${C.mist}` }}>
               <div style={{ fontWeight:700, fontSize:15, color:C.cl, marginBottom:12 }}>Your details</div>

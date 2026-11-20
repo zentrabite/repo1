@@ -316,7 +316,8 @@ function StepBasics({ biz, save }: { biz: Biz; save: SaveFn }) {
   const [abn,       setAbn]       = useState<string>(biz.settings?.abn ?? "");
   const [phone,     setPhone]     = useState<string>(biz.settings?.phone ?? "");
   const [website,   setWebsite]   = useState<string>(biz.settings?.website ?? biz.website ?? "");
-  const [tz,        setTz]        = useState<string>(biz.settings?.timezone ?? "Australia/Sydney");
+  // Online orders follow the hours in this time zone (lib/pickup-times.ts).
+  const [tz,        setTz]        = useState<string>(biz.settings?.timezone ?? "Australia/Adelaide");
 
   return (
     <Section title="Business basics" subtitle="Confirm what you collected and add details for receipts.">

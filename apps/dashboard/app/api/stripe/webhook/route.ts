@@ -11,6 +11,7 @@ import { sendCustomerReceipt } from "@/lib/email";
 import { normaliseAuPhone } from "@/lib/sms";
 import { orderUrl } from "@/lib/tenant";
 import { optionsLabel, readOptions, type ChosenOption } from "@/lib/menu-options";
+import { pickupLabel, readOrderingRules } from "@/lib/pickup-times";
 
 export const dynamic = "force-dynamic";
 
@@ -96,7 +97,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventAc
   // metadata. Matching event.account to the shop's saved account stops that.
   // An order event from ZentraBite's own account is refused too, because
   // storefront orders are never paid there any more.
-  const { data: owner } = await db.from("businesses").select("stripe_account_id")
+  const { data: owner } = await db.from("businesses").select("stripe_account_id, settings")
     .eq("id", business_id).maybeSingle();
   if (!eventAccount || !owner?.stripe_account_id || owner.stripe_account_id !== eventAccount) {
     console.warn(`[webhook] order for ${business_id} refused, it came from ${eventAccount ?? "the platform account"}`);
@@ -111,6 +112,13 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventAc
   }
   const amount = (session.amount_total ?? 0) / 100;
   const marketingOptIn = meta.marketing_opt_in === "1";
+
+  // When the customer will pick it up, checked at checkout. Older sessions
+  // have none.
+  const pickupMs = meta.pickup_at ? Date.parse(meta.pickup_at) : NaN;
+  const pickupAt = Number.isFinite(pickupMs) ? new Date(pickupMs) : null;
+  const pickupAsap = meta.pickup_asap === "1";
+  const pickupText = pickupAt ? pickupLabel(pickupAt, pickupAsap, readOrderingRules(owner?.settings).timezone) : null;
 
   // Items: checkouts send compact [{id, qty, p, o}] split over items_0,
   // items_1… (Stripe metadata values max out at 500 chars). p is the unit
@@ -195,6 +203,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventAc
     stripe_payment_id: (session.payment_intent as string | null) ?? session.id,
     fulfillment_type:  fulfillment_type ?? "pickup",
     placed_at:         new Date().toISOString(),
+    pickup_at:         pickupAt ? pickupAt.toISOString() : null,
+    pickup_asap:       pickupAsap,
   };
   if (fulfillment_type === "delivery") {
     if (delivery_address) orderRecord.ship_to      = { address: delivery_address };
@@ -219,6 +229,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventAc
         amount,
         customerName: customer_name ?? null,
         itemCount:    Array.isArray(parsedItems) ? parsedItems.length : undefined,
+        pickupLabel:  pickupText,
       }),
       customer_email ? sendOrderReceipt({
         db,
@@ -228,6 +239,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventAc
         customerName: customer_name ?? "there",
         amount,
         items:        parsedItems,
+        pickupLabel:  pickupText,
       }) : Promise.resolve(),
     ]);
   }
@@ -249,6 +261,7 @@ async function sendOrderReceipt(args: {
   customerName: string;
   amount:       number;
   items:        unknown;
+  pickupLabel:  string | null;
 }): Promise<void> {
   try {
     const { data: biz } = await args.db
@@ -275,6 +288,7 @@ async function sendOrderReceipt(args: {
       total:        args.amount,
       items,
       storeUrl,
+      pickupLabel:  args.pickupLabel ?? undefined,
     });
   } catch (err) {
     console.error("[webhook] receipt send failed:", err instanceof Error ? err.message : err);

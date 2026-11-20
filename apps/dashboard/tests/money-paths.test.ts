@@ -12,8 +12,10 @@
 //   • the success page reads the order from the shop's account
 //   • options (sizes, extras) are priced from the menu, a required one can't
 //     be skipped, and the order keeps them with the price charged
+//   • a closed or paused shop takes no orders, the pick-up time is checked,
+//     and the order keeps it
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeDb, filterValue, type Query } from "./fake-db";
 
 const h = vi.hoisted(() => ({
@@ -136,6 +138,79 @@ describe("customer checkout", () => {
     const res = await checkout(order([{ id: "not-on-menu", qty: 1 }]));
     expect(res.status).toBe(409);
     expect(h.stripe.checkout.sessions.create).not.toHaveBeenCalled();
+  });
+
+  describe("opening hours and pick-up time", () => {
+    // Every day 5pm to 9pm in Adelaide, 20 minutes prep.
+    const day = { open: "17:00", close: "21:00", closed: false };
+    const hours = { mon: day, tue: day, wed: day, thu: day, fri: day, sat: day, sun: day };
+    const shopWith = (ordering: object) => {
+      h.db = fakeDb({
+        "businesses.select": () => ({ data: { ...shop, settings: { hours, timezone: "Australia/Adelaide", ordering } }, error: null }),
+        "menu_items.select": () => ({ data: MENU, error: null }),
+      });
+    };
+    const orderAt = (pickup: unknown) => new Request("https://dashboard.zentrabite.com/api/store/checkout", {
+      method: "POST",
+      headers: { "content-type": "application/json", origin: "https://dashboard.zentrabite.com" },
+      body: JSON.stringify({ subdomain: "nonna", items: [{ id: "m1", qty: 1 }], customer: { name: "Sofia" }, pickup }),
+    });
+    // Friday 20 Nov 2026 in Adelaide, 10:30 ahead of UTC.
+    const adl = (hm: string) => {
+      const [hh, mm] = hm.split(":").map(Number) as [number, number];
+      return new Date(Date.UTC(2026, 10, 20, hh, mm) - 10.5 * 3600_000);
+    };
+
+    beforeEach(() => { vi.useFakeTimers({ toFake: ["Date"] }); });
+    afterEach(() => { vi.useRealTimers(); });
+
+    it("takes an order for as soon as possible while open, and saves when for", async () => {
+      vi.setSystemTime(adl("18:02"));
+      shopWith({ prep_minutes: 20 });
+      const res = await checkout(orderAt("asap"));
+      expect(res.status).toBe(200);
+      const [params] = h.stripe.checkout.sessions.create.mock.calls[0];
+      expect(params.metadata.pickup_at).toBe(adl("18:25").toISOString());
+      expect(params.metadata.pickup_asap).toBe("1");
+      // The Stripe page can't be paid more than about half an hour later.
+      expect(params.expires_at).toBe(Math.floor(adl("18:02").getTime() / 1000) + 31 * 60);
+    });
+
+    it("takes a later time today", async () => {
+      vi.setSystemTime(adl("18:02"));
+      shopWith({});
+      const res = await checkout(orderAt(adl("19:30").toISOString()));
+      expect(res.status).toBe(200);
+      const [params] = h.stripe.checkout.sessions.create.mock.calls[0];
+      expect(params.metadata).toMatchObject({ pickup_at: adl("19:30").toISOString(), pickup_asap: "0" });
+    });
+
+    it("refuses an order when the shop is closed", async () => {
+      vi.setSystemTime(adl("22:00"));
+      shopWith({});
+      const res = await checkout(orderAt("asap"));
+      expect(res.status).toBe(409);
+      expect((await res.json()).error).toBe("We're closed for online orders right now. Opens tomorrow 5pm.");
+      expect(h.stripe.checkout.sessions.create).not.toHaveBeenCalled();
+    });
+
+    it("refuses an order while online orders are paused", async () => {
+      vi.setSystemTime(adl("18:00"));
+      shopWith({ paused: true });
+      const res = await checkout(orderAt("asap"));
+      expect(res.status).toBe(409);
+      expect(h.stripe.checkout.sessions.create).not.toHaveBeenCalled();
+    });
+
+    it("refuses a pick-up time that has gone or is after closing", async () => {
+      vi.setSystemTime(adl("18:02"));
+      shopWith({});
+      for (const pickup of [adl("18:15").toISOString(), adl("21:30").toISOString(), "tomorrow"]) {
+        const res = await checkout(orderAt(pickup));
+        expect(res.status).toBe(409);
+      }
+      expect(h.stripe.checkout.sessions.create).not.toHaveBeenCalled();
+    });
   });
 
   describe("with sizes and extras", () => {
@@ -261,6 +336,18 @@ describe("Stripe webhook", () => {
     }]);
     const { sendCustomerReceipt } = await import("@/lib/email");
     expect(vi.mocked(sendCustomerReceipt).mock.calls[0][0].items).toEqual([{ name: "Margherita (Large, Olives)", qty: 1, price: 24.5 }]);
+  });
+
+  it("saves the pick-up time on the order and tells the shop and the customer", async () => {
+    const session = { ...paidSession, metadata: { ...paidSession.metadata, pickup_at: "2026-11-20T08:00:00.000Z", pickup_asap: "0" } };
+    await send(completed("acct_shop", session));
+    const [ins] = writes("insert", "orders");
+    expect(ins.payload).toMatchObject({ pickup_at: "2026-11-20T08:00:00.000Z", pickup_asap: false, fulfillment_type: "pickup" });
+    // 8am UTC is 6:30pm in Adelaide, the time zone used when none is saved.
+    const { sendCustomerReceipt } = await import("@/lib/email");
+    expect(vi.mocked(sendCustomerReceipt).mock.calls[0][0].pickupLabel).toBe("6:30pm");
+    const { notifyOwnerOfOrder } = await import("@/lib/notify");
+    expect(vi.mocked(notifyOwnerOfOrder).mock.calls[0][0].pickupLabel).toBe("6:30pm");
   });
 
   it("refuses an order from another Stripe account", async () => {
@@ -408,8 +495,15 @@ describe("order success page", () => {
   it("reads the order from the shop's own account", async () => {
     const res = await successLookup(new Request("https://dashboard.zentrabite.com/api/store/session?session_id=cs_test_1&subdomain=nonna"));
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ items: [{ name: "Margherita", qty: 2, price: 18.5 }], total: 37, customer_email: "sofia@example.com", customer_name: "Sofia" });
+    expect(await res.json()).toEqual({ items: [{ name: "Margherita", qty: 2, price: 18.5 }], total: 37, customer_email: "sofia@example.com", customer_name: "Sofia", pickup: null });
     expect(h.stripe.checkout.sessions.retrieve).toHaveBeenCalledWith("cs_test_1", {}, { stripeAccount: "acct_shop" });
+  });
+
+  it("shows when to pick it up, in the shop's time", async () => {
+    h.db = fakeDb({ "businesses.select": () => ({ data: { stripe_account_id: "acct_shop", settings: { timezone: "Australia/Perth" } }, error: null }) });
+    h.stripe.checkout.sessions.retrieve.mockResolvedValue({ amount_total: 3700, customer_details: {}, metadata: { pickup_at: "2026-11-20T10:15:00.000Z", pickup_asap: "1" } });
+    const res = await successLookup(new Request("https://dashboard.zentrabite.com/api/store/session?session_id=cs_test_1&subdomain=nonna"));
+    expect((await res.json()).pickup).toBe("As soon as possible, about 6:15pm");
   });
 
   it("needs the shop's address as well as the session", async () => {

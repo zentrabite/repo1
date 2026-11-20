@@ -80,6 +80,9 @@ export interface Database {
           // ─── Delivery routing (migration 013) ───────────────────────────
           delivery_fee:       number | null;   // customer-facing delivery fee
           delivery_job_id:    string | null;   // FK → delivery_jobs.id
+          // ─── Pick-up time (migration 019) ───────────────────────────────
+          pickup_at:          string | null;   // when the customer collects
+          pickup_asap:        boolean;         // true = "as soon as possible"
         };
         Insert: Omit<Database["public"]["Tables"]["orders"]["Row"], "id" | "created_at">;
         Update: Partial<Database["public"]["Tables"]["orders"]["Insert"]>;

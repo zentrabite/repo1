@@ -19,7 +19,7 @@ Sign-ups aren't open yet, and no price has been set.
 - **Staff onboarding wizard.** It can read a business's existing website and pre-fill the name, hours, menu, logo, colours and photos.
 - **Login, signup and password reset.**
 - **Payments in Stripe test mode.** Customer payments go to the business's own Stripe Connect account. Stripe's webhook saves the order, the customer and their points.
-- **Database.** Supabase, 27 tables, row level security on every table, migrations 001 to 018.
+- **Database.** Supabase, 27 tables, row level security on every table, migrations 001 to 019.
 - **Scheduled jobs.** Nightly analytics, birthday points and win-back run in Supabase. Automations and trial reminders run on Vercel cron.
 
 ## Built, but not finished

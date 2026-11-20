@@ -7,11 +7,12 @@ import Modal from "@/components/modal";
 import Toast from "@/components/toast";
 import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
-import { getOrders, updateOrderStatus } from "@/lib/queries";
+import { getOrders, saveSettings, updateOrderStatus } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 import type { Order } from "@/lib/database.types";
 import { Icon, type IconName } from "@/components/zb-icon";
 import { optionsLabel } from "@/lib/menu-options";
+import { readOrderingRules, shopTime } from "@/lib/pickup-times";
 
 const C = { g:"#00AD82", o:"#FF6B35", r:"#DC3545", st:"#6B7C93" };
 
@@ -22,17 +23,37 @@ const SOURCE_FILTERS: SourceFilter[] = ["All","direct","uber_eats","menulog","po
 const SOURCE_LABELS: Record<string, string> = {
   All:"All", direct:"Direct", uber_eats:"Uber Eats", menulog:"Menulog", pos:"POS",
 };
-const FULFILL_ICON: Record<string, IconName> = { delivery:"delivery", takeaway:"takeaway", dine_in:"dine-in" };
+const FULFILL_ICON: Record<string, IconName> = { delivery:"delivery", takeaway:"takeaway", dine_in:"dine-in", pickup:"takeaway" };
 
 export default function OrdersPage() {
   const { toast, show } = useToast();
-  const { businessId } = useBusiness();
+  const { businessId, business } = useBusiness();
 
   const [orders,         setOrders]         = useState<Order[]>([]);
   const [sourceFilter,   setSourceFilter]   = useState<SourceFilter>("All");
   const [fulfillFilter,  setFulfillFilter]  = useState<FulfillFilter>("All");
   const [selected,       setSelected]       = useState<Order | null>(null);
   const [loading,        setLoading]        = useState(true);
+  // Online orders on or paused. Starts from the saved setting.
+  const rules = readOrderingRules(business?.settings);
+  const [pausedNow,      setPausedNow]      = useState<boolean | null>(null);
+  const paused = pausedNow ?? rules.paused;
+  const [pausing,        setPausing]        = useState(false);
+
+  const togglePause = async () => {
+    if (!businessId) return;
+    setPausing(true);
+    try {
+      await saveSettings(businessId, { ordering: { paused: !paused } });
+      setPausedNow(!paused);
+      show(paused ? "Online orders are on again ✓" : "Online orders paused");
+    } catch { show("Couldn't change online orders. Try again."); }
+    finally { setPausing(false); }
+  };
+
+  /** "6:30pm", or "ASAP 6:20pm" for as soon as possible. */
+  const pickupText = (o: Order) =>
+    o.pickup_at ? `${o.pickup_asap ? "ASAP " : ""}${shopTime(new Date(o.pickup_at), rules.timezone)}` : null;
 
   // ── Web Audio beep ──────────────────────────────────────────────────────
   function playBeep() {
@@ -122,6 +143,7 @@ export default function OrdersPage() {
     if (o.fulfillment_type === "delivery") return "Delivery";
     if (o.fulfillment_type === "takeaway") return "Takeaway";
     if (o.fulfillment_type === "dine_in")  return "Dine-in";
+    if (o.fulfillment_type === "pickup")   return "Pick-up";
     return null;
   }
 
@@ -132,8 +154,19 @@ export default function OrdersPage() {
           <h2 style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:20, color:"#fff" }}>Orders</h2>
           <p style={{ color:C.st, fontSize:12 }}>Revenue & margin tracking by source</p>
         </div>
-        <button className="bp" onClick={() => show("Exported ✓")}>Export</button>
+        <div className="zb-wrap" style={{ display:"flex", gap:8, alignItems:"center" }}>
+          <button className="bg-btn" onClick={togglePause} disabled={pausing || !businessId} aria-pressed={paused}>
+            <Icon name={paused ? "play" : "pause"} size={14} />{paused ? "Turn online orders back on" : "Pause online orders"}
+          </button>
+          <button className="bp" onClick={() => show("Exported ✓")}>Export</button>
+        </div>
       </div>
+
+      {paused && (
+        <div style={{ marginBottom:12, padding:"10px 14px", borderRadius:10, background:"rgba(255,107,53,.1)", border:"1px solid rgba(255,107,53,.3)", color:C.o, fontSize:13 }}>
+          Online orders are paused. Customers can see your menu but can&apos;t order until you turn them back on.
+        </div>
+      )}
 
       {/* ── Filters row ─────────────────────────────────────────────────── */}
       <div style={{ display:"flex", gap:5, marginBottom:8, flexWrap:"wrap" }}>
@@ -174,7 +207,7 @@ export default function OrdersPage() {
         <table className="zb-table">
           <thead>
             <tr>
-              {["ID","Items","Source","Fulfilment","Total","Delivery Fee","Status"].map(h => (
+              {["ID","Items","Source","Fulfilment","Pick-up","Total","Delivery Fee","Status"].map(h => (
                 <th key={h}>{h}</th>
               ))}
             </tr>
@@ -182,7 +215,7 @@ export default function OrdersPage() {
           <tbody>
             {filtered.length === 0 ? (
               <tr className="empty-row">
-                <td colSpan={7}>{loading ? "Loading…" : "No orders yet"}</td>
+                <td colSpan={8}>{loading ? "Loading…" : "No orders yet"}</td>
               </tr>
             ) : filtered.map((o, i) => (
               <tr key={i} onClick={() => setSelected(o)}>
@@ -194,6 +227,7 @@ export default function OrdersPage() {
                     ? <span style={{ display:"inline-flex", alignItems:"center", gap:6 }}><Icon name={FULFILL_ICON[o.fulfillment_type ?? ""] ?? "delivery"} size={14} />{fulfillLabel(o)}</span>
                     : <span style={{ color:C.st }}>—</span>}
                 </td>
+                <td data-label="Pick-up" style={{ fontSize:12, color: o.pickup_at ? "#fff" : C.st }}>{pickupText(o) ?? "—"}</td>
                 <td data-first style={{ fontWeight:600, color:"#fff" }}>${Number(o.total).toFixed(2)}</td>
                 <td data-label="Delivery fee" style={{ fontSize:12, color: o.delivery_fee ? C.g : C.st }}>
                   {o.delivery_fee ? `$${Number(o.delivery_fee).toFixed(2)}` : "—"}
@@ -216,6 +250,7 @@ export default function OrdersPage() {
                 ["Status",      selected.status],
                 ["Source",      SOURCE_LABELS[selected.source] ?? selected.source],
                 ["Fulfilment",  fulfillLabel(selected) ?? "—"],
+                ["Pick-up",     pickupText(selected) ?? "—"],
                 ["Created",     new Date(selected.created_at).toLocaleString("en-AU", { dateStyle:"short", timeStyle:"short" })],
               ] as [string,string][]).map(([l,v]) => (
                 <div key={l}>
