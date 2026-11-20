@@ -250,7 +250,7 @@ export default function OnboardingWizard() {
         {step === 5 && <StepPayments    biz={biz} save={save} show={show} />}
         {step === 6 && <StepDelivery    biz={biz} save={save} />}
         {step === 7 && <StepNotifications biz={biz} save={save} show={show} />}
-        {step === 8 && <StepWebsite     biz={biz} save={save} show={show} />}
+        {step === 8 && <StepWebsite     biz={biz} save={save} show={show} goTo={s => setStep(s as StepId)} />}
         {step === 9 && <StepTeam        biz={biz} router={router} show={show} />}
       </div>
 
@@ -942,7 +942,7 @@ const LOOKS = [
   { id: "clean", label: "Clean",      note: "Light and simple" },
 ] as const;
 
-function StepWebsite({ biz, save, show }: { biz: Biz; save: SaveFn; show: (m: string) => void }) {
+function StepWebsite({ biz, save, show, goTo }: { biz: Biz; save: SaveFn; show: (m: string) => void; goTo: (step: number) => void }) {
   const imp = importOf(biz);
   const site = (biz.settings?.site ?? {}) as { published?: boolean; look?: string; tagline?: string; about?: string; photos?: string[]; offer_text?: string };
   const [look,    setLook]    = useState<string>(site.look ?? "bold");
@@ -953,6 +953,7 @@ function StepWebsite({ biz, save, show }: { biz: Biz; save: SaveFn; show: (m: st
   const [busy,    setBusy]    = useState(false);
   const published = site.published === true;
   const address = biz.subdomain ? `${biz.subdomain}.zentrabite.com` : null;
+  const [ready, setReady] = useState<boolean | null>(null);
   const imported = imp?.photos ?? [];
 
   function togglePhoto(url: string) {
@@ -978,11 +979,15 @@ function StepWebsite({ biz, save, show }: { biz: Biz; save: SaveFn; show: (m: st
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           {biz.subdomain && <button onClick={() => window.open(`/site/${biz.subdomain}`, "_blank")} style={ghostBtn}>Preview ↗</button>}
-          <button onClick={() => setPublished(!published)} disabled={busy || !biz.subdomain} className={published ? undefined : "bp"} style={published ? ghostBtn : { padding: "9px 14px" }}>
+          <button onClick={() => setPublished(!published)} disabled={busy || !biz.subdomain || (!published && ready !== true)} className={published ? undefined : "bp"}
+            title={!published && ready !== true ? "Finish the go-live check first" : undefined}
+            style={published ? ghostBtn : { padding: "9px 14px", opacity: ready === true ? 1 : 0.5 }}>
             {busy ? "Saving…" : published ? "Unpublish" : "Publish website"}
           </button>
         </div>
       </div>
+
+      {!published && <GoLiveCheckList biz={biz} goTo={goTo} show={show} onReady={setReady} />}
 
       <div style={label}>Look</div>
       <div className="zb-stack" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, margin: "6px 0 18px" }}>
@@ -1030,6 +1035,83 @@ function StepWebsite({ biz, save, show }: { biz: Biz; save: SaveFn; show: (m: st
 
       <SaveBar onSave={() => save({ settings: { site: siteSettings() } }, { advance: true })} />
     </Section>
+  );
+}
+
+// ─── Go-live check (lib/go-live.ts) ───────────────────────────────────────
+// Everything that has to be true before the site is published. The save route
+// checks again, so the Publish button can't be got round.
+type GoLiveRow = { key: string; label: string; ok: boolean; detail: string; step: number | null };
+
+function GoLiveCheckList({ biz, goTo, show, onReady }: { biz: Biz; goTo: (step: number) => void; show: (m: string) => void; onReady: (ready: boolean) => void }) {
+  const [checks, setChecks] = useState<GoLiveRow[] | null>(null);
+  const [loadError, setLoadError] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [login, setLogin] = useState<{ link: string; emailed: boolean; to: string } | null>(null);
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/admin/onboarding/${biz.id}/go-live`)
+      .then(r => (r.ok ? r.json() : Promise.reject(r.status)))
+      .then(d => { if (!cancelled) { setChecks(d.checks); setLoadError(false); onReady(Boolean(d.ready)); } })
+      .catch(() => { if (!cancelled) { setLoadError(true); onReady(false); } });
+    return () => { cancelled = true; };
+  }, [biz.id, biz, tick, onReady]);
+
+  async function sendLogin() {
+    setSending(true);
+    try {
+      const res = await fetch(`/api/admin/onboarding/${biz.id}/owner-invite`, { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { show(data.error ?? "Couldn't make the owner's login"); return; }
+      setLogin(data);
+      setTick(t => t + 1);
+    } finally { setSending(false); }
+  }
+
+  const left = checks?.filter(c => !c.ok).length ?? 0;
+  return (
+    <div style={{ background: C.bg, border: `1px solid ${C.mist}`, borderRadius: 10, padding: 14, margin: "0 0 18px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        <div style={{ flex: 1, minWidth: 160, fontSize: 14, fontWeight: 600, color: C.cl }}>Go-live check</div>
+        <button onClick={() => setTick(t => t + 1)} style={{ ...ghostBtn, minHeight: 44 }}>Check again</button>
+      </div>
+      <div style={{ fontSize: 12, color: left ? C.y : C.g, marginTop: 4 }}>
+        {loadError ? "Couldn't run the check. Try Check again." : !checks ? "Checking…" : left ? `${left} thing${left === 1 ? "" : "s"} to do before this shop can go live.` : "Ready to go live."}
+      </div>
+      {checks && (
+        <ul style={{ listStyle: "none", margin: "10px 0 0", padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+          {checks.map(c => (
+            <li key={c.key} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+              <span aria-hidden style={{ width: 20, flex: "none", fontWeight: 700, color: c.ok ? C.g : C.y }}>{c.ok ? "✓" : "!"}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: C.cl }}>{c.label}<span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>{c.ok ? ", done" : ", to do"}</span></div>
+                <div style={{ fontSize: 12, color: C.st, marginTop: 2 }}>{c.detail}</div>
+                {!c.ok && c.key === "owner" && (
+                  <button onClick={sendLogin} disabled={sending} style={{ ...ghostBtn, minHeight: 44, marginTop: 6 }}>{sending ? "Making the link…" : "Send the owner their login"}</button>
+                )}
+                {!c.ok && c.key === "test_order" && biz.subdomain && (
+                  <button onClick={() => window.open(`/store/${biz.subdomain}`, "_blank")} style={{ ...ghostBtn, minHeight: 44, marginTop: 6 }}>Open their ordering page ↗</button>
+                )}
+                {!c.ok && c.step && (
+                  <button onClick={() => goTo(c.step!)} style={{ ...ghostBtn, minHeight: 44, marginTop: 6 }}>{`Go to ${STEPS.find(s => s.id === c.step)?.label ?? "that step"}`}</button>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      {login && (
+        <div style={{ marginTop: 12, fontSize: 12, color: C.st }}>
+          {login.emailed ? `Emailed to ${login.to}.` : `Emails don't send yet, so send this to ${login.to} yourself. It logs in as the owner, so don't share it with anyone else.`}
+          <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+            <input readOnly value={login.link} onFocus={e => e.currentTarget.select()} style={{ flex: 1, minWidth: 0, fontSize: 12 }} />
+            <button onClick={() => navigator.clipboard?.writeText(login.link).then(() => show("Copied"), () => {})} style={{ ...ghostBtn, minHeight: 44 }}>Copy</button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
