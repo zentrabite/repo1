@@ -10,6 +10,7 @@ import { useBusiness } from "@/hooks/use-business";
 import { getOrders, saveSettings, updateOrderStatus } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 import type { Order } from "@/lib/database.types";
+import { cameFromLabel } from "@/lib/offer-codes";
 import { Icon, type IconName } from "@/components/zb-icon";
 import { optionsLabel } from "@/lib/menu-options";
 import { readOrderingRules, shopTime } from "@/lib/pickup-times";
@@ -361,9 +362,10 @@ export default function OrdersPage() {
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:14 }}>
               {([
                 ["Total",       `$${Number(selected.total).toFixed(2)}`],
-                ...(Number(selected.discount) > 0 ? [["First order offer", `-$${Number(selected.discount).toFixed(2)}`]] : []),
+                ...(Number(selected.discount) > 0 ? [[selected.offer_code ? `Offer code ${selected.offer_code}` : "First order offer", `-$${Number(selected.discount).toFixed(2)}`]] : []),
                 ["Status",      selected.status],
                 ["Source",      SOURCE_LABELS[selected.source] ?? selected.source],
+                ...(cameFromLabel(selected.came_from) ? [["Came from", cameFromLabel(selected.came_from)!]] : []),
                 ["Fulfilment",  fulfillLabel(selected) ?? "—"],
                 [selected.fulfillment_type === "delivery" ? "Delivery time" : "Pick-up", pickupText(selected) ?? "—"],
                 ["Created",     new Date(selected.created_at).toLocaleString("en-AU", { dateStyle:"short", timeStyle:"short" })],

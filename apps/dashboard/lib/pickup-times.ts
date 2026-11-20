@@ -233,6 +233,17 @@ export function pickupLabel(pickupAt: Date, asap: boolean, timezone: string): st
   return asap ? `As soon as possible, about ${shopTime(pickupAt, timezone)}` : shopTime(pickupAt, timezone);
 }
 
+/** The last minute of the day, n days after date, in the shop's time zone. For offers that end on a day. */
+export function shopDayEnd(date: Date, days: number, timezone: string): Date {
+  return new Date(atShopTime(shiftDays(zoned(date, timezone), days), "23:59", timezone).getTime() + 59_000);
+}
+
+/** "Fri 5 Dec" in the shop's time zone. */
+export function shopDate(date: Date, timezone: string): string {
+  return new Intl.DateTimeFormat("en-AU", { timeZone: timezone, weekday: "short", day: "numeric", month: "short" })
+    .format(date).replace(/,/g, "");
+}
+
 // ─── Checking what the customer picked ──────────────────────────────────────
 
 export type PickupCheck =

@@ -13,6 +13,7 @@ import { orderUrl } from "@/lib/tenant";
 import { optionsLabel, readOptions, type ChosenOption } from "@/lib/menu-options";
 import { pickupLabel, readOrderingRules } from "@/lib/pickup-times";
 import { saveRefunded } from "@/lib/refunds";
+import { cameFrom, cleanCode, redeemCode } from "@/lib/offer-codes";
 
 export const dynamic = "force-dynamic";
 
@@ -216,10 +217,15 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventAc
     if (delivery_address) orderRecord.ship_to      = { address: delivery_address };
     if (delivery_fee)     orderRecord.delivery_fee = parseFloat(delivery_fee);
   }
-  // The shop's first order offer, taken off at checkout (lib/first-order.ts).
-  // total is already what was paid. This records how much came off.
-  const discount = parseFloat(meta.first_order_discount ?? "");
+  // The shop's first order offer (lib/first-order.ts) or a win-back code
+  // (lib/offer-codes.ts), taken off at checkout. total is already what was
+  // paid. This records how much came off.
+  const offerCode = cleanCode(meta.offer_code);
+  const discount = parseFloat((offerCode ? meta.offer_discount : meta.first_order_discount) ?? "");
   if (Number.isFinite(discount) && discount > 0) orderRecord.discount = discount;
+  if (offerCode) orderRecord.offer_code = offerCode;
+  // Where it came from (?src= on the link). Older sessions have none.
+  if (meta.came_from) orderRecord.came_from = cameFrom(meta.came_from, Boolean(offerCode));
 
   const { data: newOrder, error: orderErr } = await db.from("orders").insert(orderRecord).select("id").single();
   if (orderErr) {
@@ -228,6 +234,11 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventAc
       return;
     }
     throw new Error(`order insert failed: ${orderErr.message}`);
+  }
+
+  // The code is used now, and the order counts towards its win-back rule.
+  if (offerCode && newOrder?.id) {
+    await redeemCode(db, { businessId: business_id, code: offerCode, orderId: newOrder.id, customerId, total: amount });
   }
 
   // ── Notify the business owner (email + SMS) + email customer receipt ──
@@ -257,6 +268,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventAc
         deliveryAddress: fulfillment_type === "delivery" ? delivery_address ?? null : null,
         note:         note ?? null,
         discount:     typeof orderRecord.discount === "number" ? orderRecord.discount : null,
+        discountLabel: offerCode ? "Offer code" : "First order offer",
       }) : Promise.resolve(),
     ]);
   }
@@ -283,6 +295,7 @@ async function sendOrderReceipt(args: {
   deliveryAddress: string | null;
   note:         string | null;
   discount?:    number | null;
+  discountLabel?: string;
 }): Promise<void> {
   try {
     const { data: biz } = await args.db
@@ -314,6 +327,7 @@ async function sendOrderReceipt(args: {
       deliveryAddress: args.deliveryAddress ?? undefined,
       note:         args.note ?? undefined,
       discount:     args.discount ?? undefined,
+      discountLabel: args.discountLabel,
     });
   } catch (err) {
     console.error("[webhook] receipt send failed:", err instanceof Error ? err.message : err);

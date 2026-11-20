@@ -35,7 +35,7 @@ packages/
   typescript-config/ tsconfig presets
 supabase/
   migrations/       001 → 010 schema
-  functions/        Edge functions (nightly-analytics, win-back)
+  functions/        Edge functions (nightly-analytics, birthday-loyalty; win-back is a switched-off stub, see /api/automations/run)
 ```
 
 Stack: Next.js 16 (App Router), React 19, TS strict, Supabase (Postgres + RLS + Realtime + Auth + Storage), Stripe, Twilio, Resend, Turbo monorepo.

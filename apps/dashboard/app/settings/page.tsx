@@ -706,6 +706,32 @@ function SettingsContent() {
             </a>
           </div>
 
+          {/* Links that record where orders came from */}
+          {storefrontUrl && (
+            <div className="gc" style={{ padding:24 }}>
+              <SectionTitle>Your ordering links</SectionTitle>
+              <p style={{ fontFamily:"var(--font-inter)", fontSize:12, color:C.st, marginTop:-10, marginBottom:16, lineHeight:1.6 }}>
+                Each link opens your ordering page and tells the Orders page where the order came from. Your website and counter QR code already use theirs.
+              </p>
+              {([
+                ["Google", "For the Order button and website link on your Google Business Profile.", `${storefrontUrl}?src=google`],
+                ["Social media", "For your Instagram and Facebook bio and posts.", `${storefrontUrl}?src=social`],
+              ] as const).map(([label, help, link]) => (
+                <div key={label} style={{ marginBottom:12 }}>
+                  <div style={{ fontFamily:"var(--font-inter)", fontSize:12, color:"#fff", fontWeight:600, marginBottom:2 }}>{label}</div>
+                  <div style={{ fontFamily:"var(--font-inter)", fontSize:11, color:C.st, marginBottom:6, lineHeight:1.5 }}>{help}</div>
+                  <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+                    <input readOnly value={link} aria-label={`${label} ordering link`} onFocus={e => e.currentTarget.select()} style={{ flex:1, minWidth:0 }} />
+                    <button type="button" className="bg-btn" style={{ minHeight:44, flexShrink:0 }}
+                      onClick={() => navigator.clipboard?.writeText(link).then(() => show("Link copied"), () => show("Couldn't copy. Select the link and copy it."))}>
+                      Copy
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Win-Back pointer */}
           <div className="gc" style={{ padding:24 }}>
             <SectionTitle>Win-Back rules</SectionTitle>

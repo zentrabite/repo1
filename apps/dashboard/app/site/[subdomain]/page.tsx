@@ -78,7 +78,8 @@ export default async function RestaurantSite({ params }: Props) {
 
   const host = (await headers()).get("host");
   const onOwnHost = tenantFromHost(host) === site.subdomain;
-  const orderHref = onOwnHost ? "/order" : `/store/${site.subdomain}`;
+  // ?src=website records that the order came from the shop's own site.
+  const orderHref = `${onOwnHost ? "/order" : `/store/${site.subdomain}`}?src=website`;
   const preview = !site.published && await canPreview(site);
 
   const style = { "--a": site.accent, "--aT": site.accentText } as React.CSSProperties;
@@ -166,7 +167,7 @@ export default async function RestaurantSite({ params }: Props) {
               <li key={m.id}>
                 <div className="zs-li-top"><h3>{m.name}</h3><span className="zs-dots" /><span className="zs-price">{m.from ? `From ${money(m.price)}` : money(m.price)}</span></div>
                 <p>{m.description ?? ""}</p>
-                {site.takingOrders && <a className="zs-add" href={`${orderHref}?add=${encodeURIComponent(m.id)}`} aria-label={`Add ${m.name} to your order`}>+</a>}
+                {site.takingOrders && <a className="zs-add" href={`${orderHref}&add=${encodeURIComponent(m.id)}`} aria-label={`Add ${m.name} to your order`}>+</a>}
               </li>
             ))}
           </ol>

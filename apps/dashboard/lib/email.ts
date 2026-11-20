@@ -164,8 +164,10 @@ export type CustomerReceiptInput = {
   deliveryAddress?: string;
   /** The customer's note for the kitchen or the driver. */
   note?: string;
-  /** Taken off by the shop's first order offer (lib/first-order.ts). total is after it. */
+  /** Taken off by the first order offer or a win-back code. total is after it. */
   discount?: number;
+  /** What took it off, "First order offer" (the default) or "Offer code". */
+  discountLabel?: string;
 };
 
 export async function sendCustomerReceipt(input: CustomerReceiptInput): Promise<EmailResult> {
@@ -182,7 +184,7 @@ export async function sendCustomerReceipt(input: CustomerReceiptInput): Promise<
     input.pickupLabel ? `${input.delivery ? "Delivery" : "Pick-up"}: ${input.pickupLabel}` : "",
     input.delivery && input.deliveryAddress ? `Deliver to: ${input.deliveryAddress}` : "",
     input.note ? `Your note: ${input.note}` : "",
-    input.discount ? `First order offer: -$${input.discount.toFixed(2)}` : "",
+    input.discount ? `${input.discountLabel ?? "First order offer"}: -$${input.discount.toFixed(2)}` : "",
     `Total: $${total.toFixed(2)}`,
     ``,
     `Items:`,
@@ -232,7 +234,7 @@ function receiptHtml(input: CustomerReceiptInput): string {
 
           <table width="100%" cellpadding="0" cellspacing="0">${rows}
             ${input.discount ? `<tr>
-              <td style="padding-top:10px;font-size:14px;color:#0F1F2D">First order offer</td>
+              <td style="padding-top:10px;font-size:14px;color:#0F1F2D">${escapeHtml(input.discountLabel ?? "First order offer")}</td>
               <td style="padding-top:10px;font-size:14px;color:#0F1F2D;text-align:right">-$${input.discount.toFixed(2)}</td>
             </tr>` : ""}
             <tr>

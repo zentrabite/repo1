@@ -89,7 +89,7 @@ const DEFAULT_WINBACK = [
     offer_type:    "percent",
     offer_value:   10,
     channel:       "sms",
-    template:      "Hey {name}, we miss you at {business}! Here's {offer} on your next order: {link}",
+    template:      "Hey {name}, we miss you at {business}! Here's {offer} on your next online order: {link}",
     cooldown_days: 60,
     is_active:     true,
   },

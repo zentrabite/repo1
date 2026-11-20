@@ -177,7 +177,8 @@
     "ship_to": null,
     "delivery_fee": null,
     "refunded_amount": 0,
-    "refunded_at": null
+    "refunded_at": null,
+    "came_from": "counter"
    },
    {
     "id": "aaaaaaa2-0000-4000-8000-000000000002",
@@ -204,7 +205,10 @@
     "ship_to": null,
     "delivery_fee": null,
     "refunded_amount": 0,
-    "refunded_at": null
+    "refunded_at": null,
+    "discount": 10,
+    "offer_code": "K7MP4QXA",
+    "came_from": "winback"
    },
    {
     "id": "aaaaaaa3-0000-4000-8000-000000000003",
@@ -335,6 +339,38 @@
     "sort_order": 1,
     "image_url": null,
     "options": []
+   }
+  ],
+  "offer_codes": [
+   {
+    "id": "0c000001-0000-4000-8000-000000000001",
+    "business_id": "22222222-2222-4222-8222-222222222222",
+    "code": "W4NTPRZZ",
+    "customer_id": null,
+    "rule_id": null,
+    "campaign_id": null,
+    "offer_type": "percent",
+    "offer_value": 20,
+    "expires_at": "2099-12-04T13:29:59Z",
+    "redeemed_at": null,
+    "order_id": null,
+    "held_session": null,
+    "held_until": null
+   },
+   {
+    "id": "0c000002-0000-4000-8000-000000000002",
+    "business_id": "22222222-2222-4222-8222-222222222222",
+    "code": "K7MP4QXA",
+    "customer_id": null,
+    "rule_id": null,
+    "campaign_id": null,
+    "offer_type": "dollar",
+    "offer_value": 10,
+    "expires_at": "2099-12-04T13:29:59Z",
+    "redeemed_at": "2026-11-20T04:20:00Z",
+    "order_id": "aaaaaaa2-0000-4000-8000-000000000002",
+    "held_session": null,
+    "held_until": null
    }
   ],
   "import_runs": [],
