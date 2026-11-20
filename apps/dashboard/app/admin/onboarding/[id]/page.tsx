@@ -997,6 +997,12 @@ function StepWebsite({ biz, save, show, goTo }: { biz: Biz; save: SaveFn; show: 
       </div>
 
       {!published && <GoLiveCheckList biz={biz} goTo={goTo} show={show} onReady={setReady} />}
+      {published && biz.subdomain && (
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", margin: "0 0 18px" }}>
+          <div style={{ flex: 1, minWidth: 200, fontSize: 12, color: C.st, lineHeight: 1.5 }}>Print their counter QR code, small cards for bags and receipts, and the owner&apos;s one-page guide, and leave them with the owner.</div>
+          <button onClick={() => window.open(`/print/counter?shop=${biz.id}`, "_blank")} style={{ ...ghostBtn, minHeight: 44 }}>Print the counter QR and guide ↗</button>
+        </div>
+      )}
 
       <div style={label}>Look</div>
       <div className="zb-stack" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, margin: "6px 0 18px" }}>

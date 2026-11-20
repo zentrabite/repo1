@@ -17,6 +17,8 @@ const AUTH_ROUTES = ["/login", "/signup", "/auth", "/forgot-password", "/reset-p
 // "/_not-found" is Next's segment for the 404 page (app/not-found.tsx). It
 // picks its own look and must never show the CRM menu on a restaurant address.
 const PUBLIC_SEGMENTS = new Set(["site", "store", "unsubscribe", "stripe-setup", "/_not-found"]);
+// Logged-in pages shown without the CRM menu, like the print-ready counter QR page.
+const BARE_SEGMENTS = new Set(["print"]);
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname   = usePathname();
@@ -76,6 +78,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   // Auth pages and customer pages — no sidebar/topbar
   if (isPublic) return <>{children}</>;
   if (sendToSell) return null;
+  if (segment && BARE_SEGMENTS.has(segment)) return <>{children}</>;
 
   // The sales pages: a plain header, no CRM menu.
   if (segment === "sell") {
