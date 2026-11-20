@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Badge from "@/components/badge";
 import Toast from "@/components/toast";
 import Modal from "@/components/modal";
+import CustomerImport from "@/components/customer-import";
 import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
 import { getCustomers, getCustomerOrders, createCustomer } from "@/lib/queries";
@@ -33,6 +34,7 @@ export default function CustomersPage() {
   const [selected,   setSelected]   = useState<Customer | null>(null);
   const [loading,    setLoading]    = useState(true);
   const [addingCust, setAddingCust] = useState(false);
+  const [importing,  setImporting]  = useState(false);
   const [saving,     setSaving]     = useState(false);
   const [newCust,    setNewCust]    = useState({ name:"", phone:"", email:"" });
   const [smsOpen,    setSmsOpen]    = useState(false);
@@ -202,7 +204,10 @@ export default function CustomersPage() {
           <h2 style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:20, color:"#fff" }}>Customers</h2>
           <p style={{ color:C.st, fontSize:12 }}>CRM database · {customers.length} total</p>
         </div>
-        <button className="bp" onClick={() => { setNewCust({ name:"", phone:"", email:"" }); setAddingCust(true); }}>+ Add</button>
+        <div style={{ display:"flex", gap:6, flexWrap:"wrap", justifyContent:"flex-end" }}>
+          <button className="bg-btn" onClick={() => setImporting(true)}>Bring in a list</button>
+          <button className="bp" onClick={() => { setNewCust({ name:"", phone:"", email:"" }); setAddingCust(true); }}>+ Add</button>
+        </div>
       </div>
 
       {segmentsEmpty && (
@@ -259,6 +264,18 @@ export default function CustomersPage() {
           <button className="bg-btn" onClick={() => setAddingCust(false)}>Cancel</button>
           <button className="bp" onClick={saveNewCustomer} disabled={saving}>{saving ? "Saving…" : "Add Customer"}</button>
         </div>
+      </Modal>
+
+      <Modal open={importing} onClose={() => setImporting(false)} title="Bring in a customer list" wide>
+        <CustomerImport
+          onCancel={() => setImporting(false)}
+          onDone={r => {
+            setImporting(false);
+            const parts = [`Added ${r.added}`, r.updated ? `updated ${r.updated}` : "", r.unchanged ? `${r.unchanged} already here` : ""].filter(Boolean);
+            show(`${parts.join(", ")}. ${r.optedIn} agreed to marketing.${r.keptOptedOut ? ` ${r.keptOptedOut} had opted out and stay that way.` : ""}`);
+            if (businessId) getCustomers(businessId).then(setCustomers).catch(() => {});
+          }}
+        />
       </Modal>
 
       <Toast message={toast.message} visible={toast.visible} />
