@@ -216,6 +216,10 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventAc
     if (delivery_address) orderRecord.ship_to      = { address: delivery_address };
     if (delivery_fee)     orderRecord.delivery_fee = parseFloat(delivery_fee);
   }
+  // The shop's first order offer, taken off at checkout (lib/first-order.ts).
+  // total is already what was paid. This records how much came off.
+  const discount = parseFloat(meta.first_order_discount ?? "");
+  if (Number.isFinite(discount) && discount > 0) orderRecord.discount = discount;
 
   const { data: newOrder, error: orderErr } = await db.from("orders").insert(orderRecord).select("id").single();
   if (orderErr) {
@@ -252,6 +256,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventAc
         delivery:     fulfillment_type === "delivery",
         deliveryAddress: fulfillment_type === "delivery" ? delivery_address ?? null : null,
         note:         note ?? null,
+        discount:     typeof orderRecord.discount === "number" ? orderRecord.discount : null,
       }) : Promise.resolve(),
     ]);
   }
@@ -277,6 +282,7 @@ async function sendOrderReceipt(args: {
   delivery:     boolean;
   deliveryAddress: string | null;
   note:         string | null;
+  discount?:    number | null;
 }): Promise<void> {
   try {
     const { data: biz } = await args.db
@@ -307,6 +313,7 @@ async function sendOrderReceipt(args: {
       delivery:     args.delivery,
       deliveryAddress: args.deliveryAddress ?? undefined,
       note:         args.note ?? undefined,
+      discount:     args.discount ?? undefined,
     });
   } catch (err) {
     console.error("[webhook] receipt send failed:", err instanceof Error ? err.message : err);

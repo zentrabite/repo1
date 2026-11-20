@@ -13,6 +13,7 @@
 import { createAdminClient } from "@/lib/supabase-server";
 import { DAY_KEYS, type DayKey, type ImportedHours } from "@/lib/import/types";
 import { cheapestPrice, pricesVary, readOptions } from "@/lib/menu-options";
+import { offerText, readFirstOrderOffer } from "@/lib/first-order";
 
 export type SiteLook = "bold" | "warm" | "clean";
 
@@ -266,7 +267,8 @@ export function buildSite(biz: SiteRow, cats: SiteCategory[], allItems: SiteItem
     takingOrders: Boolean(biz.stripe_account_id && biz.stripe_charges_enabled),
     // 10 points per $1 is set by the database trigger on orders (migration 005)
     rewards:     site.show_rewards !== false && rewardsCount > 0 ? { rate: 10 } : null,
-    offerText:   str(site.offer_text, 160),
+    // A real first order offer (lib/first-order.ts) wins over the free-text banner.
+    offerText:   offerText(readFirstOrderOffer(biz.settings)) ?? str(site.offer_text, 160),
     social,
     bookingUrl:  booking && /^https?:\/\//.test(booking) ? booking : null,
     published:   site.published === true,

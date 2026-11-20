@@ -21,7 +21,7 @@ Before making any changes:
 
 ## Rules when working in this repo
 
-- **Extend existing code, don't rebuild.** The monorepo already contains a working CRM (`apps/dashboard`), marketing site (`apps/web`), storefront (`apps/storefront`), and a Supabase schema with 23 applied migrations (001 to 023). Match existing patterns — don't invent parallel ones.
+- **Extend existing code, don't rebuild.** The monorepo already contains a working CRM (`apps/dashboard`), marketing site (`apps/web`), storefront (`apps/storefront`), and a Supabase schema with 24 applied migrations (001 to 024). Match existing patterns — don't invent parallel ones.
 - **Follow the architecture.** Tenant scoping (`business_id` + RLS), module flags (`businesses.settings.modules`), server routes that verify session → `business_id`. See `system-architecture.md` §4–§7.
 - **Follow the design system.** Reuse components from `apps/dashboard/components/` (shell, sidebar, topbar, stat-card, page-header, empty-state, modal, toast, badge). Match the look of the pages already in `apps/dashboard`. Dark shell, green accent, glass cards. This is the app's April 2026 look, and a colour tidy-up is planned.
 - **The marketing site (`apps/web`) is different.** It follows the taste skill (design-taste-frontend), and its rules win over older site rules. See "Marketing site rules" below. The demo sandboxes under `/demo/*` stay dark and keep their old colours.
@@ -61,7 +61,7 @@ apps/web              Marketing site + demo sandboxes
 apps/dashboard        Production merchant CRM (Supabase-backed)
 apps/storefront       Tenant storefront build. Not deployed, the live ordering pages are in apps/dashboard
 packages/*-config     Shared eslint and TypeScript settings
-supabase/migrations   001 → 023 schema
+supabase/migrations   001 → 024 schema
 supabase/functions    Edge functions (nightly-analytics, win-back, birthday-loyalty)
 docs/context          System logic + architecture (start here)
 docs/reference        UI/visual reference

@@ -151,6 +151,8 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
 
   // Delivery, if the shop offers it. Its times add the drive time.
   const deliveryInfo = (biz?.ordering?.delivery as DeliveryInfo | null | undefined) ?? null;
+  // The shop's first order offer (lib/first-order.ts). Checkout decides who gets it, from the mobile number.
+  const firstOrder = (biz?.ordering?.first_order as { amount: number; min_order: number } | null | undefined) ?? null;
   const isDelivery = fulfilment === "delivery" && Boolean(deliveryInfo);
   const timePlan = useMemo(() => {
     if (!biz?.ordering || !isDelivery || !deliveryInfo) return plan;
@@ -270,6 +272,11 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
         {biz?.taking_orders && plan?.state === "later" && plan.slots[0] && (
           <div style={{ marginTop:16, padding:"12px 14px", borderRadius:12, background:`color-mix(in srgb, ${C.g} 12%, transparent)`, color:C.cl, fontSize:13, lineHeight:1.5 }}>
             {`We're closed until ${shopTime(plan.opensAt, tz)}. Order now for pick-up from ${shopTime(plan.slots[0], tz)}.`}
+          </div>
+        )}
+        {biz?.taking_orders && firstOrder && (
+          <div style={{ marginTop:12, padding:"12px 14px", borderRadius:12, border:`1px solid color-mix(in srgb, ${C.g} 35%, transparent)`, color:C.cl, fontSize:13, lineHeight:1.5 }}>
+            {`$${firstOrder.amount % 1 ? firstOrder.amount.toFixed(2) : firstOrder.amount} off your first online order of $${firstOrder.min_order % 1 ? firstOrder.min_order.toFixed(2) : firstOrder.min_order} or more. Add your mobile number at checkout.`}
           </div>
         )}
 
@@ -405,8 +412,15 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
 
             <div style={{ padding:"16px 0", borderBottom:`1px solid ${C.mist}` }}>
               <div style={{ fontWeight:700, fontSize:15, color:C.cl, marginBottom:12 }}>Your details</div>
+              {firstOrder && (
+                <div style={{ marginBottom:10, padding:"10px 12px", borderRadius:8, background:"rgba(0,173,130,.12)", border:"1px solid rgba(0,173,130,.3)", fontSize:13, lineHeight:1.5, color:C.cl }}>
+                  {total >= firstOrder.min_order
+                    ? `First online order here? $${firstOrder.amount.toFixed(2)} comes off at checkout. Add your mobile number to get it.`
+                    : `First online order here? Spend $${(firstOrder.min_order - total).toFixed(2)} more and $${firstOrder.amount.toFixed(2)} comes off at checkout.`}
+                </div>
+              )}
               <input value={customer.name} onChange={e=>setCustomer(c=>({...c,name:e.target.value}))} placeholder="Your name *" style={{ width:"100%", marginBottom:8, background:"rgba(255,255,255,.06)", border:`1px solid ${C.mist}`, color:C.cl, borderRadius:8, padding:"10px 12px", fontSize:13, boxSizing:"border-box" }} />
-              <input type="tel" value={customer.phone} onChange={e=>setCustomer(c=>({...c,phone:e.target.value}))} placeholder={isDelivery ? "Phone number *" : "Phone number"} autoComplete="tel" style={{ width:"100%", marginBottom:8, background:"rgba(255,255,255,.06)", border:`1px solid ${C.mist}`, color:C.cl, borderRadius:8, padding:"10px 12px", fontSize:13, boxSizing:"border-box" }} />
+              <input type="tel" value={customer.phone} onChange={e=>setCustomer(c=>({...c,phone:e.target.value}))} placeholder={isDelivery ? "Phone number *" : firstOrder ? "Mobile number, for the first order offer" : "Phone number"} autoComplete="tel" style={{ width:"100%", marginBottom:8, background:"rgba(255,255,255,.06)", border:`1px solid ${C.mist}`, color:C.cl, borderRadius:8, padding:"10px 12px", fontSize:13, boxSizing:"border-box" }} />
               <input type="email" value={customer.email} onChange={e=>setCustomer(c=>({...c,email:e.target.value}))} placeholder="Email (for receipt)" style={{ width:"100%", background:"rgba(255,255,255,.06)", border:`1px solid ${C.mist}`, color:C.cl, borderRadius:8, padding:"10px 12px", fontSize:13, boxSizing:"border-box" }} />
               {/* Marketing consent. Its own unticked box, separate from the order (Spam Act). */}
               <label style={{ display:"flex", gap:10, alignItems:"flex-start", marginTop:12, fontSize:12, lineHeight:1.5, color:C.st, cursor:"pointer" }}>
