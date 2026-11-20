@@ -7,7 +7,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
 import { getMenu } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
-import { getLoyaltySettings, pointsForOrder, awardPoints } from "@/lib/loyalty";
 import type { MenuItem } from "@/lib/database.types";
 import type { DeliveryFeeBreakdown } from "@/lib/delivery-types";
 
@@ -159,35 +158,13 @@ export default function POSPage() {
         orderRecord.placed_at    = new Date().toISOString();
       }
 
-      await supabase.from("orders").insert(orderRecord);
+      const { error: orderErr } = await supabase.from("orders").insert(orderRecord);
+      if (orderErr) throw new Error(`Order not saved: ${orderErr.message}`);
 
-      // Update customer stats + award loyalty points via the central engine
-      if (customerId) {
-        const { data: cust } = await supabase
-          .from("customers")
-          .select("total_orders, total_spent")
-          .eq("id", customerId)
-          .single();
-        if (cust) {
-          await supabase.from("customers").update({
-            last_order_date: new Date().toISOString(),
-            total_orders:    cust.total_orders + 1,
-            total_spent:     Number(cust.total_spent) + grandTotal,
-          }).eq("id", customerId);
-
-          // POS orders are always "direct" channel
-          const settings = await getLoyaltySettings(businessId);
-          const { points, multiplier } = pointsForOrder(grandTotal, "direct", settings);
-          await awardPoints({
-            businessId,
-            customerId,
-            points,
-            multiplier,
-            eventType: "order",
-            source:    "pos",
-          });
-        }
-      }
+      // The database adds the order to the customer's count, total spent,
+      // last order date and points (the on_order_update_customer trigger, the
+      // same as for online orders). This page used to add them again, so every
+      // POS sale with a customer counted twice.
 
       setCart([]);
       setCustomer({ name:"", phone:"" });
