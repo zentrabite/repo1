@@ -25,9 +25,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 });
   }
 
-  // Two endpoints can point here: the platform endpoint (STRIPE_WEBHOOK_SECRET)
-  // and a Connect endpoint for connected-account events such as
-  // account.updated (STRIPE_CONNECT_WEBHOOK_SECRET). Accept either signature.
+  // Two endpoints point here. The platform endpoint (STRIPE_WEBHOOK_SECRET)
+  // sends ZentraBite's own events, like shop subscriptions. The Connect
+  // endpoint (STRIPE_CONNECT_WEBHOOK_SECRET) sends events from each shop's own
+  // Stripe account: account.updated, and since 20 Nov 2026 the customer
+  // orders, because they're taken on the shop's account. Those events carry
+  // event.account, the shop's Stripe account id. Accept either signature.
   const secrets = [process.env.STRIPE_WEBHOOK_SECRET, process.env.STRIPE_CONNECT_WEBHOOK_SECRET]
     .filter((s): s is string => Boolean(s));
   let event: Stripe.Event | null = null;
@@ -49,11 +52,8 @@ export async function POST(req: Request) {
 
   try {
     switch (event.type) {
-      case "payment_intent.succeeded":
-        await handlePaymentSucceeded(event.data.object as Stripe.PaymentIntent);
-        break;
       case "checkout.session.completed":
-        await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
+        await handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session, event.account ?? null);
         break;
       case "account.updated":
         await handleMerchantOnboarded(event.data.object as Stripe.Account);
@@ -77,89 +77,7 @@ export async function POST(req: Request) {
 
 // ─── Handlers ────────────────────────────────────────────────────────────────
 
-async function handlePaymentSucceeded(pi: Stripe.PaymentIntent) {
-  const { business_id, customer_phone, customer_name, customer_email, items } = pi.metadata;
-  if (!business_id) return;
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const db = createServerClient() as any;
-
-  // ── Find or create the customer ────────────────────────────────────────
-  // Totals and points are added by the on_order_update_customer trigger when
-  // the order is inserted below, so they aren't touched here.
-  let customerId: string | null = null;
-
-  if (customer_phone) {
-    const phone = normaliseAuPhone(customer_phone);
-    const { data: existing } = await db
-      .from("customers")
-      .select("id")
-      .eq("business_id", business_id)
-      .eq("phone", phone)
-      .maybeSingle();
-
-    if (existing) {
-      customerId = existing.id;
-    } else {
-      const { data: newCustomer } = await db.from("customers").insert({
-        business_id,
-        name:            customer_name ?? "Unknown",
-        phone,
-        email:           customer_email ?? null,
-        source:          "direct",
-        segment:         "New",
-        first_order:     new Date().toISOString(),
-        total_orders:    0,
-        total_spent:     0,
-        points_balance:  0,
-      }).select("id").single();
-      customerId = newCustomer?.id ?? null;
-    }
-  }
-
-  // ── Create order ───────────────────────────────────────────────────────
-  const parsedItems = items ? JSON.parse(items) : [];
-  const { data: newOrder, error: orderErr } = await db.from("orders").insert({
-    business_id,
-    customer_id:       customerId,
-    items:             parsedItems,
-    total:             pi.amount / 100,
-    status:            "New",
-    source:            "direct",
-    stripe_payment_id: pi.id,
-  }).select("id").single();
-  if (orderErr) {
-    if (orderErr.code === "23505") return; // duplicate event
-    throw new Error(`order insert failed: ${orderErr.message}`);
-  }
-
-  console.log(`[webhook] Order created — business: ${business_id}, $${pi.amount / 100}`);
-
-  // ── Notify the business owner (email + SMS) ────────────────────────────
-  if (newOrder?.id) {
-    await Promise.allSettled([
-      notifyOwnerOfOrder({
-        businessId:   business_id,
-        orderId:      newOrder.id,
-        amount:       pi.amount / 100,
-        customerName: customer_name ?? null,
-        itemCount:    Array.isArray(parsedItems) ? parsedItems.length : undefined,
-      }),
-      // Customer receipt — only if we have their email
-      customer_email ? sendOrderReceipt({
-        db,
-        to:           customer_email,
-        businessId:   business_id,
-        orderId:      newOrder.id,
-        customerName: customer_name ?? "there",
-        amount:       pi.amount / 100,
-        items:        parsedItems,
-      }) : Promise.resolve(),
-    ]);
-  }
-}
-
-async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventAccount: string | null) {
   const meta = session.metadata ?? {};
   const {
     business_id, customer_name, customer_phone, customer_email, items, source,
@@ -169,6 +87,27 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = createServerClient() as any;
+
+  // ── Only the shop's own Stripe account can create its orders ───────────
+  // Orders are paid on the shop's account, so the event must come from that
+  // account. Each shop has its own full Stripe Dashboard and API keys, so a
+  // shop could make a payment with another shop's business_id in its
+  // metadata. Matching event.account to the shop's saved account stops that.
+  // An order event from ZentraBite's own account is refused too, because
+  // storefront orders are never paid there any more.
+  const { data: owner } = await db.from("businesses").select("stripe_account_id")
+    .eq("id", business_id).maybeSingle();
+  if (!eventAccount || !owner?.stripe_account_id || owner.stripe_account_id !== eventAccount) {
+    console.warn(`[webhook] order for ${business_id} refused, it came from ${eventAccount ?? "the platform account"}`);
+    return;
+  }
+
+  // Cards are confirmed before Checkout completes, so this is "paid". Anything
+  // else (a delayed payment method) waits for its own event, not handled yet.
+  if (session.payment_status !== "paid") {
+    console.log(`[webhook] checkout ${session.id} not paid yet (${session.payment_status}), skipped`);
+    return;
+  }
   const amount = (session.amount_total ?? 0) / 100;
   const marketingOptIn = meta.marketing_opt_in === "1";
 
@@ -329,23 +268,34 @@ async function sendOrderReceipt(args: {
 }
 
 async function handleMerchantOnboarded(account: Stripe.Account) {
-  const businessId = account.metadata?.zentrabite_business_id;
+  // The business id is in the account's metadata. If it's ever missing, find
+  // the business by its saved Stripe account id instead.
+  let businessId = account.metadata?.zentrabite_business_id ?? null;
+  if (!businessId) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await (createServerClient() as any).from("businesses").select("id")
+      .eq("stripe_account_id", account.id).maybeSingle();
+    businessId = data?.id ?? null;
+  }
   if (!businessId) return;
 
   // Track onboarding state on dedicated columns (not inside settings JSON) so
   // the Settings page can distinguish "account created" from "onboarding
   // complete" from "payouts blocked". The webhook fires on every account
   // update, so we always write the latest flags.
+  // Only the account saved on the business can change its flags. An old
+  // account that was replaced, or any account carrying another business's id,
+  // can't overwrite the saved one.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (createServerClient() as any)
     .from("businesses")
     .update({
-      stripe_account_id:        account.id,
       stripe_charges_enabled:   account.charges_enabled ?? false,
       stripe_payouts_enabled:   account.payouts_enabled ?? false,
       stripe_details_submitted: account.details_submitted ?? false,
     })
-    .eq("id", businessId);
+    .eq("id", businessId)
+    .eq("stripe_account_id", account.id);
 
   console.log(
     `[webhook] Account updated ${businessId} — charges=${account.charges_enabled} payouts=${account.payouts_enabled} details=${account.details_submitted}`

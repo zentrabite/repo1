@@ -5,16 +5,19 @@
 //   • Prices and names come from the restaurant's menu in the database. The
 //     browser only sends item ids and quantities. Before this, a customer
 //     could edit the request and pay any price they liked.
-//   • The payment goes to the restaurant's own Stripe account (Connect
-//     destination charge). If the restaurant hasn't finished Stripe setup,
-//     checkout is refused rather than collecting the money into ZentraBite's
-//     account.
+//   • The payment is taken on the shop's own Stripe account (a Connect
+//     direct charge, since 20 Nov 2026). Stripe takes its card fee from the
+//     shop, and refunds and chargebacks come out of the shop's balance, not
+//     ZentraBite's. If the shop hasn't finished Stripe setup, or still has an
+//     old-style account, checkout is refused rather than taking the money
+//     anywhere else.
 //   • Marketing consent is recorded only if the customer ticked the box.
 
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase-server";
 import { trustedOrigin } from "@/lib/tenant";
+import { isShopAccount } from "@/lib/stripe-connect";
 
 const MAX_LINES = 50;
 const MAX_QTY   = 50;
@@ -85,7 +88,7 @@ export async function POST(req: Request) {
       }
     }
 
-    if (!connectedAccount || !chargesEnabled) {
+    if (!connectedAccount || !chargesEnabled || !(await isShopAccount(connectedAccount))) {
       return NextResponse.json(
         { error: "This restaurant isn't taking online payments yet. Please order by phone." },
         { status: 409 },
@@ -115,6 +118,8 @@ export async function POST(req: Request) {
     const origin = trustedOrigin(req.headers.get("origin"), process.env.NEXT_PUBLIC_APP_URL ?? "https://dashboard.zentrabite.com");
     const compactItems = JSON.stringify(lines.map(l => ({ id: l.id, qty: l.qty })));
 
+    // Created on the shop's own account (the stripeAccount option), so the
+    // customer sees the shop's name and branding at checkout.
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: lines.map(l => ({
@@ -127,14 +132,9 @@ export async function POST(req: Request) {
       })),
       mode: "payment",
       customer_email: clip(customer?.email) || undefined,
-      // No application fee yet, so Stripe's processing fee on each order is
-      // taken from ZentraBite's platform balance. Decide before launch whether
-      // to add application_fee_amount here to pass it on.
-      // Money goes to the restaurant's Stripe account, not ZentraBite's.
-      payment_intent_data: {
-        on_behalf_of:  connectedAccount,
-        transfer_data: { destination: connectedAccount },
-      },
+      // No ZentraBite fee on orders yet. If Liam decides on one, it goes here
+      // as payment_intent_data.application_fee_amount, and must cover only
+      // ZentraBite's own fee, because Stripe takes its fee from the shop.
       success_url: `${origin}/store/${business.subdomain}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url:  `${origin}/store/${business.subdomain}`,
       metadata: {
@@ -147,7 +147,7 @@ export async function POST(req: Request) {
         source:           "storefront",
         ...chunkMetadata("items", compactItems),
       },
-    });
+    }, { stripeAccount: connectedAccount });
 
     return NextResponse.json({ url: session.url });
   } catch (err) {

@@ -572,7 +572,7 @@ function SettingsContent() {
                   {state === "live" && (
                     <div>
                       <div style={{ fontFamily:"var(--font-inter)", fontSize:13, color:C.st, lineHeight:1.6, marginBottom:16 }}>
-                        Your Stripe Express account is fully onboarded. Payments go direct to your bank (minus Stripe&apos;s processing fee).
+                        Your Stripe account is set up. Customer payments go into your own Stripe account and on to your bank, minus Stripe&apos;s card fee. Refunds and payouts are in your Stripe Dashboard.
                       </div>
                       <div style={{ padding:"12px 16px", background:"rgba(0,173,130,.06)", border:"1px solid rgba(0,173,130,.15)", borderRadius:10, marginBottom:16 }}>
                         <div style={{ fontFamily:"var(--font-inter)", fontSize:12, color:C.g, fontWeight:600 }}>

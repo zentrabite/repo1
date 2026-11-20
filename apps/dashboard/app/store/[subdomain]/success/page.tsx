@@ -28,7 +28,7 @@ export default function StorefrontSuccessPage({ params }: { params: Promise<{ su
 
     // Load order details from Stripe session
     if (sessionId) {
-      fetch(`/api/store/session?session_id=${sessionId}`)
+      fetch(`/api/store/session?session_id=${encodeURIComponent(sessionId)}&subdomain=${encodeURIComponent(subdomain)}`)
         .then(r => r.json())
         .then(data => {
           setOrder(data);
