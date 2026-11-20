@@ -22,6 +22,8 @@ const STYLES: Record<string, { bg: string; color: string }> = {
   Preparing:        { bg: "rgba(245,158,11,.14)",    color: "#F59E0B" },
   Ready:            { bg: "rgba(0,173,130,.12)",     color: "#00AD82" },
   Delivered:        { bg: "rgba(107,124,147,.14)",   color: "#6B7C93" },
+  Refunded:         { bg: "rgba(220,53,69,.12)",     color: "#FF4757" },
+  "Refund failed":  { bg: "rgba(255,107,53,.12)",    color: "#FF6B35" },
   Converted:        { bg: "rgba(0,173,130,.12)",     color: "#00AD82" },
   "High Value":     { bg: "rgba(245,158,11,.14)",    color: "#F59E0B" },
   Loyal:            { bg: "rgba(0,173,130,.12)",     color: "#00AD82" },

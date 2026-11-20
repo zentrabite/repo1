@@ -10,6 +10,7 @@ import type {
   Order, Customer, Campaign, MenuItem, MenuCategory, AnalyticsDaily,
   WinbackRule, AiCallProfile, RosterShift, AiRecommendation,
 } from "./database.types";
+import { netTotal } from "./refunds";
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────
 
@@ -20,7 +21,7 @@ export async function getDashboardStats(businessId: string) {
     // Today's orders
     supabase
       .from("orders")
-      .select("total, source")
+      .select("total, source, refunded_amount")
       .eq("business_id", businessId)
       .gte("created_at", `${today}T00:00:00`),
 
@@ -50,7 +51,8 @@ export async function getDashboardStats(businessId: string) {
   const analytics  = analyticsRes.data ?? [];
   const customers  = customersRes.data ?? [];
 
-  const todayRevenue = orders.reduce((sum: number, o: any) => sum + (o.total ?? 0), 0);
+  // What the shop kept, so a refunded order doesn't count as a sale.
+  const todayRevenue = orders.reduce((sum: number, o: any) => sum + netTotal(o), 0);
   const directPct    = orders.length > 0
     ? Math.round(orders.filter((o: any) => o.source === "direct").length / orders.length * 100)
     : 0;

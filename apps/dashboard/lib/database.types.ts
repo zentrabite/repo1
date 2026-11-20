@@ -85,6 +85,9 @@ export interface Database {
           pickup_asap:        boolean;         // true = "as soon as possible"
           // ─── Note from the customer or the counter (migration 020) ───────
           notes:              string | null;
+          // ─── Refunds (migration 021). Server only ───────────────────────
+          refunded_amount:    number;          // dollars refunded so far, 0 for none
+          refunded_at:        string | null;
         };
         Insert: Omit<Database["public"]["Tables"]["orders"]["Row"], "id" | "created_at">;
         Update: Partial<Database["public"]["Tables"]["orders"]["Insert"]>;

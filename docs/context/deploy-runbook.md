@@ -86,15 +86,18 @@ In **Stripe → Developers → Webhooks → Add endpoint**:
 
 - **Endpoint URL:** `https://dashboard.zentrabite.com.au/api/stripe/webhook`
   (or your current Vercel URL until the custom domain is live)
-- **Events to listen to** (the ones the handler already supports):
-  - `payment_intent.succeeded`
-  - `payment_intent.payment_failed`
-  - `charge.refunded`
-  - `account.updated` (Stripe Connect)
-  - `payout.paid`
+- Make **two endpoints** to that same URL. The handler accepts either signing secret.
+  1. **Your account** (ZentraBite's own subscriptions). Events:
+     `customer.subscription.created`, `customer.subscription.updated`,
+     `customer.subscription.deleted`. Signing secret goes in Vercel as
+     `STRIPE_WEBHOOK_SECRET`.
+  2. **Connected accounts** (each shop's own Stripe account, where customer
+     orders are paid). Events: `account.updated`, `checkout.session.completed`
+     (makes the order), `charge.refunded` and `refund.failed` (refunds, since
+     migration 021). Signing secret goes in Vercel as
+     `STRIPE_CONNECT_WEBHOOK_SECRET`.
 
-Copy the **Signing secret** (`whsec_...`) into Vercel as
-`STRIPE_WEBHOOK_SECRET`, then redeploy.
+Then redeploy.
 
 ---
 
@@ -153,7 +156,7 @@ Once Steps 1–6 are done:
 4. Confirm the Stripe webhook fired in **Stripe → Webhooks → … → Events**
 5. Check your phone for the SMS notification (if the order automation rule
    is on)
-6. Refund it from the dashboard to confirm the refund flow
+6. Refund it from the order on the Orders page (owner or manager login). The order should say Refunded, and the customer's spend and points should drop
 
 If anything fails, check **Vercel → Deployments → … → Functions → Logs**
 for the relevant route.

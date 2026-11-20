@@ -12,6 +12,7 @@ import { normaliseAuPhone } from "@/lib/sms";
 import { orderUrl } from "@/lib/tenant";
 import { optionsLabel, readOptions, type ChosenOption } from "@/lib/menu-options";
 import { pickupLabel, readOrderingRules } from "@/lib/pickup-times";
+import { saveRefunded } from "@/lib/refunds";
 
 export const dynamic = "force-dynamic";
 
@@ -59,6 +60,10 @@ export async function POST(req: Request) {
         break;
       case "account.updated":
         await handleMerchantOnboarded(event.data.object as Stripe.Account);
+        break;
+      case "charge.refunded":
+      case "refund.failed":
+        await handleRefundChange(event.data.object as Stripe.Charge | Stripe.Refund, event.account ?? null);
         break;
       case "customer.subscription.created":
       case "customer.subscription.updated":
@@ -306,6 +311,40 @@ async function sendOrderReceipt(args: {
   } catch (err) {
     console.error("[webhook] receipt send failed:", err instanceof Error ? err.message : err);
   }
+}
+
+// ─── Refunds ─────────────────────────────────────────────────────────────────
+// charge.refunded comes when money goes back on an order, from the refund
+// button or from the shop's own Stripe Dashboard. refund.failed comes in the
+// rare case a refund fails later and Stripe gives the money back to the shop.
+// Both read the payment fresh from Stripe and save the total refunded, so
+// events arriving out of order or twice can't leave the wrong amount.
+// Both are Connect events, from the shop's account.
+
+async function handleRefundChange(obj: Stripe.Charge | Stripe.Refund, eventAccount: string | null) {
+  if (!eventAccount) return; // ZentraBite's own payments (subscriptions) aren't orders
+  const chargeId = obj.object === "charge" ? obj.id : typeof obj.charge === "string" ? obj.charge : obj.charge?.id;
+  const intentId = typeof obj.payment_intent === "string" ? obj.payment_intent : obj.payment_intent?.id;
+  if (!chargeId || !intentId) return;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = createServerClient() as any;
+  const { data: order } = await db.from("orders")
+    .select("id, business_id, status, refunded_amount")
+    .eq("stripe_payment_id", intentId).maybeSingle();
+  if (!order) return;
+
+  // Only the shop's own account can change its order.
+  const { data: owner } = await db.from("businesses").select("stripe_account_id")
+    .eq("id", order.business_id).maybeSingle();
+  if (!owner?.stripe_account_id || owner.stripe_account_id !== eventAccount) {
+    console.warn(`[webhook] refund for order ${order.id} refused, it came from ${eventAccount}`);
+    return;
+  }
+
+  const charge = await stripe.charges.retrieve(chargeId, {}, { stripeAccount: eventAccount });
+  const saved = await saveRefunded(db, order, charge.amount_refunded, charge.amount);
+  if (saved.changed) console.log(`[webhook] order ${order.id} refunded $${saved.refunded_amount.toFixed(2)} in all`);
 }
 
 async function handleMerchantOnboarded(account: Stripe.Account) {

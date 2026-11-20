@@ -5,6 +5,7 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 import { createSessionClient, createAdminClient } from "@/lib/supabase-server";
+import { netTotal } from "@/lib/refunds";
 import {
   COPILOT_SYSTEM_PROMPT,
   MAX_USER_MESSAGE_CHARS,
@@ -59,12 +60,12 @@ async function buildBusinessContext(businessId: string): Promise<string> {
       .single(),
     admin
       .from("orders")
-      .select("total, source, status")
+      .select("total, source, status, refunded_amount")
       .eq("business_id", businessId)
       .gte("created_at", `${today}T00:00:00`),
     admin
       .from("orders")
-      .select("total, source")
+      .select("total, source, refunded_amount")
       .eq("business_id", businessId)
       .gte("created_at", sevenDaysAgo),
     admin
@@ -104,8 +105,9 @@ async function buildBusinessContext(businessId: string): Promise<string> {
   const stock = lowStockRes.data ?? [];
   const reviews = reviewsRes.data ?? [];
 
-  const todayRev = todayOrders.reduce((s: number, o: any) => s + (o.total ?? 0), 0);
-  const weekRev = weekOrders.reduce((s: number, o: any) => s + (o.total ?? 0), 0);
+  // Less refunds, so a refunded order doesn't count as a sale.
+  const todayRev = todayOrders.reduce((s: number, o: any) => s + netTotal(o), 0);
+  const weekRev = weekOrders.reduce((s: number, o: any) => s + netTotal(o), 0);
   const directOrders = todayOrders.filter((o: any) => o.source === "direct").length;
   const newStatus = todayOrders.filter((o: any) => o.status === "New").length;
 
