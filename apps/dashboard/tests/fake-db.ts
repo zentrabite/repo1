@@ -43,6 +43,8 @@ export function fakeDb(handlers: Record<string, Handler> = {}) {
       lt(column: string, value: unknown) { q.filters.push([`${column}<`, value]); return builder; },
       order() { return builder; },
       limit() { return builder; },
+      // Recorded as "range" with [from, to].
+      range(from: number, to: number) { q.filters.push(["range", [from, to]]); return builder; },
       single: async () => run(q),
       maybeSingle: async () => run(q),
       then(resolve: (r: Result) => unknown, reject?: (e: unknown) => unknown) {

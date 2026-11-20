@@ -134,6 +134,8 @@ Everything talks to Supabase through the browser client (`lib/supabase.ts`) with
 
 Buttons are disabled when no phone number is on file.
 
+**Bring in a list.** Owners and managers can add the shop's existing customer list from a CSV (Square, Shopify, Mailchimp, a loyalty app or a spreadsheet). `components/customer-import.tsx` reads the file in the browser, guesses which column is which from the headings, and shows how many people are ready, which rows were left out and why, how many agreed to marketing and how many have a last visit date. `POST /api/customers/import` checks every row again with the same rules (`lib/customer-import.ts`) and saves with `source = 'import'`. Phones are kept as +61, and a number a spreadsheet stripped the 0 from is put right. People already in the list (same phone or email) aren't added twice: a missing phone or email is filled in and a later last visit moves `last_order_date` on, nothing else. Up to 5,000 rows a file. Marketing consent follows the Spam Act: a person is opted in only when the list says they agreed and the owner ticks that the shop collected that agreement, with `marketing_opt_in_source = 'import: <file name>'`. An import never opts anyone out and never opts in someone who opted out. Win-back only texts people whose last order is a while ago, so a last visit column matters. Without one, imported people aren't won back until they order. Dates of birth aren't brought in.
+
 **To finalise.**
 - Make sure the segment-calculator job is running (trigger from migration 005, or a nightly scheduled function). If `SELECT DISTINCT segment FROM customers` returns only NULL, the segment filter won't do anything.
 - Set the Twilio env vars for SMS + AI calls to work.
