@@ -51,7 +51,13 @@ export async function GET(req: Request) {
       ? pickupLabel(new Date(pickupMs), session.metadata?.pickup_asap === "1", readOrderingRules(business?.settings).timezone)
       : null;
 
-    return NextResponse.json({ items, total, customer_email: customerEmail, customer_name: customerName, pickup });
+    const delivery = session.metadata?.fulfillment_type === "delivery";
+
+    return NextResponse.json({
+      items, total, customer_email: customerEmail, customer_name: customerName, pickup,
+      delivery, delivery_address: delivery ? session.metadata?.delivery_address ?? null : null,
+      note: session.metadata?.note ?? null,
+    });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error("[store/session]", message);

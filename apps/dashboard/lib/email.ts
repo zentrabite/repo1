@@ -159,6 +159,11 @@ export type CustomerReceiptInput = {
   storeUrl?:    string;
   /** "As soon as possible, about 6:20pm" or "6:30pm". */
   pickupLabel?: string;
+  /** Delivered by the shop's own driver, to deliveryAddress. */
+  delivery?: boolean;
+  deliveryAddress?: string;
+  /** The customer's note for the kitchen or the driver. */
+  note?: string;
 };
 
 export async function sendCustomerReceipt(input: CustomerReceiptInput): Promise<EmailResult> {
@@ -172,7 +177,9 @@ export async function sendCustomerReceipt(input: CustomerReceiptInput): Promise<
     `Thanks for your order, ${customerName}!`,
     ``,
     `Order #${orderNumber}`,
-    input.pickupLabel ? `Pick-up: ${input.pickupLabel}` : "",
+    input.pickupLabel ? `${input.delivery ? "Delivery" : "Pick-up"}: ${input.pickupLabel}` : "",
+    input.delivery && input.deliveryAddress ? `Deliver to: ${input.deliveryAddress}` : "",
+    input.note ? `Your note: ${input.note}` : "",
     `Total: $${total.toFixed(2)}`,
     ``,
     `Items:`,
@@ -212,8 +219,12 @@ function receiptHtml(input: CustomerReceiptInput): string {
           <div style="background:#F0F4F8;border-radius:10px;padding:14px 16px;margin-bottom:20px">
             <div style="font-size:12px;color:#6B7C93">Order</div>
             <div style="font-size:15px;font-weight:600;color:#0F1F2D;margin-top:2px">#${escapeHtml(orderNumber)}</div>
-            ${input.pickupLabel ? `<div style="font-size:12px;color:#6B7C93;margin-top:10px">Pick-up</div>
+            ${input.pickupLabel ? `<div style="font-size:12px;color:#6B7C93;margin-top:10px">${input.delivery ? "Delivery" : "Pick-up"}</div>
             <div style="font-size:15px;font-weight:600;color:#0F1F2D;margin-top:2px">${escapeHtml(input.pickupLabel)}</div>` : ""}
+            ${input.delivery && input.deliveryAddress ? `<div style="font-size:12px;color:#6B7C93;margin-top:10px">Deliver to</div>
+            <div style="font-size:15px;font-weight:600;color:#0F1F2D;margin-top:2px">${escapeHtml(input.deliveryAddress)}</div>` : ""}
+            ${input.note ? `<div style="font-size:12px;color:#6B7C93;margin-top:10px">Your note</div>
+            <div style="font-size:14px;color:#0F1F2D;margin-top:2px">${escapeHtml(input.note)}</div>` : ""}
           </div>
 
           <table width="100%" cellpadding="0" cellspacing="0">${rows}

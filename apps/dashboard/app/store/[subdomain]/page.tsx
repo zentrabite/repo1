@@ -8,11 +8,15 @@ import { Icon } from "@/components/zb-icon";
 import { OptionPicker, missingGroup } from "@/components/option-picker";
 import { cheapestPrice, lineKey, optionsLabel, priceSelection, pricesVary, readOptions, type OptionGroup } from "@/lib/menu-options";
 import { DEFAULT_TIMEZONE, pickupPlan, shopTime, type OrderingRules } from "@/lib/pickup-times";
+import { checkDeliveryAddress } from "@/lib/own-delivery";
 
 // The ordering rules as /api/store/[subdomain] sends them.
-type OrderingInfo = { hours: OrderingRules["week"]; timezone: string; prep_minutes: number; paused: boolean; now: string };
+type DeliveryInfo = { fee: number; min_order: number; extra_minutes: number; areas: string[] };
+type OrderingInfo = { hours: OrderingRules["week"]; timezone: string; prep_minutes: number; paused: boolean; now: string; delivery?: DeliveryInfo | null };
 const rulesFrom = (o: OrderingInfo): OrderingRules =>
   ({ week: o.hours ?? null, timezone: o.timezone, prepMinutes: o.prep_minutes, paused: o.paused });
+
+const INPUT_STYLE: React.CSSProperties = { width:"100%", marginBottom:8, background:"rgba(255,255,255,.06)", border:"1px solid rgba(255,255,255,.08)", color:"#F8FAFB", borderRadius:8, padding:"10px 12px", fontSize:13, boxSizing:"border-box" };
 
 const BASE = { g:"#00AD82", st:"#8B9DB5", cl:"#F8FAFB", navy:"#0F1F2D", card:"#1C2D48", mist:"rgba(255,255,255,.08)", r:"#FF4757" };
 
@@ -53,6 +57,10 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
   // used, so a phone set to the wrong time still sees the right choices.
   const [pickup,      setPickup]      = useState<string>("asap");
   const [clockOffset, setClockOffset] = useState(0);
+  // Pick-up or delivery by the shop's own driver, the address, and a note.
+  const [fulfilment,  setFulfilment]  = useState<"pickup" | "delivery">("pickup");
+  const [address,     setAddress]     = useState({ line1: "", suburb: "", postcode: "" });
+  const [note,        setNote]        = useState("");
   const [tick,        setTick]        = useState(0);
 
   // Brand colour on buttons and prices, ZentraBite green if none is set.
@@ -140,22 +148,51 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
     [biz, clockOffset, tick],
   );
   const canOrder = Boolean(biz?.taking_orders) && plan?.state !== "paused" && plan?.state !== "closed";
+
+  // Delivery, if the shop offers it. Its times add the drive time.
+  const deliveryInfo = (biz?.ordering?.delivery as DeliveryInfo | null | undefined) ?? null;
+  const isDelivery = fulfilment === "delivery" && Boolean(deliveryInfo);
+  const timePlan = useMemo(() => {
+    if (!biz?.ordering || !isDelivery || !deliveryInfo) return plan;
+    const r = rulesFrom(biz.ordering as OrderingInfo);
+    return pickupPlan({ ...r, prepMinutes: r.prepMinutes + deliveryInfo.extra_minutes }, new Date(Date.now() + clockOffset));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plan, isDelivery, deliveryInfo]);
+
   // The picked time if it's still on offer, otherwise the first choice.
-  const slotIsos = plan && (plan.state === "open" || plan.state === "later") ? plan.slots.map(d => d.toISOString()) : [];
-  const asapOk = plan?.state === "open" || plan?.state === "anytime" || !plan;
+  const slotIsos = timePlan && (timePlan.state === "open" || timePlan.state === "later") ? timePlan.slots.map(d => d.toISOString()) : [];
+  const asapOk = timePlan?.state === "open" || timePlan?.state === "anytime" || !timePlan;
   const pickupChoice = (pickup === "asap" && asapOk) || slotIsos.includes(pickup) ? pickup : (asapOk ? "asap" : slotIsos[0] ?? "asap");
 
   const total = cart.reduce((s, c) => s + c.price * c.qty, 0);
+  const deliveryFee = isDelivery && deliveryInfo ? deliveryInfo.fee : 0;
+  const grandTotal = total + deliveryFee;
+  // Only checked once the suburb and postcode are both filled in.
+  const addressCheck = isDelivery && deliveryInfo && address.suburb.trim() && address.postcode.trim()
+    ? checkDeliveryAddress({ enabled: true, fee: deliveryInfo.fee, minOrder: deliveryInfo.min_order, extraMinutes: deliveryInfo.extra_minutes, areas: deliveryInfo.areas }, address)
+    : null;
+  // What still stops the order, in the words the Pay button shows.
+  const blocker =
+    !customer.name.trim() ? "Enter your name to continue"
+    : timePlan && (timePlan.state === "closed" || timePlan.state === "paused") ? (isDelivery ? "Delivery has finished for today" : "We're closed right now")
+    : isDelivery && deliveryInfo && total < deliveryInfo.min_order ? `Delivery needs $${deliveryInfo.min_order.toFixed(2)} or more`
+    : isDelivery && (!address.line1.trim() || !addressCheck) ? "Add your delivery address"
+    : isDelivery && addressCheck && !addressCheck.ok ? "We don't deliver there yet"
+    : isDelivery && !customer.phone.trim() ? "Add your phone number"
+    : null;
   const cartCount = cart.reduce((s, c) => s + c.qty, 0);
 
   const handleCheckout = async () => {
-    if (!customer.name.trim()) return;
+    if (blocker) return;
     setChecking(true);
     try {
       const res = await fetch("/api/store/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subdomain, items: cart.map(c => ({ id: c.id, qty: c.qty, options: c.options })), customer, pickup: pickupChoice }),
+        body: JSON.stringify({
+          subdomain, items: cart.map(c => ({ id: c.id, qty: c.qty, options: c.options })), customer, pickup: pickupChoice,
+          fulfilment: isDelivery ? "delivery" : "pickup", address: isDelivery ? address : undefined, note: note.trim() || undefined,
+        }),
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
@@ -317,16 +354,50 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
               </div>
             ))}
 
-            {/* Pick-up time */}
-            {plan && plan.state !== "paused" && plan.state !== "closed" && (
+            {/* Pick-up or delivery, when the shop delivers */}
+            {deliveryInfo && (
+              <div role="radiogroup" aria-label="Pick-up or delivery" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, paddingTop:16 }}>
+                {(["pickup", "delivery"] as const).map(f => (
+                  <button key={f} type="button" role="radio" aria-checked={fulfilment === f} onClick={() => setFulfilment(f)} style={{
+                    minHeight:44, borderRadius:10, fontWeight:700, fontSize:14, cursor:"pointer",
+                    border:`1px solid ${fulfilment === f ? C.g : C.mist}`,
+                    background: fulfilment === f ? `color-mix(in srgb, ${C.g} 15%, transparent)` : "transparent",
+                    color: fulfilment === f ? C.cl : C.st,
+                  }}>
+                    {f === "pickup" ? "Pick-up" : `Delivery${deliveryInfo.fee > 0 ? ` +$${deliveryInfo.fee.toFixed(2)}` : ""}`}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Delivery address */}
+            {isDelivery && deliveryInfo && (
+              <div style={{ padding:"16px 0 8px", borderBottom:`1px solid ${C.mist}` }}>
+                <div style={{ fontWeight:700, fontSize:15, color:C.cl, marginBottom:10 }}>Deliver to</div>
+                <input value={address.line1} onChange={e=>setAddress(a=>({...a,line1:e.target.value}))} placeholder="Street address *" autoComplete="address-line1" style={INPUT_STYLE} />
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 110px", gap:8 }}>
+                  <input value={address.suburb} onChange={e=>setAddress(a=>({...a,suburb:e.target.value}))} placeholder="Suburb *" autoComplete="address-level2" style={INPUT_STYLE} />
+                  <input value={address.postcode} onChange={e=>setAddress(a=>({...a,postcode:e.target.value.replace(/\D/g, "").slice(0, 4)}))} placeholder="Postcode *" inputMode="numeric" autoComplete="postal-code" style={INPUT_STYLE} />
+                </div>
+                {addressCheck && !addressCheck.ok && <div style={{ fontSize:12, color:"#FFC14B", marginBottom:8 }}>{addressCheck.error}</div>}
+                {deliveryInfo.min_order > 0 && total < deliveryInfo.min_order && (
+                  <div style={{ fontSize:12, color:"#FFC14B", marginBottom:8 }}>Delivery is for orders of ${deliveryInfo.min_order.toFixed(2)} or more.</div>
+                )}
+              </div>
+            )}
+
+            {/* Pick-up or delivery time */}
+            {timePlan && (
               <div style={{ padding:"16px 0", borderBottom:`1px solid ${C.mist}` }}>
-                <label htmlFor="pickup-time" style={{ display:"block", fontWeight:700, fontSize:15, color:C.cl, marginBottom:10 }}>Pick-up time</label>
-                {plan.state === "anytime" ? (
-                  <div style={{ fontSize:13, color:C.st }}>As soon as possible, about {shopTime(plan.asap, tz)}</div>
+                <label htmlFor="pickup-time" style={{ display:"block", fontWeight:700, fontSize:15, color:C.cl, marginBottom:10 }}>{isDelivery ? "Delivery time" : "Pick-up time"}</label>
+                {timePlan.state === "paused" || timePlan.state === "closed" ? (
+                  <div style={{ fontSize:13, color:"#FFC14B" }}>{isDelivery ? "Delivery has finished for today. You can still pick it up." : "We're closed for online orders right now."}</div>
+                ) : timePlan.state === "anytime" ? (
+                  <div style={{ fontSize:13, color:C.st }}>As soon as possible, about {shopTime(timePlan.asap, tz)}</div>
                 ) : (
                   <select id="pickup-time" value={pickupChoice} onChange={e => setPickup(e.target.value)} style={{ width:"100%", minHeight:44, background:"rgba(255,255,255,.06)", border:`1px solid ${C.mist}`, color:C.cl, borderRadius:8, padding:"10px 12px", fontSize:14, boxSizing:"border-box" }}>
-                    {plan.state === "open" && <option value="asap">As soon as possible, about {shopTime(plan.asap, tz)}</option>}
-                    {plan.slots.map(d => <option key={d.toISOString()} value={d.toISOString()}>Today at {shopTime(d, tz)}</option>)}
+                    {timePlan.state === "open" && <option value="asap">ASAP, about {shopTime(timePlan.asap, tz)}</option>}
+                    {timePlan.slots.map(d => <option key={d.toISOString()} value={d.toISOString()}>Today at {shopTime(d, tz)}</option>)}
                   </select>
                 )}
               </div>
@@ -335,7 +406,7 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
             <div style={{ padding:"16px 0", borderBottom:`1px solid ${C.mist}` }}>
               <div style={{ fontWeight:700, fontSize:15, color:C.cl, marginBottom:12 }}>Your details</div>
               <input value={customer.name} onChange={e=>setCustomer(c=>({...c,name:e.target.value}))} placeholder="Your name *" style={{ width:"100%", marginBottom:8, background:"rgba(255,255,255,.06)", border:`1px solid ${C.mist}`, color:C.cl, borderRadius:8, padding:"10px 12px", fontSize:13, boxSizing:"border-box" }} />
-              <input value={customer.phone} onChange={e=>setCustomer(c=>({...c,phone:e.target.value}))} placeholder="Phone number" style={{ width:"100%", marginBottom:8, background:"rgba(255,255,255,.06)", border:`1px solid ${C.mist}`, color:C.cl, borderRadius:8, padding:"10px 12px", fontSize:13, boxSizing:"border-box" }} />
+              <input type="tel" value={customer.phone} onChange={e=>setCustomer(c=>({...c,phone:e.target.value}))} placeholder={isDelivery ? "Phone number *" : "Phone number"} autoComplete="tel" style={{ width:"100%", marginBottom:8, background:"rgba(255,255,255,.06)", border:`1px solid ${C.mist}`, color:C.cl, borderRadius:8, padding:"10px 12px", fontSize:13, boxSizing:"border-box" }} />
               <input type="email" value={customer.email} onChange={e=>setCustomer(c=>({...c,email:e.target.value}))} placeholder="Email (for receipt)" style={{ width:"100%", background:"rgba(255,255,255,.06)", border:`1px solid ${C.mist}`, color:C.cl, borderRadius:8, padding:"10px 12px", fontSize:13, boxSizing:"border-box" }} />
               {/* Marketing consent. Its own unticked box, separate from the order (Spam Act). */}
               <label style={{ display:"flex", gap:10, alignItems:"flex-start", marginTop:12, fontSize:12, lineHeight:1.5, color:C.st, cursor:"pointer" }}>
@@ -347,11 +418,20 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
                 />
                 <span>Send me offers and rewards from {biz?.name ?? "this restaurant"} by text and email. Unsubscribe any time by replying STOP.</span>
               </label>
+              <textarea value={note} onChange={e=>setNote(e.target.value.slice(0, 300))} rows={2} maxLength={300}
+                aria-label="Note for the order"
+                placeholder={isDelivery ? "Note for the kitchen or driver (optional)" : "Note for the kitchen (optional)"}
+                style={{ ...INPUT_STYLE, marginTop:12, marginBottom:0, resize:"vertical", fontFamily:"inherit" }} />
             </div>
 
+            {deliveryFee > 0 && (
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", paddingTop:14, fontSize:13, color:C.st }}>
+                <span>Delivery</span><span>${deliveryFee.toFixed(2)}</span>
+              </div>
+            )}
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 0" }}>
               <span style={{ color:C.st, fontSize:13 }}>Total</span>
-              <span style={{ fontWeight:800, fontSize:20, color:C.cl }}>${total.toFixed(2)}</span>
+              <span style={{ fontWeight:800, fontSize:20, color:C.cl }}>${grandTotal.toFixed(2)}</span>
             </div>
 
             {notice && (
@@ -360,14 +440,14 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
               </div>
             )}
 
-            <button onClick={handleCheckout} disabled={checking || !customer.name.trim()} style={{
+            <button onClick={handleCheckout} disabled={checking || Boolean(blocker)} style={{
               width:"100%", padding:"15px", borderRadius:12, border:"none",
-              background: !customer.name.trim() ? "rgba(255,255,255,.08)" : C.g,
-              color: !customer.name.trim() ? C.st : C.onG,
-              fontWeight:700, fontSize:15, cursor: !customer.name.trim() ? "not-allowed" : "pointer",
+              background: blocker ? "rgba(255,255,255,.08)" : C.g,
+              color: blocker ? C.st : C.onG,
+              fontWeight:700, fontSize:15, cursor: blocker ? "not-allowed" : "pointer",
               opacity: checking ? .7 : 1,
             }}>
-              {checking ? "Opening payment…" : !customer.name.trim() ? "Enter your name to continue" : `Pay $${total.toFixed(2)} →`}
+              {checking ? "Opening payment…" : blocker ?? `Pay $${grandTotal.toFixed(2)} →`}
             </button>
           </div>
         </div>

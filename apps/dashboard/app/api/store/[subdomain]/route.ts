@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase-server";
 import { readOrderingRules } from "@/lib/pickup-times";
+import { readDeliveryRules } from "@/lib/own-delivery";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ subdomain: string }> }) {
   const { subdomain } = await params;
@@ -55,7 +56,12 @@ export async function GET(_req: Request, { params }: { params: Promise<{ subdoma
     // a phone whose clock is off.
     ordering: (() => {
       const r = readOrderingRules(settings);
-      return { hours: r.week, timezone: r.timezone, prep_minutes: r.prepMinutes, paused: r.paused, now: new Date().toISOString() };
+      const d = readDeliveryRules(settings);
+      return {
+        hours: r.week, timezone: r.timezone, prep_minutes: r.prepMinutes, paused: r.paused, now: new Date().toISOString(),
+        // Delivery by the shop's own drivers. Only what the page needs.
+        delivery: d.enabled ? { fee: d.fee, min_order: d.minOrder, extra_minutes: d.extraMinutes, areas: d.areas } : null,
+      };
     })(),
   };
 

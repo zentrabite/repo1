@@ -17,6 +17,9 @@
 //     time and pause switch (lib/pickup-times.ts). A closed or paused shop
 //     takes no orders, and the Stripe page expires after about half an hour
 //     so an old checkout can't be paid hours later.
+//   • Delivery by the shop's own drivers (lib/own-delivery.ts) only goes to
+//     the suburbs or postcodes the shop lists, over its minimum order, with
+//     its flat fee as its own line and its drive time added to the prep time.
 //   • Marketing consent is recorded only if the customer ticked the box.
 
 import { NextResponse } from "next/server";
@@ -26,12 +29,13 @@ import { trustedOrigin } from "@/lib/tenant";
 import { isShopAccount } from "@/lib/stripe-connect";
 import { lineKey, optionsLabel, priceSelection, readOptions, type ChosenOption } from "@/lib/menu-options";
 import { checkPickup, readOrderingRules } from "@/lib/pickup-times";
+import { checkDeliveryAddress, cleanNote, readDeliveryRules } from "@/lib/own-delivery";
 
 const MAX_LINES = 50;
 const MAX_QTY   = 50;
-// Stripe allows 50 metadata keys. 10 are used for the order details, so the
-// items get up to 40 chunks.
-const MAX_ITEM_CHUNKS = 40;
+// Stripe allows 50 metadata keys. Up to 13 are used for the order details,
+// so the items get up to 36 chunks.
+const MAX_ITEM_CHUNKS = 36;
 
 type RequestItem = { id: string; qty: number; options?: unknown };
 
@@ -47,11 +51,14 @@ const clip = (v: unknown, n = 200) => (typeof v === "string" ? v.slice(0, n) : "
 
 export async function POST(req: Request) {
   try {
-    const { subdomain, items, customer, pickup } = await req.json() as {
+    const { subdomain, items, customer, pickup, fulfilment, address, note } = await req.json() as {
       subdomain: string;
       items: RequestItem[];
       customer: { name?: string; phone?: string; email?: string; marketingOptIn?: boolean };
-      pickup?: unknown; // "asap" or the ISO time of an offered slot
+      pickup?: unknown;     // "asap" or the ISO time of an offered slot
+      fulfilment?: unknown; // "pickup" (the default) or "delivery"
+      address?: unknown;    // { line1, suburb, postcode } for delivery
+      note?: unknown;       // for the kitchen or the driver
     };
 
     if (!subdomain || !Array.isArray(items) || items.length === 0) {
@@ -106,8 +113,25 @@ export async function POST(req: Request) {
       );
     }
 
-    // Opening hours, prep time and the pause switch.
-    const when = checkPickup(readOrderingRules(business.settings), pickup);
+    // Delivery by the shop's own drivers, if it offers it.
+    const delivery = readDeliveryRules(business.settings);
+    const isDelivery = fulfilment === "delivery";
+    let deliveryAddress: string | null = null;
+    if (isDelivery) {
+      if (!delivery.enabled) {
+        return NextResponse.json({ error: "Delivery isn't available right now. You can still pick it up." }, { status: 409 });
+      }
+      const checked = checkDeliveryAddress(delivery, address);
+      if (!checked.ok) return NextResponse.json({ error: checked.error }, { status: 409 });
+      if (!clip(customer?.phone, 40).trim()) {
+        return NextResponse.json({ error: "Please add your phone number so the driver can reach you." }, { status: 400 });
+      }
+      deliveryAddress = checked.text;
+    }
+
+    // Opening hours, prep time and the pause switch. Delivery adds the drive time.
+    const rules = readOrderingRules(business.settings);
+    const when = checkPickup(isDelivery ? { ...rules, prepMinutes: rules.prepMinutes + delivery.extraMinutes } : rules, pickup);
     if (!when.ok) return NextResponse.json({ error: when.error }, { status: 409 });
 
     // Real names, prices and options from this restaurant's menu.
@@ -136,6 +160,15 @@ export async function POST(req: Request) {
       else lines.set(key, { id: it.id, name: m.name as string, unitPrice: priced.unitPrice, qty, chosen: priced.chosen, choiceIds: priced.choiceIds });
     }
 
+    const subtotalCents = [...lines.values()].reduce((s, l) => s + Math.round(l.unitPrice * 100) * l.qty, 0);
+    if (isDelivery && subtotalCents < Math.round(delivery.minOrder * 100)) {
+      return NextResponse.json(
+        { error: `Delivery needs an order of at least $${delivery.minOrder.toFixed(2)} before the delivery fee.` },
+        { status: 409 },
+      );
+    }
+    const orderNote = cleanNote(note);
+
     // Customers come back to the host they ordered on (their name.zentrabite.com
     // or the CRM's /store page). Only our own hosts are trusted.
     const origin = trustedOrigin(req.headers.get("origin"), process.env.NEXT_PUBLIC_APP_URL ?? "https://dashboard.zentrabite.com");
@@ -163,7 +196,10 @@ export async function POST(req: Request) {
           unit_amount: Math.round(l.unitPrice * 100),
         },
         quantity: l.qty,
-      })),
+      })).concat(isDelivery && delivery.fee > 0 ? [{
+        price_data: { currency: "aud", product_data: { name: "Delivery" }, unit_amount: Math.round(delivery.fee * 100) },
+        quantity: 1,
+      }] : []),
       mode: "payment",
       // Stripe's shortest allowed. A checkout left open can't be paid after
       // the pick-up time has gone or the shop has closed.
@@ -184,6 +220,9 @@ export async function POST(req: Request) {
         source:           "storefront",
         pickup_at:        when.pickupAt.toISOString(),
         pickup_asap:      when.asap ? "1" : "0",
+        fulfillment_type: isDelivery ? "delivery" : "pickup",
+        ...(deliveryAddress ? { delivery_address: deliveryAddress, delivery_fee: delivery.fee.toFixed(2) } : {}),
+        ...(orderNote ? { note: orderNote } : {}),
         ...itemChunks,
       },
     }, { stripeAccount: connectedAccount });

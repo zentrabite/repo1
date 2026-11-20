@@ -42,6 +42,8 @@ Everything talks to Supabase through the browser client (`lib/supabase.ts`) with
 
 **Pick-up times and pausing, since migration 019.** Online orders carry `pickup_at` (when the customer collects) and `pickup_asap` (they chose "as soon as possible"). The board has a Pick-up column, for example "ASAP 6:25pm" or "6:45pm". The "Pause online orders" button sets `settings.ordering.paused`. While paused the ordering page shows the menu but takes no orders, and checkout refuses them too.
 
+**Notes and delivery by the shop's own drivers, since migration 020.** Orders carry `notes`, the customer's note for the kitchen or driver, or one typed on the POS. The board shows a Note tag and the full note in the order. A delivery order has `fulfillment_type = 'delivery'`, the address in `ship_to.address` and the fee in `delivery_fee`, and "When" is the delivery time.
+
 **To finalise.**
 - Enable realtime on the `orders` table (Supabase → Database → Replication).
 - Make sure checkout/POS writes `business_id`, `status`, `source`, `total` correctly.
@@ -224,6 +226,8 @@ The **evaluator job is not included** — you need to build a scheduled Supabase
 **How it works.** Persists to `businesses.settings` (JSONB) and first-class columns. `stripeConnected` from `business.stripe_account_id`. Subscription status from `business.settings.subscription_status`. Hours saved to `business.settings.hours` keyed by weekday. Settings saves go through `saveSettings()` in `lib/queries.ts`, which reads the saved settings first, so one section can't wipe another.
 
 **Online ordering.** The Online ordering card saves `settings.ordering.prep_minutes` (20 by default), `settings.ordering.paused` and `settings.timezone` (the time zone the hours are in, Adelaide by default). `lib/pickup-times.ts` turns these and the hours into what the ordering page offers: "as soon as possible" (now plus prep time) or a later time today on the quarter hour, up to closing. A close at or before the open time runs past midnight. Closed now but open later today means order ahead only. Closed for the day or paused means no orders, with when it opens next. With no hours saved it works as before, as soon as possible only. Checkout checks the choice again with the same code, and the Stripe page expires after about 31 minutes.
+
+**Delivery with your own drivers.** Also on the Online ordering card, saved to `settings.ordering.delivery` (`enabled`, `fee`, `min_order`, `extra_minutes`, `areas`). `lib/own-delivery.ts` reads it. Delivery stays off until at least one suburb or postcode is listed. The customer picks Pick-up or Delivery, gives a street, suburb and postcode in a listed area, and a phone number. The fee is its own Stripe line, the minimum is checked before the fee, and the drive time is added to the prep time for the time choices. This is the shop's own drivers only. Couriers are the Delivery page and aren't booked yet.
 
 **To finalise.**
 - Start Stripe Connect onboarding via the "Connect Stripe" button (`/api/stripe/connect/start`). The webhook in `app/api/stripe/webhook/route.ts` updates `stripe_account_id`.

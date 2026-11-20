@@ -13,6 +13,7 @@ import { DEFAULT_ROLE_PERMISSIONS, NAV_HREFS } from "@/lib/permissions";
 import { orderUrl } from "@/lib/tenant";
 import { saveSettings } from "@/lib/queries";
 import { DEFAULT_PREP_MINUTES, DEFAULT_TIMEZONE, readOrderingRules } from "@/lib/pickup-times";
+import { DEFAULT_DELIVERY_MINUTES, parseAreas, readDeliveryRules } from "@/lib/own-delivery";
 
 const TIMEZONES = ["Australia/Adelaide", "Australia/Darwin", "Australia/Brisbane", "Australia/Sydney", "Australia/Melbourne", "Australia/Hobart", "Australia/Perth", "Pacific/Auckland"];
 const PREP_CHOICES = [10, 15, 20, 25, 30, 40, 45, 60, 90];
@@ -133,7 +134,8 @@ function SettingsContent() {
         notify_phone: (settings.notify_phone as string | undefined) ?? "",
       });
       setLogoUrl((business as any).logo_url ?? null);
-      const ds = ((settings as any).delivery_settings ?? {}) as Record<string, any>;
+      // The delivery_settings column (older saves put a copy in settings).
+      const ds = ((business as { delivery_settings?: Record<string, unknown> | null }).delivery_settings ?? (settings as any).delivery_settings ?? {}) as Record<string, any>;
       if (Object.keys(ds).length) setDeliverySettings(prev => ({ ...prev, ...ds }));
     }
   }, [business]);
@@ -171,6 +173,8 @@ function SettingsContent() {
 
   // Online ordering: prep time, time zone and the pause switch.
   const [ordering, setOrdering] = useState({ prep_minutes: DEFAULT_PREP_MINUTES, paused: false, timezone: DEFAULT_TIMEZONE });
+  // Delivery by the shop's own drivers (lib/own-delivery.ts).
+  const [ownDelivery, setOwnDelivery] = useState({ enabled: false, fee: "", min_order: "", extra_minutes: DEFAULT_DELIVERY_MINUTES, areas: "" });
 
   // Role permissions — owner decides what Manager/Staff/POS can see in the nav.
   const [rolePerms, setRolePerms] = useState<Record<string, string[]>>(DEFAULT_ROLE_PERMISSIONS);
@@ -203,6 +207,13 @@ function SettingsContent() {
     {
       const r = readOrderingRules(settings);
       setOrdering({ prep_minutes: r.prepMinutes, paused: r.paused, timezone: r.timezone });
+      const d = readDeliveryRules(settings);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const savedOn = (settings as any).ordering?.delivery?.enabled === true;
+      setOwnDelivery({
+        enabled: savedOn, fee: d.fee ? d.fee.toFixed(2) : "", min_order: d.minOrder ? d.minOrder.toFixed(2) : "",
+        extra_minutes: d.extraMinutes, areas: d.areas.join(", "),
+      });
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rp = (settings as any).role_permissions;
@@ -564,12 +575,52 @@ function SettingsContent() {
               <input type="checkbox" checked={ordering.paused} onChange={e => setOrdering(o => ({ ...o, paused: e.target.checked }))} style={{ width:16, height:16 }} />
               Pause online orders (you can also do this on the Orders page)
             </label>
+
+            {/* Delivery by the shop's own drivers */}
+            <label style={{ display:"flex", alignItems:"center", gap:10, fontSize:13, color:C.cl, margin:"4px 0 10px", cursor:"pointer", minHeight:32 }}>
+              <input type="checkbox" checked={ownDelivery.enabled} onChange={e => setOwnDelivery(d => ({ ...d, enabled: e.target.checked }))} style={{ width:16, height:16 }} />
+              Offer delivery with your own drivers
+            </label>
+            {ownDelivery.enabled && (
+              <div style={{ background:"rgba(255,255,255,.03)", borderRadius:10, padding:"12px 12px 2px", marginBottom:14 }}>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
+                  <Field label="Delivery fee ($)">
+                    <input type="number" inputMode="decimal" min="0" step="0.5" value={ownDelivery.fee} onChange={e => setOwnDelivery(d => ({ ...d, fee: e.target.value }))} placeholder="0.00" />
+                  </Field>
+                  <Field label="Minimum order ($)">
+                    <input type="number" inputMode="decimal" min="0" step="1" value={ownDelivery.min_order} onChange={e => setOwnDelivery(d => ({ ...d, min_order: e.target.value }))} placeholder="0.00" />
+                  </Field>
+                </div>
+                <Field label="Drive time added to prep time">
+                  <select value={ownDelivery.extra_minutes} onChange={e => setOwnDelivery(d => ({ ...d, extra_minutes: Number(e.target.value) }))}>
+                    {[10, 15, 20, 25, 30, 40, 45, 60].map(m => <option key={m} value={m}>{m} minutes</option>)}
+                  </select>
+                </Field>
+                <Field label="Suburbs or postcodes you deliver to">
+                  <textarea value={ownDelivery.areas} onChange={e => setOwnDelivery(d => ({ ...d, areas: e.target.value }))} rows={3}
+                    placeholder="Norwood, Kent Town, 5067" style={{ resize:"vertical", fontFamily:"inherit" }} />
+                </Field>
+              </div>
+            )}
+
             <button className="bp" style={{ width:"100%", justifyContent:"center" }} onClick={async () => {
               if (!businessId) return;
+              const areas = parseAreas(ownDelivery.areas);
+              if (ownDelivery.enabled && areas.length === 0) return show("Add the suburbs or postcodes you deliver to");
               try {
                 await saveSettings(businessId, {
                   timezone: ordering.timezone,
-                  ordering: { prep_minutes: ordering.prep_minutes, paused: ordering.paused },
+                  ordering: {
+                    prep_minutes: ordering.prep_minutes,
+                    paused: ordering.paused,
+                    delivery: {
+                      enabled: ownDelivery.enabled,
+                      fee: Math.max(0, Number(ownDelivery.fee) || 0),
+                      min_order: Math.max(0, Number(ownDelivery.min_order) || 0),
+                      extra_minutes: ownDelivery.extra_minutes,
+                      areas,
+                    },
+                  },
                 });
                 show(ordering.paused ? "Saved. Online orders are paused" : "Online ordering saved ✓");
               } catch { show("Couldn't save online ordering"); }

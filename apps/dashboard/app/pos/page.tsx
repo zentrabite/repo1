@@ -37,6 +37,7 @@ export default function POSPage() {
   const [menu,       setMenu]       = useState<any[]>([]);
   const [cart,       setCart]       = useState<CartItem[]>([]);
   const [customer,   setCustomer]   = useState({ name:"", phone:"" });
+  const [orderNote,  setOrderNote]  = useState("");
   const [payMethod,  setPayMethod]  = useState<PayMethod>("cash");
   const [submitting, setSubmitting] = useState(false);
   const [loading,    setLoading]    = useState(true);
@@ -174,6 +175,7 @@ export default function POSPage() {
         status:           "paid",
         source:           "pos",
         fulfillment_type: mode,
+        ...(orderNote.trim() ? { notes: orderNote.trim().slice(0, 300) } : {}),
       };
 
       if (mode === "delivery") {
@@ -192,6 +194,7 @@ export default function POSPage() {
 
       setCart([]);
       setCustomer({ name:"", phone:"" });
+      setOrderNote("");
       setDelivAddress("");
       setFeeBreakdown(null);
       const modeLabel = mode === "dine_in" ? "dine-in" : mode === "takeaway" ? "takeaway" : "delivery";
@@ -420,6 +423,7 @@ export default function POSPage() {
             <input value={customer.name}  onChange={e => setCustomer(c=>({...c, name:e.target.value}))}  placeholder="Name"  style={{ flex:1, fontSize:12, padding:"7px 10px" }} />
             <input value={customer.phone} onChange={e => setCustomer(c=>({...c, phone:e.target.value}))} placeholder="Phone" style={{ flex:1, fontSize:12, padding:"7px 10px" }} />
           </div>
+          <input value={orderNote} onChange={e => setOrderNote(e.target.value.slice(0, 300))} placeholder="Note for the kitchen (optional)" aria-label="Note for the kitchen" style={{ width:"100%", fontSize:12, padding:"7px 10px", marginTop:8 }} />
         </div>
 
         {/* Payment method */}
