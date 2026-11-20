@@ -28,13 +28,20 @@
 // in as the owner. Staff send the invite during setup. A seller can create
 // SELLER_SHOPS_PER_DAY shops a day.
 //
-// Returns: { businessId, inviteLink?: string }
+// Every new shop gets the owner's Stripe setup link (lib/stripe-setup-link.ts),
+// emailed to the owner so Stripe's ID and bank steps can be done before setup
+// day. Staff get the link back to send themselves until Resend sends emails.
+// A seller never does, because whoever finishes Stripe's setup picks the bank
+// account the shop's money goes to.
+//
+// Returns: { businessId, inviteLink?: string, stripeLink?: string, stripeLinkEmailed: boolean }
 
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import { assertSellerOrAdmin, dayAgo, SELLER_SHOPS_PER_DAY } from "@/lib/seller-auth";
 import { checkAbn } from "@/lib/abn";
 import { RESERVED_SUBDOMAINS } from "@/lib/tenant";
+import { emailSetupLink, newSetupLink } from "@/lib/stripe-setup-link";
 import { sendEmail } from "@/lib/email";
 import { toStoredImport } from "@/lib/import/store";
 
@@ -257,11 +264,26 @@ export async function POST(req: Request) {
     }
   }
 
+  // The owner's Stripe link. A failure here doesn't undo the sale: staff can
+  // make a new link from the wizard's Payments step.
+  let stripeLink: string | null = null;
+  let stripeLinkEmailed = false;
+  try {
+    const link = await newSetupLink(db, biz.id, user.id);
+    stripeLink = link.url;
+    stripeLinkEmailed = await emailSetupLink(ownerEmail, ownerName, biz.name ?? name.trim(), link.url);
+  } catch (err) {
+    console.error("[onboarding] Stripe link:", err instanceof Error ? err.message : err);
+  }
+
   return NextResponse.json({
     success:    true,
     businessId: biz.id,
     subdomain:  biz.subdomain,
     inviteLink,
+    // Staff only. A seller never gets the link.
+    stripeLink: who.isSuperAdmin ? stripeLink : null,
+    stripeLinkEmailed,
   });
 }
 

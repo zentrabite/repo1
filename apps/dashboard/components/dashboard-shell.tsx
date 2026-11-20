@@ -16,7 +16,7 @@ const AUTH_ROUTES = ["/login", "/signup", "/auth", "/forgot-password", "/reset-p
 // the route is /site/... or /store/...
 // "/_not-found" is Next's segment for the 404 page (app/not-found.tsx). It
 // picks its own look and must never show the CRM menu on a restaurant address.
-const PUBLIC_SEGMENTS = new Set(["site", "store", "unsubscribe", "/_not-found"]);
+const PUBLIC_SEGMENTS = new Set(["site", "store", "unsubscribe", "stripe-setup", "/_not-found"]);
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname   = usePathname();

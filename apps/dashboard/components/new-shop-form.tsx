@@ -154,7 +154,9 @@ export default function NewShopForm({ mode }: { mode: "staff" | "seller" }) {
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? "Create failed"); return; }
-      router.push(seller ? `/sell?added=${encodeURIComponent(name.trim())}` : `/admin/onboarding/${data.businessId}`);
+      router.push(seller
+        ? `/sell?added=${encodeURIComponent(name.trim())}&stripe=${data.stripeLinkEmailed ? "emailed" : "later"}`
+        : `/admin/onboarding/${data.businessId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Network error");
     } finally {

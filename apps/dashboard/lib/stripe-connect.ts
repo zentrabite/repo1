@@ -67,18 +67,64 @@ export async function isShopAccount(accountId: string): Promise<boolean> {
   }
 }
 
-/** A Stripe-hosted page where the shop owner finishes setting up payments. */
-export async function onboardingLink(accountId: string, origin: string): Promise<string> {
+/**
+ * A Stripe-hosted page where the shop owner finishes setting up payments.
+ * Stripe's links only last a few minutes. refresh_url is where Stripe sends
+ * someone whose link has run out, and return_url where it sends them after.
+ * Both default to Settings, for an owner who's logged in.
+ */
+export async function onboardingLink(
+  accountId: string,
+  origin: string,
+  back: { refresh: string; return: string } = { refresh: "/settings?stripe=refresh", return: "/settings?stripe=success" },
+): Promise<string> {
   const link = await stripe.v2.core.accountLinks.create({
     account: accountId,
     use_case: {
       type: "account_onboarding",
       account_onboarding: {
         configurations: ["merchant"],
-        refresh_url: `${origin}/settings?stripe=refresh`,
-        return_url:  `${origin}/settings?stripe=success`,
+        refresh_url: `${origin}${back.refresh}`,
+        return_url:  `${origin}${back.return}`,
       },
     },
   });
   return link.url;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Db = { from: (table: string) => any };
+
+/**
+ * The shop's Stripe account, made now if it has no usable one. An old v1
+ * Express account is replaced. A new account is saved straight away, so a
+ * second click reuses it, with the flags off until the account.updated
+ * webhook turns them on.
+ */
+export async function ensureShopAccount(db: Db, businessId: string): Promise<string> {
+  const { data: biz } = await db.from("businesses")
+    .select("name, stripe_account_id, contact_email, settings")
+    .eq("id", businessId)
+    .single();
+
+  let accountId: string | null = biz?.stripe_account_id ?? null;
+  if (accountId && !(await isShopAccount(accountId))) {
+    console.log(`[stripe-connect] ${businessId} has an old-style account, making a new one`);
+    accountId = null;
+  }
+  if (accountId) return accountId;
+
+  const settings = (biz?.settings ?? {}) as { notify_email?: unknown; onboarding?: { owner_email?: unknown } };
+  const pick = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
+  const email = pick(settings.notify_email) ?? pick(biz?.contact_email) ?? pick(settings.onboarding?.owner_email);
+  accountId = await createShopAccount({ businessId, name: biz?.name ?? null, email });
+
+  const { error } = await db.from("businesses").update({
+    stripe_account_id:        accountId,
+    stripe_charges_enabled:   false,
+    stripe_payouts_enabled:   false,
+    stripe_details_submitted: false,
+  }).eq("id", businessId);
+  if (error) throw new Error(`saving the Stripe account failed: ${error.message}`);
+  return accountId;
 }
