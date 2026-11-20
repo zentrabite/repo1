@@ -45,7 +45,7 @@ import { assertSellerOrAdmin, dayAgo, SELLER_SHOPS_PER_DAY } from "@/lib/seller-
 import { checkAbn } from "@/lib/abn";
 import { RESERVED_SUBDOMAINS } from "@/lib/tenant";
 import { emailSetupLink, newSetupLink } from "@/lib/stripe-setup-link";
-import { sendEmail } from "@/lib/email";
+import { inviteOwner } from "@/lib/owner-invite";
 import { toStoredImport, withUploadedMenu } from "@/lib/import/store";
 
 export const runtime = "nodejs";
@@ -198,76 +198,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: who.isSuperAdmin ? error?.message ?? "Insert failed" : "Couldn't add the shop. Try again." }, { status: 500 });
   }
 
-  // Best-effort owner invite — don't fail the whole op if email send fails.
+  // Best-effort owner invite (lib/owner-invite.ts). A failure doesn't undo the
+  // shop: staff can send the login from the wizard's go-live check.
   let inviteLink: string | null = null;
   if (sendInvite) {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://dashboard.zentrabite.com";
-    let authUserId: string | null = null;
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: linkData } = await (db.auth as any).admin.generateLink({
-        type:    "invite",
-        email:   ownerEmail.trim(),
-        options: { redirectTo: `${appUrl}/login` },
-      });
-      inviteLink = linkData?.properties?.action_link ?? null;
-      authUserId = linkData?.user?.id ?? null;
-    } catch (err) {
-      console.warn("[onboarding] generateLink failed:", err);
-    }
-
-    // Backfill the public.users row (the auth trigger only captures id+email)
-    // so that the About page shows the rep's entered name + phone immediately.
-    if (authUserId) {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (db.from("users") as any).update({
-          business_id: biz.id,
-          name:        ownerName?.trim()  || null,
-          phone:       ownerPhone?.trim() || null,
-          role:        "owner",
-        }).eq("id", authUserId);
-      } catch (err) {
-        console.warn("[onboarding] update users row failed:", err);
-      }
-    }
-
-    const actionLink = inviteLink ?? `${appUrl}/login`;
-    const subject = `Your ZentraBite dashboard is ready — ${biz.name}`;
-    const text = [
-      `Hi ${ownerName ?? "there"},`,
-      ``,
-      `A ZentraBite rep just set up ${biz.name} for you.`,
-      `Click the link below to set your password and log in.`,
-      ``,
-      actionLink,
-      ``,
-      `— ZentraBite`,
-    ].join("\n");
-
-    // Reuse the same template style as team invites for consistency.
-    const html = welcomeHtml({
-      businessName: biz.name,
-      ownerName:    ownerName ?? "there",
-      actionLink,
+    const invite = await inviteOwner(db as never, {
+      businessId: biz.id, businessName: biz.name, email: ownerEmail,
+      name: ownerName, phone: ownerPhone, invitedBy: user.id,
     });
-
-    await sendEmail({ to: ownerEmail.trim(), subject, text, html });
-
-    // Also record the owner in business_members so the Team section of
-    // Settings shows them once they sign in.
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (db.from("business_members") as any).upsert({
-        business_id: biz.id,
-        email:       ownerEmail.trim(),
-        role:        "Owner",
-        invited_by:  user.id,
-        status:      "invited",
-      }, { onConflict: "business_id,email" });
-    } catch {
-      /* table might not exist yet — migration is idempotent */
-    }
+    if (invite.ok) inviteLink = invite.link;
+    else console.warn("[onboarding] owner invite failed:", invite.error);
   }
 
   // The owner's Stripe link. A failure here doesn't undo the sale: staff can
@@ -291,37 +231,4 @@ export async function POST(req: Request) {
     stripeLink: who.isSuperAdmin ? stripeLink : null,
     stripeLinkEmailed,
   });
-}
-
-// ─── Template ───────────────────────────────────────────────────────────────
-
-function welcomeHtml(input: { businessName: string; ownerName: string; actionLink: string }): string {
-  const { businessName, ownerName, actionLink } = input;
-  return `<!doctype html>
-<html><body style="margin:0;padding:0;background:#F8FAFB;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F8FAFB;padding:24px 0">
-    <tr><td align="center">
-      <table width="520" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:14px;padding:32px 28px;box-shadow:0 1px 4px rgba(15,31,45,.06)">
-        <tr><td>
-          <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#6B7C93;font-weight:600">ZentraBite</div>
-          <h1 style="margin:4px 0 16px;font-size:22px;color:#0F1F2D;font-weight:600">Welcome, ${escapeHtml(ownerName)}</h1>
-          <p style="font-size:15px;line-height:1.6;color:#0F1F2D;margin:0 0 18px">
-            Your dashboard for <strong>${escapeHtml(businessName)}</strong> is set up and ready. Click below to set a password and log in.
-          </p>
-          <div style="text-align:center;margin:24px 0 18px">
-            <a href="${escapeHtml(actionLink)}" style="display:inline-block;padding:13px 26px;background:#00AD82;color:#fff;text-decoration:none;border-radius:10px;font-weight:600;font-size:14px">Set password & log in →</a>
-          </div>
-          <p style="font-size:13px;color:#6B7C93;margin:0;line-height:1.6">
-            Link not working? Paste it into your browser:<br>
-            <a href="${escapeHtml(actionLink)}" style="color:#00AD82;word-break:break-all">${escapeHtml(actionLink)}</a>
-          </p>
-        </td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body></html>`;
-}
-
-function escapeHtml(s: string): string {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }

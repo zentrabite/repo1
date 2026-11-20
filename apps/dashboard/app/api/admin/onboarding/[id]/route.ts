@@ -16,11 +16,15 @@
 //
 // Returns: { business }
 //
+// Publishing the website (settings.site.published turning true) only happens
+// when the go-live check passes (lib/go-live.ts). Otherwise 409 with the checks.
+//
 // GET /api/admin/onboarding/[id] — fetch the in-progress business (for resume).
 
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import { assertSuperAdmin } from "@/lib/admin-auth";
+import { readGoLive } from "@/lib/go-live";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -76,6 +80,17 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const { data: current } = await db.from("businesses").select("settings").eq("id", id).single();
     const existing = (current?.settings ?? {}) as Record<string, unknown>;
     update.settings = deepMerge(existing, body.settings);
+
+    // Nothing goes live with a gap.
+    const wasLive = (existing.site as { published?: unknown } | undefined)?.published === true;
+    if (!wasLive && body.settings.site?.published === true) {
+      const live = await readGoLive(db as never, id);
+      if (!live) return NextResponse.json({ error: "Not found" }, { status: 404 });
+      if (!live.ready) {
+        const gaps = live.checks.filter(c => !c.ok).map(c => c.label);
+        return NextResponse.json({ error: `Not ready to go live. Still to do: ${gaps.join(", ")}.`, checks: live.checks }, { status: 409 });
+      }
+    }
   }
 
   if (Object.keys(update).length === 0) {
