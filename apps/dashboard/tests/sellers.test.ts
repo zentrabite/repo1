@@ -35,6 +35,7 @@ import { DELETE as removeSeller } from "@/app/api/admin/sellers/[id]/route";
 import { runImport } from "@/lib/import/run";
 import { checkAbn } from "@/lib/abn";
 import { SELLER_IMPORTS_PER_DAY, SELLER_SHOPS_PER_DAY } from "@/lib/seller-auth";
+import { sendEmail } from "@/lib/email";
 
 const SELLER = { userId: "seller-1", email: "sam@example.com", isSuperAdmin: false, isSeller: true };
 const STAFF  = { userId: "staff-1", email: "deon@example.com", isSuperAdmin: true, isSeller: false };
@@ -102,7 +103,13 @@ describe("creating a shop", () => {
     h.db = shopDb();
     const res = await createShop(sale());
     expect(res.status).toBe(200);
-    expect((await res.json()).inviteLink).toBeNull();
+    const body = await res.json();
+    expect(body.inviteLink).toBeNull();
+    // The owner's Stripe link is made and emailed to the owner, never given to the seller.
+    expect(calls("stripe_setup_links", "upsert")).toHaveLength(1);
+    expect(body.stripeLink).toBeNull();
+    expect(body.stripeLinkEmailed).toBe(false);
+    expect(vi.mocked(sendEmail).mock.calls.some(([m]) => (m as { to: string; subject: string }).to === "joe@example.com" && /payments/.test((m as { subject: string }).subject))).toBe(true);
     const [ins] = calls("businesses", "insert");
     expect(ins!.payload).toMatchObject({ sold_by: "seller-1", abn: "51 824 753 556", subdomain: "joes-pizza" });
     expect(typeof (ins!.payload as { sold_at: unknown }).sold_at).toBe("string");
@@ -115,7 +122,9 @@ describe("creating a shop", () => {
     h.db = shopDb();
     h.generateLink.mockResolvedValue({ data: { properties: { action_link: "https://link" }, user: { id: "owner-1" } } });
     const res = await createShop(sale());
-    expect((await res.json()).inviteLink).toBe("https://link");
+    const body = await res.json();
+    expect(body.inviteLink).toBe("https://link");
+    expect(body.stripeLink).toMatch(/\/stripe-setup\/[A-Za-z0-9_-]{43}$/);
     expect(calls("businesses", "insert")[0]!.payload).toMatchObject({ sold_by: "staff-1" });
   });
 

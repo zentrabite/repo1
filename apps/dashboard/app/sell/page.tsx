@@ -27,7 +27,9 @@ function Sales() {
   const [shops, setShops] = useState<Shop[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   // The shop just sent to the team, from the handover form.
-  const added = useSearchParams().get("added");
+  const search = useSearchParams();
+  const added = search.get("added");
+  const stripeEmailed = search.get("stripe") === "emailed";
 
   useEffect(() => {
     if (loading || !allowed) return;
@@ -66,6 +68,9 @@ function Sales() {
       {added && (
         <div role="status" style={{ background: "rgba(0,173,130,.1)", border: "1px solid rgba(0,173,130,.3)", borderRadius: 10, padding: "12px 14px", marginBottom: 16, color: C.cl, fontSize: 14, lineHeight: 1.5 }}>
           {`${added} is with the team. They'll set it up and send the owner their login.`}
+          {stripeEmailed
+            ? " The owner has been emailed a link to set up payments with Stripe. Ask them to do it soon, so the shop can take orders on day one."
+            : " The team will send the owner their link to set up payments with Stripe."}
         </div>
       )}
 

@@ -685,6 +685,30 @@ function StepPayments({ biz, save, show }: { biz: Biz; save: SaveFn; show: (m: s
   const live = biz.stripe_charges_enabled && biz.stripe_payouts_enabled;
   const started = Boolean(biz.stripe_account_id);
 
+  // The owner's Stripe link (lib/stripe-setup-link.ts). Made when the shop was
+  // sold and emailed to the owner. Staff can make a new one here.
+  type LinkInfo = { created_at: string; expires_at: string; opened_at: string | null };
+  const [linkInfo, setLinkInfo] = useState<LinkInfo | null>(null);
+  const [newLink, setNewLink] = useState<{ url: string; emailed: boolean; to: string | null } | null>(null);
+  const [making, setMaking] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/admin/onboarding/${biz.id}/stripe-link`).then(r => r.json()).then(d => { if (!cancelled) setLinkInfo(d.link ?? null); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [biz.id, newLink]);
+
+  async function makeLink() {
+    setMaking(true);
+    try {
+      const res = await fetch(`/api/admin/onboarding/${biz.id}/stripe-link`, { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { show(data.error ?? "Couldn't make the link"); return; }
+      setNewLink({ url: data.url, emailed: Boolean(data.emailed), to: data.to ?? null });
+    } finally { setMaking(false); }
+  }
+  const day = (iso: string) => new Date(iso).toLocaleDateString("en-AU", { day: "numeric", month: "short" });
+  const linkLive = linkInfo && Date.parse(linkInfo.expires_at) > Date.now();
+
   async function startStripe() {
     setConnecting(true);
     try {
@@ -720,8 +744,35 @@ function StepPayments({ biz, save, show }: { biz: Biz; save: SaveFn; show: (m: s
             </span>
           </div>
         </div>
-        <button onClick={startStripe} disabled={connecting} style={{ marginTop: 12, ...ghostBtn }}>
-          {connecting ? "Opening Stripe…" : started ? "Resume onboarding in Stripe ↗" : "Start Stripe onboarding ↗"}
+        {!live && (
+          <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px solid ${C.mist}` }}>
+            <div style={{ fontWeight: 600, color: C.cl, fontSize: 13 }}>The owner&apos;s Stripe link</div>
+            <p style={{ fontSize: 12, color: C.st, margin: "4px 0 10px", lineHeight: 1.6 }}>
+              The owner sets up payments themselves, with their ABN, ID and bank details. Whoever does this picks where the money goes, so only send it to the owner.{" "}
+              {linkInfo
+                ? linkLive
+                  ? `Their link was made ${day(linkInfo.created_at)} and works until ${day(linkInfo.expires_at)}. ${linkInfo.opened_at ? `They opened it ${day(linkInfo.opened_at)}.` : "They haven't opened it yet."}`
+                  : `Their last link ran out ${day(linkInfo.expires_at)}.`
+                : "No link yet."}
+            </p>
+            <button onClick={makeLink} disabled={making} style={ghostBtn}>
+              {making ? "Making…" : linkInfo ? "Make a new link" : "Make the owner's link"}
+            </button>
+            {newLink && (
+              <div role="status" style={{ marginTop: 10, fontSize: 12, color: C.cl, lineHeight: 1.6 }}>
+                {newLink.emailed
+                  ? `Emailed to ${newLink.to}. The old link has stopped working.`
+                  : `Emails don't send yet, so send this to the owner yourself${newLink.to ? ` (${newLink.to})` : ""}. The old link has stopped working.`}
+                <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+                  <input readOnly value={newLink.url} onFocus={e => e.currentTarget.select()} aria-label="Owner's Stripe link" style={{ fontSize: 12 }} />
+                  <button type="button" style={ghostBtn} onClick={() => { void navigator.clipboard?.writeText(newLink.url); show("Link copied"); }}>Copy</button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+        <button onClick={startStripe} disabled={connecting} style={{ marginTop: 12, ...ghostBtn, background: "transparent", border: "none", padding: "6px 0", color: C.st, fontSize: 12 }}>
+          {connecting ? "Opening Stripe…" : "Or open Stripe here, with the owner beside you ↗"}
         </button>
       </div>
 

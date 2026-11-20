@@ -9,7 +9,7 @@ Use it to look at a page after a change, at desktop and phone widths, before ope
 | File | What it does |
 |---|---|
 | `server.mjs` | The fake Supabase on port 54321. Answers the logged-in user and table reads from `fixtures.json`. Every write is logged to `writes.log`, so you can check what a Save button sent, and nothing is stored |
-| `fixtures.json` | The sample data. One owner (also a super admin, so the onboarding wizard opens), one seller (Sam Lee) with two shops sold, one shop with split hours and own-driver delivery, one menu item, and six orders in different states (new, delivered, refunded, part refunded, refund failed, a counter sale) |
+| `fixtures.json` | The sample data. One owner (also a super admin, so the onboarding wizard opens), one seller (Sam Lee) with two shops sold, two owner Stripe links (see `_notes` in the file), one shop with split hours and own-driver delivery, one menu item, and six orders in different states (new, delivered, refunded, part refunded, refund failed, a counter sale) |
 | `login.mjs` | `open(path, viewport, as)` opens a logged-in page in Playwright and returns `{ browser, page, errors }`. `as` is `"owner"` (the default) or `"seller"` |
 
 ## Run it

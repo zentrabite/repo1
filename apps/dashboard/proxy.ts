@@ -9,7 +9,8 @@ import { tenantFromHost } from "@/lib/tenant";
 
 // /site is each restaurant's public website (also served at name.zentrabite.com).
 // /unsubscribe is where the link in a marketing email lands.
-const PUBLIC_PATHS = ["/login", "/signup", "/auth", "/forgot-password", "/reset-password", "/store", "/site", "/unsubscribe"];
+// /stripe-setup is the owner's Stripe link, checked by its code (lib/stripe-setup-link.ts).
+const PUBLIC_PATHS = ["/login", "/signup", "/auth", "/forgot-password", "/reset-password", "/store", "/site", "/unsubscribe", "/stripe-setup"];
 
 // API routes that are called by outside services or by customers who aren't
 // logged in. Each one checks its own credentials, so the login gate must let
@@ -22,6 +23,7 @@ const PUBLIC_PATHS = ["/login", "/signup", "/auth", "/forgot-password", "/reset-
 //   /api/store/            — the public ordering page (menu, checkout, receipt)
 //   /api/delivery/fee      — fee preview on the public ordering page
 //   /api/unsubscribe       — email unsubscribe, verified by a signed token
+//   /api/stripe-setup/     — the Start button on the owner's Stripe link, checked by its code
 //   /api/public/enquiries  — contact form on zentrabite.com, checks origin,
 //                            spam and a per-address limit itself
 // Match exact paths or a trailing-slash prefix so "/api/store" can't be used
@@ -30,7 +32,7 @@ const PUBLIC_API_EXACT  = [
   "/api/stripe/webhook", "/api/sms/inbound", "/api/automations/run", "/api/billing/trial-reminders",
   "/api/delivery/fee", "/api/unsubscribe", "/api/public/enquiries",
 ];
-const PUBLIC_API_PREFIX = ["/api/store/"];
+const PUBLIC_API_PREFIX = ["/api/store/", "/api/stripe-setup/"];
 
 function isPublicApi(pathname: string): boolean {
   return PUBLIC_API_EXACT.includes(pathname) || PUBLIC_API_PREFIX.some(p => pathname.startsWith(p));

@@ -18,7 +18,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import { MANAGER_ROLES, requireBusiness } from "@/lib/request-business";
 import { trustedOrigin } from "@/lib/tenant";
-import { createShopAccount, isShopAccount, onboardingLink } from "@/lib/stripe-connect";
+import { ensureShopAccount, onboardingLink } from "@/lib/stripe-connect";
 
 export async function POST(req: Request) {
   try {
@@ -31,39 +31,7 @@ export async function POST(req: Request) {
     if (!auth.ok) return auth.response;
     const business_id = auth.businessId;
 
-    const db = createAdminClient();
-
-    const { data: biz } = await db
-      .from("businesses")
-      .select("name, stripe_account_id, settings")
-      .eq("id", business_id)
-      .single();
-
-    let accountId: string | null = biz?.stripe_account_id ?? null;
-
-    if (accountId && !(await isShopAccount(accountId))) {
-      console.log(`[stripe/connect] ${business_id} has an old-style account, making a new one`);
-      accountId = null;
-    }
-
-    if (!accountId) {
-      const settings = (biz?.settings ?? {}) as Record<string, unknown>;
-      const email = typeof settings.notify_email === "string" ? settings.notify_email : null;
-      accountId = await createShopAccount({ businessId: business_id, name: biz?.name ?? null, email });
-
-      // Save straight away so a second click reuses the same account. The
-      // flags start false and the account.updated webhook turns them on.
-      const { error: saveErr } = await db
-        .from("businesses")
-        .update({
-          stripe_account_id:        accountId,
-          stripe_charges_enabled:   false,
-          stripe_payouts_enabled:   false,
-          stripe_details_submitted: false,
-        })
-        .eq("id", business_id);
-      if (saveErr) throw new Error(`saving the Stripe account failed: ${saveErr.message}`);
-    }
+    const accountId = await ensureShopAccount(createAdminClient(), business_id);
 
     // Only our own hosts (or localhost in dev), so a forged Origin can't send people elsewhere.
     const origin = trustedOrigin(req.headers.get("origin"), process.env.NEXT_PUBLIC_APP_URL ?? "https://dashboard.zentrabite.com");
