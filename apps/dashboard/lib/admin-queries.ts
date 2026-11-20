@@ -6,6 +6,7 @@
 
 import "server-only";
 import { createAdminClient } from "@/lib/supabase-server";
+import { netTotal } from "@/lib/refunds";
 
 export type AdminBusinessRow = {
   id:                 string;
@@ -46,7 +47,7 @@ export async function getAllBusinessesStats(): Promise<AdminBusinessRow[]> {
   const [bizsRes, custsRes, ordersRes, smsRes, usersRes] = await Promise.all([
     db.from("businesses").select("id, name, type, suburb, subdomain, logo_url, stripe_account_id, stripe_customer_id, description, contact_phone, contact_email, website, abn, address, settings, created_at"),
     db.from("customers").select("id, business_id"),
-    db.from("orders").select("id, business_id, total, created_at"),
+    db.from("orders").select("id, business_id, total, refunded_amount, created_at"),
     db.from("sms_logs").select("id, business_id, status"),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (db.from("users") as any).select("id, business_id, name, email, phone, role").eq("role", "owner"),
@@ -85,7 +86,7 @@ export async function getAllBusinessesStats(): Promise<AdminBusinessRow[]> {
       created_at:         b.created_at,
       customerCount: custs.filter(c => c.business_id === b.id).length,
       orderCount:    orders.filter(o => o.business_id === b.id).length,
-      totalRevenue:  orders.filter(o => o.business_id === b.id).reduce((s, o) => s + Number(o.total), 0),
+      totalRevenue:  orders.filter(o => o.business_id === b.id).reduce((s, o) => s + netTotal(o), 0),
       smsSent:       smsLogs.filter(l => l.business_id === b.id).length,
       lastOrder:     orders
         .filter(o => o.business_id === b.id)

@@ -16,6 +16,9 @@
 //     and the order keeps it
 //   • delivery by the shop's own drivers only goes where the shop delivers,
 //     over its minimum, with its fee, and the order keeps the address and note
+//   • refunds come off the shop's account, never more than is left, only for
+//     owners and managers, and a double click can't refund twice. Refunds
+//     made in the shop's Stripe Dashboard, or that fail later, reach the order
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeDb, filterValue, type Query } from "./fake-db";
@@ -26,6 +29,9 @@ const h = vi.hoisted(() => ({
   stripe: {
     checkout: { sessions: { create: vi.fn(), retrieve: vi.fn(), listLineItems: vi.fn() } },
     accounts: { retrieve: vi.fn() },
+    paymentIntents: { retrieve: vi.fn() },
+    refunds: { create: vi.fn() },
+    charges: { retrieve: vi.fn() },
     v2: { core: { accounts: { create: vi.fn(), retrieve: vi.fn() }, accountLinks: { create: vi.fn() } } },
     webhooks: { constructEvent: vi.fn() },
   },
@@ -40,7 +46,7 @@ vi.mock("@/lib/supabase-server", () => ({
 }));
 vi.mock("@/lib/request-business", () => ({
   MANAGER_ROLES: ["Owner", "Manager"],
-  requireBusiness: vi.fn(async (id?: string) => ({ ok: true, businessId: id ?? "biz-1" })),
+  requireBusiness: vi.fn(async (id?: string) => ({ ok: true, businessId: id ?? "biz-1", userId: "user-1" })),
 }));
 vi.mock("@/lib/notify", () => ({ notifyOwnerOfOrder: vi.fn(async () => {}) }));
 vi.mock("@/lib/email", () => ({ sendCustomerReceipt: vi.fn(async () => ({ ok: true })) }));
@@ -50,6 +56,8 @@ import { POST as checkout } from "@/app/api/store/checkout/route";
 import { POST as webhook } from "@/app/api/stripe/webhook/route";
 import { POST as connect } from "@/app/api/stripe/connect/route";
 import { GET as successLookup } from "@/app/api/store/session/route";
+import { POST as refundRoute } from "@/app/api/orders/[id]/refund/route";
+import { requireBusiness } from "@/lib/request-business";
 
 const SHOP_ACCOUNT = { defaults: { responsibilities: { fees_collector: "stripe", losses_collector: "stripe" } } };
 const OLD_EXPRESS  = { defaults: { responsibilities: { fees_collector: "application_express", losses_collector: "application" } } };
@@ -594,5 +602,172 @@ describe("order success page", () => {
   it("needs the shop's address as well as the session", async () => {
     const res = await successLookup(new Request("https://dashboard.zentrabite.com/api/store/session?session_id=cs_test_1"));
     expect(res.status).toBe(400);
+  });
+});
+
+// ─── Refunds ─────────────────────────────────────────────────────────────────
+
+const ORDER_ID = "6f1c2a9e-0b3d-4e5f-8a7b-1c2d3e4f5a6b";
+const paidOrder = { id: ORDER_ID, business_id: "biz-1", total: 37, status: "Delivered", source: "direct", stripe_payment_id: "pi_test_1", refunded_amount: 0 };
+
+describe("refund button", () => {
+  const ask = (body: object = {}) => refundRoute(
+    new Request(`https://dashboard.zentrabite.com/api/orders/${ORDER_ID}/refund`, {
+      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ business_id: "biz-1", ...body }),
+    }),
+    { params: Promise.resolve({ id: ORDER_ID }) },
+  );
+  const shopWith = (order: object | null = paidOrder) => {
+    h.db = fakeDb({
+      "orders.select":     () => ({ data: order, error: null }),
+      "businesses.select": () => ({ data: { stripe_account_id: "acct_shop" }, error: null }),
+    });
+  };
+  const stripeSays = (amount_refunded: number, amount = 3700) =>
+    h.stripe.paymentIntents.retrieve.mockResolvedValue({ id: "pi_test_1", latest_charge: { id: "ch_1", status: "succeeded", amount, amount_refunded } });
+
+  beforeEach(() => {
+    shopWith();
+    stripeSays(0);
+    h.stripe.refunds.create.mockImplementation(async (p: { amount: number }) => ({ id: "re_1", status: "succeeded", amount: p.amount }));
+  });
+
+  it("refunds what's left on the shop's own account and marks the order refunded", async () => {
+    const res = await ask();
+    expect(res.status).toBe(200);
+    expect(h.stripe.paymentIntents.retrieve).toHaveBeenCalledWith("pi_test_1", { expand: ["latest_charge"] }, { stripeAccount: "acct_shop" });
+    const [params, options] = h.stripe.refunds.create.mock.calls[0];
+    expect(params).toEqual({
+      payment_intent: "pi_test_1", amount: 3700, reason: "requested_by_customer",
+      metadata: { order_id: ORDER_ID, business_id: "biz-1", refunded_by: "user-1" },
+    });
+    // Same order, same starting point, same amount: a double click gets the same refund.
+    expect(options).toEqual({ stripeAccount: "acct_shop", idempotencyKey: `refund_${ORDER_ID}_0_3700` });
+
+    const [upd] = writes("update", "orders");
+    expect(upd.payload).toMatchObject({ refunded_amount: 37, status: "Refunded" });
+    expect(filterValue(upd, "id")).toBe(ORDER_ID);
+    expect(filterValue(upd, "business_id")).toBe("biz-1");
+    expect(await res.json()).toMatchObject({ refunded: "$37.00", refunded_amount: 37, status: "Refunded", refund_status: "succeeded" });
+  });
+
+  it("refunds part of an order and keeps its status", async () => {
+    const res = await ask({ amount: 10.5 });
+    expect(res.status).toBe(200);
+    expect(h.stripe.refunds.create.mock.calls[0][0].amount).toBe(1050);
+    const [upd] = writes("update", "orders");
+    expect(upd.payload).toMatchObject({ refunded_amount: 10.5 });
+    expect(upd.payload).not.toHaveProperty("status");
+  });
+
+  it("counts a refund already made in the shop's Stripe Dashboard", async () => {
+    stripeSays(1000);
+    const over = await ask({ amount: 30 });
+    expect(over.status).toBe(400);
+    expect((await over.json()).error).toBe("You can refund up to $27.00 on this order.");
+    expect(h.stripe.refunds.create).not.toHaveBeenCalled();
+
+    const res = await ask({ amount: 27 });
+    expect(res.status).toBe(200);
+    expect(h.stripe.refunds.create.mock.calls[0][1].idempotencyKey).toBe(`refund_${ORDER_ID}_1000_2700`);
+    expect(writes("update", "orders")[0].payload).toMatchObject({ refunded_amount: 37, status: "Refunded" });
+  });
+
+  it("says when it's already refunded in full, and catches the order up", async () => {
+    stripeSays(3700);
+    const res = await ask();
+    expect(res.status).toBe(409);
+    expect(h.stripe.refunds.create).not.toHaveBeenCalled();
+    expect(writes("update", "orders")[0].payload).toMatchObject({ refunded_amount: 37, status: "Refunded" });
+  });
+
+  it("refuses a counter sale, and an order from another shop", async () => {
+    shopWith({ ...paidOrder, source: "pos", stripe_payment_id: null });
+    expect((await ask()).status).toBe(409);
+
+    // The order is looked up within the logged-in shop, so another shop's order isn't found.
+    shopWith(null);
+    expect((await ask()).status).toBe(404);
+    const [lookup] = (h.db.calls as Query[]).filter(q => q.table === "orders");
+    expect(filterValue(lookup, "business_id")).toBe("biz-1");
+    expect(h.stripe.refunds.create).not.toHaveBeenCalled();
+  });
+
+  it("is only for owners and managers", async () => {
+    vi.mocked(requireBusiness).mockResolvedValueOnce({
+      ok: false, response: Response.json({ error: "Your role can't do this. Ask the owner or a manager." }, { status: 403 }),
+    } as never);
+    const res = await ask();
+    expect(res.status).toBe(403);
+    expect(vi.mocked(requireBusiness).mock.calls[0][1]).toEqual({ roles: ["Owner", "Manager"] });
+    expect(h.stripe.refunds.create).not.toHaveBeenCalled();
+  });
+
+  it("refuses an amount that isn't a number or is too small", async () => {
+    for (const amount of ["abc", 0, -5, 0.001]) {
+      const res = await ask({ amount });
+      expect(res.status).toBe(400);
+    }
+    expect(h.stripe.refunds.create).not.toHaveBeenCalled();
+  });
+
+  it("passes on Stripe's reason when it refuses", async () => {
+    h.stripe.refunds.create.mockRejectedValue(new Error("Charge ch_1 has been charged back."));
+    const res = await ask();
+    expect(res.status).toBe(502);
+    expect((await res.json()).error).toBe("Stripe couldn't make the refund: Charge ch_1 has been charged back.");
+    expect(writes("update", "orders")).toHaveLength(0);
+  });
+});
+
+describe("refunds reaching the order through the webhook", () => {
+  function send(event: unknown) {
+    h.stripe.webhooks.constructEvent.mockReturnValue(event);
+    return webhook(new Request("https://dashboard.zentrabite.com/api/stripe/webhook", {
+      method: "POST", headers: { "stripe-signature": "t=1,v1=test" }, body: "{}",
+    }));
+  }
+  const orderWith = (over: object = {}) => {
+    h.db = fakeDb({
+      "orders.select":     () => ({ data: { ...paidOrder, ...over }, error: null }),
+      "businesses.select": () => ({ data: { stripe_account_id: "acct_shop" }, error: null }),
+    });
+  };
+
+  it("saves a refund made in the shop's Stripe Dashboard, as Stripe has it now", async () => {
+    orderWith();
+    // The event says $5, but by the time it's handled Stripe has $15 refunded.
+    h.stripe.charges.retrieve.mockResolvedValue({ id: "ch_1", amount: 3700, amount_refunded: 1500 });
+    const res = await send({ type: "charge.refunded", account: "acct_shop",
+      data: { object: { object: "charge", id: "ch_1", payment_intent: "pi_test_1", amount: 3700, amount_refunded: 500 } } });
+    expect(res.status).toBe(200);
+    expect(h.stripe.charges.retrieve).toHaveBeenCalledWith("ch_1", {}, { stripeAccount: "acct_shop" });
+    const [lookup] = (h.db.calls as Query[]).filter(q => q.table === "orders" && q.op === "select");
+    expect(filterValue(lookup, "stripe_payment_id")).toBe("pi_test_1");
+    expect(writes("update", "orders")[0].payload).toMatchObject({ refunded_amount: 15 });
+  });
+
+  it("does nothing when the amount is already saved", async () => {
+    orderWith({ refunded_amount: 37, status: "Refunded" });
+    h.stripe.charges.retrieve.mockResolvedValue({ id: "ch_1", amount: 3700, amount_refunded: 3700 });
+    await send({ type: "charge.refunded", account: "acct_shop",
+      data: { object: { object: "charge", id: "ch_1", payment_intent: "pi_test_1" } } });
+    expect(writes("update", "orders")).toHaveLength(0);
+  });
+
+  it("ignores a refund event from another Stripe account", async () => {
+    orderWith();
+    await send({ type: "charge.refunded", account: "acct_someone_else",
+      data: { object: { object: "charge", id: "ch_1", payment_intent: "pi_test_1" } } });
+    expect(h.stripe.charges.retrieve).not.toHaveBeenCalled();
+    expect(writes("update", "orders")).toHaveLength(0);
+  });
+
+  it("says so when a full refund fails later", async () => {
+    orderWith({ refunded_amount: 37, status: "Refunded" });
+    h.stripe.charges.retrieve.mockResolvedValue({ id: "ch_1", amount: 3700, amount_refunded: 0 });
+    await send({ type: "refund.failed", account: "acct_shop",
+      data: { object: { object: "refund", id: "re_1", charge: "ch_1", payment_intent: "pi_test_1" } } });
+    expect(writes("update", "orders")[0].payload).toMatchObject({ refunded_amount: 0, status: "Refund failed" });
   });
 });

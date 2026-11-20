@@ -15,6 +15,8 @@ import { optionsLabel } from "@/lib/menu-options";
 import { readOrderingRules, shopTime } from "@/lib/pickup-times";
 import { docketHtml, printDocument } from "@/lib/docket";
 import { orderAlarm, setSoundPreferred, soundPreferred } from "@/lib/order-alarm";
+import { money, netTotal, paidByStripe, refundLeft, refundedOf } from "@/lib/refunds";
+import RefundPanel from "@/components/refund-panel";
 
 // Only orders this recent ring. An old order nobody accepted still shows in
 // the waiting list, but doesn't ring every time the page opens.
@@ -30,10 +32,16 @@ const SOURCE_LABELS: Record<string, string> = {
   All:"All", direct:"Direct", uber_eats:"Uber Eats", menulog:"Menulog", pos:"POS",
 };
 const FULFILL_ICON: Record<string, IconName> = { delivery:"delivery", takeaway:"takeaway", dine_in:"dine-in", pickup:"takeaway" };
+// The next step for an order, and its button. Other statuses (paid at the
+// counter, Refunded) have no next step.
+const NEXT_STATUS: Record<string, string> = { New:"Preparing", Preparing:"Ready", Ready:"Delivered" };
+const NEXT_LABEL:  Record<string, string> = { New:"Accept", Preparing:"Mark Ready", Ready:"Deliver" };
 
 export default function OrdersPage() {
   const { toast, show } = useToast();
-  const { businessId, business } = useBusiness();
+  const { businessId, business, role, isSuperAdmin } = useBusiness();
+  // Giving money back is for owners and managers. The route checks this too.
+  const canRefund = isSuperAdmin || role === "Owner" || role === "Manager";
 
   const [orders,         setOrders]         = useState<Order[]>([]);
   const [sourceFilter,   setSourceFilter]   = useState<SourceFilter>("All");
@@ -164,6 +172,7 @@ export default function OrdersPage() {
         (payload: any) => {
           const updated = payload.new as Order;
           setOrders(prev => prev.map(o => o.id === updated.id ? updated : o));
+          setSelected(s => s && s.id === updated.id ? updated : s);
         }
       )
       .subscribe();
@@ -181,18 +190,32 @@ export default function OrdersPage() {
     .filter(o => fulfillFilter === "All" || o.fulfillment_type === fulfillFilter);
 
   const deliveryOrders = filtered.filter(o => o.fulfillment_type === "delivery");
-  const totalRev       = filtered.reduce((a, o) => a + o.total, 0);
+  const totalRev       = filtered.reduce((a, o) => a + netTotal(o), 0); // less refunds
   const totalFees      = deliveryOrders.reduce((a, o) => a + (o.delivery_fee ?? 0), 0);
   const totalOrders    = filtered.length;
 
   // ── Status advance ──────────────────────────────────────────────────────
   const advance = async (order: Order) => {
-    const next: Record<string, string> = { New:"Preparing", Preparing:"Ready", Ready:"Delivered" };
-    if (!next[order.status]) return;
-    await updateOrderStatus(order.id, next[order.status]);
-    setOrders(prev => prev.map(o => o.id === order.id ? { ...o, status: next[o.status] } : o));
-    show(`→ ${next[order.status]}`);
+    const next = NEXT_STATUS[order.status];
+    if (!next) return;
+    await updateOrderStatus(order.id, next);
+    setOrders(prev => prev.map(o => o.id === order.id ? { ...o, status: next } : o));
+    show(`→ ${next}`);
     setSelected(null);
+  };
+
+  // ── Refunds ─────────────────────────────────────────────────────────────
+  // Online card orders only (components/refund-panel.tsx). The order and the
+  // customer's totals update.
+  const [refundOpen, setRefundOpen] = useState(false);
+
+  const openOrder = (o: Order | null) => { setSelected(o); setRefundOpen(false); };
+
+  const refunded = (order: Order, patch: Partial<Order>, message: string) => {
+    setOrders(prev => prev.map(o => o.id === order.id ? { ...o, ...patch } : o));
+    setSelected(s => s && s.id === order.id ? { ...s, ...patch } : s);
+    setRefundOpen(false);
+    show(message);
   };
 
   // ── Helper: fulfilment badge ────────────────────────────────────────────
@@ -303,7 +326,7 @@ export default function OrdersPage() {
                 <td colSpan={8}>{loading ? "Loading…" : "No orders yet"}</td>
               </tr>
             ) : filtered.map((o, i) => (
-              <tr key={i} onClick={() => setSelected(o)}>
+              <tr key={i} onClick={() => openOrder(o)}>
                 <td data-label="ID" style={{ fontFamily:"var(--font-mono)", fontSize:10, color:C.st }}>{o.id.slice(0,8)}…</td>
                 <td data-label="Items">
                   {Array.isArray(o.items) ? `${(o.items as any[]).length} item(s)` : "—"}
@@ -316,7 +339,10 @@ export default function OrdersPage() {
                     : <span style={{ color:C.st }}>—</span>}
                 </td>
                 <td data-label="When" style={{ fontSize:12, color: o.pickup_at ? "#fff" : C.st }}>{pickupText(o) ?? "—"}</td>
-                <td data-first style={{ fontWeight:600, color:"#fff" }}>${Number(o.total).toFixed(2)}</td>
+                <td data-first style={{ fontWeight:600, color:"#fff" }}>
+                  ${Number(o.total).toFixed(2)}
+                  {refundedOf(o) > 0 && <span style={{ display:"block", fontSize:11, fontWeight:500, color:C.r }}>−{money(refundedOf(o))} refunded</span>}
+                </td>
                 <td data-label="Delivery fee" style={{ fontSize:12, color: o.delivery_fee ? C.g : C.st }}>
                   {o.delivery_fee ? `$${Number(o.delivery_fee).toFixed(2)}` : "—"}
                 </td>
@@ -328,7 +354,7 @@ export default function OrdersPage() {
       </div>
 
       {/* ── Order detail modal ───────────────────────────────────────────── */}
-      <Modal open={!!selected} onClose={() => setSelected(null)} title={selected ? `Order ${selected.id.slice(0,8)}…` : ""}>
+      <Modal open={!!selected} onClose={() => openOrder(null)} title={selected ? `Order ${selected.id.slice(0,8)}…` : ""}>
         {selected && (
           <div>
             {/* Core fields */}
@@ -340,6 +366,10 @@ export default function OrdersPage() {
                 ["Fulfilment",  fulfillLabel(selected) ?? "—"],
                 [selected.fulfillment_type === "delivery" ? "Delivery time" : "Pick-up", pickupText(selected) ?? "—"],
                 ["Created",     new Date(selected.created_at).toLocaleString("en-AU", { dateStyle:"short", timeStyle:"short" })],
+                ...(refundedOf(selected) > 0 ? [[
+                  "Refunded",
+                  `${money(refundedOf(selected))}${refundLeft(selected) > 0 ? ` of ${money(Number(selected.total))}` : ""}${selected.refunded_at ? `, ${new Date(selected.refunded_at).toLocaleDateString("en-AU", { day:"numeric", month:"short" })}` : ""}`,
+                ]] : []),
               ] as [string,string][]).map(([l,v]) => (
                 <div key={l}>
                   <div style={{ fontSize:11, color:C.st, marginBottom:2 }}>{l}</div>
@@ -398,14 +428,34 @@ export default function OrdersPage() {
               </div>
             )}
 
+            {selected.status === "Refund failed" && (
+              <div style={{ background:"rgba(255,107,53,.08)", border:"1px solid rgba(255,107,53,.25)", borderRadius:10, padding:"10px 12px", marginBottom:14, fontSize:13, color:"#fff", lineHeight:1.5 }}>
+                This refund failed, so the money is back in your Stripe balance and the customer hasn&apos;t got it. Your Stripe Dashboard says why. Pay them back another way, or try the refund again.
+              </div>
+            )}
+
+            {refundOpen && businessId && (
+              <RefundPanel
+                order={selected}
+                businessId={businessId}
+                onRefunded={(patch, message) => refunded(selected, patch, message)}
+                onCancel={() => setRefundOpen(false)}
+              />
+            )}
+
             {/* Actions */}
             <div className="zb-wrap" style={{ display:"flex", gap:8 }}>
-              {selected.status !== "Delivered" && (
+              {NEXT_LABEL[selected.status] && (
                 <button className="bp" onClick={() => advance(selected)}>
-                  → {{ New:"Accept", Preparing:"Mark Ready", Ready:"Deliver" }[selected.status] ?? "Next"}
+                  → {NEXT_LABEL[selected.status]}
                 </button>
               )}
               <button className="bg-btn" onClick={() => printDocket(selected)}><Icon name="printer" size={14} />Print docket</button>
+              {canRefund && paidByStripe(selected) && refundLeft(selected) > 0 && !refundOpen && (
+                <button className="bg-btn" onClick={() => setRefundOpen(true)}>
+                  <Icon name="card" size={14} />Refund
+                </button>
+              )}
             </div>
           </div>
         )}
