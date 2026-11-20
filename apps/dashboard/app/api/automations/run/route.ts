@@ -24,19 +24,25 @@
 // a shop that doesn't deliver) isn't sent at all. This is the only sender of
 // win-back messages. The old Supabase edge function is switched off (025).
 //
+// About 1 in 10 customers due a message is held back at random and sent
+// nothing, logged with status "held_back" (lib/winback-report.ts), so the
+// monthly report can compare. On the 15th the daily run also emails each
+// owner last month's report.
+//
 // Channel dispatch:
 //   • sms   → Twilio REST
 //   • email → Resend (via sendMarketingEmail in lib/email.ts)
 //   • push  → no-op for now (logged so UI shows it tried)
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
-import { sendMarketingEmail } from "@/lib/email";
+import { sendEmail, sendMarketingEmail } from "@/lib/email";
 import { MANAGER_ROLES, requireBusiness } from "@/lib/request-business";
 import { checkSmsAllowance, sendTwilioSms, withSenderAndOptOut } from "@/lib/sms";
 import { orderUrl } from "@/lib/tenant";
 import { issueCode, offerSubject, readOffer, winbackMessage } from "@/lib/offer-codes";
 import { readDeliveryRules } from "@/lib/own-delivery";
 import { readOrderingRules } from "@/lib/pickup-times";
+import { heldBack, sendMonthlyReports } from "@/lib/winback-report";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -89,8 +95,11 @@ export async function POST(req: Request) {
       businessIds = [...set];
     }
 
+    // The owners' monthly reports, on the 15th, from the daily run only.
+    const reportsEmailed = isCron ? await sendMonthlyReports(db, sendEmail, now) : 0;
+
     if (businessIds.length === 0) {
-      return NextResponse.json({ message: "No businesses with active rules", sent: 0 });
+      return NextResponse.json({ message: "No businesses with active rules", sent: 0, reportsEmailed });
     }
 
     const results: RunResult[] = [];
@@ -102,7 +111,7 @@ export async function POST(req: Request) {
       totalSent += perBusiness.sent;
     }
 
-    return NextResponse.json({ success: true, sent: totalSent, processed: businessIds.length, results });
+    return NextResponse.json({ success: true, sent: totalSent, processed: businessIds.length, reportsEmailed, results });
 
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
@@ -175,6 +184,7 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const logs: any[] = recentLogs ?? [];
+  const today = now.toISOString().slice(0, 10);
 
   // ── Winback rules ────────────────────────────────────────────────────────
   for (const rule of rules) {
@@ -208,6 +218,14 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
       if (lastSent) {
         const daysSinceLast = daysBetween(new Date(lastSent.sent_at), now);
         if (daysSinceLast < (rule.cooldown_days ?? 30)) continue;
+      }
+
+      // Held back for the monthly report's comparison. Logged, so the
+      // cooldown counts it and they aren't picked again tomorrow.
+      if (heldBack(rule.id, customer.id, today)) {
+        await logSend(db, { businessId, customerId: customer.id, ruleId: rule.id, channel, recipient, message: "", status: "held_back", providerId: null });
+        results.push({ business_id: businessId, rule_id: rule.id, rule_name: rule.name, customer_id: customer.id, customer: customer.name, channel, status: "held_back" });
+        continue;
       }
 
       // Push isn't wired up yet. Logged so the page shows it tried.
@@ -282,6 +300,12 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
       if (lastSent) {
         const daysSinceLast = daysBetween(new Date(lastSent.sent_at), now);
         if (daysSinceLast < (campaign.cooldown_days ?? 30)) continue;
+      }
+
+      if (heldBack(campaign.id, customer.id, today)) {
+        await logSend(db, { businessId, customerId: customer.id, campaignId: campaign.id, channel: "sms", recipient: customer.phone, message: "", status: "held_back", providerId: null });
+        results.push({ business_id: businessId, rule_id: null, rule_name: campaign.name ?? campaign.type, customer_id: customer.id, customer: customer.name, channel: "sms", status: "held_back" });
+        continue;
       }
 
       const allowance = await checkSmsAllowance(db, businessId, settings, { skipRate: true });

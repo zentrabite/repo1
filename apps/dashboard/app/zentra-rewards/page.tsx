@@ -109,7 +109,10 @@ export default function WinBackPage() {
           <h2 style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:19, color:"#fff" }}>Win-Back Engine</h2>
           <p style={{ color:C.st, fontSize:11 }}>Automated retention offers sent to customers who go quiet</p>
         </div>
-        <button className="bp" onClick={() => { reset(); window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }); }}>+ New rule</button>
+        <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+          <a href="/zentra-rewards/report" className="bg-btn" style={{ textDecoration:"none", display:"inline-flex", alignItems:"center" }}>Monthly report</a>
+          <button className="bp" onClick={() => { reset(); window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }); }}>+ New rule</button>
+        </div>
       </div>
 
       <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:14 }}>

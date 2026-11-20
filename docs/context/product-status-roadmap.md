@@ -22,6 +22,7 @@ Sign-ups aren't open yet, and no price has been set.
 - **Database.** Supabase, 27 tables, row level security on every table, migrations 001 to 025.
 - **Scheduled jobs.** Nightly analytics and birthday points run in Supabase. Win-back, automations and trial reminders run on Vercel cron (`/api/automations/run`, daily).
 - **Win-back offers that work.** Each win-back text or email carries its own one-use code in its link. Checkout takes it off on the shop's Stripe account, and the order counts towards the rule's redemptions and revenue recovered.
+- **What win-back earned.** About 1 in 10 customers due a win-back message is held back, so a monthly report on the Win-Back page compares the two groups, with codes used and where online orders came from. It's emailed to each owner on the 15th once email works.
 - **Where each order came from.** Counter QR code, win-back, Google, the shop's website, social media or straight to the ordering page, on every online order (`orders.came_from`).
 
 ## Built, but not finished
