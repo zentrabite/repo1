@@ -369,14 +369,22 @@ async function handleSubscriptionChange(sub: Stripe.Subscription) {
     .single();
   const prev: Record<string, unknown> = (biz?.settings ?? {}) as Record<string, unknown>;
 
+  // Since Stripe's 2025-03-31 API the billing period sits on each subscription
+  // item, not on the subscription. There's one item (the plan), so read its
+  // end. Reading the old field gave undefined, and toISOString() then threw,
+  // so every subscription event failed.
+  const periodEnd = sub.items?.data?.[0]?.current_period_end;
+
   await db
     .from("businesses")
     .update({
-      stripe_customer_id: sub.customer as string,
+      stripe_customer_id: typeof sub.customer === "string" ? sub.customer : sub.customer.id,
       settings: {
         ...prev,
-        subscription_status:     sub.status,
-        subscription_period_end: new Date(sub.current_period_end * 1000).toISOString(),
+        subscription_status: sub.status,
+        ...(typeof periodEnd === "number"
+          ? { subscription_period_end: new Date(periodEnd * 1000).toISOString() }
+          : {}),
       },
     })
     .eq("id", businessId);
