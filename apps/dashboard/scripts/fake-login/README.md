@@ -9,7 +9,7 @@ Use it to look at a page after a change, at desktop and phone widths, before ope
 | File | What it does |
 |---|---|
 | `server.mjs` | The fake Supabase on port 54321. Answers the logged-in user and table reads from `fixtures.json`. Every write is logged to `writes.log`, so you can check what a Save button sent, and nothing is stored |
-| `fixtures.json` | The sample data. One owner (also a super admin, so the onboarding wizard opens), one seller (Sam Lee) with two shops sold, two owner Stripe links (see `_notes` in the file), one shop with split hours, own-driver delivery and a $10 first order offer, one menu item, and six orders in different states (new, delivered, refunded, part refunded, refund failed, a counter sale) |
+| `fixtures.json` | The sample data. One owner (also a super admin, so the onboarding wizard opens), one seller (Sam Lee) with two shops sold, two owner Stripe links (see `_notes` in the file), one shop with split hours, own-driver delivery and a $10 first order offer, one menu item, six orders in different states (new, delivered, refunded, part refunded, refund failed, a counter sale), and two win-back offer codes. `/store/nonna?code=W4NTPRZZ` shows a live 20% off code and `?code=K7MP4QXA` a used one. The first order came from the counter QR code and the second used a code |
 | `login.mjs` | `open(path, viewport, as)` opens a logged-in page in Playwright and returns `{ browser, page, errors }`. `as` is `"owner"` (the default) or `"seller"` |
 
 ## Run it
@@ -26,6 +26,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=fake \
 SUPABASE_SERVICE_ROLE_KEY=fake \
 npm run dev
 ```
+
+Since Next.js 16.4.6, `next dev` can reload a page over and over under Playwright (it does on main too). If a screenshot fails with "Execution context was destroyed", build and start it instead, with the same three settings in front of each: `npx next build` then `npx next start -p 3000`.
 
 Then, from a `.mjs` script in this folder:
 

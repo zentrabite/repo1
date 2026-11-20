@@ -90,6 +90,9 @@ export interface Database {
           refunded_at:        string | null;
           // ─── First order offer (migration 024). Server only ─────────────
           discount:           number;          // dollars taken off at checkout, 0 for none
+          // ─── Win-back codes and order source (migration 025). Server only ─
+          offer_code?:        string | null;   // the win-back code used (offer_codes.code)
+          came_from?:         string | null;   // counter | winback | google | website | social | direct
         };
         Insert: Omit<Database["public"]["Tables"]["orders"]["Row"], "id" | "created_at">;
         Update: Partial<Database["public"]["Tables"]["orders"]["Insert"]>;

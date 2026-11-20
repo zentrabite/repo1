@@ -1,11 +1,15 @@
-// GET /api/store/[subdomain] — public endpoint, returns business + menu
+// GET /api/store/[subdomain] — public endpoint, returns business + menu.
+// ?code= adds what that win-back offer code gives (offer) or why it can't be
+// used (offer_problem), so the ordering page can show it. Checkout checks the
+// code again.
 import { NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase-server";
-import { readOrderingRules } from "@/lib/pickup-times";
+import { readOrderingRules, shopDate } from "@/lib/pickup-times";
+import { checkCode, cleanCode, offerLabel } from "@/lib/offer-codes";
 import { readFirstOrderOffer } from "@/lib/first-order";
 import { readDeliveryRules } from "@/lib/own-delivery";
 
-export async function GET(_req: Request, { params }: { params: Promise<{ subdomain: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ subdomain: string }> }) {
   const { subdomain } = await params;
   const db = createServerClient();
 
@@ -68,5 +72,22 @@ export async function GET(_req: Request, { params }: { params: Promise<{ subdoma
     })(),
   };
 
-  return NextResponse.json({ business: publicBusiness, menu });
+  // A win-back code from the link, if there is one.
+  const rawCode = new URL(req.url).searchParams.get("code");
+  let offer: { code: string; type: string; value: number; label: string; ends: string } | null = null;
+  let offerProblem: string | null = null;
+  if (rawCode) {
+    const code = cleanCode(rawCode);
+    const checked = code ? await checkCode(db, business.id as string, code) : null;
+    if (checked?.ok) {
+      offer = {
+        code: checked.row.code, type: checked.offer.type, value: checked.offer.value,
+        label: offerLabel(checked.offer), ends: shopDate(new Date(checked.row.expires_at), publicBusiness.ordering.timezone),
+      };
+    } else {
+      offerProblem = checked?.error ?? "That offer code isn't one of ours. Check the link in your message.";
+    }
+  }
+
+  return NextResponse.json({ business: publicBusiness, menu, offer, offer_problem: offerProblem });
 }

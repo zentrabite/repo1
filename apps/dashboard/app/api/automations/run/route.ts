@@ -18,6 +18,12 @@
 //
 // The runner processes `winback_rules` (Zentra Rewards rules from the dashboard) AND
 // the legacy `campaigns` table so old data keeps working while we migrate.
+// Offers are real: each message gets its own one-use code in its link
+// (lib/offer-codes.ts), and checkout takes it off. A rule whose offer can't
+// be used online (free item, a shop not taking payments, free delivery from
+// a shop that doesn't deliver) isn't sent at all. This is the only sender of
+// win-back messages. The old Supabase edge function is switched off (025).
+//
 // Channel dispatch:
 //   • sms   → Twilio REST
 //   • email → Resend (via sendMarketingEmail in lib/email.ts)
@@ -28,6 +34,9 @@ import { sendMarketingEmail } from "@/lib/email";
 import { MANAGER_ROLES, requireBusiness } from "@/lib/request-business";
 import { checkSmsAllowance, sendTwilioSms, withSenderAndOptOut } from "@/lib/sms";
 import { orderUrl } from "@/lib/tenant";
+import { issueCode, offerSubject, readOffer, winbackMessage } from "@/lib/offer-codes";
+import { readDeliveryRules } from "@/lib/own-delivery";
+import { readOrderingRules } from "@/lib/pickup-times";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -109,6 +118,8 @@ export async function GET(req: Request) {
 
 // ─── Per-business runner ──────────────────────────────────────────────────────
 
+const DEFAULT_TEMPLATE = "Hey {name}, we miss you at {business}. Here's {offer} on your next online order: {link}";
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function runForBusiness(db: any, businessId: string, now: Date): Promise<{ sent: number; results: RunResult[] }> {
   const results: RunResult[] = [];
@@ -117,7 +128,7 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
   // Business (for {business} placeholder + storefront URL)
   const { data: business } = await db
     .from("businesses")
-    .select("id, name, subdomain, settings")
+    .select("id, name, subdomain, settings, stripe_account_id, stripe_charges_enabled")
     .eq("id", businessId)
     .single();
 
@@ -125,6 +136,11 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
   // Link to the restaurant's ordering page at name.zentrabite.com/order.
   const storeUrl = business?.subdomain ? orderUrl(business.subdomain) : "";
   const settings = (business?.settings ?? null) as Record<string, unknown> | null;
+  // An offer is only sent when the customer can use it: the shop takes
+  // online payments, and for free delivery, it delivers.
+  const takingOrders = Boolean(storeUrl && business?.stripe_account_id && business?.stripe_charges_enabled);
+  const deliveryOn = readDeliveryRules(settings).enabled;
+  const timezone = readOrderingRules(settings).timezone;
 
   // Rules + legacy campaigns
   const [rulesRes, campaignsRes, customersRes] = await Promise.all([
@@ -162,6 +178,16 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
 
   // ── Winback rules ────────────────────────────────────────────────────────
   for (const rule of rules) {
+    const offer = readOffer(rule.offer_type, rule.offer_value);
+    const notSent = !offer ? "its offer can't be used online"
+      : !takingOrders ? "the shop isn't taking online payments"
+      : offer.type === "free_delivery" && !deliveryOn ? "the shop doesn't deliver"
+      : null;
+    if (notSent || !offer) {
+      console.warn(`[automations/run] ${businessId} rule ${rule.id} not sent, ${notSent}`);
+      continue;
+    }
+
     for (const customer of customers) {
       if (!customer.last_order_date) continue;
 
@@ -184,70 +210,64 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
         if (daysSinceLast < (rule.cooldown_days ?? 30)) continue;
       }
 
-      const offerLabel = formatOffer(rule);
-      const message = render(rule.template ?? "Hey {name}, we miss you! {offer} on your next order at {business}. {link}", {
-        name:     (customer.name ?? "").split(" ")[0] ?? "there",
-        offer:    offerLabel,
-        business: businessName,
-        link:     storeUrl,
-      });
+      // Push isn't wired up yet. Logged so the page shows it tried.
+      if (channel !== "sms" && channel !== "email") {
+        await logSend(db, { businessId, customerId: customer.id, ruleId: rule.id, channel, recipient, message: "", status: "skipped", providerId: null });
+        results.push({ business_id: businessId, rule_id: rule.id, rule_name: rule.name, customer_id: customer.id, customer: customer.name, channel, status: "skipped" });
+        continue;
+      }
 
-      let status = "sent";
-      let providerId: string | null = null;
-
-      let finalMessage = message;
       if (channel === "sms") {
         const allowance = await checkSmsAllowance(db, businessId, settings, { skipRate: true });
         if (!allowance.ok) {
           console.warn(`[automations/run] ${businessId} ${allowance.reason}`);
           break;
         }
+      }
+
+      // The customer's own code. No code, no message: it would promise a
+      // discount checkout won't give. Tried again on the next run.
+      const issued = await issueCode(db, { businessId, customerId: customer.id, ruleId: rule.id, offer, timezone, now });
+      if (!issued) continue;
+
+      const message = winbackMessage(rule.template || DEFAULT_TEMPLATE, {
+        name:     (customer.name ?? "").split(" ")[0] || "there",
+        business: businessName,
+        shop:     businessName,
+      }, { offer, link: `${storeUrl}?code=${issued.code}&src=winback`, code: issued.code, ends: issued.ends });
+
+      let status = "sent";
+      let providerId: string | null = null;
+      let finalMessage = message;
+      if (channel === "sms") {
         finalMessage = withSenderAndOptOut(message, businessName);
         const out = await sendTwilioSms(recipient, finalMessage);
         status = out.status;
         providerId = out.sid;
-      } else if (channel === "email") {
-        const subject = `${offerLabel} at ${businessName}`;
+      } else {
         const out = await sendMarketingEmail({
-          db, businessId, businessName, customerId: customer.id, to: recipient, subject, text: message,
+          db, businessId, businessName, customerId: customer.id, to: recipient, subject: offerSubject(offer, businessName), text: message,
         });
         status = out.ok ? "sent" : (out.skipped ? "skipped" : "failed");
         providerId = out.ok ? out.id : null;
-      } else {
-        // push — not wired yet
-        status = "skipped";
       }
 
       if (status === "sent") sent++;
-
-      // Log it
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (db.from("sms_logs") as any).insert({
-        business_id: businessId,
-        customer_id: customer.id,
-        rule_id:     rule.id,
-        campaign_id: null,
-        channel,
-        recipient,
-        message:     finalMessage,
-        status,
-        twilio_sid:  channel === "sms" ? providerId : null,
-      });
-
-      results.push({
-        business_id: businessId,
-        rule_id:     rule.id,
-        rule_name:   rule.name,
-        customer_id: customer.id,
-        customer:    customer.name,
-        channel,
-        status,
-      });
+      await logSend(db, { businessId, customerId: customer.id, ruleId: rule.id, channel, recipient, message: finalMessage, status, providerId });
+      results.push({ business_id: businessId, rule_id: rule.id, rule_name: rule.name, customer_id: customer.id, customer: customer.name, channel, status });
     }
   }
 
   // ── Legacy campaigns (kept for back-compat; SMS only) ───────────────────
+  // discount_amount is dollars off, so it gets a code the same way. A
+  // campaign with no discount is a plain "we miss you" text.
   for (const campaign of legacyCampaigns) {
+    const offer = readOffer("dollar", campaign.discount_amount);
+    if (offer && !takingOrders) {
+      console.warn(`[automations/run] ${businessId} campaign ${campaign.id} not sent, the shop isn't taking online payments`);
+      continue;
+    }
+
     for (const customer of customers) {
       if (!customer.phone || !customer.last_order_date) continue;
 
@@ -270,29 +290,21 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
         break;
       }
 
-      const message = withSenderAndOptOut(render(campaign.template ?? "Hey {name}, we miss you! Come back for ${discount} off your next order.", {
-        name:     (customer.name ?? "").split(" ")[0] ?? "there",
+      const issued = offer ? await issueCode(db, { businessId, customerId: customer.id, campaignId: campaign.id, offer, timezone, now }) : null;
+      if (offer && !issued) continue;
+
+      const link = issued ? `${storeUrl}?code=${issued.code}&src=winback` : storeUrl ? `${storeUrl}?src=winback` : "";
+      const message = withSenderAndOptOut(winbackMessage(campaign.template ?? "Hey {name}, we miss you! Come back for ${discount} off your next order.", {
+        name:     (customer.name ?? "").split(" ")[0] || "there",
         discount: String(campaign.discount_amount ?? 0),
         shop:     businessName,
-        link:     storeUrl,
-      }), businessName);
+        business: businessName,
+      }, { offer, link, code: issued?.code, ends: issued?.ends }), businessName);
 
       const out = await sendTwilioSms(customer.phone, message);
       if (out.status === "sent") sent++;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (db.from("sms_logs") as any).insert({
-        business_id: businessId,
-        customer_id: customer.id,
-        campaign_id: campaign.id,
-        rule_id:     null,
-        channel:     "sms",
-        recipient:   customer.phone,
-        message,
-        status:      out.status,
-        twilio_sid:  out.sid,
-      });
-
+      await logSend(db, { businessId, customerId: customer.id, campaignId: campaign.id, channel: "sms", recipient: customer.phone, message, status: out.status, providerId: out.sid });
       results.push({
         business_id: businessId,
         rule_id:     null,
@@ -310,21 +322,24 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function logSend(db: any, l: {
+  businessId: string; customerId: string; ruleId?: string | null; campaignId?: string | null;
+  channel: string; recipient: string; message: string; status: string; providerId: string | null;
+}) {
+  await db.from("sms_logs").insert({
+    business_id: l.businessId,
+    customer_id: l.customerId,
+    rule_id:     l.ruleId ?? null,
+    campaign_id: l.campaignId ?? null,
+    channel:     l.channel,
+    recipient:   l.recipient,
+    message:     l.message,
+    status:      l.status,
+    twilio_sid:  l.channel === "sms" ? l.providerId : null,
+  });
+}
+
 function daysBetween(a: Date, b: Date): number {
   return Math.floor(Math.abs(b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24));
-}
-
-function render(tpl: string, vars: Record<string, string>): string {
-  return tpl.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function formatOffer(rule: any): string {
-  const t = rule.offer_type as string;
-  const v = rule.offer_value as number;
-  if (t === "percent") return `${v}% off`;
-  if (t === "dollar")  return `$${v} off`;
-  if (t === "free_delivery") return "Free delivery";
-  if (t === "free_item")     return "A free item";
-  return "A special offer";
 }

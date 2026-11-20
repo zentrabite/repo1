@@ -24,6 +24,12 @@
 //   • A first order offer (lib/first-order.ts), if the shop runs one, comes
 //     off as a one-use coupon on the shop's account. Checkout decides who
 //     gets it from the mobile number, never the browser.
+//   • A win-back code from the link (lib/offer-codes.ts) is checked here and
+//     comes off the same way, instead of the first order offer. A used or
+//     ended code stops the checkout with the reason. Only one checkout can
+//     hold a code: a newer one ends the older Stripe page first.
+//   • Where the order came from (?src= on the link, or a code) goes to the
+//     webhook as came_from.
 
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
@@ -34,12 +40,13 @@ import { lineKey, optionsLabel, priceSelection, readOptions, type ChosenOption }
 import { checkPickup, readOrderingRules } from "@/lib/pickup-times";
 import { checkDeliveryAddress, cleanNote, readDeliveryRules } from "@/lib/own-delivery";
 import { firstOrderDiscount, readFirstOrderOffer } from "@/lib/first-order";
+import { cameFrom, checkCode, cleanCode, codeDiscount, type CodeCheck } from "@/lib/offer-codes";
 
 const MAX_LINES = 50;
 const MAX_QTY   = 50;
-// Stripe allows 50 metadata keys. Up to 14 are used for the order details,
-// so the items get up to 36 chunks.
-const MAX_ITEM_CHUNKS = 36;
+// Stripe allows 50 metadata keys. Up to 16 are used for the order details,
+// so the items get up to 34 chunks.
+const MAX_ITEM_CHUNKS = 34;
 
 type RequestItem = { id: string; qty: number; options?: unknown };
 
@@ -55,7 +62,7 @@ const clip = (v: unknown, n = 200) => (typeof v === "string" ? v.slice(0, n) : "
 
 export async function POST(req: Request) {
   try {
-    const { subdomain, items, customer, pickup, fulfilment, address, note } = await req.json() as {
+    const { subdomain, items, customer, pickup, fulfilment, address, note, code: rawCode, src } = await req.json() as {
       subdomain: string;
       items: RequestItem[];
       customer: { name?: string; phone?: string; email?: string; marketingOptIn?: boolean };
@@ -63,6 +70,8 @@ export async function POST(req: Request) {
       fulfilment?: unknown; // "pickup" (the default) or "delivery"
       address?: unknown;    // { line1, suburb, postcode } for delivery
       note?: unknown;       // for the kitchen or the driver
+      code?: unknown;       // a win-back offer code from the link
+      src?: unknown;        // where the link came from, e.g. "counter"
     };
 
     if (!subdomain || !Array.isArray(items) || items.length === 0) {
@@ -173,9 +182,34 @@ export async function POST(req: Request) {
     }
     const orderNote = cleanNote(note);
 
-    // The shop's first order offer, if this is the customer's first online
-    // order here. Worked out on the items only, never the delivery fee.
-    const discount = await firstOrderDiscount(db, business.id as string, readFirstOrderOffer(business.settings), customer?.phone, subtotalCents);
+    // A win-back code from the link. A bad one stops here with the reason,
+    // rather than quietly charging full price.
+    let codeCheck: Extract<CodeCheck, { ok: true }> | null = null;
+    if (rawCode !== undefined && rawCode !== null && rawCode !== "") {
+      const code = cleanCode(rawCode);
+      const checked = code ? await checkCode(db, business.id as string, code) : { ok: false as const, error: "That offer code isn't one of ours. Check the link in your message." };
+      if (!checked.ok) return NextResponse.json({ error: checked.error }, { status: 409 });
+      codeCheck = checked;
+    }
+    const codeOff = codeCheck ? codeDiscount(codeCheck.offer, subtotalCents, isDelivery ? Math.round(delivery.fee * 100) : 0) : null;
+    const usingCode = Boolean(codeCheck && codeOff && codeOff.cents > 0);
+
+    // Otherwise the shop's first order offer, if this is the customer's first
+    // online order here. Worked out on the items only, never the delivery fee.
+    const discount = usingCode && codeOff
+      ? codeOff
+      : await firstOrderDiscount(db, business.id as string, readFirstOrderOffer(business.settings), customer?.phone, subtotalCents);
+
+    // Only one checkout at a time can use a code. If another one is still
+    // open (the customer went back and changed their order), end it first.
+    if (usingCode && codeCheck) {
+      const { held_session: heldBy, held_until: heldUntil } = codeCheck.row;
+      if (heldBy && heldUntil && Date.parse(heldUntil) > Date.now()) {
+        const other = await endOtherCheckout(heldBy, connectedAccount);
+        if (other === "paid") return NextResponse.json({ error: "That offer code has already been used." }, { status: 409 });
+        if (other === "busy") return NextResponse.json({ error: "That offer code is open in another checkout. Try again in a few minutes." }, { status: 409 });
+      }
+    }
 
     // Customers come back to the host they ordered on (their name.zentrabite.com
     // or the CRM's /store page). Only our own hosts are trusted.
@@ -198,7 +232,7 @@ export async function POST(req: Request) {
     const coupon = discount.cents > 0
       ? await stripe.coupons.create({
           amount_off: discount.cents, currency: "aud", duration: "once", max_redemptions: 1,
-          redeem_by: expiresAt + 5 * 60, name: "First order offer",
+          redeem_by: expiresAt + 5 * 60, name: usingCode && codeCheck ? `Offer code ${codeCheck.row.code}` : "First order offer",
         }, { stripeAccount: connectedAccount })
       : null;
 
@@ -229,7 +263,8 @@ export async function POST(req: Request) {
       // as payment_intent_data.application_fee_amount, and must cover only
       // ZentraBite's own fee, because Stripe takes its fee from the shop.
       success_url: `${origin}/store/${business.subdomain}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url:  `${origin}/store/${business.subdomain}`,
+      // Going back keeps the offer code and where they came from.
+      cancel_url:  `${origin}/store/${business.subdomain}${backQuery(codeCheck?.row.code ?? null, cameFrom(src, false))}`,
       metadata: {
         business_id:      business.id as string,
         subdomain:        business.subdomain as string,
@@ -243,10 +278,27 @@ export async function POST(req: Request) {
         fulfillment_type: isDelivery ? "delivery" : "pickup",
         ...(deliveryAddress ? { delivery_address: deliveryAddress, delivery_fee: delivery.fee.toFixed(2) } : {}),
         ...(orderNote ? { note: orderNote } : {}),
-        ...(coupon ? { first_order_discount: (discount.cents / 100).toFixed(2) } : {}),
+        ...(coupon && !usingCode ? { first_order_discount: (discount.cents / 100).toFixed(2) } : {}),
+        ...(coupon && usingCode && codeCheck ? { offer_code: codeCheck.row.code, offer_discount: (discount.cents / 100).toFixed(2) } : {}),
+        came_from:        cameFrom(src, Boolean(codeCheck)),
         ...itemChunks,
       },
     }, { stripeAccount: connectedAccount });
+
+    // Hold the code for this checkout. If another checkout took it in the
+    // meantime, this one ends and the customer is told.
+    if (usingCode && codeCheck) {
+      const prev = codeCheck.row.held_session;
+      let claim = db.from("offer_codes")
+        .update({ held_session: session.id, held_until: new Date(expiresAt * 1000).toISOString() })
+        .eq("id", codeCheck.row.id).is("redeemed_at", null);
+      claim = prev ? claim.eq("held_session", prev) : claim.is("held_session", null);
+      const { data: claimed } = await claim.select("id");
+      if (!Array.isArray(claimed) || claimed.length === 0) {
+        try { await stripe.checkout.sessions.expire(session.id, {}, { stripeAccount: connectedAccount }); } catch { /* it expires by itself in half an hour */ }
+        return NextResponse.json({ error: "That offer code is open in another checkout. Try again in a few minutes." }, { status: 409 });
+      }
+    }
 
     return NextResponse.json({ url: session.url });
   } catch (err) {
@@ -254,4 +306,33 @@ export async function POST(req: Request) {
     console.error("[store/checkout]", message);
     return NextResponse.json({ error: "Checkout failed. Please try again." }, { status: 500 });
   }
+}
+
+/**
+ * Ends another open checkout that holds the same offer code. "freed" when
+ * it's ended (or had already), "paid" when it was paid, "busy" when Stripe
+ * couldn't say.
+ */
+async function endOtherCheckout(sessionId: string, account: string): Promise<"freed" | "paid" | "busy"> {
+  try {
+    await stripe.checkout.sessions.expire(sessionId, {}, { stripeAccount: account });
+    return "freed";
+  } catch {
+    try {
+      const other = await stripe.checkout.sessions.retrieve(sessionId, {}, { stripeAccount: account });
+      if (other.status === "complete") return "paid";
+      if (other.status === "expired") return "freed";
+    } catch { /* fall through */ }
+    return "busy";
+  }
+}
+
+/** "?code=K7MP4QXA&src=winback" for the way back from Stripe, or "". */
+function backQuery(code: string | null, from: string): string {
+  const q = new URLSearchParams();
+  if (code) q.set("code", code);
+  if (from !== "direct") q.set("src", from);
+  else if (code) q.set("src", "winback");
+  const s = q.toString();
+  return s ? `?${s}` : "";
 }

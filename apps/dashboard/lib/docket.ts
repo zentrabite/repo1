@@ -23,6 +23,8 @@ export type DocketOrder = {
   ship_to?: unknown;
   delivery_fee?: number | null;
   discount?: number | null;
+  /** A win-back offer code, when that's what took the discount off. */
+  offer_code?: string | null;
 };
 
 const esc = (s: unknown) => String(s ?? "")
@@ -85,7 +87,7 @@ export function docketHtml(input: {
   ${order.notes ? `<div class="note">NOTE: ${esc(order.notes)}</div>` : ""}
   <hr>
   ${delivery && order.delivery_fee ? `<div class="row"><span>Delivery</span><span>${money(order.delivery_fee)}</span></div>` : ""}
-  ${Number(order.discount) > 0 ? `<div class="row"><span>First order offer</span><span>-${money(order.discount)}</span></div>` : ""}
+  ${Number(order.discount) > 0 ? `<div class="row"><span>${order.offer_code ? `Offer code ${esc(order.offer_code)}` : "First order offer"}</span><span>-${money(order.discount)}</span></div>` : ""}
   <div class="row total"><span>Total</span><span>${money(order.total)}</span></div>
   <div class="meta">${paid}</div>
 </body></html>`;

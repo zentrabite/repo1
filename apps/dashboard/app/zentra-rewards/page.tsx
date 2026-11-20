@@ -19,7 +19,7 @@ const BLANK_FORM = {
   offer_type: "percent",
   offer_value: 20,
   channel: "sms",
-  template: "Hey {name}, we miss you — here's {offer} off your next order at {business}. Tap the link to redeem: {link}",
+  template: "Hey {name}, we miss you at {business}. Here's {offer} on your next online order: {link}",
   cooldown_days: 30,
   is_active: true,
 };
@@ -195,7 +195,8 @@ export default function WinBackPage() {
               <option value="percent">% off</option>
               <option value="dollar">$ off</option>
               <option value="free_delivery">Free delivery</option>
-              <option value="free_item">Free item</option>
+              {/* Not sent any more: nothing can redeem a free item online. Shown only so an old rule can be changed. */}
+              {form.offer_type === "free_item" && <option value="free_item">Free item (not sent)</option>}
             </select>
           </div>
           <div>
@@ -210,8 +211,11 @@ export default function WinBackPage() {
 
         <div style={{ marginBottom:14 }}>
           <label style={{ display:"block", fontSize:10, color:C.st, marginBottom:3 }}>
-            Message template — use <code>{"{name}"}</code>, <code>{"{offer}"}</code>, <code>{"{business}"}</code>, <code>{"{link}"}</code>
+            Message template. Use <code>{"{name}"}</code>, <code>{"{offer}"}</code>, <code>{"{business}"}</code>, <code>{"{link}"}</code>, <code>{"{code}"}</code> and <code>{"{ends}"}</code>
           </label>
+          <p style={{ fontSize:11, color:C.st, lineHeight:1.5, margin:"0 0 6px" }}>
+            Each customer gets their own code in the link, good for one online order. It comes off at checkout and ends after 14 days. If the template leaves out {"{ends}"}, the message ends with &ldquo;Online orders only, ends&rdquo; and the date. Offers only go out while you take online payments, and free delivery only while you deliver.
+          </p>
           <textarea
             value={form.template}
             onChange={e=>setForm(f=>({...f, template:e.target.value}))}

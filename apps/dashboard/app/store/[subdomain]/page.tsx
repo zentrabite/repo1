@@ -9,6 +9,10 @@ import { OptionPicker, missingGroup } from "@/components/option-picker";
 import { cheapestPrice, lineKey, optionsLabel, priceSelection, pricesVary, readOptions, type OptionGroup } from "@/lib/menu-options";
 import { DEFAULT_TIMEZONE, pickupPlan, shopTime, type OrderingRules } from "@/lib/pickup-times";
 import { checkDeliveryAddress } from "@/lib/own-delivery";
+import { codeDiscount, type OfferType } from "@/lib/offer-codes";
+
+// A win-back offer code from the link, as /api/store/[subdomain]?code= sends it.
+type CodeOffer = { code: string; type: OfferType; value: number; label: string; ends: string };
 
 // The ordering rules as /api/store/[subdomain] sends them.
 type DeliveryInfo = { fee: number; min_order: number; extra_minutes: number; areas: string[] };
@@ -62,17 +66,26 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
   const [address,     setAddress]     = useState({ line1: "", suburb: "", postcode: "" });
   const [note,        setNote]        = useState("");
   const [tick,        setTick]        = useState(0);
+  // A win-back code (?code=) and where the link came from (?src=), sent on to checkout.
+  const [codeOffer,    setCodeOffer]    = useState<CodeOffer | null>(null);
+  const [codeProblem,  setCodeProblem]  = useState<string | null>(null);
+  const [src,          setSrc]          = useState<string | null>(null);
 
   // Brand colour on buttons and prices, ZentraBite green if none is set.
   const accent = biz?.accent_color ?? BASE.g;
   const C = { ...BASE, g: accent, onG: textOn(accent) };
 
   useEffect(() => {
-    fetch(`/api/store/${subdomain}`)
+    const query = new URLSearchParams(window.location.search);
+    const code = query.get("code");
+    fetch(`/api/store/${subdomain}${code ? `?code=${encodeURIComponent(code)}` : ""}`)
       .then(r => r.json())
       .then(data => {
         if (data.error) { setError(data.error); setLoading(false); return; }
         setBiz(data.business);
+        setCodeOffer((data.offer as CodeOffer | null) ?? null);
+        setCodeProblem((data.offer_problem as string | null) ?? null);
+        setSrc(query.get("src"));
         setMenu(data.menu);
         const ordering = data.business?.ordering as OrderingInfo | undefined;
         const offset = ordering?.now ? Date.parse(ordering.now) - Date.now() : 0;
@@ -152,7 +165,8 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
   // Delivery, if the shop offers it. Its times add the drive time.
   const deliveryInfo = (biz?.ordering?.delivery as DeliveryInfo | null | undefined) ?? null;
   // The shop's first order offer (lib/first-order.ts). Checkout decides who gets it, from the mobile number.
-  const firstOrder = (biz?.ordering?.first_order as { amount: number; min_order: number } | null | undefined) ?? null;
+  // A win-back code replaces it, so it isn't shown alongside one.
+  const firstOrder = codeOffer ? null : (biz?.ordering?.first_order as { amount: number; min_order: number } | null | undefined) ?? null;
   const isDelivery = fulfilment === "delivery" && Boolean(deliveryInfo);
   const timePlan = useMemo(() => {
     if (!biz?.ordering || !isDelivery || !deliveryInfo) return plan;
@@ -168,7 +182,10 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
 
   const total = cart.reduce((s, c) => s + c.price * c.qty, 0);
   const deliveryFee = isDelivery && deliveryInfo ? deliveryInfo.fee : 0;
-  const grandTotal = total + deliveryFee;
+  // What the code takes off, worked out the same way as checkout.
+  const codeOff = codeOffer ? codeDiscount(codeOffer, Math.round(total * 100), Math.round(deliveryFee * 100)) : null;
+  const codeSaving = (codeOff?.cents ?? 0) / 100;
+  const grandTotal = total + deliveryFee - codeSaving;
   // Only checked once the suburb and postcode are both filled in.
   const addressCheck = isDelivery && deliveryInfo && address.suburb.trim() && address.postcode.trim()
     ? checkDeliveryAddress({ enabled: true, fee: deliveryInfo.fee, minOrder: deliveryInfo.min_order, extraMinutes: deliveryInfo.extra_minutes, areas: deliveryInfo.areas }, address)
@@ -194,6 +211,7 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
         body: JSON.stringify({
           subdomain, items: cart.map(c => ({ id: c.id, qty: c.qty, options: c.options })), customer, pickup: pickupChoice,
           fulfilment: isDelivery ? "delivery" : "pickup", address: isDelivery ? address : undefined, note: note.trim() || undefined,
+          code: codeOffer?.code, src: src ?? undefined,
         }),
       });
       const data = await res.json();
@@ -272,6 +290,18 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
         {biz?.taking_orders && plan?.state === "later" && plan.slots[0] && (
           <div style={{ marginTop:16, padding:"12px 14px", borderRadius:12, background:`color-mix(in srgb, ${C.g} 12%, transparent)`, color:C.cl, fontSize:13, lineHeight:1.5 }}>
             {`We're closed until ${shopTime(plan.opensAt, tz)}. Order now for pick-up from ${shopTime(plan.slots[0], tz)}.`}
+          </div>
+        )}
+        {biz?.taking_orders && codeOffer && (
+          <div style={{ marginTop:12, padding:"12px 14px", borderRadius:12, border:`1px solid color-mix(in srgb, ${C.g} 35%, transparent)`, color:C.cl, fontSize:13, lineHeight:1.5 }}>
+            {codeOffer.type === "free_delivery"
+              ? `Free delivery on this order with your code ${codeOffer.code}. Choose delivery at checkout. Ends ${codeOffer.ends}.`
+              : `${codeOffer.label.charAt(0).toUpperCase()}${codeOffer.label.slice(1)} this order with your code ${codeOffer.code}. It comes off at checkout. Ends ${codeOffer.ends}.`}
+          </div>
+        )}
+        {codeProblem && (
+          <div style={{ marginTop:12, padding:"12px 14px", borderRadius:12, background:"rgba(255,193,75,.1)", border:"1px solid rgba(255,193,75,.3)", color:"#FFC14B", fontSize:13, lineHeight:1.5 }}>
+            {`${codeProblem} You can still order at the normal price.`}
           </div>
         )}
         {biz?.taking_orders && firstOrder && (
@@ -443,6 +473,13 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
                 <span>Delivery</span><span>${deliveryFee.toFixed(2)}</span>
               </div>
             )}
+            {codeOffer && (codeSaving > 0 ? (
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", paddingTop:14, fontSize:13, color:C.cl }}>
+                <span>{`Offer code ${codeOffer.code}, ${codeOffer.label}`}</span><span>-${codeSaving.toFixed(2)}</span>
+              </div>
+            ) : codeOff?.note ? (
+              <div style={{ paddingTop:14, fontSize:13, color:"#FFC14B" }}>{codeOff.note}</div>
+            ) : null)}
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 0" }}>
               <span style={{ color:C.st, fontSize:13 }}>Total</span>
               <span style={{ fontWeight:800, fontSize:20, color:C.cl }}>${grandTotal.toFixed(2)}</span>
