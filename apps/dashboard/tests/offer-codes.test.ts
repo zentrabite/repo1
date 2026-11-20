@@ -33,7 +33,9 @@ vi.mock("server-only", () => ({}));
 vi.mock("@/lib/stripe", () => ({ stripe: h.stripe }));
 vi.mock("@/lib/supabase-server", () => ({ createAdminClient: () => h.db, createServerClient: () => h.db }));
 vi.mock("@/lib/notify", () => ({ notifyOwnerOfOrder: vi.fn(async () => {}) }));
-vi.mock("@/lib/email", () => ({ sendCustomerReceipt: vi.fn(async () => ({ ok: true })), sendMarketingEmail: h.email }));
+vi.mock("@/lib/email", () => ({ sendCustomerReceipt: vi.fn(async () => ({ ok: true })), sendMarketingEmail: h.email, sendEmail: vi.fn(async () => ({ ok: true, id: "em" })) }));
+// Nobody is held back in these tests (tests/winback-report.test.ts covers that).
+vi.mock("@/lib/winback-report", async (importOriginal) => ({ ...(await importOriginal<object>()), heldBack: () => false }));
 vi.mock("@/lib/sms", () => ({
   normaliseAuPhone: (p: string) => p,
   checkSmsAllowance: vi.fn(async () => ({ ok: true })),

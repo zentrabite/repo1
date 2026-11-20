@@ -58,11 +58,14 @@ serve(async () => {
         .gte("created_at", `${date}T00:00:00`)
         .lt("created_at",  `${date}T23:59:59`);
 
-      // SMS sent that day
+      // SMS sent that day. Only messages that went out. Customers held back
+      // for the win-back report (status "held_back") and failed or skipped
+      // sends don't count (since 21 Nov 2026).
       const { count: smsSent } = await db
         .from("sms_logs")
         .select("*", { count:"exact", head:true })
         .eq("business_id", biz.id)
+        .eq("status", "sent")
         .gte("sent_at", `${date}T00:00:00`)
         .lt("sent_at",  `${date}T23:59:59`);
 
@@ -70,6 +73,7 @@ serve(async () => {
         .from("sms_logs")
         .select("*", { count:"exact", head:true })
         .eq("business_id", biz.id)
+        .eq("status", "sent")
         .eq("converted", true)
         .gte("sent_at", `${date}T00:00:00`)
         .lt("sent_at",  `${date}T23:59:59`);

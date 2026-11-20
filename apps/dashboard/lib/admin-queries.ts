@@ -87,7 +87,7 @@ export async function getAllBusinessesStats(): Promise<AdminBusinessRow[]> {
       customerCount: custs.filter(c => c.business_id === b.id).length,
       orderCount:    orders.filter(o => o.business_id === b.id).length,
       totalRevenue:  orders.filter(o => o.business_id === b.id).reduce((s, o) => s + netTotal(o), 0),
-      smsSent:       smsLogs.filter(l => l.business_id === b.id).length,
+      smsSent:       smsLogs.filter(l => l.business_id === b.id && l.status === "sent").length,
       lastOrder:     orders
         .filter(o => o.business_id === b.id)
         .sort((a, z) => (z.created_at > a.created_at ? 1 : -1))[0]?.created_at ?? null,

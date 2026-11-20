@@ -311,7 +311,9 @@ export async function getSmsStats(businessId: string) {
     .select("status, converted")
     .eq("business_id", businessId);
   if (error) throw error;
-  const logs = data ?? [];
+  // Only messages that went out. Customers held back for the win-back
+  // report (status "held_back") and failed or skipped sends don't count.
+  const logs = (data ?? []).filter((l: any) => l.status === "sent");
   const sent      = logs.length;
   const converted = logs.filter((l: any) => l.converted).length;
   return { sent, converted };

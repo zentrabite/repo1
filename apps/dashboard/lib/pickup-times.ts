@@ -238,6 +238,18 @@ export function shopDayEnd(date: Date, days: number, timezone: string): Date {
   return new Date(atShopTime(shiftDays(zoned(date, timezone), days), "23:59", timezone).getTime() + 59_000);
 }
 
+/** Midnight at the start of that date in the shop's time zone. m is 1 to 12. Rolls over, so day 1 of month 13 is next January. */
+export function shopMidnight(y: number, m: number, d: number, timezone: string): Date {
+  const t = new Date(Date.UTC(y, m - 1, d));
+  return atShopTime({ y: t.getUTCFullYear(), m: t.getUTCMonth() + 1, d: t.getUTCDate() }, "00:00", timezone);
+}
+
+/** The year, month (1 to 12) and day it is now in the shop's time zone. */
+export function shopToday(now: Date, timezone: string): { y: number; m: number; d: number } {
+  const z = zoned(now, timezone);
+  return { y: z.y, m: z.m, d: z.d };
+}
+
 /** "Fri 5 Dec" in the shop's time zone. */
 export function shopDate(date: Date, timezone: string): string {
   return new Intl.DateTimeFormat("en-AU", { timeZone: timezone, weekday: "short", day: "numeric", month: "short" })

@@ -183,7 +183,7 @@
    {
     "id": "aaaaaaa2-0000-4000-8000-000000000002",
     "business_id": "22222222-2222-4222-8222-222222222222",
-    "customer_id": null,
+    "customer_id": "aaaaaaa2-c000-4000-8000-000000000001",
     "items": [
      {
       "id": "m1",
@@ -339,6 +339,52 @@
     "sort_order": 1,
     "image_url": null,
     "options": []
+   }
+  ],
+  "sms_logs": [
+   {
+    "id": "5e000000-0000-4000-8000-000000000001",
+    "business_id": "22222222-2222-4222-8222-222222222222",
+    "customer_id": "aaaaaaa2-c000-4000-8000-000000000001",
+    "rule_id": "0b000001-0000-4000-8000-000000000001",
+    "campaign_id": null,
+    "channel": "sms",
+    "status": "sent",
+    "converted": false,
+    "sent_at": "2026-11-12T09:00:00Z"
+   },
+   {
+    "id": "5e000000-0000-4000-8000-000000000002",
+    "business_id": "22222222-2222-4222-8222-222222222222",
+    "customer_id": "aaaaaaa2-c000-4000-8000-000000000002",
+    "rule_id": "0b000001-0000-4000-8000-000000000001",
+    "campaign_id": null,
+    "channel": "sms",
+    "status": "sent",
+    "converted": false,
+    "sent_at": "2026-11-05T09:00:00Z"
+   },
+   {
+    "id": "5e000000-0000-4000-8000-000000000003",
+    "business_id": "22222222-2222-4222-8222-222222222222",
+    "customer_id": "aaaaaaa2-c000-4000-8000-000000000003",
+    "rule_id": "0b000001-0000-4000-8000-000000000001",
+    "campaign_id": null,
+    "channel": "sms",
+    "status": "sent",
+    "converted": false,
+    "sent_at": "2026-11-06T09:00:00Z"
+   },
+   {
+    "id": "5e000000-0000-4000-8000-000000000004",
+    "business_id": "22222222-2222-4222-8222-222222222222",
+    "customer_id": "aaaaaaa2-c000-4000-8000-000000000004",
+    "rule_id": "0b000001-0000-4000-8000-000000000001",
+    "campaign_id": null,
+    "channel": "sms",
+    "status": "held_back",
+    "converted": false,
+    "sent_at": "2026-11-06T09:00:00Z"
    }
   ],
   "offer_codes": [
