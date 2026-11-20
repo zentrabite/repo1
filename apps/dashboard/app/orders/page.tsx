@@ -361,6 +361,7 @@ export default function OrdersPage() {
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:14 }}>
               {([
                 ["Total",       `$${Number(selected.total).toFixed(2)}`],
+                ...(Number(selected.discount) > 0 ? [["First order offer", `-$${Number(selected.discount).toFixed(2)}`]] : []),
                 ["Status",      selected.status],
                 ["Source",      SOURCE_LABELS[selected.source] ?? selected.source],
                 ["Fulfilment",  fulfillLabel(selected) ?? "—"],

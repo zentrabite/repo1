@@ -88,6 +88,8 @@ export interface Database {
           // ─── Refunds (migration 021). Server only ───────────────────────
           refunded_amount:    number;          // dollars refunded so far, 0 for none
           refunded_at:        string | null;
+          // ─── First order offer (migration 024). Server only ─────────────
+          discount:           number;          // dollars taken off at checkout, 0 for none
         };
         Insert: Omit<Database["public"]["Tables"]["orders"]["Row"], "id" | "created_at">;
         Update: Partial<Database["public"]["Tables"]["orders"]["Insert"]>;

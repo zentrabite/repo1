@@ -14,6 +14,7 @@ import { orderUrl } from "@/lib/tenant";
 import { saveSettings } from "@/lib/queries";
 import { DEFAULT_PREP_MINUTES, DEFAULT_TIMEZONE, type DayHours, breakProblem, readOrderingRules } from "@/lib/pickup-times";
 import { DEFAULT_DELIVERY_MINUTES, parseAreas, readDeliveryRules } from "@/lib/own-delivery";
+import { MAX_OFFER, offerProblem, offerText, readFirstOrderOffer } from "@/lib/first-order";
 
 const TIMEZONES = ["Australia/Adelaide", "Australia/Darwin", "Australia/Brisbane", "Australia/Sydney", "Australia/Melbourne", "Australia/Hobart", "Australia/Perth", "Pacific/Auckland"];
 const PREP_CHOICES = [10, 15, 20, 25, 30, 40, 45, 60, 90];
@@ -175,6 +176,8 @@ function SettingsContent() {
   const [ordering, setOrdering] = useState({ prep_minutes: DEFAULT_PREP_MINUTES, paused: false, timezone: DEFAULT_TIMEZONE });
   // Delivery by the shop's own drivers (lib/own-delivery.ts).
   const [ownDelivery, setOwnDelivery] = useState({ enabled: false, fee: "", min_order: "", extra_minutes: DEFAULT_DELIVERY_MINUTES, areas: "" });
+  // First order offer (lib/first-order.ts). What the counter QR code promises.
+  const [firstOrder, setFirstOrder] = useState({ enabled: false, amount: "", min_order: "" });
 
   // Role permissions — owner decides what Manager/Staff/POS can see in the nav.
   const [rolePerms, setRolePerms] = useState<Record<string, string[]>>(DEFAULT_ROLE_PERMISSIONS);
@@ -213,6 +216,14 @@ function SettingsContent() {
       setOwnDelivery({
         enabled: savedOn, fee: d.fee ? d.fee.toFixed(2) : "", min_order: d.minOrder ? d.minOrder.toFixed(2) : "",
         extra_minutes: d.extraMinutes, areas: d.areas.join(", "),
+      });
+      const f = readFirstOrderOffer(settings);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const fo = (settings as any).ordering?.first_order;
+      setFirstOrder({
+        enabled: f.enabled,
+        amount: f.amount ? String(f.amount) : (fo?.amount ? String(fo.amount) : ""),
+        min_order: f.minOrder ? String(f.minOrder) : (fo?.min_order ? String(fo.min_order) : ""),
       });
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -629,10 +640,34 @@ function SettingsContent() {
               </div>
             )}
 
+            {/* First order offer */}
+            <label style={{ display:"flex", alignItems:"center", gap:10, fontSize:13, color:C.cl, margin:"4px 0 10px", cursor:"pointer", minHeight:32 }}>
+              <input type="checkbox" checked={firstOrder.enabled} onChange={e => setFirstOrder(f => ({ ...f, enabled: e.target.checked }))} style={{ width:16, height:16 }} />
+              Give money off a customer&apos;s first online order
+            </label>
+            {firstOrder.enabled && (
+              <div style={{ background:"rgba(255,255,255,.03)", borderRadius:10, padding:"12px 12px 2px", marginBottom:14 }}>
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
+                  <Field label="Amount off ($)">
+                    <input type="number" inputMode="decimal" min="1" max={MAX_OFFER} step="1" value={firstOrder.amount} onChange={e => setFirstOrder(f => ({ ...f, amount: e.target.value }))} placeholder="10" />
+                  </Field>
+                  <Field label="Minimum spend ($)">
+                    <input type="number" inputMode="decimal" min="1" step="1" value={firstOrder.min_order} onChange={e => setFirstOrder(f => ({ ...f, min_order: e.target.value }))} placeholder="30" />
+                  </Field>
+                </div>
+                <p style={{ fontFamily:"var(--font-inter)", fontSize:12, color:C.st, margin:"0 0 10px", lineHeight:1.6 }}>
+                  {`Once per mobile number, on their first online order here. It comes out of your takings. It shows on your website, your ordering page and the counter QR code${offerText({ enabled: true, amount: Number(firstOrder.amount) || 0, minOrder: Number(firstOrder.min_order) || 0 }) && !offerProblem(Number(firstOrder.amount), Number(firstOrder.min_order)) ? ` as "${offerText({ enabled: true, amount: Number(firstOrder.amount), minOrder: Number(firstOrder.min_order) })}".` : "."}`}
+                </p>
+              </div>
+            )}
+
             <button className="bp" style={{ width:"100%", justifyContent:"center" }} onClick={async () => {
               if (!businessId) return;
               const areas = parseAreas(ownDelivery.areas);
               if (ownDelivery.enabled && areas.length === 0) return show("Add the suburbs or postcodes you deliver to");
+              const offerAmount = Number(firstOrder.amount), offerMin = Number(firstOrder.min_order);
+              const offerIssue = firstOrder.enabled ? offerProblem(offerAmount, offerMin) : null;
+              if (offerIssue) return show(offerIssue);
               try {
                 await saveSettings(businessId, {
                   timezone: ordering.timezone,
@@ -645,6 +680,11 @@ function SettingsContent() {
                       min_order: Math.max(0, Number(ownDelivery.min_order) || 0),
                       extra_minutes: ownDelivery.extra_minutes,
                       areas,
+                    },
+                    first_order: {
+                      enabled: firstOrder.enabled,
+                      amount: firstOrder.enabled ? offerAmount : Number(firstOrder.amount) || 0,
+                      min_order: firstOrder.enabled ? offerMin : Number(firstOrder.min_order) || 0,
                     },
                   },
                 });

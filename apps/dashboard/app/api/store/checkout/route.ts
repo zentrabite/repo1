@@ -21,6 +21,9 @@
 //     the suburbs or postcodes the shop lists, over its minimum order, with
 //     its flat fee as its own line and its drive time added to the prep time.
 //   • Marketing consent is recorded only if the customer ticked the box.
+//   • A first order offer (lib/first-order.ts), if the shop runs one, comes
+//     off as a one-use coupon on the shop's account. Checkout decides who
+//     gets it from the mobile number, never the browser.
 
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
@@ -30,10 +33,11 @@ import { isShopAccount } from "@/lib/stripe-connect";
 import { lineKey, optionsLabel, priceSelection, readOptions, type ChosenOption } from "@/lib/menu-options";
 import { checkPickup, readOrderingRules } from "@/lib/pickup-times";
 import { checkDeliveryAddress, cleanNote, readDeliveryRules } from "@/lib/own-delivery";
+import { firstOrderDiscount, readFirstOrderOffer } from "@/lib/first-order";
 
 const MAX_LINES = 50;
 const MAX_QTY   = 50;
-// Stripe allows 50 metadata keys. Up to 13 are used for the order details,
+// Stripe allows 50 metadata keys. Up to 14 are used for the order details,
 // so the items get up to 36 chunks.
 const MAX_ITEM_CHUNKS = 36;
 
@@ -169,6 +173,10 @@ export async function POST(req: Request) {
     }
     const orderNote = cleanNote(note);
 
+    // The shop's first order offer, if this is the customer's first online
+    // order here. Worked out on the items only, never the delivery fee.
+    const discount = await firstOrderDiscount(db, business.id as string, readFirstOrderOffer(business.settings), customer?.phone, subtotalCents);
+
     // Customers come back to the host they ordered on (their name.zentrabite.com
     // or the CRM's /store page). Only our own hosts are trusted.
     const origin = trustedOrigin(req.headers.get("origin"), process.env.NEXT_PUBLIC_APP_URL ?? "https://dashboard.zentrabite.com");
@@ -182,6 +190,17 @@ export async function POST(req: Request) {
     if (Object.keys(itemChunks).length > MAX_ITEM_CHUNKS) {
       return NextResponse.json({ error: "Too many items in one order" }, { status: 400 });
     }
+
+    // A one-use coupon on the shop's account, so Stripe shows the discount on
+    // the checkout page and the receipt. It stops working soon after the
+    // checkout would have expired, so unused ones don't pile up.
+    const expiresAt = Math.floor(Date.now() / 1000) + 31 * 60;
+    const coupon = discount.cents > 0
+      ? await stripe.coupons.create({
+          amount_off: discount.cents, currency: "aud", duration: "once", max_redemptions: 1,
+          redeem_by: expiresAt + 5 * 60, name: "First order offer",
+        }, { stripeAccount: connectedAccount })
+      : null;
 
     // Created on the shop's own account (the stripeAccount option), so the
     // customer sees the shop's name and branding at checkout.
@@ -203,7 +222,8 @@ export async function POST(req: Request) {
       mode: "payment",
       // Stripe's shortest allowed. A checkout left open can't be paid after
       // the pick-up time has gone or the shop has closed.
-      expires_at: Math.floor(Date.now() / 1000) + 31 * 60,
+      expires_at: expiresAt,
+      ...(coupon ? { discounts: [{ coupon: coupon.id }] } : {}),
       customer_email: clip(customer?.email) || undefined,
       // No ZentraBite fee on orders yet. If Liam decides on one, it goes here
       // as payment_intent_data.application_fee_amount, and must cover only
@@ -223,6 +243,7 @@ export async function POST(req: Request) {
         fulfillment_type: isDelivery ? "delivery" : "pickup",
         ...(deliveryAddress ? { delivery_address: deliveryAddress, delivery_fee: delivery.fee.toFixed(2) } : {}),
         ...(orderNote ? { note: orderNote } : {}),
+        ...(coupon ? { first_order_discount: (discount.cents / 100).toFixed(2) } : {}),
         ...itemChunks,
       },
     }, { stripeAccount: connectedAccount });

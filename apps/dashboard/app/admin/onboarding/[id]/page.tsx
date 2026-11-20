@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useBusiness } from "@/hooks/use-business";
 import ImportCheck from "@/components/import-check";
+import { MAX_OFFER, offerProblem, offerText, readFirstOrderOffer } from "@/lib/first-order";
 import MenuUpload from "@/components/menu-upload";
 import PasswordInput from "@/components/password-input";
 import { Icon, type IconName } from "@/components/zb-icon";
@@ -949,6 +950,11 @@ function StepWebsite({ biz, save, show, goTo }: { biz: Biz; save: SaveFn; show: 
   const [tagline, setTagline] = useState<string>(site.tagline ?? imp?.tagline ?? "");
   const [about,   setAbout]   = useState<string>(site.about ?? biz.description ?? "");
   const [offer,   setOffer]   = useState<string>(site.offer_text ?? "");
+  // The first order offer (lib/first-order.ts), a real discount at checkout.
+  const savedOffer = readFirstOrderOffer(biz.settings);
+  const [offerOn,  setOfferOn]  = useState<boolean>(savedOffer.enabled);
+  const [offerAmt, setOfferAmt] = useState<string>(savedOffer.amount ? String(savedOffer.amount) : "");
+  const [offerMin, setOfferMin] = useState<string>(savedOffer.minOrder ? String(savedOffer.minOrder) : "");
   const [photos,  setPhotos]  = useState<string[]>(site.photos ?? []);
   const [busy,    setBusy]    = useState(false);
   const published = site.published === true;
@@ -961,11 +967,14 @@ function StepWebsite({ biz, save, show, goTo }: { biz: Biz; save: SaveFn; show: 
   }
 
   const siteSettings = () => ({ look, tagline: tagline.trim(), about: about.trim(), offer_text: offer.trim(), photos });
+  const offerIssue = offerOn ? offerProblem(Number(offerAmt), Number(offerMin)) : null;
+  const orderingSettings = () => ({ first_order: { enabled: offerOn && !offerIssue, amount: Number(offerAmt) || 0, min_order: Number(offerMin) || 0 } });
 
   async function setPublished(next: boolean) {
     setBusy(true);
     try {
-      const ok = await save({ settings: { site: { ...siteSettings(), published: next, ...(next ? { published_at: new Date().toISOString() } : {}) } } }, { silent: true });
+      if (offerIssue) { show(offerIssue); return; }
+      const ok = await save({ settings: { ordering: orderingSettings(), site: { ...siteSettings(), published: next, ...(next ? { published_at: new Date().toISOString() } : {}) } } }, { silent: true });
       if (ok) show(next ? "Website published ✓" : "Website hidden");
     } finally { setBusy(false); }
   }
@@ -1007,8 +1016,27 @@ function StepWebsite({ biz, save, show, goTo }: { biz: Biz; save: SaveFn; show: 
           <textarea value={about} onChange={e => setAbout(e.target.value)} rows={4} maxLength={1200} placeholder="A few sentences about the venue, in their words." />
           <ImportCheck note={imp?.checks.description} />
         </Field>
-        <Field label="Offer banner (optional)">
-          <input value={offer} onChange={e => setOffer(e.target.value)} placeholder="e.g. $10 off your first order here. Only if the owner is running it." maxLength={160} />
+        <div>
+          <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: C.cl, cursor: "pointer", minHeight: 44, margin: 0 }}>
+            <input type="checkbox" checked={offerOn} onChange={e => setOfferOn(e.target.checked)} style={{ width: 16, height: 16, flex: "none" }} />
+            Money off a customer&apos;s first online order (what the counter QR code offers)
+          </label>
+          {offerOn && (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 6 }}>
+              <Field label="Amount off ($)">
+                <input type="number" inputMode="decimal" min="1" max={MAX_OFFER} value={offerAmt} onChange={e => setOfferAmt(e.target.value)} placeholder="10" />
+              </Field>
+              <Field label="Minimum spend ($)">
+                <input type="number" inputMode="decimal" min="1" value={offerMin} onChange={e => setOfferMin(e.target.value)} placeholder="30" />
+              </Field>
+            </div>
+          )}
+          <div style={{ fontSize: 12, color: offerIssue ? C.y : C.st, marginTop: 4, lineHeight: 1.5 }}>
+            {offerIssue ?? (offerOn ? `${offerText({ enabled: true, amount: Number(offerAmt), minOrder: Number(offerMin) })}. Once per mobile number, and the shop pays for it. Agree it with the owner.` : "Off. Checkout takes nothing off.")}
+          </div>
+        </div>
+        <Field label="Banner text (optional)">
+          <input value={offer} onChange={e => setOffer(e.target.value)} placeholder="For an offer in the shop. Money off online is the box above." maxLength={160} />
         </Field>
       </div>
 
@@ -1033,7 +1061,7 @@ function StepWebsite({ biz, save, show, goTo }: { biz: Biz; save: SaveFn; show: 
         <ImportCheck note={imp?.checks.photos} />
       </div>
 
-      <SaveBar onSave={() => save({ settings: { site: siteSettings() } }, { advance: true })} />
+      <SaveBar onSave={() => offerIssue ? (show(offerIssue), Promise.resolve(false)) : save({ settings: { ordering: orderingSettings(), site: siteSettings() } }, { advance: true })} />
     </Section>
   );
 }
