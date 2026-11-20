@@ -5,6 +5,8 @@ export const dynamic = "force-dynamic";
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/zb-icon";
+import { OptionPicker, missingGroup } from "@/components/option-picker";
+import { cheapestPrice, lineKey, optionsLabel, priceSelection, pricesVary, readOptions, type OptionGroup } from "@/lib/menu-options";
 
 const BASE = { g:"#00AD82", st:"#8B9DB5", cl:"#F8FAFB", navy:"#0F1F2D", card:"#1C2D48", mist:"rgba(255,255,255,.08)", r:"#FF4757" };
 
@@ -15,7 +17,15 @@ function textOn(hex: string): string {
   return 0.2126 * r! + 0.7152 * g! + 0.0722 * b! > 0.45 ? "#0F1F2D" : "#FFFFFF";
 }
 
-interface CartItem { id:string; name:string; price:number; qty:number; image_url?:string }
+// One line per item and set of options. price is the unit price with options.
+// A menu item as /api/store/[subdomain] sends it.
+type MenuEntry = { id: string; name: string; price: number; description?: string | null; image_url?: string; options?: unknown };
+
+const plainLine = (item: MenuEntry): CartItem =>
+  ({ key: item.id, id: item.id, name: item.name, price: Number(item.price), qty: 1, image_url: item.image_url, options: [], label: "" });
+
+interface CartItem { key:string; id:string; name:string; price:number; qty:number; image_url?:string; options:string[]; label:string }
+type Picking = { item: MenuEntry; groups: OptionGroup[]; picked: string[]; qty: number };
 
 export default function StorefrontPage({ params }: { params: Promise<{ subdomain: string }> }) {
   const { subdomain } = use(params);
@@ -32,6 +42,7 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
   const [showCart,  setShowCart]  = useState(false);
   const [notice,    setNotice]    = useState("");
   const [siteHref,  setSiteHref]  = useState<string | null>(null);
+  const [picking,   setPicking]   = useState<Picking | null>(null);
 
   // Brand colour on buttons and prices, ZentraBite green if none is set.
   const accent = biz?.accent_color ?? BASE.g;
@@ -49,14 +60,17 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
         if (data.business?.has_website) {
           setSiteHref(window.location.pathname === "/order" ? "/" : `/site/${subdomain}`);
         }
-        // "+" on the website links here with ?add=<item id>
+        // "+" on the website links here with ?add=<item id>. An item with
+        // options opens its picker instead of going straight in the order.
         const add = new URLSearchParams(window.location.search).get("add");
-        if (add) {
+        if (add && data.business?.taking_orders) {
           for (const section of data.menu) {
             const item = section.items.find((i: { id: string }) => i.id === add);
             if (item) {
               setActiveTab(section.id);
-              setCart([{ id: item.id, name: item.name, price: item.price, qty: 1, image_url: item.image_url }]);
+              const groups = readOptions(item.options);
+              if (groups.length) setPicking({ item, groups, picked: [], qty: 1 });
+              else setCart([plainLine(item)]);
               break;
             }
           }
@@ -66,17 +80,35 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
       .catch(() => { setError("Failed to load menu"); setLoading(false); });
   }, [subdomain]);
 
-  const addToCart = (item: any) => {
+  const addLine = (line: CartItem) => {
     setCart(prev => {
-      const existing = prev.find(c => c.id === item.id);
-      if (existing) return prev.map(c => c.id === item.id ? { ...c, qty: c.qty + 1 } : c);
-      return [...prev, { id: item.id, name: item.name, price: item.price, qty: 1, image_url: item.image_url }];
+      const existing = prev.find(c => c.key === line.key);
+      if (existing) return prev.map(c => c.key === line.key ? { ...c, qty: c.qty + line.qty } : c);
+      return [...prev, line];
     });
   };
 
-  const updateQty = (id: string, qty: number) => {
-    if (qty <= 0) setCart(prev => prev.filter(c => c.id !== id));
-    else setCart(prev => prev.map(c => c.id === id ? { ...c, qty } : c));
+  const addToCart = (item: any) => {
+    const groups = readOptions(item.options);
+    if (groups.length) setPicking({ item, groups, picked: [], qty: 1 });
+    else addLine(plainLine(item));
+  };
+
+  const addPicked = () => {
+    if (!picking) return;
+    const priced = priceSelection(Number(picking.item.price), picking.groups, picking.picked);
+    if (!priced.ok) return;
+    addLine({
+      key: lineKey(picking.item.id, priced.choiceIds), id: picking.item.id, name: picking.item.name,
+      price: priced.unitPrice, qty: picking.qty, image_url: picking.item.image_url,
+      options: priced.choiceIds, label: optionsLabel(priced.chosen),
+    });
+    setPicking(null);
+  };
+
+  const updateQty = (key: string, qty: number) => {
+    if (qty <= 0) setCart(prev => prev.filter(c => c.key !== key));
+    else setCart(prev => prev.map(c => c.key === key ? { ...c, qty } : c));
   };
 
   const total = cart.reduce((s, c) => s + c.price * c.qty, 0);
@@ -89,7 +121,7 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
       const res = await fetch("/api/store/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subdomain, items: cart, customer }),
+        body: JSON.stringify({ subdomain, items: cart.map(c => ({ id: c.id, qty: c.qty, options: c.options })), customer }),
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
@@ -174,7 +206,9 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
         {/* Items */}
         <div style={{ display:"flex", flexDirection:"column", gap:10, marginTop:menu.length > 1 ? 0 : 20 }}>
           {(activeSection?.items ?? []).map((item: any) => {
-            const inCart = cart.find(c => c.id === item.id);
+            const groups = readOptions(item.options);
+            const inCart = groups.length ? undefined : cart.find(c => c.key === item.id);
+            const countInCart = cart.filter(c => c.id === item.id).reduce((n, c) => n + c.qty, 0);
             return (
               <div key={item.id} style={{ background:C.card, borderRadius:14, overflow:"hidden", display:"flex", alignItems:"stretch", border:`1px solid ${C.mist}` }}>
                 {item.image_url && (
@@ -188,12 +222,19 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
                     {item.description && <div style={{ fontSize:12, color:C.st, lineHeight:1.4 }}>{item.description}</div>}
                   </div>
                   <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:10 }}>
-                    <div style={{ fontWeight:700, fontSize:15, color:C.g }}>${Number(item.price).toFixed(2)}</div>
-                    {!biz?.taking_orders ? null : inCart ? (
+                    <div style={{ fontWeight:700, fontSize:15, color:C.g }}>
+                      {pricesVary(groups) ? `From $${cheapestPrice(Number(item.price), groups).toFixed(2)}` : `$${Number(item.price).toFixed(2)}`}
+                    </div>
+                    {!biz?.taking_orders ? null : groups.length ? (
+                      <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                        {countInCart > 0 && <span style={{ fontSize:12, color:C.st }}>{countInCart} in order</span>}
+                        <button onClick={() => addToCart(item)} style={{ padding:"7px 18px", borderRadius:8, background:C.g, border:"none", color:C.onG, fontWeight:700, fontSize:13, cursor:"pointer" }}>Add</button>
+                      </div>
+                    ) : inCart ? (
                       <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                        <button onClick={() => updateQty(item.id, inCart.qty - 1)} style={{ width:28, height:28, borderRadius:7, background:"rgba(255,255,255,.1)", border:"none", color:C.cl, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center" }}>−</button>
+                        <button onClick={() => updateQty(inCart.key, inCart.qty - 1)} style={{ width:28, height:28, borderRadius:7, background:"rgba(255,255,255,.1)", border:"none", color:C.cl, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center" }}>−</button>
                         <span style={{ fontWeight:700, fontSize:13, color:C.cl, minWidth:16, textAlign:"center" }}>{inCart.qty}</span>
-                        <button onClick={() => updateQty(item.id, inCart.qty + 1)} style={{ width:28, height:28, borderRadius:7, background:C.g, border:"none", color:C.onG, cursor:"pointer", fontSize:16, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
+                        <button onClick={() => updateQty(inCart.key, inCart.qty + 1)} style={{ width:28, height:28, borderRadius:7, background:C.g, border:"none", color:C.onG, cursor:"pointer", fontSize:16, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
                       </div>
                     ) : (
                       <button onClick={() => addToCart(item)} style={{ padding:"7px 18px", borderRadius:8, background:C.g, border:"none", color:C.onG, fontWeight:700, fontSize:13, cursor:"pointer" }}>Add</button>
@@ -214,15 +255,16 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
             <div style={{ fontWeight:700, fontSize:17, color:C.cl, marginBottom:16 }}>Your Order</div>
 
             {cart.map(item => (
-              <div key={item.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 0", borderBottom:`1px solid ${C.mist}` }}>
-                <div style={{ flex:1 }}>
+              <div key={item.key} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 0", borderBottom:`1px solid ${C.mist}` }}>
+                <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ fontWeight:600, fontSize:13, color:C.cl }}>{item.name}</div>
+                  {item.label && <div style={{ fontSize:12, color:C.st, lineHeight:1.4 }}>{item.label}</div>}
                   <div style={{ fontSize:11, color:C.st }}>${(item.price * item.qty).toFixed(2)}</div>
                 </div>
                 <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                  <button onClick={() => updateQty(item.id, item.qty - 1)} style={{ width:26, height:26, borderRadius:6, background:"rgba(255,255,255,.1)", border:"none", color:C.cl, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center" }}>−</button>
+                  <button onClick={() => updateQty(item.key, item.qty - 1)} style={{ width:26, height:26, borderRadius:6, background:"rgba(255,255,255,.1)", border:"none", color:C.cl, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center" }}>−</button>
                   <span style={{ fontWeight:700, fontSize:13, color:C.cl, minWidth:16, textAlign:"center" }}>{item.qty}</span>
-                  <button onClick={() => updateQty(item.id, item.qty + 1)} style={{ width:26, height:26, borderRadius:6, background:`color-mix(in srgb, ${C.g} 20%, transparent)`, border:"none", color:C.g, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
+                  <button onClick={() => updateQty(item.key, item.qty + 1)} style={{ width:26, height:26, borderRadius:6, background:`color-mix(in srgb, ${C.g} 20%, transparent)`, border:"none", color:C.g, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
                 </div>
               </div>
             ))}
@@ -267,6 +309,46 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
           </div>
         </div>
       )}
+
+      {/* Options picker: sizes, extras and choices for one item */}
+      {picking && (() => {
+        const priced = priceSelection(Number(picking.item.price), picking.groups, picking.picked);
+        const missing = missingGroup(picking.groups, picking.picked);
+        return (
+          <div style={{ position:"fixed", inset:0, zIndex:110, display:"flex", flexDirection:"column", justifyContent:"flex-end" }}>
+            <div onClick={() => setPicking(null)} style={{ flex:1, background:"rgba(0,0,0,.5)" }} />
+            <div role="dialog" aria-modal="true" aria-label={`Choose options for ${picking.item.name}`} style={{ background:"#1A2E45", borderRadius:"20px 20px 0 0", padding:"22px 20px calc(24px + env(safe-area-inset-bottom))", maxHeight:"88vh", overflowY:"auto" }}>
+              <div style={{ maxWidth:680, margin:"0 auto" }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12, marginBottom:6 }}>
+                  <div style={{ fontWeight:700, fontSize:18, color:C.cl }}>{picking.item.name}</div>
+                  <button onClick={() => setPicking(null)} aria-label="Close" style={{ width:36, height:36, borderRadius:10, background:"rgba(255,255,255,.08)", border:"none", color:C.cl, fontSize:18, cursor:"pointer", flexShrink:0 }}>×</button>
+                </div>
+                {picking.item.description && <div style={{ fontSize:13, color:C.st, lineHeight:1.5, marginBottom:16 }}>{picking.item.description}</div>}
+                <OptionPicker
+                  groups={picking.groups}
+                  picked={picking.picked}
+                  onChange={next => setPicking(p => p && { ...p, picked: next })}
+                  colors={{ text:C.cl, muted:C.st, accent:C.g, onAccent:C.onG, line:C.mist }}
+                />
+                <div style={{ display:"flex", alignItems:"center", gap:12, marginTop:8 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                    <button onClick={() => setPicking(p => p && { ...p, qty: Math.max(1, p.qty - 1) })} aria-label="One less" style={{ width:44, height:44, borderRadius:10, background:"rgba(255,255,255,.1)", border:"none", color:C.cl, cursor:"pointer", fontSize:18 }}>−</button>
+                    <span style={{ fontWeight:700, fontSize:15, color:C.cl, minWidth:20, textAlign:"center" }}>{picking.qty}</span>
+                    <button onClick={() => setPicking(p => p && { ...p, qty: Math.min(50, p.qty + 1) })} aria-label="One more" style={{ width:44, height:44, borderRadius:10, background:"rgba(255,255,255,.1)", border:"none", color:C.cl, cursor:"pointer", fontSize:18 }}>+</button>
+                  </div>
+                  <button onClick={addPicked} disabled={!priced.ok} style={{
+                    flex:1, minHeight:48, borderRadius:12, border:"none",
+                    background: priced.ok ? C.g : "rgba(255,255,255,.08)", color: priced.ok ? C.onG : C.st,
+                    fontWeight:700, fontSize:15, cursor: priced.ok ? "pointer" : "not-allowed",
+                  }}>
+                    {priced.ok ? `Add to order · $${(priced.unitPrice * picking.qty).toFixed(2)}` : missing ? `Choose ${missing.name.toLowerCase()}` : "Check your choices"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Floating cart button when cart has items and panel is closed */}
       {cartCount > 0 && !showCart && (

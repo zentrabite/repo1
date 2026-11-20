@@ -1,16 +1,19 @@
 // ─── POST /api/admin/onboarding/[id]/seed-menu ──────────────────────────────
-// Body: { categories: [{ name, sort_order, items: [{ name, price, description?, dietary_tags? }] }] }
+// Body: { categories: [{ name, sort_order, items: [{ name, price, description?, dietary_tags?, options? }] }] }
+// options are sizes, extras and choices (see lib/menu-options.ts). They're
+// cleaned with readOptions, so anything malformed is dropped.
 // Creates the categories + items for the business in one shot.
 
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import { assertSuperAdmin } from "@/lib/admin-auth";
 import { DIETARY_TAGS } from "@/lib/import/types";
+import { readOptions } from "@/lib/menu-options";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type SeedItem     = { name: string; price: number; description?: string; dietary_tags?: string[] };
+type SeedItem     = { name: string; price: number; description?: string; dietary_tags?: string[]; options?: unknown };
 const TAGS = new Set<string>(DIETARY_TAGS);
 type SeedCategory = { name: string; sort_order?: number; items: SeedItem[] };
 
@@ -49,6 +52,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         price:        Number(it.price) || 0,
         available:    true,
         dietary_tags: Array.isArray(it.dietary_tags) ? it.dietary_tags.filter(t => TAGS.has(t)) : [],
+        options:      readOptions(it.options),
         sort_order:   j,
       }));
 

@@ -250,6 +250,7 @@ export async function createMenuItem(businessId: string, data: {
   price: number;
   description: string;
   image_url?: string | null;
+  options?: unknown;
 }) {
   const { data: item, error } = await supabase
     .from("menu_items")

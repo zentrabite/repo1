@@ -551,6 +551,9 @@ button, a, select, label, summary, [role="button"] { touch-action: manipulation;
   /* the photo is 44px plus its 1px border each side, then a 12px gap */
   .zb-menu-text { flex: 1 1 calc(100% - 60px) !important; min-width: 0; }
   .zb-menu-price { margin-left: 58px; margin-right: auto; text-align: left !important; }
+  /* Menu options editor: name, extra price and remove on one line, "Sold out" under them */
+  .zb-opt-choice { grid-template-columns: minmax(0, 1fr) 84px 32px !important; row-gap: 2px !important; }
+  .zb-opt-choice .zb-opt-out { grid-column: 1 / -1; grid-row: 2; padding-left: 2px; min-height: 28px; }
 
   /* Rostering week: wider day columns that swipe inside their card, about two on screen */
   .zb-roster-week { grid-template-columns: repeat(7, 150px) !important; min-width: max-content !important; }

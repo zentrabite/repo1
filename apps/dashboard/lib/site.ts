@@ -12,6 +12,7 @@
 
 import { createAdminClient } from "@/lib/supabase-server";
 import { DAY_KEYS, type DayKey, type ImportedHours } from "@/lib/import/types";
+import { cheapestPrice, pricesVary, readOptions } from "@/lib/menu-options";
 
 export type SiteLook = "bold" | "warm" | "clean";
 
@@ -45,7 +46,8 @@ export type SiteData = {
   hours:       { label: string; value: string }[];
   openNow:     string | null;   // "Open now until 9pm" / "Opens 5pm"
   photos:      SitePhoto[];
-  menu:        { id: string; name: string; price: number; description: string | null }[];
+  // from: the item has sizes or extras that cost more, so the price is "From $X".
+  menu:        { id: string; name: string; price: number; from: boolean; description: string | null }[];
   hasMenu:     boolean;
   takingOrders: boolean;
   rewards:     { rate: number } | null;
@@ -166,7 +168,7 @@ export type SiteRow = {
   settings: Record<string, any> | null; stripe_account_id: string | null; stripe_charges_enabled: boolean | null;
 };
 export type SiteCategory = { id: string; name: string; sort_order: number | null };
-export type SiteItem = { id: string; name: string; price: number | string; description: string | null; category_id: string | null; sort_order: number | null };
+export type SiteItem = { id: string; name: string; price: number | string; description: string | null; category_id: string | null; sort_order: number | null; options?: unknown };
 
 export async function loadSite(subdomain: string): Promise<SiteData | null> {
   if (!/^[a-z0-9-]{1,63}$/.test(subdomain)) return null;
@@ -180,7 +182,7 @@ export async function loadSite(subdomain: string): Promise<SiteData | null> {
 
   const [catsRes, itemsRes, rewardsRes] = await Promise.all([
     db.from("menu_categories").select("id, name, sort_order").eq("business_id", biz.id).order("sort_order"),
-    db.from("menu_items").select("id, name, price, description, category_id, sort_order").eq("business_id", biz.id).eq("available", true).order("sort_order").limit(400),
+    db.from("menu_items").select("id, name, price, description, category_id, sort_order, options").eq("business_id", biz.id).eq("available", true).order("sort_order").limit(400),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (db.from("rewards_catalogue") as any).select("id", { count: "exact", head: true }).eq("business_id", biz.id).eq("is_active", true),
   ]);
@@ -243,7 +245,10 @@ export function buildSite(biz: SiteRow, cats: SiteCategory[], allItems: SiteItem
     hours:       hoursLines(settings.hours ?? null, imp?.hours ?? null),
     openNow:     openNow(settings.hours ?? null, str(settings.timezone, 60) ?? "Australia/Adelaide"),
     photos,
-    menu:        picks.map(p => ({ id: p.id, name: p.name, price: Number(p.price), description: str(p.description, 200) })),
+    menu:        picks.map(p => {
+      const groups = readOptions(p.options);
+      return { id: p.id, name: p.name, price: cheapestPrice(Number(p.price), groups), from: pricesVary(groups), description: str(p.description, 200) };
+    }),
     hasMenu:     items.length > 0,
     takingOrders: Boolean(biz.stripe_account_id && biz.stripe_charges_enabled),
     // 10 points per $1 is set by the database trigger on orders (migration 005)

@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Toast from "@/components/toast";
 import { Icon, type IconName } from "@/components/zb-icon";
+import Modal from "@/components/modal";
+import { OptionPicker, missingGroup } from "@/components/option-picker";
+import { cheapestPrice, lineKey, optionsLabel, priceSelection, pricesVary, readOptions, type ChosenOption, type OptionGroup } from "@/lib/menu-options";
 import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
 import { getMenu } from "@/lib/queries";
@@ -16,7 +19,9 @@ const C = {
   cl:"#F8FAFB", navy:"#1C2D48", mist:"rgba(226,232,240,.08)",
 };
 
-interface CartItem extends MenuItem { qty: number }
+// One line per item and set of options. price is the unit price with options.
+interface CartItem { key: string; id: string; name: string; price: number; qty: number; chosen: ChosenOption[] }
+type Picking = { item: MenuItem; groups: OptionGroup[]; picked: string[] };
 type PayMethod   = "cash" | "card";
 type OrderMode   = "dine_in" | "takeaway" | "delivery";
 type DistBand    = "short" | "mid" | "far";
@@ -37,6 +42,7 @@ export default function POSPage() {
   const [submitting, setSubmitting] = useState(false);
   const [loading,    setLoading]    = useState(true);
   const [activeTab,  setActiveTab]  = useState<string>("");
+  const [picking,    setPicking]    = useState<Picking | null>(null);
 
   // ── Delivery state ──────────────────────────────────────────────────────
   const [mode,          setMode]          = useState<OrderMode>("dine_in");
@@ -87,18 +93,36 @@ export default function POSPage() {
   useEffect(() => { fetchFee(); }, [fetchFee]);
 
   // ── Cart helpers ────────────────────────────────────────────────────────
-  const addToCart = (item: MenuItem) => {
+  const addLine = (line: CartItem) => {
     setCart(prev => {
-      const existing = prev.find(c => c.id === item.id);
-      if (existing) return prev.map(c => c.id === item.id ? { ...c, qty: c.qty + 1 } : c);
-      return [...prev, { ...item, qty: 1 }];
+      const existing = prev.find(c => c.key === line.key);
+      if (existing) return prev.map(c => c.key === line.key ? { ...c, qty: c.qty + 1 } : c);
+      return [...prev, line];
     });
   };
 
-  const removeFromCart = (id: string) => setCart(prev => prev.filter(c => c.id !== id));
-  const updateQty = (id: string, qty: number) => {
-    if (qty <= 0) return removeFromCart(id);
-    setCart(prev => prev.map(c => c.id === id ? { ...c, qty } : c));
+  // Items with sizes or extras open a picker first.
+  const addToCart = (item: MenuItem) => {
+    const groups = readOptions(item.options);
+    if (groups.length) return setPicking({ item, groups, picked: [] });
+    addLine({ key: item.id, id: item.id, name: item.name, price: Number(item.price), qty: 1, chosen: [] });
+  };
+
+  const addPicked = () => {
+    if (!picking) return;
+    const priced = priceSelection(Number(picking.item.price), picking.groups, picking.picked);
+    if (!priced.ok) return show(priced.error);
+    addLine({
+      key: lineKey(picking.item.id, priced.choiceIds), id: picking.item.id, name: picking.item.name,
+      price: priced.unitPrice, qty: 1, chosen: priced.chosen,
+    });
+    setPicking(null);
+  };
+
+  const removeFromCart = (key: string) => setCart(prev => prev.filter(c => c.key !== key));
+  const updateQty = (key: string, qty: number) => {
+    if (qty <= 0) return removeFromCart(key);
+    setCart(prev => prev.map(c => c.key === key ? { ...c, qty } : c));
   };
 
   const subtotal    = cart.reduce((s, c) => s + c.price * c.qty, 0);
@@ -140,7 +164,7 @@ export default function POSPage() {
         }
       }
 
-      const items = cart.map(c => ({ id: c.id, name: c.name, price: c.price, qty: c.qty }));
+      const items = cart.map(c => ({ id: c.id, name: c.name, price: c.price, qty: c.qty, ...(c.chosen.length ? { options: c.chosen } : {}) }));
 
       // Build the order record
       const orderRecord: Record<string, any> = {
@@ -254,7 +278,9 @@ export default function POSPage() {
                   )}
                   <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:13, color:C.cl, lineHeight:1.2 }}>{item.name}</div>
                   {item.description && <div style={{ fontSize:10, color:C.st, lineHeight:1.3 }}>{item.description}</div>}
-                  <div style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:14, color:C.g, marginTop:"auto" }}>${Number(item.price).toFixed(2)}</div>
+                  <div style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:14, color:C.g, marginTop:"auto" }}>
+                    {(() => { const groups = readOptions(item.options); return pricesVary(groups) ? `From $${cheapestPrice(Number(item.price), groups).toFixed(2)}` : `$${Number(item.price).toFixed(2)}`; })()}
+                  </div>
                 </div>
               ))}
             </div>
@@ -303,15 +329,16 @@ export default function POSPage() {
           ) : (
             <>
               {cart.map(item => (
-                <div key={item.id} style={{ padding:"9px 20px", display:"flex", alignItems:"center", gap:10, borderBottom:`1px solid ${C.mist}` }}>
+                <div key={item.key} style={{ padding:"9px 20px", display:"flex", alignItems:"center", gap:10, borderBottom:`1px solid ${C.mist}` }}>
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:13, color:C.cl }}>{item.name}</div>
+                    {item.chosen.length > 0 && <div style={{ fontSize:11, color:C.st, lineHeight:1.4 }}>{optionsLabel(item.chosen)}</div>}
                     <div style={{ fontSize:11, color:C.st }}>${(item.price * item.qty).toFixed(2)}</div>
                   </div>
                   <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                    <button onClick={() => updateQty(item.id, item.qty - 1)} style={{ width:26, height:26, borderRadius:6, background:"rgba(255,255,255,.08)", border:"none", color:C.cl, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center" }}>−</button>
+                    <button onClick={() => updateQty(item.key, item.qty - 1)} style={{ width:26, height:26, borderRadius:6, background:"rgba(255,255,255,.08)", border:"none", color:C.cl, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center" }}>−</button>
                     <span style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:13, color:C.cl, minWidth:20, textAlign:"center" }}>{item.qty}</span>
-                    <button onClick={() => updateQty(item.id, item.qty + 1)} style={{ width:26, height:26, borderRadius:6, background:"rgba(0,173,130,.2)", border:"none", color:C.g, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
+                    <button onClick={() => updateQty(item.key, item.qty + 1)} style={{ width:26, height:26, borderRadius:6, background:"rgba(0,173,130,.2)", border:"none", color:C.g, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
                   </div>
                 </div>
               ))}
@@ -475,6 +502,30 @@ export default function POSPage() {
           </button>
         </div>
       </div>
+
+      {/* Sizes, extras and choices for one item */}
+      <Modal open={!!picking} onClose={() => setPicking(null)} title={picking?.item.name ?? "Options"}>
+        {picking && (() => {
+          const priced  = priceSelection(Number(picking.item.price), picking.groups, picking.picked);
+          const missing = missingGroup(picking.groups, picking.picked);
+          return (
+            <>
+              <OptionPicker
+                groups={picking.groups}
+                picked={picking.picked}
+                onChange={next => setPicking(p => p && { ...p, picked: next })}
+                colors={{ text: C.cl, muted: C.st, accent: C.g, onAccent: C.navy, line: C.mist }}
+              />
+              <div style={{ display:"flex", gap:6, justifyContent:"flex-end" }}>
+                <button className="bg-btn" onClick={() => setPicking(null)}>Cancel</button>
+                <button className="bp" onClick={addPicked} disabled={!priced.ok}>
+                  {priced.ok ? `Add · $${priced.unitPrice.toFixed(2)}` : missing ? `Choose ${missing.name.toLowerCase()}` : "Check the choices"}
+                </button>
+              </div>
+            </>
+          );
+        })()}
+      </Modal>
 
       <Toast message={toast.message} visible={toast.visible} />
     </div>
