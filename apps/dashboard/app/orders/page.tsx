@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import StatCard from "@/components/stat-card";
 import Badge from "@/components/badge";
 import Modal from "@/components/modal";
@@ -13,6 +13,12 @@ import type { Order } from "@/lib/database.types";
 import { Icon, type IconName } from "@/components/zb-icon";
 import { optionsLabel } from "@/lib/menu-options";
 import { readOrderingRules, shopTime } from "@/lib/pickup-times";
+import { docketHtml, printDocument } from "@/lib/docket";
+import { orderAlarm, setSoundPreferred, soundPreferred } from "@/lib/order-alarm";
+
+// Only orders this recent ring. An old order nobody accepted still shows in
+// the waiting list, but doesn't ring every time the page opens.
+const RING_FOR_MS = 6 * 60 * 60_000;
 
 const C = { g:"#00AD82", o:"#FF6B35", r:"#DC3545", st:"#6B7C93" };
 
@@ -55,26 +61,77 @@ export default function OrdersPage() {
   const pickupText = (o: Order) =>
     o.pickup_at ? `${o.pickup_asap ? "ASAP " : ""}${shopTime(new Date(o.pickup_at), rules.timezone)}` : null;
 
-  // ── Web Audio beep ──────────────────────────────────────────────────────
-  function playBeep() {
-    if (typeof window === "undefined") return;
+  // ── New-order sound and docket ──────────────────────────────────────────
+  // While an online order waits to be accepted, a chime repeats and the tab
+  // title says so. Accepting moves it to Preparing, which stops the chime.
+  const [soundOn,      setSoundOn]      = useState(true);
+  const [soundBlocked, setSoundBlocked] = useState(false);
+  const [now,          setNow]          = useState(() => Date.now());
+  const baseTitle = useRef<string | null>(null);
+
+  const waiting = orders
+    .filter(o => o.status === "New")
+    .sort((a, b) => a.created_at.localeCompare(b.created_at));
+  const ringing = waiting.filter(o => now - new Date(o.created_at).getTime() < RING_FOR_MS);
+
+  // Read the device's choice after the page loads (it's in this browser only).
+  useEffect(() => {
+    const on = soundPreferred();
+    if (!on) setSoundOn(false);
+    const t = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    if (!soundOn || ringing.length === 0) { orderAlarm.stop(); return; }
+    let cancelled = false;
+    orderAlarm.start().then(ok => { if (!cancelled) setSoundBlocked(!ok); });
+    return () => { cancelled = true; };
+  }, [soundOn, ringing.length]);
+
+  // The browser wants one click before it makes sound. Any click will do.
+  useEffect(() => {
+    if (!soundBlocked) return;
+    const retry = () => { orderAlarm.start().then(ok => setSoundBlocked(!ok)); };
+    document.addEventListener("pointerdown", retry);
+    return () => document.removeEventListener("pointerdown", retry);
+  }, [soundBlocked]);
+
+  // Stop the chime when leaving the page.
+  useEffect(() => () => orderAlarm.stop(), []);
+
+  useEffect(() => {
+    if (baseTitle.current === null) baseTitle.current = document.title;
+    document.title = waiting.length
+      ? `(${waiting.length}) New order${waiting.length === 1 ? "" : "s"} · ${baseTitle.current}`
+      : baseTitle.current;
+  }, [waiting.length]);
+  useEffect(() => () => { if (baseTitle.current !== null) document.title = baseTitle.current; }, []);
+
+  const toggleSound = () => {
+    const next = !soundOn;
+    setSoundOn(next);
+    setSoundPreferred(next);
+    if (!next) orderAlarm.stop();
+    show(next ? "Order sound on" : "Order sound off");
+  };
+
+  const accept = async (order: Order) => {
     try {
-      const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext;
-      if (!Ctx) return;
-      const ctx  = new Ctx();
-      const osc  = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(880, ctx.currentTime);
-      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.2,      ctx.currentTime + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001,   ctx.currentTime + 0.35);
-      osc.connect(gain).connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.4);
-      osc.onended = () => ctx.close();
-    } catch { /* ignore */ }
-  }
+      await updateOrderStatus(order.id, "Preparing");
+      setOrders(prev => prev.map(o => o.id === order.id ? { ...o, status: "Preparing" } : o));
+      show("Accepted ✓");
+    } catch { show("Couldn't accept the order. Try again."); }
+  };
+
+  const printDocket = async (order: Order) => {
+    let customer: { name?: string | null; phone?: string | null } | null = null;
+    if (order.customer_id) {
+      const { data } = await supabase.from("customers").select("name, phone").eq("id", order.customer_id).maybeSingle();
+      customer = data as typeof customer;
+    }
+    printDocument(docketHtml({ order, businessName: business?.name ?? "Order", timezone: rules.timezone, customer }));
+  };
 
   useEffect(() => {
     if (!businessId) return;
@@ -94,7 +151,7 @@ export default function OrdersPage() {
         (payload: any) => {
           const newOrder = payload.new as Order;
           setOrders(prev => prev.some(o => o.id === newOrder.id) ? prev : [newOrder, ...prev]);
-          playBeep();
+          setNow(Date.now());
           show(`New order — $${newOrder.total}`);
           if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
             new Notification("New order", { body:`Order for $${newOrder.total}`, tag:newOrder.id });
@@ -155,12 +212,40 @@ export default function OrdersPage() {
           <p style={{ color:C.st, fontSize:12 }}>Revenue & margin tracking by source</p>
         </div>
         <div className="zb-wrap" style={{ display:"flex", gap:8, alignItems:"center" }}>
+          <button className="bg-btn" onClick={toggleSound} aria-pressed={soundOn} title="The chime that repeats until a new order is accepted. Set on each device.">
+            <Icon name="bell" size={14} />{soundOn ? "Order sound on" : "Order sound off"}
+          </button>
           <button className="bg-btn" onClick={togglePause} disabled={pausing || !businessId} aria-pressed={paused}>
             <Icon name={paused ? "play" : "pause"} size={14} />{paused ? "Turn online orders back on" : "Pause online orders"}
           </button>
           <button className="bp" onClick={() => show("Exported ✓")}>Export</button>
         </div>
       </div>
+
+      {/* Orders waiting to be accepted */}
+      {waiting.length > 0 && (
+        <div className="gc" style={{ padding:"12px 16px", marginBottom:12, border:"1px solid rgba(0,173,130,.4)", background:"rgba(0,173,130,.08)" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:8, fontWeight:700, color:"#fff", fontSize:14, marginBottom:8 }}>
+            <Icon name="bell" size={16} />
+            {waiting.length === 1 ? "1 new order to accept" : `${waiting.length} new orders to accept`}
+          </div>
+          {soundOn && soundBlocked && ringing.length > 0 && (
+            <div style={{ fontSize:12, color:C.o, marginBottom:8 }}>Click anywhere on this page to turn the order sound on. Browsers need one click first.</div>
+          )}
+          {waiting.slice(0, 4).map(o => (
+            <div key={o.id} className="zb-wrap" style={{ display:"flex", alignItems:"center", gap:10, padding:"6px 0", borderTop:"1px solid rgba(255,255,255,.06)" }}>
+              <div style={{ flex:1, minWidth:0, fontSize:13, color:"#fff" }}>
+                <b>${Number(o.total).toFixed(2)}</b>
+                <span style={{ color:C.st }}> · {fulfillLabel(o) ?? "Order"}{pickupText(o) ? ` ${pickupText(o)}` : ""} · {Array.isArray(o.items) ? `${(o.items as unknown[]).length} item(s)` : ""}</span>
+                {o.notes && <span style={{ color:C.o }}> · Note</span>}
+              </div>
+              <button className="bg-btn" onClick={() => printDocket(o)}><Icon name="printer" size={14} />Print</button>
+              <button className="bp" onClick={() => accept(o)}>Accept</button>
+            </div>
+          ))}
+          {waiting.length > 4 && <div style={{ fontSize:12, color:C.st, paddingTop:6 }}>And {waiting.length - 4} more below.</div>}
+        </div>
+      )}
 
       {paused && (
         <div style={{ marginBottom:12, padding:"10px 14px", borderRadius:10, background:"rgba(255,107,53,.1)", border:"1px solid rgba(255,107,53,.3)", color:C.o, fontSize:13 }}>
@@ -317,10 +402,10 @@ export default function OrdersPage() {
             <div className="zb-wrap" style={{ display:"flex", gap:8 }}>
               {selected.status !== "Delivered" && (
                 <button className="bp" onClick={() => advance(selected)}>
-                  → {{ New:"Prepare", Preparing:"Mark Ready", Ready:"Deliver" }[selected.status] ?? "Next"}
+                  → {{ New:"Accept", Preparing:"Mark Ready", Ready:"Deliver" }[selected.status] ?? "Next"}
                 </button>
               )}
-              <button className="bg-btn" onClick={() => { setSelected(null); show("Receipt sent ✓"); }}>Receipt</button>
+              <button className="bg-btn" onClick={() => printDocket(selected)}><Icon name="printer" size={14} />Print docket</button>
             </div>
           </div>
         )}
