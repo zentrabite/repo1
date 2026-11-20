@@ -16,11 +16,14 @@
 //     website?: string,
 //     import?: ImportResult,       // draft from POST /api/admin/onboarding/import
 //     importPermission?: true,     // owner agreed we can copy their website
+//     menuUpload?: MenuRead,       // menu from photos, a PDF or text (POST /api/admin/onboarding/menu-read)
 //   }
 //
 // When an import is sent, its hours, brand colour and website go straight
 // onto the business, and the rest (menu, logo choices, photos, "Check this"
-// notes) is kept on settings.import for the later wizard steps.
+// notes) is kept on settings.import for the later wizard steps. A menu read
+// from the owner's photos, PDF or text replaces the website's menu there
+// (withUploadedMenu in lib/import/store.ts).
 //
 // Staff and sellers can call it (lib/seller-auth.ts). It records who made the
 // sale (businesses.sold_by, sold_at, migration 022). For a seller it never
@@ -43,7 +46,7 @@ import { checkAbn } from "@/lib/abn";
 import { RESERVED_SUBDOMAINS } from "@/lib/tenant";
 import { emailSetupLink, newSetupLink } from "@/lib/stripe-setup-link";
 import { sendEmail } from "@/lib/email";
-import { toStoredImport } from "@/lib/import/store";
+import { toStoredImport, withUploadedMenu } from "@/lib/import/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -64,6 +67,7 @@ type CreateBody = {
   website?:     string;
   import?:      unknown;
   importPermission?: boolean;
+  menuUpload?:  unknown;
 };
 
 const DEFAULT_HOURS = {
@@ -113,8 +117,10 @@ export async function POST(req: Request) {
   const sendInvite = who.isSuperAdmin && body.sendInvite !== false;
 
   // Only keep an import when the rep confirmed the owner's permission.
-  const stored = body.import && body.importPermission === true ? toStoredImport(body.import, user.id) : null;
-  const website = cleanWebsite(body.website) ?? stored?.final_url ?? null;
+  const fromSite = body.import && body.importPermission === true ? toStoredImport(body.import, user.id) : null;
+  // A menu read from the owner's photos, PDF or text replaces the website's menu.
+  const stored = body.menuUpload ? withUploadedMenu(fromSite, body.menuUpload, user.id) : fromSite;
+  const website = cleanWebsite(body.website) ?? (stored?.final_url || null);
 
   const db = createAdminClient();
 

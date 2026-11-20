@@ -8,14 +8,16 @@
 //           the sale. Creates the shop as a draft for the team and goes back
 //           to the seller's list. The owner's invite is left for the team,
 //           because the invite link logs in as the owner.
-// Both read the shop's website first (POST /api/admin/onboarding/import), and
-// both create through POST /api/admin/onboarding, which checks who's asking.
+// Both read the shop's website first (POST /api/admin/onboarding/import), can
+// read a menu from photos, a PDF or pasted text (components/menu-upload.tsx),
+// and create through POST /api/admin/onboarding, which checks who's asking.
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ImportCheck from "@/components/import-check";
+import MenuUpload, { MenuReadSummary } from "@/components/menu-upload";
 import { Icon } from "@/components/zb-icon";
-import type { ImportResult } from "@/lib/import/types";
+import type { ImportResult, MenuRead } from "@/lib/import/types";
 import { checkAbn } from "@/lib/abn";
 
 const BIZ_TYPES = [
@@ -62,6 +64,8 @@ export default function NewShopForm({ mode }: { mode: "staff" | "seller" }) {
   const [elapsed,     setElapsed]     = useState(0);
   const [importError, setImportError] = useState<string | null>(null);
   const [imported,    setImported]    = useState<ImportResult | null>(null);
+  // Menu read from photos, a PDF or pasted text. Replaces the website's menu.
+  const [menuRead,    setMenuRead]    = useState<MenuRead | null>(null);
   // Which form fields still hold the imported value (so a re-import can refresh them)
   const [filledFromImport, setFilledFromImport] = useState<Partial<Record<FieldKey, string>>>({});
 
@@ -150,6 +154,7 @@ export default function NewShopForm({ mode }: { mode: "staff" | "seller" }) {
           contactPhone, description,
           sendInvite: !seller && sendInvite,
           ...(imported ? { import: imported, importPermission: true, website: imported.final_url } : {}),
+          ...(menuRead ? { menuUpload: menuRead } : {}),
         }),
       });
       const data = await res.json();
@@ -224,6 +229,19 @@ export default function NewShopForm({ mode }: { mode: "staff" | "seller" }) {
           </div>
         )}
         {imported && !importing && <ImportSummary r={imported} />}
+      </div>
+
+      {/* ── Menu from a photo, a PDF or pasted text ───────────────────── */}
+      <div className="gc" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 14, marginBottom: 16 }}>
+        <div>
+          <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 16, color: C.cl }}>Menu from a photo, PDF or text</div>
+          <div style={{ fontSize: 13, color: C.st, marginTop: 3, fontFamily: "var(--font-inter)" }}>
+            {`Use this when the menu isn't on their website, or theirs is out of date. Take a photo of each page, add a PDF, or paste the menu in. We'll read it for you to check with the owner.`}
+          </div>
+        </div>
+        {menuRead
+          ? <MenuReadSummary r={menuRead} replaces={imported?.menu.value?.reduce((n, c) => n + c.items.length, 0) || undefined} onRemove={() => setMenuRead(null)} />
+          : <MenuUpload onRead={setMenuRead} />}
       </div>
 
       <div className="gc" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>

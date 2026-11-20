@@ -134,7 +134,7 @@ describe("staff making a new link", () => {
     const body = await res.json();
     expect(body).toMatchObject({ emailed: false, to: "joe@example.com" });
     expect(body.url).toMatch(/\/stripe-setup\/[A-Za-z0-9_-]{43}$/);
-    const mail = h.sendEmail.mock.calls[0]![0] as { to: string; subject: string; text: string };
+    const mail = (h.sendEmail.mock.calls[0] as unknown[])[0] as { to: string; subject: string; text: string };
     expect(mail).toMatchObject({ to: "joe@example.com", subject: "Set up payments for Joe's Pizza" });
     expect(mail.text).toContain(body.url);
     expect(mail.text).toContain("Hi Joe,");
