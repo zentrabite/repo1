@@ -50,7 +50,7 @@ Everything talks to Supabase through the browser client (`lib/supabase.ts`) with
 
 **What it does.** Counter point-of-sale. Cashier picks items, captures customer phone, places an order.
 
-**How it works.** Reads menu via `getMenu()`. On "Pay" it looks up or creates a customer (by phone match), inserts the `orders` row with `source='pos'`, then updates customer stats (`total_orders + 1`, `total_spent + total`, `points_balance + total × 10`, `last_order_date = now`) in a single pass. The old `total_orders: supabase.rpc as any` bug has been fixed — stats are now only updated once, after the order insert completes.
+**How it works.** Reads menu via `getMenu()`. On "Pay" it looks up or creates a customer (by phone match) and inserts the `orders` row with `source='pos'`. The database then updates the customer's stats (`total_orders + 1`, `total_spent + total`, `points_balance + total × 10`, `last_order_date`) through the `on_order_update_customer` trigger, the same as for online orders. The page doesn't update them itself. Until 20 Nov 2026 it did, so every POS sale with a customer counted twice.
 
 **To finalise.**
 - Menu has to exist (`/menu`) or the POS is empty.
