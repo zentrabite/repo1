@@ -57,6 +57,14 @@ export default function StorefrontSuccessPage({ params }: { params: Promise<{ su
           {order?.customer_email ? `A receipt has been sent to ${order.customer_email}.` : "Your payment was processed successfully."}
         </div>
 
+        {/* When to pick it up */}
+        {order?.pickup && (
+          <div style={{ background:"rgba(0,173,130,.12)", borderRadius:12, padding:"14px 16px", marginBottom:16, textAlign:"left" }}>
+            <div style={{ fontSize:12, color:C.st, marginBottom:2 }}>Pick-up</div>
+            <div style={{ fontWeight:700, fontSize:15, color:C.cl }}>{order.pickup}</div>
+          </div>
+        )}
+
         {/* Order summary */}
         {order?.items && order.items.length > 0 && (
           <div style={{ background:"rgba(255,255,255,.04)", borderRadius:12, padding:"16px", marginBottom:24, textAlign:"left" }}>

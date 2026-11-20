@@ -13,6 +13,10 @@
 //     ZentraBite's. If the shop hasn't finished Stripe setup, or still has an
 //     old-style account, checkout is refused rather than taking the money
 //     anywhere else.
+//   • The pick-up time is checked against the shop's opening hours, prep
+//     time and pause switch (lib/pickup-times.ts). A closed or paused shop
+//     takes no orders, and the Stripe page expires after about half an hour
+//     so an old checkout can't be paid hours later.
 //   • Marketing consent is recorded only if the customer ticked the box.
 
 import { NextResponse } from "next/server";
@@ -21,10 +25,11 @@ import { createAdminClient } from "@/lib/supabase-server";
 import { trustedOrigin } from "@/lib/tenant";
 import { isShopAccount } from "@/lib/stripe-connect";
 import { lineKey, optionsLabel, priceSelection, readOptions, type ChosenOption } from "@/lib/menu-options";
+import { checkPickup, readOrderingRules } from "@/lib/pickup-times";
 
 const MAX_LINES = 50;
 const MAX_QTY   = 50;
-// Stripe allows 50 metadata keys. 8 are used for the order details, so the
+// Stripe allows 50 metadata keys. 10 are used for the order details, so the
 // items get up to 40 chunks.
 const MAX_ITEM_CHUNKS = 40;
 
@@ -42,10 +47,11 @@ const clip = (v: unknown, n = 200) => (typeof v === "string" ? v.slice(0, n) : "
 
 export async function POST(req: Request) {
   try {
-    const { subdomain, items, customer } = await req.json() as {
+    const { subdomain, items, customer, pickup } = await req.json() as {
       subdomain: string;
       items: RequestItem[];
       customer: { name?: string; phone?: string; email?: string; marketingOptIn?: boolean };
+      pickup?: unknown; // "asap" or the ISO time of an offered slot
     };
 
     if (!subdomain || !Array.isArray(items) || items.length === 0) {
@@ -67,7 +73,7 @@ export async function POST(req: Request) {
     const db = createAdminClient();
     const { data: business } = await db
       .from("businesses")
-      .select("id, name, subdomain, stripe_account_id, stripe_charges_enabled")
+      .select("id, name, subdomain, stripe_account_id, stripe_charges_enabled, settings")
       .eq("subdomain", subdomain)
       .single();
 
@@ -99,6 +105,10 @@ export async function POST(req: Request) {
         { status: 409 },
       );
     }
+
+    // Opening hours, prep time and the pause switch.
+    const when = checkPickup(readOrderingRules(business.settings), pickup);
+    if (!when.ok) return NextResponse.json({ error: when.error }, { status: 409 });
 
     // Real names, prices and options from this restaurant's menu.
     const ids = [...new Set(items.map(it => it.id))];
@@ -155,6 +165,9 @@ export async function POST(req: Request) {
         quantity: l.qty,
       })),
       mode: "payment",
+      // Stripe's shortest allowed. A checkout left open can't be paid after
+      // the pick-up time has gone or the shop has closed.
+      expires_at: Math.floor(Date.now() / 1000) + 31 * 60,
       customer_email: clip(customer?.email) || undefined,
       // No ZentraBite fee on orders yet. If Liam decides on one, it goes here
       // as payment_intent_data.application_fee_amount, and must cover only
@@ -169,6 +182,8 @@ export async function POST(req: Request) {
         customer_email:   clip(customer?.email),
         marketing_opt_in: customer?.marketingOptIn === true ? "1" : "0",
         source:           "storefront",
+        pickup_at:        when.pickupAt.toISOString(),
+        pickup_asap:      when.asap ? "1" : "0",
         ...itemChunks,
       },
     }, { stripeAccount: connectedAccount });

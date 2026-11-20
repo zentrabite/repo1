@@ -157,6 +157,8 @@ export type CustomerReceiptInput = {
   total:        number;
   items:        { name: string; qty?: number; price?: number }[];
   storeUrl?:    string;
+  /** "As soon as possible, about 6:20pm" or "6:30pm". */
+  pickupLabel?: string;
 };
 
 export async function sendCustomerReceipt(input: CustomerReceiptInput): Promise<EmailResult> {
@@ -170,6 +172,7 @@ export async function sendCustomerReceipt(input: CustomerReceiptInput): Promise<
     `Thanks for your order, ${customerName}!`,
     ``,
     `Order #${orderNumber}`,
+    input.pickupLabel ? `Pick-up: ${input.pickupLabel}` : "",
     `Total: $${total.toFixed(2)}`,
     ``,
     `Items:`,
@@ -209,6 +212,8 @@ function receiptHtml(input: CustomerReceiptInput): string {
           <div style="background:#F0F4F8;border-radius:10px;padding:14px 16px;margin-bottom:20px">
             <div style="font-size:12px;color:#6B7C93">Order</div>
             <div style="font-size:15px;font-weight:600;color:#0F1F2D;margin-top:2px">#${escapeHtml(orderNumber)}</div>
+            ${input.pickupLabel ? `<div style="font-size:12px;color:#6B7C93;margin-top:10px">Pick-up</div>
+            <div style="font-size:15px;font-weight:600;color:#0F1F2D;margin-top:2px">${escapeHtml(input.pickupLabel)}</div>` : ""}
           </div>
 
           <table width="100%" cellpadding="0" cellspacing="0">${rows}

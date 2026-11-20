@@ -10,6 +10,7 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase-server";
+import { pickupLabel, readOrderingRules } from "@/lib/pickup-times";
 
 export async function GET(req: Request) {
   try {
@@ -23,7 +24,7 @@ export async function GET(req: Request) {
 
     const { data: business } = await createAdminClient()
       .from("businesses")
-      .select("stripe_account_id")
+      .select("stripe_account_id, settings")
       .eq("subdomain", subdomain)
       .single();
     const stripeAccount = business?.stripe_account_id as string | null | undefined;
@@ -45,8 +46,12 @@ export async function GET(req: Request) {
     const total = (session.amount_total ?? 0) / 100;
     const customerEmail = session.customer_details?.email ?? session.metadata?.customer_email ?? null;
     const customerName  = session.customer_details?.name  ?? session.metadata?.customer_name  ?? null;
+    const pickupMs = session.metadata?.pickup_at ? Date.parse(session.metadata.pickup_at) : NaN;
+    const pickup = Number.isFinite(pickupMs)
+      ? pickupLabel(new Date(pickupMs), session.metadata?.pickup_asap === "1", readOrderingRules(business?.settings).timezone)
+      : null;
 
-    return NextResponse.json({ items, total, customer_email: customerEmail, customer_name: customerName });
+    return NextResponse.json({ items, total, customer_email: customerEmail, customer_name: customerName, pickup });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error("[store/session]", message);

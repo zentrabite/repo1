@@ -178,6 +178,25 @@ export async function createCampaign(businessId: string, data: {
   if (error) throw error;
 }
 
+// ─── Business settings ───────────────────────────────────────────────────────
+
+/**
+ * Saves part of businesses.settings. Reads the saved settings first and
+ * merges, so saving one section can't wipe another that changed since the
+ * page loaded (for example the pause switch on the Orders page). Objects are
+ * merged one level down, so { ordering: { paused: true } } keeps the prep time.
+ */
+export async function saveSettings(businessId: string, patch: Record<string, unknown>): Promise<void> {
+  const { data, error: readErr } = await supabase.from("businesses").select("settings").eq("id", businessId).single();
+  if (readErr) throw readErr;
+  const prev = ((data as { settings?: Record<string, unknown> | null } | null)?.settings ?? {}) as Record<string, unknown>;
+  const isObj = (v: unknown): v is Record<string, unknown> => Boolean(v) && typeof v === "object" && !Array.isArray(v);
+  const next: Record<string, unknown> = { ...prev };
+  for (const [k, v] of Object.entries(patch)) next[k] = isObj(v) && isObj(prev[k]) ? { ...prev[k], ...v } : v;
+  const { error } = await supabase.from("businesses").update({ settings: next }).eq("id", businessId);
+  if (error) throw error;
+}
+
 // ─── Menu ────────────────────────────────────────────────────────────────────
 
 export async function getMenu(businessId: string) {

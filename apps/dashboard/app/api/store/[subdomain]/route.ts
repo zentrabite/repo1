@@ -1,6 +1,7 @@
 // GET /api/store/[subdomain] — public endpoint, returns business + menu
 import { NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase-server";
+import { readOrderingRules } from "@/lib/pickup-times";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ subdomain: string }> }) {
   const { subdomain } = await params;
@@ -49,6 +50,13 @@ export async function GET(_req: Request, { params }: { params: Promise<{ subdoma
     accent_color:  accent,
     taking_orders: Boolean(business.stripe_account_id && business.stripe_charges_enabled),
     has_website:   settings.site?.published === true,
+    // Opening hours, prep time and the pause switch, so the page can offer
+    // pick-up times. Checkout checks them again. now lets the page allow for
+    // a phone whose clock is off.
+    ordering: (() => {
+      const r = readOrderingRules(settings);
+      return { hours: r.week, timezone: r.timezone, prep_minutes: r.prepMinutes, paused: r.paused, now: new Date().toISOString() };
+    })(),
   };
 
   return NextResponse.json({ business: publicBusiness, menu });

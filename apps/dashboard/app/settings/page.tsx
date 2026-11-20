@@ -11,6 +11,11 @@ import { supabase } from "@/lib/supabase";
 import { navigation } from "@/lib/navigation";
 import { DEFAULT_ROLE_PERMISSIONS, NAV_HREFS } from "@/lib/permissions";
 import { orderUrl } from "@/lib/tenant";
+import { saveSettings } from "@/lib/queries";
+import { DEFAULT_PREP_MINUTES, DEFAULT_TIMEZONE, readOrderingRules } from "@/lib/pickup-times";
+
+const TIMEZONES = ["Australia/Adelaide", "Australia/Darwin", "Australia/Brisbane", "Australia/Sydney", "Australia/Melbourne", "Australia/Hobart", "Australia/Perth", "Pacific/Auckland"];
+const PREP_CHOICES = [10, 15, 20, 25, 30, 40, 45, 60, 90];
 import BrandMark from "@/components/brand-mark";
 import PasswordInput from "@/components/password-input";
 import { Icon } from "@/components/zb-icon";
@@ -164,6 +169,9 @@ function SettingsContent() {
     sun: { open: "17:00", close: "21:00", closed: false },
   });
 
+  // Online ordering: prep time, time zone and the pause switch.
+  const [ordering, setOrdering] = useState({ prep_minutes: DEFAULT_PREP_MINUTES, paused: false, timezone: DEFAULT_TIMEZONE });
+
   // Role permissions — owner decides what Manager/Staff/POS can see in the nav.
   const [rolePerms, setRolePerms] = useState<Record<string, string[]>>(DEFAULT_ROLE_PERMISSIONS);
   const [rolesSaving, setRolesSaving] = useState(false);
@@ -191,6 +199,10 @@ function SettingsContent() {
     }
     if (settings.hours && typeof settings.hours === "object") {
       setHours(prev => ({ ...prev, ...(settings.hours as any) }));
+    }
+    {
+      const r = readOrderingRules(settings);
+      setOrdering({ prep_minutes: r.prepMinutes, paused: r.paused, timezone: r.timezone });
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rp = (settings as any).role_permissions;
@@ -487,14 +499,13 @@ function SettingsContent() {
               style={{ width:"100%", justifyContent:"center", marginTop:4 }}
               onClick={async () => {
                 if (!businessId) return;
-                const prev = (business?.settings ?? {}) as Record<string, unknown>;
-                const next = {
-                  ...prev,
-                  notify_email: notifications.notify_email.trim() || null,
-                  notify_phone: notifications.notify_phone.trim() || null,
-                };
-                await supabase.from("businesses").update({ settings: next }).eq("id", businessId);
-                show("Notifications saved ✓");
+                try {
+                  await saveSettings(businessId, {
+                    notify_email: notifications.notify_email.trim() || null,
+                    notify_phone: notifications.notify_phone.trim() || null,
+                  });
+                  show("Notifications saved ✓");
+                } catch { show("Couldn't save notifications"); }
               }}
             >
               Save Notifications
@@ -505,7 +516,7 @@ function SettingsContent() {
           <div className="gc" style={{ padding:24 }}>
             <SectionTitle>Operating hours</SectionTitle>
             <p style={{ fontFamily:"var(--font-inter)", fontSize:12, color:C.st, marginTop:-10, marginBottom:16, lineHeight:1.6 }}>
-              Controls your storefront open/closed status and powers the AI phone agent's &ldquo;after hours&rdquo; mode.
+              Online orders follow these hours. Customers can order ahead for later the same day, and nobody can order while you&apos;re closed. They also power the AI phone agent&apos;s &ldquo;after hours&rdquo; mode.
             </p>
             {([
               ["mon","Monday"], ["tue","Tuesday"], ["wed","Wednesday"],
@@ -526,11 +537,44 @@ function SettingsContent() {
             })}
             <button className="bp" style={{ width:"100%", justifyContent:"center", marginTop:10 }} onClick={async () => {
               if (!businessId) return;
-              const prev = (business?.settings ?? {}) as Record<string, unknown>;
-              await supabase.from("businesses").update({ settings: { ...prev, hours } }).eq("id", businessId);
-              show("Hours saved ✓");
+              try { await saveSettings(businessId, { hours }); show("Hours saved ✓"); }
+              catch { show("Couldn't save hours"); }
             }}>
               Save hours
+            </button>
+          </div>
+
+          {/* Online ordering */}
+          <div className="gc" style={{ padding:24 }}>
+            <SectionTitle>Online ordering</SectionTitle>
+            <p style={{ fontFamily:"var(--font-inter)", fontSize:12, color:C.st, marginTop:-10, marginBottom:16, lineHeight:1.6 }}>
+              Customers pick &ldquo;as soon as possible&rdquo; or a later time today. As soon as possible means now plus your prep time.
+            </p>
+            <Field label="Prep time">
+              <select value={ordering.prep_minutes} onChange={e => setOrdering(o => ({ ...o, prep_minutes: Number(e.target.value) }))}>
+                {PREP_CHOICES.map(m => <option key={m} value={m}>{m} minutes</option>)}
+              </select>
+            </Field>
+            <Field label="Time zone your hours are in">
+              <select value={ordering.timezone} onChange={e => setOrdering(o => ({ ...o, timezone: e.target.value }))}>
+                {(TIMEZONES.includes(ordering.timezone) ? TIMEZONES : [ordering.timezone, ...TIMEZONES]).map(z => <option key={z} value={z}>{z.replace("Australia/", "").replace("Pacific/", "")}</option>)}
+              </select>
+            </Field>
+            <label style={{ display:"flex", alignItems:"center", gap:10, fontSize:13, color:C.cl, margin:"4px 0 14px", cursor:"pointer", minHeight:32 }}>
+              <input type="checkbox" checked={ordering.paused} onChange={e => setOrdering(o => ({ ...o, paused: e.target.checked }))} style={{ width:16, height:16 }} />
+              Pause online orders (you can also do this on the Orders page)
+            </label>
+            <button className="bp" style={{ width:"100%", justifyContent:"center" }} onClick={async () => {
+              if (!businessId) return;
+              try {
+                await saveSettings(businessId, {
+                  timezone: ordering.timezone,
+                  ordering: { prep_minutes: ordering.prep_minutes, paused: ordering.paused },
+                });
+                show(ordering.paused ? "Saved. Online orders are paused" : "Online ordering saved ✓");
+              } catch { show("Couldn't save online ordering"); }
+            }}>
+              Save online ordering
             </button>
           </div>
 
@@ -873,9 +917,9 @@ function SettingsContent() {
               style={{ width:"100%", justifyContent:"center" }}
               onClick={async () => {
                 if (!businessId) return;
-                const prev = (business?.settings ?? {}) as Record<string, unknown>;
+                // Only the delivery column. Writing settings from the page's
+                // copy here could wipe a section saved since it loaded.
                 const { error } = await supabase.from("businesses").update({
-                  settings: { ...prev },
                   delivery_settings: deliverySettings,
                 }).eq("id", businessId);
                 if (error) { show("Could not save delivery settings"); return; }
