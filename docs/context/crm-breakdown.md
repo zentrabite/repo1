@@ -276,6 +276,12 @@ The **evaluator job is not included** — you need to build a scheduled Supabase
 
 **The owner's login.** `lib/owner-invite.ts` makes the link the owner uses to set a password, links their login to the shop (`users.business_id`, role owner) and emails it. Staff creating a shop send it straight away. For a shop a seller sold, the go-live check has "Send the owner their login" (`POST /api/admin/onboarding/[id]/owner-invite`, super admins only). It's a Supabase invite the first time and a magic link after that, and a login that already belongs to a different shop is never moved. Until Resend sends emails, the link shows on screen for staff to send. It logs in as the owner, so it never goes to a seller.
 
+### Setup board — `/admin/setup`
+
+**What it does.** Every shop that isn't live yet, oldest sale first, so nothing a seller signs sits untouched. Each row shows who sold it and when, the wizard step it was left on, the first thing it's waiting for and the full list of what's left. When it's waiting on Stripe it says whether the owner has opened their Stripe link, or whether it ran out. A shop sold 3 or more days ago and still on step 1 shows as Not started. Each row opens the shop in the onboarding wizard.
+
+**How it works.** `GET /api/admin/setup-board` (super admins only) runs `readSetupBoard` in `lib/setup-board.ts`. It reads every shop, keeps those whose site isn't published, and runs the go-live check (`goLiveChecks`) for each from five reads for all of them at once (menu items, paid online orders, owner logins, Stripe links, sellers' names). Not tracked yet, because neither is set up through the CRM: a shop's own text sender name and its own domain.
+
 ---
 
 ## New API endpoints added in this pass

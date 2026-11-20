@@ -41,7 +41,7 @@ const readyDb = (over: Record<string, (q: Query) => unknown> = {}) => withAuth(f
   "menu_items.select": () => ({ data: [{ price: 18, available: true }, { price: 0, available: true }, { price: 9, available: false }], error: null }),
   "orders.select": () => ({ data: null, error: null, count: 2 }),
   "users.select": () => ({ data: [{ id: "owner-1" }], error: null }),
-  "businesses.update": q => ({ data: { id: ID, ...(q.payload as object) }, error: null }),
+  "businesses.update": (q: Query) => ({ data: { id: ID, ...(q.payload as object) }, error: null }),
   ...over,
 } as never));
 const calls = (table: string, op?: Query["op"]) => (h.db.calls as Query[]).filter(q => q.table === table && (!op || q.op === op));
