@@ -164,7 +164,7 @@ export default async function RestaurantSite({ params }: Props) {
           <ol className="zs-list">
             {site.menu.map(m => (
               <li key={m.id}>
-                <div className="zs-li-top"><h3>{m.name}</h3><span className="zs-dots" /><span className="zs-price">{money(m.price)}</span></div>
+                <div className="zs-li-top"><h3>{m.name}</h3><span className="zs-dots" /><span className="zs-price">{m.from ? `From ${money(m.price)}` : money(m.price)}</span></div>
                 <p>{m.description ?? ""}</p>
                 {site.takingOrders && <a className="zs-add" href={`${orderHref}?add=${encodeURIComponent(m.id)}`} aria-label={`Add ${m.name} to your order`}>+</a>}
               </li>

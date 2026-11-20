@@ -10,6 +10,7 @@ import { notifyOwnerOfOrder } from "@/lib/notify";
 import { sendCustomerReceipt } from "@/lib/email";
 import { normaliseAuPhone } from "@/lib/sms";
 import { orderUrl } from "@/lib/tenant";
+import { optionsLabel, readOptions, type ChosenOption } from "@/lib/menu-options";
 
 export const dynamic = "force-dynamic";
 
@@ -111,20 +112,33 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventAc
   const amount = (session.amount_total ?? 0) / 100;
   const marketingOptIn = meta.marketing_opt_in === "1";
 
-  // Items: new checkouts send compact [{id, qty}] split over items_0, items_1…
-  // (Stripe metadata values max out at 500 chars). Names and prices are read
-  // back from the menu. Older sessions sent full items in "items".
+  // Items: checkouts send compact [{id, qty, p, o}] split over items_0,
+  // items_1… (Stripe metadata values max out at 500 chars). p is the unit
+  // price charged in cents and o the ids of the options picked. Names come
+  // from the menu. Older sessions sent [{id, qty}] (price from the menu) or
+  // full items in "items".
   const chunkKeys = Object.keys(meta).filter(k => /^items_\d+$/.test(k))
     .sort((a, b) => Number(a.slice(6)) - Number(b.slice(6)));
   let parsedItems: unknown[] = [];
   if (chunkKeys.length > 0) {
-    const compact = JSON.parse(chunkKeys.map(k => meta[k]).join("")) as { id: string; qty: number }[];
-    const { data: menuRows } = await db.from("menu_items").select("id, name, price")
+    const compact = JSON.parse(chunkKeys.map(k => meta[k]).join("")) as { id: string; qty: number; p?: number; o?: string[] }[];
+    const { data: menuRows } = await db.from("menu_items").select("id, name, price, options")
       .eq("business_id", business_id).in("id", compact.map(c => c.id));
-    const byId = new Map((menuRows ?? []).map((m: { id: string; name: string; price: number }) => [m.id, m]));
+    type MenuRow = { id: string; name: string; price: number; options: unknown };
+    const byId = new Map<string, MenuRow>((menuRows ?? []).map((m: MenuRow) => [m.id, m]));
     parsedItems = compact.map(c => {
-      const m = byId.get(c.id) as { name: string; price: number } | undefined;
-      return { id: c.id, name: m?.name ?? "Item", price: Number(m?.price ?? 0), qty: c.qty };
+      const m = byId.get(c.id);
+      const groups = readOptions(m?.options);
+      const options: ChosenOption[] = [];
+      for (const g of groups) {
+        for (const choice of g.choices) {
+          if (c.o?.includes(choice.id)) options.push({ group: g.name, name: choice.name, price: choice.price });
+        }
+      }
+      const price = typeof c.p === "number"
+        ? c.p / 100
+        : (Math.round(Number(m?.price ?? 0) * 100) + options.reduce((s, o) => s + Math.round(o.price * 100), 0)) / 100;
+      return { id: c.id, name: m?.name ?? "Item", price, qty: c.qty, ...(options.length ? { options } : {}) };
     });
   } else if (items) {
     parsedItems = JSON.parse(items);
@@ -224,7 +238,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventAc
 // template has everything it needs. Non-fatal — logs and moves on if anything
 // goes wrong.
 
-type OrderItemLike = { name?: string; title?: string; qty?: number; quantity?: number; price?: number; unit_price?: number; amount?: number };
+type OrderItemLike = { name?: string; title?: string; qty?: number; quantity?: number; price?: number; unit_price?: number; amount?: number; options?: { name: string }[] };
 
 async function sendOrderReceipt(args: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -248,7 +262,7 @@ async function sendOrderReceipt(args: {
 
     const rawItems = Array.isArray(args.items) ? args.items as OrderItemLike[] : [];
     const items = rawItems.map(it => ({
-      name:  it.name ?? it.title ?? "Item",
+      name:  `${it.name ?? it.title ?? "Item"}${it.options?.length ? ` (${optionsLabel(it.options)})` : ""}`,
       qty:   it.qty ?? it.quantity,
       price: it.price ?? it.unit_price ?? it.amount,
     }));

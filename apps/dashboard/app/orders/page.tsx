@@ -11,6 +11,7 @@ import { getOrders, updateOrderStatus } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 import type { Order } from "@/lib/database.types";
 import { Icon, type IconName } from "@/components/zb-icon";
+import { optionsLabel } from "@/lib/menu-options";
 
 const C = { g:"#00AD82", o:"#FF6B35", r:"#DC3545", st:"#6B7C93" };
 
@@ -253,8 +254,13 @@ export default function OrdersPage() {
               <div style={{ marginBottom:14 }}>
                 <div style={{ fontSize:11, color:C.st, marginBottom:6, textTransform:"uppercase", letterSpacing:".4px" }}>Items</div>
                 {(selected.items as any[]).map((it: any, idx: number) => (
-                  <div key={idx} style={{ display:"flex", justifyContent:"space-between", fontSize:12, color:"rgba(255,255,255,.7)", marginBottom:4 }}>
-                    <span>{it.name} × {it.qty ?? 1}</span>
+                  <div key={idx} style={{ display:"flex", justifyContent:"space-between", gap:12, fontSize:12, color:"rgba(255,255,255,.7)", marginBottom:4 }}>
+                    <span>
+                      {it.name} × {it.qty ?? 1}
+                      {Array.isArray(it.options) && it.options.length > 0 && (
+                        <span style={{ display:"block", fontSize:11, color:C.st }}>{optionsLabel(it.options)}</span>
+                      )}
+                    </span>
                     <span>${(Number(it.price) * (it.qty ?? 1)).toFixed(2)}</span>
                   </div>
                 ))}

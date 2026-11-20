@@ -9,6 +9,7 @@ import ImportCheck from "@/components/import-check";
 import PasswordInput from "@/components/password-input";
 import { Icon, type IconName } from "@/components/zb-icon";
 import type { ImportedMenuCategory, StoredImport } from "@/lib/import/types";
+import { sizesFromVariants, type OptionGroup } from "@/lib/menu-options";
 
 // ─── Theme ────────────────────────────────────────────────────────────────
 const C = {
@@ -521,20 +522,25 @@ function StepBranding({ biz, save, show }: { biz: Biz; save: SaveFn; show: (m: s
 }
 
 // ─── Step 4: Menu seed ────────────────────────────────────────────────────
-type MenuDraft = { name: string; items: { name: string; price: number; description?: string; dietary_tags?: string[]; check?: string | null }[] };
+type MenuDraft = { name: string; items: { name: string; price: number; description?: string; dietary_tags?: string[]; options?: OptionGroup[]; check?: string | null }[] };
 
-// Imported menu → editable draft. Sizes go into the description because
-// items have one price; anything without a price starts at 0 and is flagged.
+// Imported menu → editable draft. Two or more sizes with their own prices
+// become a required Size option: the item's price is the smallest size and
+// each size adds the difference. Anything without a price starts at 0 and is
+// flagged.
 function draftFromImport(menu: ImportedMenuCategory[]): MenuDraft[] {
   return menu.map(c => ({
     name: c.name,
     items: c.items.map(i => {
-      const sizes = i.variants?.length ? `Sizes: ${i.variants.map(v => `${v.name} $${v.price.toFixed(2)}`).join(" · ")}` : "";
+      const sizes = sizesFromVariants(i.variants);
+      // A single size isn't a choice, so it stays in the description.
+      const oneSize = !sizes && i.variants?.length ? `Size: ${i.variants.map(v => v.name).join(", ")}` : "";
       return {
         name:         i.name,
-        price:        i.price ?? 0,
-        description:  [i.description, sizes].filter(Boolean).join(" ") || undefined,
+        price:        sizes ? sizes.basePrice : i.price ?? 0,
+        description:  [i.description, oneSize].filter(Boolean).join(" ") || undefined,
         dietary_tags: i.dietary_tags ?? [],
+        options:      sizes ? [sizes.group] : undefined,
         check:        i.check ?? null,
       };
     }),
@@ -615,6 +621,11 @@ function StepMenu({ biz, show }: { biz: Biz; show: (m: string) => void }) {
                       {it.dietary_tags?.length ? `${it.dietary_tags.join(" · ")}${it.description ? " — " : ""}` : ""}{it.description}
                     </div>
                   ) : null}
+                  {it.options?.map(g => (
+                    <div key={g.id} style={{ fontSize: 11, color: C.st, margin: "4px 2px 0" }}>
+                      {g.name}: {g.choices.map(ch => `${ch.name}${ch.price ? ` +$${ch.price.toFixed(2)}` : ""}`).join(" · ")}
+                    </div>
+                  ))}
                   {it.check && <ImportCheck note={it.check} />}
                 </div>
               ))}

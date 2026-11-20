@@ -10,6 +10,8 @@
 //   • subscriptions read the billing period from the subscription item
 //   • Stripe setup makes the new kind of account, and replaces an old one
 //   • the success page reads the order from the shop's account
+//   • options (sizes, extras) are priced from the menu, a required one can't
+//     be skipped, and the order keeps them with the price charged
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeDb, filterValue, type Query } from "./fake-db";
@@ -48,6 +50,19 @@ import { GET as successLookup } from "@/app/api/store/session/route";
 const SHOP_ACCOUNT = { defaults: { responsibilities: { fees_collector: "stripe", losses_collector: "stripe" } } };
 const OLD_EXPRESS  = { defaults: { responsibilities: { fees_collector: "application_express", losses_collector: "application" } } };
 const MENU = [{ id: "m1", name: "Margherita", price: 18.5, available: true }];
+// A pizza with a required size and up to two extras (migration 018).
+const PIZZA_OPTIONS = [
+  { id: "g-size", name: "Size", min: 1, max: 1, choices: [
+    { id: "small", name: "Small", price: 0, available: true },
+    { id: "large", name: "Large", price: 4.5, available: true },
+    { id: "family", name: "Family", price: 9, available: false },
+  ] },
+  { id: "g-extras", name: "Extras", min: 0, max: 2, choices: [
+    { id: "cheese", name: "Extra cheese", price: 2, available: true },
+    { id: "olives", name: "Olives", price: 1.5, available: true },
+  ] },
+];
+const MENU_WITH_OPTIONS = [{ ...MENU[0], options: PIZZA_OPTIONS }];
 
 const writes = (op: Query["op"], table: string) =>
   (h.db.calls as Query[]).filter(q => q.op === op && q.table === table);
@@ -122,6 +137,52 @@ describe("customer checkout", () => {
     expect(res.status).toBe(409);
     expect(h.stripe.checkout.sessions.create).not.toHaveBeenCalled();
   });
+
+  describe("with sizes and extras", () => {
+    beforeEach(() => {
+      h.db = fakeDb({
+        "businesses.select": () => ({ data: shop, error: null }),
+        "menu_items.select": () => ({ data: MENU_WITH_OPTIONS, error: null }),
+      });
+    });
+
+    it("prices the options from the menu and names them on the line", async () => {
+      const res = await checkout(order([{ id: "m1", qty: 1, price: 0.01, options: ["olives", "large"] }]));
+      expect(res.status).toBe(200);
+      const [params] = h.stripe.checkout.sessions.create.mock.calls[0];
+      expect(params.line_items).toEqual([
+        { price_data: { currency: "aud", product_data: { name: "Margherita (Large, Olives)" }, unit_amount: 2450 }, quantity: 1 },
+      ]);
+      // The webhook gets the options and the price charged.
+      expect(JSON.parse(params.metadata.items_0)).toEqual([{ id: "m1", qty: 1, p: 2450, o: ["large", "olives"] }]);
+    });
+
+    it("merges the same picks into one line and keeps different picks apart", async () => {
+      await checkout(order([
+        { id: "m1", qty: 1, options: ["large", "cheese"] },
+        { id: "m1", qty: 2, options: ["cheese", "large"] },
+        { id: "m1", qty: 1, options: ["small"] },
+      ]));
+      const [params] = h.stripe.checkout.sessions.create.mock.calls[0];
+      expect(params.line_items.map((l: { quantity: number; price_data: { unit_amount: number } }) => [l.quantity, l.price_data.unit_amount]))
+        .toEqual([[3, 2500], [1, 1850]]);
+    });
+
+    it("refuses an order that skips a required choice", async () => {
+      const res = await checkout(order([{ id: "m1", qty: 1, options: ["cheese"] }]));
+      expect(res.status).toBe(409);
+      expect((await res.json()).error).toBe("Margherita: Please choose size.");
+      expect(h.stripe.checkout.sessions.create).not.toHaveBeenCalled();
+    });
+
+    it("refuses a sold-out choice, a made-up one and too many extras", async () => {
+      for (const options of [["family"], ["small", "gold-leaf"], ["small", "cheese", "olives", "cheese"], ["small", "large"]]) {
+        const res = await checkout(order([{ id: "m1", qty: 1, options }]));
+        expect(res.status).toBe(409);
+      }
+      expect(h.stripe.checkout.sessions.create).not.toHaveBeenCalled();
+    });
+  });
 });
 
 // ─── Webhook ─────────────────────────────────────────────────────────────────
@@ -176,6 +237,30 @@ describe("Stripe webhook", () => {
     });
     const [cust] = writes("insert", "customers");
     expect(cust.payload).toMatchObject({ business_id: "biz-1", marketing_opt_in: true, marketing_opt_in_source: "checkout" });
+  });
+
+  it("keeps the options and the price charged, even if the menu changed since", async () => {
+    h.db = fakeDb({
+      "businesses.select": q => q.columns?.includes("stripe_account_id")
+        ? { data: { stripe_account_id: "acct_shop" }, error: null }
+        : { data: { name: "Nonna's Kitchen", subdomain: "nonna", settings: {} }, error: null },
+      // The pizza went up to $20 after the customer paid $24.50 for a large with olives.
+      "menu_items.select": () => ({ data: [{ ...MENU_WITH_OPTIONS[0], price: 20 }], error: null }),
+      "customers.select":  () => ({ data: null, error: null }),
+      "customers.insert":  () => ({ data: { id: "cust-1" }, error: null }),
+      "orders.insert":     q => orderInsert(q),
+    });
+    const session = { ...paidSession, amount_total: 2450, metadata: { ...paidSession.metadata, items_0: JSON.stringify([{ id: "m1", qty: 1, p: 2450, o: ["large", "olives"] }]) } };
+    const res = await send(completed("acct_shop", session));
+    expect(res.status).toBe(200);
+
+    const [ins] = writes("insert", "orders");
+    expect((ins.payload as { items: unknown }).items).toEqual([{
+      id: "m1", name: "Margherita", price: 24.5, qty: 1,
+      options: [{ group: "Size", name: "Large", price: 4.5 }, { group: "Extras", name: "Olives", price: 1.5 }],
+    }]);
+    const { sendCustomerReceipt } = await import("@/lib/email");
+    expect(vi.mocked(sendCustomerReceipt).mock.calls[0][0].items).toEqual([{ name: "Margherita (Large, Olives)", qty: 1, price: 24.5 }]);
   });
 
   it("refuses an order from another Stripe account", async () => {

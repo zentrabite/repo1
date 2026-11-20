@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
 import { getMenu, toggleMenuItemAvailability, updateMenuItem, createMenuItem, createMenuCategory, deleteMenuItem } from "@/lib/queries";
 import type { MenuCategory, MenuItem } from "@/lib/database.types";
+import { OptionsEditor, fromDraft, toDraft, type DraftGroup } from "@/components/menu-options-editor";
+import { readOptions } from "@/lib/menu-options";
 
 const C = { g:"#00AD82", st:"#6B7C93", r:"#FF4757", mist:"rgba(255,255,255,.07)" };
 const MenuIcon = iconComponent("menu");
@@ -98,6 +100,7 @@ export default function MenuPage() {
   const [addingItem,  setAddingItem]  = useState(false);
   const [addingCat,   setAddingCat]   = useState(false);
   const [form,        setForm]        = useState({ name:"", price:"", description:"", category_id:"", image_url:"" });
+  const [optionDraft, setOptionDraft] = useState<DraftGroup[]>([]);
   const [newCatName,  setNewCatName]  = useState("");
   const [saving,      setSaving]      = useState(false);
   const [loading,     setLoading]     = useState(true);
@@ -113,11 +116,14 @@ export default function MenuPage() {
   const openAddItem = () => {
     const realCats = menu.filter(s => s.id !== "__uncategorised__");
     setForm({ name:"", price:"", description:"", category_id: realCats[0]?.id ?? "", image_url:"" });
+    setOptionDraft([]);
     setAddingItem(true);
   };
 
   const saveNewItem = async () => {
     if (!businessId || !form.name || !form.price) return show("Name and price are required");
+    const opts = fromDraft(optionDraft);
+    if (!opts.ok) return show(opts.error);
     setSaving(true);
     try {
       await createMenuItem(businessId, {
@@ -126,6 +132,7 @@ export default function MenuPage() {
         price:        parseFloat(form.price),
         description:  form.description,
         image_url:    form.image_url || null,
+        options:      opts.options,
       });
       setAddingItem(false);
       show("Item added ✓");
@@ -164,20 +171,28 @@ export default function MenuPage() {
   const openEdit = (item: MenuItem) => {
     setEditingItem(item);
     setForm({ name:item.name, price:String(item.price), description:item.description ?? "", category_id:"", image_url:(item as any).image_url ?? "" });
+    setOptionDraft(toDraft(item.options));
   };
 
   const saveEdit = async () => {
     if (!editingItem || !businessId) return;
+    const opts = fromDraft(optionDraft);
+    if (!opts.ok) return show(opts.error);
     const updates: Partial<MenuItem> = {
       name:        form.name,
       price:       parseFloat(form.price) || editingItem.price,
       description: form.description,
       image_url:   (form.image_url || null) as any,
+      options:     opts.options,
     };
-    await updateMenuItem(editingItem.id, updates);
-    setMenu(prev => prev.map(s => ({ ...s, items: s.items.map(it => it.id === editingItem.id ? { ...it, ...updates } : it) })));
-    setEditingItem(null);
-    show("Saved ✓");
+    setSaving(true);
+    try {
+      await updateMenuItem(editingItem.id, updates);
+      setMenu(prev => prev.map(s => ({ ...s, items: s.items.map(it => it.id === editingItem.id ? { ...it, ...updates } : it) })));
+      setEditingItem(null);
+      show("Saved ✓");
+    } catch (e) { show((e as { message?: string } | null)?.message ?? "Couldn't save. Please try again."); }
+    finally { setSaving(false); }
   };
 
   return (
@@ -218,6 +233,9 @@ export default function MenuPage() {
                 <div className="zb-menu-text" style={{ flex:1 }}>
                   <div style={{ fontWeight:600, fontSize:14, color:item.available?"#fff":"#6B7C93" }}>{item.name}</div>
                   {item.description && <div style={{ fontSize:11, color:C.st, marginTop:2 }}>{item.description}</div>}
+                  {readOptions(item.options).length > 0 && (
+                    <div style={{ fontSize:11, color:C.st, marginTop:2 }}>Options: {readOptions(item.options).map(g => g.name).join(", ")}</div>
+                  )}
                 </div>
                 <div className="zb-menu-price" style={{ fontWeight:700, fontSize:14, fontFamily:"var(--font-outfit)", color:item.available?"#fff":"#6B7C93", minWidth:55, textAlign:"right" }}>
                   ${item.price.toFixed(2)}
@@ -233,24 +251,25 @@ export default function MenuPage() {
       ))}
 
       {/* Edit existing item */}
-      <Modal open={!!editingItem} onClose={() => setEditingItem(null)} title="Edit Item">
+      <Modal open={!!editingItem} onClose={() => setEditingItem(null)} title="Edit Item" wide>
         {businessId && (
           <ImageUploadField imageUrl={form.image_url} onUrl={url => setForm(f => ({ ...f, image_url: url }))} businessId={businessId} />
         )}
         <div style={{ marginBottom:12 }}><label>Name</label><input value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} /></div>
         <div style={{ marginBottom:12 }}><label>Price ($)</label><input type="number" step="0.5" value={form.price} onChange={e=>setForm(f=>({...f,price:e.target.value}))} /></div>
         <div style={{ marginBottom:18 }}><label>Description</label><input value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))} placeholder="Optional" /></div>
+        <OptionsEditor value={optionDraft} onChange={setOptionDraft} />
         <div className="zb-wrap" style={{ display:"flex", gap:6, justifyContent:"space-between" }}>
           <button className="bg-btn" style={{ color:C.r }} onClick={() => editingItem && handleDelete(editingItem)}>Delete</button>
           <div style={{ display:"flex", gap:6 }}>
             <button className="bg-btn" onClick={() => setEditingItem(null)}>Cancel</button>
-            <button className="bp" onClick={saveEdit}>Save Changes</button>
+            <button className="bp" onClick={saveEdit} disabled={saving}>{saving ? "Saving…" : "Save Changes"}</button>
           </div>
         </div>
       </Modal>
 
       {/* Add new item */}
-      <Modal open={addingItem} onClose={() => setAddingItem(false)} title="Add Menu Item">
+      <Modal open={addingItem} onClose={() => setAddingItem(false)} title="Add Menu Item" wide>
         {businessId && (
           <ImageUploadField imageUrl={form.image_url} onUrl={url => setForm(f => ({ ...f, image_url: url }))} businessId={businessId} />
         )}
@@ -264,6 +283,7 @@ export default function MenuPage() {
         <div style={{ marginBottom:12 }}><label>Item Name</label><input value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="e.g. Margherita Pizza" /></div>
         <div style={{ marginBottom:12 }}><label>Price ($)</label><input type="number" step="0.5" min="0" value={form.price} onChange={e=>setForm(f=>({...f,price:e.target.value}))} placeholder="0.00" /></div>
         <div style={{ marginBottom:18 }}><label>Description</label><input value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))} placeholder="Optional short description" /></div>
+        <OptionsEditor value={optionDraft} onChange={setOptionDraft} />
         <div style={{ display:"flex", gap:6, justifyContent:"flex-end" }}>
           <button className="bg-btn" onClick={() => setAddingItem(false)}>Cancel</button>
           <button className="bp" onClick={saveNewItem} disabled={saving}>{saving ? "Saving…" : "Add Item"}</button>

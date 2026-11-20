@@ -60,9 +60,15 @@ Everything talks to Supabase through the browser client (`lib/supabase.ts`) with
 
 ## 4. Menu — `/menu`
 
-**What it does.** CRUD for categories, items, modifiers, availability, and images.
+**What it does.** CRUD for categories, items, options, availability, and images.
 
 **How it works.** `menu_categories` and `menu_items`, business-scoped, with an `is_available` toggle. Images upload to Supabase Storage via `/api/menu/upload-image`.
+
+**Options (sizes, extras, choices), since migration 018.** Each item has an `options` list of groups. A group has a name, how many the customer must pick (`min`, 0 or 1), the most they can pick (`max`) and its choices. A choice has a name, a price added to the item's price, and a sold-out switch. The Add and Edit item boxes edit them. `lib/menu-options.ts` reads and prices them, and is shared by every page below so they all agree:
+- The ordering page, the website's "+" and the POS open a picker for any item with options. Lines with the same picks share a cart line. The menu shows "From $X" when choices cost extra.
+- Checkout gets only the ids of the choices picked and prices them from the database. A missing required choice, a sold-out one or one that isn't on the item is refused. Options go in the Stripe line name, for example "Margherita (Large, Olives)".
+- The webhook saves each order line with its options and the price charged, so the order matches the payment even if the menu changes before the customer pays. Orders, the receipt email and the success page show the options.
+- The onboarding import turns two or more sizes into a required Size option.
 
 **To finalise.**
 - Create the `menu-images` bucket in Supabase Storage and make it public.

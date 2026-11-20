@@ -3,8 +3,10 @@
 //
 // Security and money flow
 //   • Prices and names come from the restaurant's menu in the database. The
-//     browser only sends item ids and quantities. Before this, a customer
-//     could edit the request and pay any price they liked.
+//     browser only sends item ids, quantities and the ids of the options
+//     picked (sizes, extras). Before this, a customer could edit the request
+//     and pay any price they liked. Options are checked against the menu, so
+//     a required choice can't be skipped and a sold-out one can't be picked.
 //   • The payment is taken on the shop's own Stripe account (a Connect
 //     direct charge, since 20 Nov 2026). Stripe takes its card fee from the
 //     shop, and refunds and chargebacks come out of the shop's balance, not
@@ -18,11 +20,15 @@ import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase-server";
 import { trustedOrigin } from "@/lib/tenant";
 import { isShopAccount } from "@/lib/stripe-connect";
+import { lineKey, optionsLabel, priceSelection, readOptions, type ChosenOption } from "@/lib/menu-options";
 
 const MAX_LINES = 50;
 const MAX_QTY   = 50;
+// Stripe allows 50 metadata keys. 8 are used for the order details, so the
+// items get up to 40 chunks.
+const MAX_ITEM_CHUNKS = 40;
 
-type RequestItem = { id: string; qty: number };
+type RequestItem = { id: string; qty: number; options?: unknown };
 
 // Stripe metadata values are capped at 500 characters, so long carts are
 // split across items_0, items_1, ... The webhook joins them back together.
@@ -49,14 +55,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Too many items in one order" }, { status: 400 });
     }
 
-    // Merge duplicate lines and validate quantities.
-    const qtyById = new Map<string, number>();
+    // Validate quantities. Lines with the same item and the same options are
+    // merged below, once the options have been checked.
     for (const it of items) {
       const qty = Math.floor(Number(it?.qty));
       if (typeof it?.id !== "string" || !Number.isFinite(qty) || qty < 1 || qty > MAX_QTY) {
         return NextResponse.json({ error: "Invalid item in cart" }, { status: 400 });
       }
-      qtyById.set(it.id, Math.min(MAX_QTY, (qtyById.get(it.id) ?? 0) + qty));
     }
 
     const db = createAdminClient();
@@ -95,38 +100,57 @@ export async function POST(req: Request) {
       );
     }
 
-    // Real names and prices from this restaurant's menu.
-    const ids = [...qtyById.keys()];
+    // Real names, prices and options from this restaurant's menu.
+    const ids = [...new Set(items.map(it => it.id))];
     const { data: menuItems } = await db
       .from("menu_items")
-      .select("id, name, price, available")
+      .select("id, name, price, available, options")
       .eq("business_id", business.id)
       .in("id", ids);
 
     const byId = new Map((menuItems ?? []).map(m => [m.id as string, m]));
-    const lines: { id: string; name: string; price: number; qty: number }[] = [];
-    for (const id of ids) {
-      const m = byId.get(id);
+    type Line = { id: string; name: string; unitPrice: number; qty: number; chosen: ChosenOption[]; choiceIds: string[] };
+    const lines = new Map<string, Line>();
+    for (const it of items) {
+      const m = byId.get(it.id);
       if (!m || m.available === false) {
         return NextResponse.json({ error: "Some items are no longer available. Please refresh the menu." }, { status: 409 });
       }
-      lines.push({ id, name: m.name as string, price: Number(m.price), qty: qtyById.get(id)! });
+      const priced = priceSelection(Number(m.price), readOptions(m.options), it.options);
+      if (!priced.ok) return NextResponse.json({ error: `${m.name as string}: ${priced.error}` }, { status: 409 });
+
+      const key = lineKey(it.id, priced.choiceIds);
+      const qty = Math.floor(Number(it.qty));
+      const prev = lines.get(key);
+      if (prev) prev.qty = Math.min(MAX_QTY, prev.qty + qty);
+      else lines.set(key, { id: it.id, name: m.name as string, unitPrice: priced.unitPrice, qty, chosen: priced.chosen, choiceIds: priced.choiceIds });
     }
 
     // Customers come back to the host they ordered on (their name.zentrabite.com
     // or the CRM's /store page). Only our own hosts are trusted.
     const origin = trustedOrigin(req.headers.get("origin"), process.env.NEXT_PUBLIC_APP_URL ?? "https://dashboard.zentrabite.com");
-    const compactItems = JSON.stringify(lines.map(l => ({ id: l.id, qty: l.qty })));
+    // What the webhook needs to write the order: the item, how many, the
+    // options picked and the price charged (in cents), so the order matches
+    // the payment even if the menu changes before the customer pays.
+    const compactItems = JSON.stringify([...lines.values()].map(l => ({
+      id: l.id, qty: l.qty, p: Math.round(l.unitPrice * 100), ...(l.choiceIds.length ? { o: l.choiceIds } : {}),
+    })));
+    const itemChunks = chunkMetadata("items", compactItems);
+    if (Object.keys(itemChunks).length > MAX_ITEM_CHUNKS) {
+      return NextResponse.json({ error: "Too many items in one order" }, { status: 400 });
+    }
 
     // Created on the shop's own account (the stripeAccount option), so the
     // customer sees the shop's name and branding at checkout.
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
-      line_items: lines.map(l => ({
+      line_items: [...lines.values()].map(l => ({
         price_data: {
           currency: "aud",
-          product_data: { name: l.name },
-          unit_amount: Math.round(l.price * 100),
+          // Options go in the name, so the customer sees them at checkout,
+          // on the success page and on the shop's Stripe receipt.
+          product_data: { name: (l.chosen.length ? `${l.name} (${optionsLabel(l.chosen)})` : l.name).slice(0, 250) },
+          unit_amount: Math.round(l.unitPrice * 100),
         },
         quantity: l.qty,
       })),
@@ -145,7 +169,7 @@ export async function POST(req: Request) {
         customer_email:   clip(customer?.email),
         marketing_opt_in: customer?.marketingOptIn === true ? "1" : "0",
         source:           "storefront",
-        ...chunkMetadata("items", compactItems),
+        ...itemChunks,
       },
     }, { stripeAccount: connectedAccount });
 

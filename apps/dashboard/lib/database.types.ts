@@ -140,6 +140,9 @@ export interface Database {
           available:     boolean;
           dietary_tags:  string[];
           sort_order:    number;
+          // Sizes, extras and choices (migration 018). Read it with
+          // readOptions() from lib/menu-options, which drops anything malformed.
+          options:       unknown;
         };
         Insert: Omit<Database["public"]["Tables"]["menu_items"]["Row"], "id">;
         Update: Partial<Database["public"]["Tables"]["menu_items"]["Insert"]>;
