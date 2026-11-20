@@ -1,22 +1,37 @@
-// GET /api/store/session?session_id=xxx — returns order details for success page
+// GET /api/store/session?session_id=xxx&subdomain=yyy — returns order details
+// for the success page.
+//
+// Since 20 Nov 2026 the checkout session lives on the shop's own Stripe
+// account, so the shop is looked up from the subdomain and the session is read
+// from that account.
 //
 // Items come from Stripe's own line items (what the customer actually paid
 // for), not from metadata.
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
+import { createAdminClient } from "@/lib/supabase-server";
 
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const sessionId = searchParams.get("session_id");
+    const subdomain = searchParams.get("subdomain");
 
-    if (!sessionId || !sessionId.startsWith("cs_")) {
-      return NextResponse.json({ error: "session_id required" }, { status: 400 });
+    if (!sessionId || !sessionId.startsWith("cs_") || !subdomain) {
+      return NextResponse.json({ error: "session_id and subdomain required" }, { status: 400 });
     }
 
+    const { data: business } = await createAdminClient()
+      .from("businesses")
+      .select("stripe_account_id")
+      .eq("subdomain", subdomain)
+      .single();
+    const stripeAccount = business?.stripe_account_id as string | null | undefined;
+    if (!stripeAccount) return NextResponse.json({ error: "Order not found" }, { status: 404 });
+
     const [session, lineItems] = await Promise.all([
-      stripe.checkout.sessions.retrieve(sessionId),
-      stripe.checkout.sessions.listLineItems(sessionId, { limit: 100 }),
+      stripe.checkout.sessions.retrieve(sessionId, {}, { stripeAccount }),
+      stripe.checkout.sessions.listLineItems(sessionId, { limit: 100 }, { stripeAccount }),
     ]);
 
     const items = lineItems.data.map(li => {
