@@ -213,11 +213,11 @@ export function checkPickup(rules: OrderingRules, choice: unknown, now: Date = n
 
   const t = typeof choice === "string" ? Date.parse(choice) : NaN;
   if (!Number.isFinite(t) || plan.state === "anytime") {
-    return { ok: false, error: "Please pick a pick-up time again." };
+    return { ok: false, error: "Please pick a time again." };
   }
   const earliest = plan.state === "open" ? plan.asap.getTime() : plan.slots[0]?.getTime() ?? Infinity;
   const onGrid = t % (SLOT_MINUTES * 60_000) === 0;
-  if (!onGrid || t > plan.closesAt.getTime()) return { ok: false, error: "Please pick a pick-up time again." };
-  if (t < earliest - GRACE_MS) return { ok: false, error: "That pick-up time has gone. Please pick another." };
+  if (!onGrid || t > plan.closesAt.getTime()) return { ok: false, error: "Please pick a time again." };
+  if (t < earliest - GRACE_MS) return { ok: false, error: "That time has gone. Please pick another." };
   return { ok: true, pickupAt: new Date(t), asap: false };
 }

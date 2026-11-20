@@ -83,7 +83,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventAc
   const meta = session.metadata ?? {};
   const {
     business_id, customer_name, customer_phone, customer_email, items, source,
-    fulfillment_type, delivery_address, delivery_fee,
+    fulfillment_type, delivery_address, delivery_fee, note,
   } = meta;
   if (!business_id || source !== "storefront") return;
 
@@ -205,6 +205,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventAc
     placed_at:         new Date().toISOString(),
     pickup_at:         pickupAt ? pickupAt.toISOString() : null,
     pickup_asap:       pickupAsap,
+    notes:             note ? note.slice(0, 500) : null,
   };
   if (fulfillment_type === "delivery") {
     if (delivery_address) orderRecord.ship_to      = { address: delivery_address };
@@ -230,6 +231,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventAc
         customerName: customer_name ?? null,
         itemCount:    Array.isArray(parsedItems) ? parsedItems.length : undefined,
         pickupLabel:  pickupText,
+        delivery:     fulfillment_type === "delivery",
+        deliveryAddress: fulfillment_type === "delivery" ? delivery_address ?? null : null,
+        note:         note ?? null,
       }),
       customer_email ? sendOrderReceipt({
         db,
@@ -240,6 +244,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventAc
         amount,
         items:        parsedItems,
         pickupLabel:  pickupText,
+        delivery:     fulfillment_type === "delivery",
+        deliveryAddress: fulfillment_type === "delivery" ? delivery_address ?? null : null,
+        note:         note ?? null,
       }) : Promise.resolve(),
     ]);
   }
@@ -262,6 +269,9 @@ async function sendOrderReceipt(args: {
   amount:       number;
   items:        unknown;
   pickupLabel:  string | null;
+  delivery:     boolean;
+  deliveryAddress: string | null;
+  note:         string | null;
 }): Promise<void> {
   try {
     const { data: biz } = await args.db
@@ -289,6 +299,9 @@ async function sendOrderReceipt(args: {
       items,
       storeUrl,
       pickupLabel:  args.pickupLabel ?? undefined,
+      delivery:     args.delivery,
+      deliveryAddress: args.deliveryAddress ?? undefined,
+      note:         args.note ?? undefined,
     });
   } catch (err) {
     console.error("[webhook] receipt send failed:", err instanceof Error ? err.message : err);

@@ -207,7 +207,7 @@ export default function OrdersPage() {
         <table className="zb-table">
           <thead>
             <tr>
-              {["ID","Items","Source","Fulfilment","Pick-up","Total","Delivery Fee","Status"].map(h => (
+              {["ID","Items","Source","Fulfilment","When","Total","Delivery Fee","Status"].map(h => (
                 <th key={h}>{h}</th>
               ))}
             </tr>
@@ -220,14 +220,17 @@ export default function OrdersPage() {
             ) : filtered.map((o, i) => (
               <tr key={i} onClick={() => setSelected(o)}>
                 <td data-label="ID" style={{ fontFamily:"var(--font-mono)", fontSize:10, color:C.st }}>{o.id.slice(0,8)}…</td>
-                <td data-label="Items">{Array.isArray(o.items) ? `${(o.items as any[]).length} item(s)` : "—"}</td>
+                <td data-label="Items">
+                  {Array.isArray(o.items) ? `${(o.items as any[]).length} item(s)` : "—"}
+                  {o.notes && <span title={o.notes} style={{ marginLeft:6, fontSize:10, fontWeight:700, color:C.o, background:"rgba(255,107,53,.12)", borderRadius:999, padding:"1px 7px" }}>Note</span>}
+                </td>
                 <td data-label="Source"><Badge type={o.source}>{SOURCE_LABELS[o.source] ?? o.source}</Badge></td>
                 <td data-label="Fulfilment" style={{ fontSize:12 }}>
                   {fulfillLabel(o)
                     ? <span style={{ display:"inline-flex", alignItems:"center", gap:6 }}><Icon name={FULFILL_ICON[o.fulfillment_type ?? ""] ?? "delivery"} size={14} />{fulfillLabel(o)}</span>
                     : <span style={{ color:C.st }}>—</span>}
                 </td>
-                <td data-label="Pick-up" style={{ fontSize:12, color: o.pickup_at ? "#fff" : C.st }}>{pickupText(o) ?? "—"}</td>
+                <td data-label="When" style={{ fontSize:12, color: o.pickup_at ? "#fff" : C.st }}>{pickupText(o) ?? "—"}</td>
                 <td data-first style={{ fontWeight:600, color:"#fff" }}>${Number(o.total).toFixed(2)}</td>
                 <td data-label="Delivery fee" style={{ fontSize:12, color: o.delivery_fee ? C.g : C.st }}>
                   {o.delivery_fee ? `$${Number(o.delivery_fee).toFixed(2)}` : "—"}
@@ -250,7 +253,7 @@ export default function OrdersPage() {
                 ["Status",      selected.status],
                 ["Source",      SOURCE_LABELS[selected.source] ?? selected.source],
                 ["Fulfilment",  fulfillLabel(selected) ?? "—"],
-                ["Pick-up",     pickupText(selected) ?? "—"],
+                [selected.fulfillment_type === "delivery" ? "Delivery time" : "Pick-up", pickupText(selected) ?? "—"],
                 ["Created",     new Date(selected.created_at).toLocaleString("en-AU", { dateStyle:"short", timeStyle:"short" })],
               ] as [string,string][]).map(([l,v]) => (
                 <div key={l}>
@@ -281,6 +284,14 @@ export default function OrdersPage() {
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* The customer's note */}
+            {selected.notes && (
+              <div style={{ background:"rgba(255,107,53,.08)", border:"1px solid rgba(255,107,53,.25)", borderRadius:10, padding:"10px 12px", marginBottom:14 }}>
+                <div style={{ fontSize:11, color:C.o, fontWeight:700, marginBottom:4 }}>Note</div>
+                <div style={{ fontSize:13, color:"#fff", lineHeight:1.5, whiteSpace:"pre-wrap" }}>{selected.notes}</div>
               </div>
             )}
 

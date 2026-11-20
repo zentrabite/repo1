@@ -60,8 +60,10 @@ export default function StorefrontSuccessPage({ params }: { params: Promise<{ su
         {/* When to pick it up */}
         {order?.pickup && (
           <div style={{ background:"rgba(0,173,130,.12)", borderRadius:12, padding:"14px 16px", marginBottom:16, textAlign:"left" }}>
-            <div style={{ fontSize:12, color:C.st, marginBottom:2 }}>Pick-up</div>
+            <div style={{ fontSize:12, color:C.st, marginBottom:2 }}>{order.delivery ? "Delivery" : "Pick-up"}</div>
             <div style={{ fontWeight:700, fontSize:15, color:C.cl }}>{order.pickup}</div>
+            {order.delivery_address && <div style={{ fontSize:13, color:C.cl, marginTop:6 }}>{order.delivery_address}</div>}
+            {order.note && <div style={{ fontSize:13, color:C.st, marginTop:6 }}>Your note: {order.note}</div>}
           </div>
         )}
 

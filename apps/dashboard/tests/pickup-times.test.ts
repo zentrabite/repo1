@@ -91,7 +91,7 @@ describe("checking the pick-up time at checkout", () => {
 
   it("accepts an offered time and refuses one that has gone", () => {
     expect(checkPickup(rules(), adl("19:00").toISOString(), adl("18:02"))).toMatchObject({ ok: true, asap: false });
-    expect(checkPickup(rules(), adl("18:15").toISOString(), adl("18:02"))).toEqual({ ok: false, error: "That pick-up time has gone. Please pick another." });
+    expect(checkPickup(rules(), adl("18:15").toISOString(), adl("18:02"))).toEqual({ ok: false, error: "That time has gone. Please pick another." });
   });
 
   it("refuses a time off the quarter hour or after closing", () => {

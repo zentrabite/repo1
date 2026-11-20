@@ -14,6 +14,8 @@
 //     be skipped, and the order keeps them with the price charged
 //   • a closed or paused shop takes no orders, the pick-up time is checked,
 //     and the order keeps it
+//   • delivery by the shop's own drivers only goes where the shop delivers,
+//     over its minimum, with its fee, and the order keeps the address and note
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeDb, filterValue, type Query } from "./fake-db";
@@ -213,6 +215,74 @@ describe("customer checkout", () => {
     });
   });
 
+  describe("delivery by the shop's own drivers, and the note", () => {
+    const day = { open: "17:00", close: "21:00", closed: false };
+    const hours = { mon: day, tue: day, wed: day, thu: day, fri: day, sat: day, sun: day };
+    const delivery = { enabled: true, fee: 6, min_order: 30, extra_minutes: 15, areas: ["norwood", "5067"] };
+    const shopWith = (d: object = delivery) => {
+      h.db = fakeDb({
+        "businesses.select": () => ({ data: { ...shop, settings: { hours, timezone: "Australia/Adelaide", ordering: { prep_minutes: 20, delivery: d } } }, error: null }),
+        "menu_items.select": () => ({ data: MENU, error: null }),
+      });
+    };
+    const deliver = (over: Record<string, unknown> = {}) => new Request("https://dashboard.zentrabite.com/api/store/checkout", {
+      method: "POST",
+      headers: { "content-type": "application/json", origin: "https://dashboard.zentrabite.com" },
+      body: JSON.stringify({
+        subdomain: "nonna", items: [{ id: "m1", qty: 2 }], customer: { name: "Sofia", phone: "0412 345 678" },
+        pickup: "asap", fulfilment: "delivery", address: { line1: "12 Basil Lane", suburb: "Norwood", postcode: "5067" },
+        note: "Ring the bell", ...over,
+      }),
+    });
+    const adl = (hm: string) => {
+      const [hh, mm] = hm.split(":").map(Number) as [number, number];
+      return new Date(Date.UTC(2026, 10, 20, hh, mm) - 10.5 * 3600_000);
+    };
+
+    beforeEach(() => { vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(adl("18:00")); });
+    afterEach(() => { vi.useRealTimers(); });
+
+    it("charges the delivery fee and keeps the address, the note and the later time", async () => {
+      shopWith();
+      const res = await checkout(deliver());
+      expect(res.status).toBe(200);
+      const [params] = h.stripe.checkout.sessions.create.mock.calls[0];
+      expect(params.line_items.at(-1)).toEqual({ price_data: { currency: "aud", product_data: { name: "Delivery" }, unit_amount: 600 }, quantity: 1 });
+      expect(params.metadata).toMatchObject({
+        fulfillment_type: "delivery", delivery_address: "12 Basil Lane, Norwood 5067", delivery_fee: "6.00", note: "Ring the bell",
+        // 6pm plus 20 minutes prep plus 15 minutes drive
+        pickup_at: adl("18:35").toISOString(),
+      });
+    });
+
+    it("refuses an address the shop doesn't deliver to", async () => {
+      shopWith();
+      const res = await checkout(deliver({ address: { line1: "1 Beach Rd", suburb: "Glenelg", postcode: "5045" } }));
+      expect(res.status).toBe(409);
+      expect(h.stripe.checkout.sessions.create).not.toHaveBeenCalled();
+    });
+
+    it("refuses an order under the minimum, without a phone, or when delivery is off", async () => {
+      shopWith({ ...delivery, min_order: 50 });
+      expect((await checkout(deliver())).status).toBe(409);
+      shopWith();
+      expect((await checkout(deliver({ customer: { name: "Sofia" } }))).status).toBe(400);
+      shopWith({ ...delivery, enabled: false });
+      expect((await checkout(deliver())).status).toBe(409);
+      expect(h.stripe.checkout.sessions.create).not.toHaveBeenCalled();
+    });
+
+    it("keeps a note on a pick-up order, with no delivery fee", async () => {
+      shopWith();
+      const res = await checkout(deliver({ fulfilment: "pickup", address: undefined, note: "No onions" }));
+      expect(res.status).toBe(200);
+      const [params] = h.stripe.checkout.sessions.create.mock.calls[0];
+      expect(params.line_items).toHaveLength(1);
+      expect(params.metadata).toMatchObject({ fulfillment_type: "pickup", note: "No onions" });
+      expect(params.metadata.delivery_address).toBeUndefined();
+    });
+  });
+
   describe("with sizes and extras", () => {
     beforeEach(() => {
       h.db = fakeDb({
@@ -348,6 +418,21 @@ describe("Stripe webhook", () => {
     expect(vi.mocked(sendCustomerReceipt).mock.calls[0][0].pickupLabel).toBe("6:30pm");
     const { notifyOwnerOfOrder } = await import("@/lib/notify");
     expect(vi.mocked(notifyOwnerOfOrder).mock.calls[0][0].pickupLabel).toBe("6:30pm");
+  });
+
+  it("saves a delivery order's address, fee and note", async () => {
+    const session = { ...paidSession, metadata: { ...paidSession.metadata,
+      fulfillment_type: "delivery", delivery_address: "12 Basil Lane, Norwood 5067", delivery_fee: "6.00", note: "Ring the bell",
+      pickup_at: "2026-11-20T08:00:00.000Z", pickup_asap: "1" } };
+    await send(completed("acct_shop", session));
+    const [ins] = writes("insert", "orders");
+    expect(ins.payload).toMatchObject({
+      fulfillment_type: "delivery", ship_to: { address: "12 Basil Lane, Norwood 5067" }, delivery_fee: 6, notes: "Ring the bell",
+    });
+    const { notifyOwnerOfOrder } = await import("@/lib/notify");
+    expect(vi.mocked(notifyOwnerOfOrder).mock.calls[0][0]).toMatchObject({
+      delivery: true, deliveryAddress: "12 Basil Lane, Norwood 5067", note: "Ring the bell", pickupLabel: "As soon as possible, about 6:30pm",
+    });
   });
 
   it("refuses an order from another Stripe account", async () => {
@@ -495,7 +580,7 @@ describe("order success page", () => {
   it("reads the order from the shop's own account", async () => {
     const res = await successLookup(new Request("https://dashboard.zentrabite.com/api/store/session?session_id=cs_test_1&subdomain=nonna"));
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ items: [{ name: "Margherita", qty: 2, price: 18.5 }], total: 37, customer_email: "sofia@example.com", customer_name: "Sofia", pickup: null });
+    expect(await res.json()).toEqual({ items: [{ name: "Margherita", qty: 2, price: 18.5 }], total: 37, customer_email: "sofia@example.com", customer_name: "Sofia", pickup: null, delivery: false, delivery_address: null, note: null });
     expect(h.stripe.checkout.sessions.retrieve).toHaveBeenCalledWith("cs_test_1", {}, { stripeAccount: "acct_shop" });
   });
 

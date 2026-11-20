@@ -18,10 +18,16 @@ type NotifyOrderInput = {
   itemCount?: number;
   /** "As soon as possible, about 6:20pm" or "6:30pm". */
   pickupLabel?: string | null;
+  /** Delivered by the shop's own driver, to deliveryAddress. */
+  delivery?: boolean;
+  deliveryAddress?: string | null;
+  /** The customer's note for the kitchen or the driver. */
+  note?: string | null;
 };
 
 export async function notifyOwnerOfOrder(input: NotifyOrderInput): Promise<void> {
-  const { businessId, orderId, amount, customerName, itemCount, pickupLabel } = input;
+  const { businessId, orderId, amount, customerName, itemCount, pickupLabel, delivery, deliveryAddress, note } = input;
+  const when = pickupLabel ? `${delivery ? "Delivery" : "Pick-up"} ${pickupLabel}` : null;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = createServerClient() as any;
@@ -46,7 +52,9 @@ export async function notifyOwnerOfOrder(input: NotifyOrderInput): Promise<void>
     `Amount: $${amount.toFixed(2)}`,
     customerName ? `Customer: ${customerName}` : null,
     itemCount ? `${itemCount} item${itemCount === 1 ? "" : "s"}` : null,
-    pickupLabel ? `Pick-up: ${pickupLabel}` : null,
+    when,
+    delivery && deliveryAddress ? `Deliver to: ${deliveryAddress}` : null,
+    note ? `Note: ${note}` : null,
     `Order: ${shortId}`,
   ].filter(Boolean);
   const plainBody = parts.join("\n");
@@ -54,7 +62,7 @@ export async function notifyOwnerOfOrder(input: NotifyOrderInput): Promise<void>
   // Run email and SMS in parallel — failures don't block the webhook
   await Promise.allSettled([
     notifyEmail ? sendEmail({ to: notifyEmail, subject, text: plainBody }) : Promise.resolve(),
-    notifyPhone ? sendSms(notifyPhone, `${subject} — ${businessName} (${shortId})${pickupLabel ? `. Pick-up ${pickupLabel}` : ""}`) : Promise.resolve(),
+    notifyPhone ? sendSms(notifyPhone, `${subject} — ${businessName} (${shortId})${when ? `. ${when}` : ""}`) : Promise.resolve(),
     writeNotificationRow(db, businessId, orderId, subject, plainBody),
   ]);
 }

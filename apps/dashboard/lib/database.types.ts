@@ -83,6 +83,8 @@ export interface Database {
           // ─── Pick-up time (migration 019) ───────────────────────────────
           pickup_at:          string | null;   // when the customer collects
           pickup_asap:        boolean;         // true = "as soon as possible"
+          // ─── Note from the customer or the counter (migration 020) ───────
+          notes:              string | null;
         };
         Insert: Omit<Database["public"]["Tables"]["orders"]["Row"], "id" | "created_at">;
         Update: Partial<Database["public"]["Tables"]["orders"]["Insert"]>;
