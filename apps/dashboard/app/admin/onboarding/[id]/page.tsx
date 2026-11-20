@@ -6,9 +6,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useBusiness } from "@/hooks/use-business";
 import ImportCheck from "@/components/import-check";
+import MenuUpload from "@/components/menu-upload";
 import PasswordInput from "@/components/password-input";
 import { Icon, type IconName } from "@/components/zb-icon";
-import type { ImportedMenuCategory, StoredImport } from "@/lib/import/types";
+import type { ImportedMenuCategory, MenuRead, StoredImport } from "@/lib/import/types";
 import { sizesFromVariants, type OptionGroup } from "@/lib/menu-options";
 import { breakProblem, type DayHours } from "@/lib/pickup-times";
 
@@ -301,10 +302,12 @@ export default function OnboardingWizard() {
 // ─── Step 1: Basics ───────────────────────────────────────────────────────
 type SaveFn = (patch: Record<string, unknown>, opts?: { advance?: boolean; silent?: boolean }) => Promise<boolean>;
 
-// The website import's saved draft and its "Check this" notes, if there was one.
+// The website import's saved draft and its "Check this" notes, if there was
+// one. A menu read from the owner's photos, PDF or text with no website import
+// is kept the same way, with an empty source_url.
 function importOf(biz: Biz): StoredImport | null {
   const imp = biz.settings?.import;
-  return imp && typeof imp === "object" && imp.source_url ? (imp as StoredImport) : null;
+  return imp && typeof imp === "object" && (imp.source_url || imp.menu_from === "upload") ? (imp as StoredImport) : null;
 }
 
 function StepBasics({ biz, save }: { biz: Biz; save: SaveFn }) {
@@ -582,6 +585,18 @@ function StepMenu({ biz, show }: { biz: Biz; show: (m: string) => void }) {
   const [cats, setCats] = useState<MenuDraft[]>(() => importedMenu ? draftFromImport(importedMenu) : DEFAULT_MENU);
   const [seeded, setSeeded] = useState(false);
   const [busy, setBusy] = useState(false);
+  // A menu read here from photos, a PDF or text. It replaces the draft below.
+  const [readHere, setReadHere] = useState<MenuRead | null>(null);
+  const [showUpload, setShowUpload] = useState(!importedMenu);
+  const fromUpload = Boolean(readHere) || imp?.menu_from === "upload";
+
+  function loadRead(r: MenuRead) {
+    setCats(draftFromImport(r.menu));
+    setReadHere(r);
+    setSeeded(false);
+    setShowUpload(false);
+    show(`Read ${r.items} items. Check them, then seed.`);
+  }
 
   async function seed() {
     setBusy(true);
@@ -610,8 +625,28 @@ function StepMenu({ biz, show }: { biz: Biz; show: (m: string) => void }) {
   function updateCategory(i: number, next: MenuDraft) { setCats(cats.map((c, idx) => idx === i ? next : c)); }
 
   return (
-    <Section title={importedMenu ? "Menu from their website" : "Starter menu"} subtitle={importedMenu ? "Check names and prices with the owner, then seed. They can edit everything later in Menu." : "Seeds categories + items the owner can rename in Menu. Skip this step if they'll upload their own."}>
-      {importedMenu && !seeded && (
+    <Section
+      title={fromUpload ? "Menu from the owner's photos" : importedMenu ? "Menu from their website" : "Starter menu"}
+      subtitle={importedMenu || readHere ? "Check names and prices with the owner, then seed. They can edit everything later in Menu." : "Seeds categories + items the owner can rename in Menu. Or read their menu from a photo, PDF or text below."}>
+      <div style={{ background: C.bg, border: `1px solid ${C.mist}`, borderRadius: 10, padding: 14, marginBottom: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <div style={{ flex: 1, minWidth: 180, fontSize: 14, fontWeight: 600, color: C.cl }}>Read a menu from a photo, PDF or text</div>
+          {!showUpload && <button onClick={() => setShowUpload(true)} style={{ ...ghostBtn, minHeight: 44 }}>{readHere || importedMenu ? "Read a different menu" : "Start"}</button>}
+        </div>
+        {showUpload && (
+          <div style={{ marginTop: 10 }}>
+            <MenuUpload onRead={loadRead} intro="Take a photo of each page, add a PDF, or paste the menu in. What's read replaces the menu below, so nothing is saved until you seed it." />
+          </div>
+        )}
+        {readHere && !showUpload && (
+          <div style={{ marginTop: 8 }}>
+            <ImportCheck note={readHere.check} imported />
+            {readHere.surcharges.length > 0 && <div style={{ fontSize: 12, color: C.st, marginTop: 6 }}>Fees kept out of the menu: {readHere.surcharges.join(" · ")}</div>}
+            {readHere.warnings.length > 0 && <div style={{ fontSize: 12, color: C.y, marginTop: 6 }}>{readHere.warnings.join(" ")}</div>}
+          </div>
+        )}
+      </div>
+      {importedMenu && !seeded && !readHere && (
         <div style={importBox}>
           <ImportCheck note={imp?.checks.menu} imported />
           {imp?.surcharges && imp.surcharges.length > 0 && (

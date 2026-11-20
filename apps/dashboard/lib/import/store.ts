@@ -113,3 +113,54 @@ export function toStoredImport(raw: unknown, userId: string): StoredImport | nul
     cuisine:     str(obj(r.cuisine).value, 80),
   };
 }
+
+/** A menu read from photos, a PDF or pasted text (lib/import/menu-upload.ts),
+ *  sent back by the handover form. It replaces any menu from the website
+ *  import, because the owner's own menu is the newer one. With no website
+ *  import it becomes a menu-only import with an empty source_url. Returns the
+ *  website import unchanged when the upload holds no usable menu. */
+export function withUploadedMenu(stored: StoredImport | null, raw: unknown, userId: string): StoredImport | null {
+  const u = obj(raw);
+  const menu = cleanMenu(u.menu);
+  if (!menu) return stored;
+  const items = menu.reduce((n, c) => n + c.items.length, 0);
+  const check = str(u.check, 600) ?? `${items} items read from the owner's menu. Check every price with the owner.`;
+  const surcharges = arr(u.surcharges).map(s => str(s, 200)).filter((s): s is string => Boolean(s)).slice(0, 12);
+  const warnings = arr(u.warnings).map(w => str(w, 600)).filter((w): w is string => Boolean(w)).slice(0, 8);
+
+  if (stored) {
+    return {
+      ...stored,
+      menu,
+      menu_from:      "upload",
+      menu_seeded_at: null,
+      checks:         { ...stored.checks, menu: check },
+      surcharges:     surcharges.length ? surcharges : stored.surcharges,
+      warnings:       [...stored.warnings, ...warnings].slice(0, 20),
+    };
+  }
+  const now = new Date().toISOString();
+  return {
+    source_url:      "",
+    final_url:       "",
+    fetched_at:      now,
+    permission:      { confirmed: true, confirmed_by: userId, confirmed_at: now },
+    ai_used:         true,
+    warnings,
+    checks:          { menu: check },
+    hours:           null,
+    logo_candidates: [],
+    colours:         null,
+    menu,
+    menu_seeded_at:  null,
+    menu_from:       "upload",
+    locations:       [],
+    surcharges,
+    social:          {},
+    ordering_links:  [],
+    booking_link:    null,
+    photos:          [],
+    tagline:         null,
+    cuisine:         null,
+  };
+}

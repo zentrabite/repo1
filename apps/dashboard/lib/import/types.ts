@@ -107,6 +107,20 @@ export type StoredImport = {
   photos:      { url: string; alt?: string | null }[];  // owner must confirm they own these
   tagline?:    string | null;
   cuisine?:    string | null;
+  /** Where the menu came from. "upload" when the owner gave us photos, a PDF or
+   *  text (lib/import/menu-upload.ts). An upload with no website import has an
+   *  empty source_url. */
+  menu_from?:  "website" | "upload";
+};
+
+/** A menu read from photos, a PDF or pasted text (POST /api/admin/onboarding/menu-read). */
+export type MenuRead = {
+  menu:       ImportedMenuCategory[];
+  items:      number;
+  check:      string;           // the "Check this" note for the whole menu
+  surcharges: string[];
+  warnings:   string[];
+  read:       { photos: number; pdfs: number; text: boolean };
 };
 
 export const BUSINESS_TYPES = [

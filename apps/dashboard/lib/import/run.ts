@@ -113,7 +113,8 @@ function uniq<T>(xs: T[]): T[] { return [...new Set(xs)]; }
 const DAY_LABEL: Record<DayKey, string> = { mon: "Mon", tue: "Tue", wed: "Wed", thu: "Thu", fri: "Fri", sat: "Sat", sun: "Sun" };
 const days = (ds: DayKey[]) => ds.map(d => DAY_LABEL[d]).join(", ");
 
-function menuFromAi(ai: AiOutput): ImportedMenuCategory[] {
+/** The AI's menu as the import's menu, with a note on each item staff should check. */
+export function menuFromAi(ai: Pick<AiOutput, "menu">, from: "site" | "menu" = "site"): ImportedMenuCategory[] {
   return ai.menu.map(c => ({
     name: c.category,
     items: c.items.map(i => {
@@ -123,7 +124,7 @@ function menuFromAi(ai: AiOutput): ImportedMenuCategory[] {
         price = Math.min(...i.variants.map(v => v.price));
         notes.push("Price set to the cheapest size.");
       }
-      if (price === null) notes.push("No price on the site.");
+      if (price === null) notes.push(`No price on the ${from}.`);
       if (i.note) notes.push(i.note);
       if (i.dietary.length) notes.push("Confirm the dietary tags with the owner.");
       return {
