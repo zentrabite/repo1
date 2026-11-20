@@ -368,7 +368,11 @@ export function toHHMM(t: string | null | undefined): string | null {
   return `${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
 }
 
-/** Collapse sessions per day into the one open/close the settings can hold. */
+/**
+ * Collapse sessions per day into the first open and last close the settings
+ * hold. Two sessions on the same day (lunch, then dinner) keep the gap
+ * between them as the day's break.
+ */
 export function weekFromSessions(sessions: Partial<Record<DayKey, Session[]>>, statedDays: Set<DayKey>): Record<DayKey, DayHours> {
   const week = {} as Record<DayKey, DayHours>;
   for (const d of DAY_KEYS) {
@@ -377,6 +381,10 @@ export function weekFromSessions(sessions: Partial<Record<DayKey, Session[]>>, s
       // a close earlier than the open means past midnight; keep the latest
       const close = list.map(s => s.close).sort().at(-1)!;
       week[d] = { open: list[0]!.open, close, closed: false };
+      const [a, b] = list;
+      if (list.length === 2 && a && b && a.open < a.close && a.close < b.open && b.open < b.close) {
+        week[d] = { ...week[d], break_from: a.close, break_to: b.open };
+      }
     } else {
       week[d] = { open: "09:00", close: "21:00", closed: statedDays.has(d) };
     }

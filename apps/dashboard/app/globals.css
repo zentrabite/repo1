@@ -564,6 +564,8 @@ button, a, select, label, summary, [role="button"] { touch-action: manipulation;
   .zb-hours-row { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; row-gap: 6px !important; margin-bottom: 14px !important; }
   .zb-hours-row > :first-child, .zb-hours-row > :last-child { order: -1; }
   .zb-hours-row > :last-child { justify-self: end; }
+  /* Room for "05:00 PM" in a half-width box on a small phone */
+  .zb-hours-row input[type="time"], .ob-hours-row input[type="time"] { padding-left: 8px; padding-right: 4px; min-width: 0; }
 
   /* Bar charts: bars may get thin; with more than 30 bars the day labels go */
   .zb-bars { gap: 2px !important; }

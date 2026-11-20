@@ -12,7 +12,7 @@ import { navigation } from "@/lib/navigation";
 import { DEFAULT_ROLE_PERMISSIONS, NAV_HREFS } from "@/lib/permissions";
 import { orderUrl } from "@/lib/tenant";
 import { saveSettings } from "@/lib/queries";
-import { DEFAULT_PREP_MINUTES, DEFAULT_TIMEZONE, readOrderingRules } from "@/lib/pickup-times";
+import { DEFAULT_PREP_MINUTES, DEFAULT_TIMEZONE, type DayHours, breakProblem, readOrderingRules } from "@/lib/pickup-times";
 import { DEFAULT_DELIVERY_MINUTES, parseAreas, readDeliveryRules } from "@/lib/own-delivery";
 
 const TIMEZONES = ["Australia/Adelaide", "Australia/Darwin", "Australia/Brisbane", "Australia/Sydney", "Australia/Melbourne", "Australia/Hobart", "Australia/Perth", "Pacific/Auckland"];
@@ -161,7 +161,7 @@ function SettingsContent() {
   const [trialEnds, setTrialEnds] = useState<string | null>(null);
   const [connectLoading, setConnectLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
-  const [hours, setHours] = useState<Record<string, { open: string; close: string; closed: boolean }>>({
+  const [hours, setHours] = useState<Record<string, { open: string; close: string; closed: boolean; break_from?: string; break_to?: string }>>({
     mon: { open: "17:00", close: "21:00", closed: false },
     tue: { open: "17:00", close: "21:00", closed: false },
     wed: { open: "17:00", close: "21:00", closed: false },
@@ -527,27 +527,53 @@ function SettingsContent() {
           <div className="gc" style={{ padding:24 }}>
             <SectionTitle>Operating hours</SectionTitle>
             <p style={{ fontFamily:"var(--font-inter)", fontSize:12, color:C.st, marginTop:-10, marginBottom:16, lineHeight:1.6 }}>
-              Online orders follow these hours. Customers can order ahead for later the same day, and nobody can order while you&apos;re closed. They also power the AI phone agent&apos;s &ldquo;after hours&rdquo; mode.
+              Online orders follow these hours. Customers can order ahead for later the same day, and nobody can order while you&apos;re closed. Shut between lunch and dinner? Add a break to that day. They also power the AI phone agent&apos;s &ldquo;after hours&rdquo; mode.
             </p>
             {([
               ["mon","Monday"], ["tue","Tuesday"], ["wed","Wednesday"],
               ["thu","Thursday"], ["fri","Friday"], ["sat","Saturday"], ["sun","Sunday"],
             ] as [string,string][]).map(([key, label]) => {
               const h = hours[key];
+              const hasBreak = h.break_from !== undefined;
+              const problem = breakProblem(h as DayHours);
+              const setDay = (patch: Partial<typeof h>) => setHours(hs => ({ ...hs, [key]: { ...hs[key], ...patch } }));
               return (
-                <div key={key} className="zb-hours-row" style={{ display:"grid", gridTemplateColumns:"90px 1fr 1fr 60px", gap:8, alignItems:"center", marginBottom:8 }}>
-                  <span style={{ fontSize:12, color:C.cl }}>{label}</span>
-                  <input type="time" value={h.open} disabled={h.closed} onChange={e => setHours(hs => ({ ...hs, [key]: { ...hs[key], open: e.target.value } }))} />
-                  <input type="time" value={h.close} disabled={h.closed} onChange={e => setHours(hs => ({ ...hs, [key]: { ...hs[key], close: e.target.value } }))} />
-                  <label style={{ display:"flex", alignItems:"center", gap:4, fontSize:11, color:C.st }}>
-                    <input type="checkbox" checked={h.closed} onChange={e => setHours(hs => ({ ...hs, [key]: { ...hs[key], closed: e.target.checked } }))} />
-                    off
-                  </label>
+                <div key={key} style={{ marginBottom:8 }}>
+                  <div className="zb-hours-row" style={{ display:"grid", gridTemplateColumns:"90px 1fr 1fr 60px", gap:8, alignItems:"center" }}>
+                    <span style={{ display:"flex", flexDirection:"column", alignItems:"flex-start" }}>
+                      <span style={{ fontSize:12, color:C.cl }}>{label}</span>
+                      {!h.closed && !hasBreak && (
+                        <button type="button" onClick={() => setDay({ break_from: "14:00", break_to: "17:00" })} style={{ background:"none", border:0, padding:"4px 0", color:C.g, fontSize:11, cursor:"pointer" }}>
+                          Add a break
+                        </button>
+                      )}
+                    </span>
+                    <input type="time" aria-label={`${label} opens`} value={h.open} disabled={h.closed} onChange={e => setDay({ open: e.target.value })} />
+                    <input type="time" aria-label={`${label} closes`} value={h.close} disabled={h.closed} onChange={e => setDay({ close: e.target.value })} />
+                    <label style={{ display:"flex", alignItems:"center", gap:4, fontSize:11, color:C.st }}>
+                      <input type="checkbox" checked={h.closed} onChange={e => setDay({ closed: e.target.checked })} />
+                      off
+                    </label>
+                  </div>
+                  {!h.closed && hasBreak && (
+                    <div className="zb-hours-row" style={{ display:"grid", gridTemplateColumns:"90px 1fr 1fr 60px", gap:8, alignItems:"center", marginTop:6 }}>
+                      <span style={{ fontSize:11, color:C.st }}>Break</span>
+                      <input type="time" aria-label={`${label} break starts`} value={h.break_from ?? ""} onChange={e => setDay({ break_from: e.target.value })} />
+                      <input type="time" aria-label={`${label} break ends`} value={h.break_to ?? ""} onChange={e => setDay({ break_to: e.target.value })} />
+                      <button type="button" onClick={() => setHours(hs => { const d = { ...hs[key] }; delete d.break_from; delete d.break_to; return { ...hs, [key]: d }; })}
+                        style={{ background:"none", border:0, padding:"4px 0", color:C.st, fontSize:11, cursor:"pointer", textAlign:"right" }}>
+                        Remove
+                      </button>
+                    </div>
+                  )}
+                  {!h.closed && problem && <p style={{ fontSize:11, color:C.o, margin:"4px 0 0" }}>{label}. {problem}</p>}
                 </div>
               );
             })}
             <button className="bp" style={{ width:"100%", justifyContent:"center", marginTop:10 }} onClick={async () => {
               if (!businessId) return;
+              const bad = Object.entries(hours).find(([, h]) => !h.closed && breakProblem(h as DayHours));
+              if (bad) { show("Check the break times first"); return; }
               try { await saveSettings(businessId, { hours }); show("Hours saved ✓"); }
               catch { show("Couldn't save hours"); }
             }}>

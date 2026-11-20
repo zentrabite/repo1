@@ -18,13 +18,17 @@ export type ImportField<T> = {
 export const DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 export type DayKey = (typeof DAY_KEYS)[number];
 
-/** Same shape as businesses.settings.hours. One open/close per day. */
-export type DayHours = { open: string; close: string; closed: boolean };
+/**
+ * Same shape as businesses.settings.hours. open is the first opening and
+ * close the last closing. A split day (lunch, then dinner) has a break
+ * between them (lib/pickup-times.ts).
+ */
+export type DayHours = { open: string; close: string; closed: boolean; break_from?: string; break_to?: string };
 export type Session  = { open: string; close: string; label?: string };
 
 export type ImportedHours = {
   week:     Record<DayKey, DayHours>;
-  /** Full detail, including split lunch/dinner sessions the week view can't hold. */
+  /** Full detail. Two sessions a day become the week's break, more can't. */
   sessions: Partial<Record<DayKey, Session[]>>;
   notes?:   string | null;
 };
