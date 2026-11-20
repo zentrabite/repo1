@@ -695,6 +695,17 @@ function SettingsContent() {
             </button>
           </div>
 
+          {/* Counter QR code and owner's guide */}
+          <div className="gc" style={{ padding:24 }}>
+            <SectionTitle>Counter QR code</SectionTitle>
+            <p style={{ fontFamily:"var(--font-inter)", fontSize:12, color:C.st, marginTop:-10, marginBottom:16, lineHeight:1.6 }}>
+              A card for your counter and window, small cards for bags and receipts, and a one-page guide to your dashboard. The code takes customers to your ordering page, and the cards show your first order offer if you run one.
+            </p>
+            <a href="/print/counter" target="_blank" rel="noopener" className="bp" style={{ textDecoration:"none", display:"inline-block" }}>
+              Print your QR code and guide ↗
+            </a>
+          </div>
+
           {/* Win-Back pointer */}
           <div className="gc" style={{ padding:24 }}>
             <SectionTitle>Win-Back rules</SectionTitle>
