@@ -19,6 +19,9 @@ interface BusinessState {
   userId:       string | null;
   email:        string | null;
   isSuperAdmin: boolean;
+  // A seller can fill in the sale handover form at /sell (migration 022).
+  // With no business of their own, they only see /sell.
+  isSeller:     boolean;
   impersonatingBusinessId: string | null;
   // Role of the current user for the current business. "Owner" by default —
   // drives role-based nav hiding in the sidebar.
@@ -39,6 +42,7 @@ export function useBusiness(): BusinessState {
     userId:       null,
     email:        null,
     isSuperAdmin: false,
+    isSeller:     false,
     impersonatingBusinessId: null,
     role:         null,
   });
@@ -58,11 +62,12 @@ export function useBusiness(): BusinessState {
       // 2. Get user record (has business_id + is_super_admin)
       const { data: userRow } = await supabase
         .from("users")
-        .select("business_id, is_super_admin")
+        .select("business_id, is_super_admin, is_seller")
         .eq("id", userId)
         .single();
 
       const isSuperAdmin = userRow?.is_super_admin ?? false;
+      const isSeller = userRow?.is_seller === true;
       let businessId: string | null = userRow?.business_id ?? null;
 
       // 3. If super admin and impersonation cookie is set, swap the business
@@ -109,6 +114,7 @@ export function useBusiness(): BusinessState {
         userId,
         email,
         isSuperAdmin,
+        isSeller,
         impersonatingBusinessId,
         role,
       });

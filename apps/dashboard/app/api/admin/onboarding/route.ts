@@ -22,11 +22,19 @@
 // onto the business, and the rest (menu, logo choices, photos, "Check this"
 // notes) is kept on settings.import for the later wizard steps.
 //
+// Staff and sellers can call it (lib/seller-auth.ts). It records who made the
+// sale (businesses.sold_by, sold_at, migration 022). For a seller it never
+// invites the owner and never returns an invite link, because that link logs
+// in as the owner. Staff send the invite during setup. A seller can create
+// SELLER_SHOPS_PER_DAY shops a day.
+//
 // Returns: { businessId, inviteLink?: string }
 
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
-import { assertSuperAdmin } from "@/lib/admin-auth";
+import { assertSellerOrAdmin, dayAgo, SELLER_SHOPS_PER_DAY } from "@/lib/seller-auth";
+import { checkAbn } from "@/lib/abn";
+import { RESERVED_SUBDOMAINS } from "@/lib/tenant";
 import { sendEmail } from "@/lib/email";
 import { toStoredImport } from "@/lib/import/store";
 
@@ -43,6 +51,7 @@ type CreateBody = {
   ownerName?:   string;
   ownerEmail:   string;
   ownerPhone?:  string;
+  abn?:         string;
   sendInvite?:  boolean;
   address?:     string;
   website?:     string;
@@ -77,8 +86,9 @@ function slugify(input: string): string {
 }
 
 export async function POST(req: Request) {
-  const user = await assertSuperAdmin();
-  if (!user) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  const who = await assertSellerOrAdmin();
+  if (!who) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  const user = { id: who.userId };
 
   const body = (await req.json().catch(() => ({}))) as CreateBody;
   const { name, type = "restaurant", suburb, ownerName, ownerEmail, ownerPhone, contactPhone, description } = body;
@@ -87,18 +97,39 @@ export async function POST(req: Request) {
   if (!ownerEmail?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ownerEmail)) {
     return NextResponse.json({ error: "Valid owner email required" }, { status: 400 });
   }
+  if (!who.isSuperAdmin && !ownerPhone?.trim()) {
+    return NextResponse.json({ error: "Enter the owner's mobile, so the team can reach them" }, { status: 400 });
+  }
+  const abn = checkAbn(body.abn);
+  if (!abn.ok) return NextResponse.json({ error: abn.error }, { status: 400 });
+  // Staff send the owner's invite during setup. A seller never gets the link.
+  const sendInvite = who.isSuperAdmin && body.sendInvite !== false;
 
   // Only keep an import when the rep confirmed the owner's permission.
   const stored = body.import && body.importPermission === true ? toStoredImport(body.import, user.id) : null;
   const website = cleanWebsite(body.website) ?? stored?.final_url ?? null;
 
   const db = createAdminClient();
-  const wantSlug = (body.subdomain?.trim() || slugify(name));
 
-  // Ensure subdomain is unique — append -2, -3 ... if taken.
+  if (!who.isSuperAdmin) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { count, error: countErr } = await (db.from("businesses") as any).select("id", { count: "exact", head: true })
+      .eq("sold_by", who.userId).gte("sold_at", dayAgo());
+    if (countErr) return NextResponse.json({ error: "Couldn't check your sales. Try again." }, { status: 500 });
+    if ((count ?? 0) >= SELLER_SHOPS_PER_DAY) {
+      return NextResponse.json({ error: `That's ${SELLER_SHOPS_PER_DAY} shops today, the most a seller can add. Ask the ZentraBite team to add more.` }, { status: 429 });
+    }
+  }
+
+  const wantSlug = slugify(body.subdomain?.trim() || name) || "shop";
+
+  // Ensure subdomain is unique — append -2, -3 ... if taken. Our own names
+  // (www, dashboard, admin...) count as taken, or the shop's address would
+  // never reach it.
   let subdomain = wantSlug;
   for (let i = 2; i < 50; i++) {
-    const { data: existing } = await db
+    const reserved = RESERVED_SUBDOMAINS.has(subdomain);
+    const { data: existing } = reserved ? { data: true } : await db
       .from("businesses")
       .select("id")
       .eq("subdomain", subdomain)
@@ -120,7 +151,10 @@ export async function POST(req: Request) {
       contact_phone: contactPhone?.trim()  || null,
       contact_email: ownerEmail?.trim()    || null, // default to owner email; editable later
       address:       body.address?.trim().slice(0, 300) || null,
+      abn:           abn.abn,
       website,
+      sold_by:       who.userId,
+      sold_at:       new Date().toISOString(),
       settings: {
         onboarding: {
           step:          1,           // next step the rep should see
@@ -147,14 +181,14 @@ export async function POST(req: Request) {
     .single();
 
   if (error || !biz) {
-    return NextResponse.json({ error: error?.message ?? "Insert failed" }, { status: 500 });
+    console.error("[onboarding] insert failed:", error?.message);
+    return NextResponse.json({ error: who.isSuperAdmin ? error?.message ?? "Insert failed" : "Couldn't add the shop. Try again." }, { status: 500 });
   }
 
   // Best-effort owner invite — don't fail the whole op if email send fails.
   let inviteLink: string | null = null;
-  if (body.sendInvite !== false) {
+  if (sendInvite) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://dashboard.zentrabite.com";
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let authUserId: string | null = null;
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

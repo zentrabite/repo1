@@ -187,6 +187,9 @@ export default function AdminPage() {
           <Link href="/admin/enquiries" className="bg-btn" style={{ textDecoration: "none", padding: "10px 16px" }}>
             <Icon name="email" size={16} /> Enquiries
           </Link>
+          <Link href="/admin/sellers" className="bg-btn" style={{ textDecoration: "none", padding: "10px 16px" }}>
+            <Icon name="users" size={16} /> Sellers
+          </Link>
           <button
             onClick={() => router.push("/admin/onboarding/new")}
             style={{

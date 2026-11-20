@@ -9,8 +9,8 @@ Use it to look at a page after a change, at desktop and phone widths, before ope
 | File | What it does |
 |---|---|
 | `server.mjs` | The fake Supabase on port 54321. Answers the logged-in user and table reads from `fixtures.json`. Every write is logged to `writes.log`, so you can check what a Save button sent, and nothing is stored |
-| `fixtures.json` | The sample data. One owner (also a super admin, so the onboarding wizard opens), one shop with split hours and own-driver delivery, one menu item, and six orders in different states (new, delivered, refunded, part refunded, refund failed, a counter sale) |
-| `login.mjs` | `open(path, viewport)` opens a logged-in page in Playwright and returns `{ browser, page, errors }` |
+| `fixtures.json` | The sample data. One owner (also a super admin, so the onboarding wizard opens), one seller (Sam Lee) with two shops sold, one shop with split hours and own-driver delivery, one menu item, and six orders in different states (new, delivered, refunded, part refunded, refund failed, a counter sale) |
+| `login.mjs` | `open(path, viewport, as)` opens a logged-in page in Playwright and returns `{ browser, page, errors }`. `as` is `"owner"` (the default) or `"seller"` |
 
 ## Run it
 
@@ -37,6 +37,8 @@ await browser.close();
 ```
 
 Pages that keep a live connection open (Orders) never go quiet, so wait for something on the page rather than for the network.
+
+If the server won't start because port 54321 is in use, an old copy is still running. Stop it with `pkill -f server.mjs`.
 
 ## Limits
 

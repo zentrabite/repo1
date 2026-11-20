@@ -19,7 +19,18 @@
     "is_super_admin": true,
     "name": "Sofia",
     "email": "owner@example.com",
-    "role": "owner"
+    "role": "owner",
+    "is_seller": false
+   },
+   {
+    "id": "33333333-3333-4333-8333-333333333333",
+    "business_id": null,
+    "is_super_admin": false,
+    "is_seller": true,
+    "name": "Sam Lee",
+    "email": "sam@example.com",
+    "phone": "0400 000 000",
+    "role": "seller"
    }
   ],
   "businesses": [
@@ -97,7 +108,10 @@
       "owner_name": "Sofia",
       "owner_email": "owner@example.com"
      },
-     "modules": {}
+     "modules": {},
+     "site": {
+      "published": true
+     }
     },
     "stripe_account_id": "acct_test_shop",
     "stripe_charges_enabled": true,
@@ -110,7 +124,25 @@
     "address": "18 Basil Lane, Adelaide SA 5000",
     "website": null,
     "description": null,
-    "abn": null
+    "abn": null,
+    "sold_by": "33333333-3333-4333-8333-333333333333",
+    "sold_at": "2026-11-12T03:00:00Z"
+   },
+   {
+    "id": "44444444-4444-4444-8444-444444444444",
+    "name": "Joe's Pizza",
+    "subdomain": "joes-pizza",
+    "type": "restaurant",
+    "settings": {
+     "onboarding": {
+      "step": 3
+     }
+    },
+    "stripe_account_id": null,
+    "stripe_charges_enabled": false,
+    "sold_by": "33333333-3333-4333-8333-333333333333",
+    "sold_at": "2026-11-19T23:00:00Z",
+    "created_at": "2026-11-19T23:00:00Z"
    }
   ],
   "business_members": [],
@@ -299,6 +331,20 @@
     "image_url": null,
     "options": []
    }
-  ]
+  ],
+  "import_runs": []
+ },
+ "seller": {
+  "id": "33333333-3333-4333-8333-333333333333",
+  "aud": "authenticated",
+  "role": "authenticated",
+  "email": "sam@example.com",
+  "email_confirmed_at": "2026-11-01T00:00:00Z",
+  "invited_at": "2026-11-01T00:00:00Z",
+  "app_metadata": {
+   "provider": "email"
+  },
+  "user_metadata": {},
+  "created_at": "2026-11-01T00:00:00Z"
  }
 }
