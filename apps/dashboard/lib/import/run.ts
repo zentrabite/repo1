@@ -96,9 +96,12 @@ function hoursFromAi(h: NonNullable<AiOutput["hours"]>): { hours: ImportedHours;
   const notStated = DAY_KEYS.filter(d => !stated.has(d));
   for (const d of notStated) week[d] = { ...week[d], closed: true };
   const split = DAY_KEYS.filter(d => (sessions[d]?.length ?? 0) > 1);
+  // Two sessions become a break. Three or more can't, so only the first open
+  // and the last close are kept for those days.
+  const tooMany = DAY_KEYS.filter(d => (sessions[d]?.length ?? 0) > 2 || ((sessions[d]?.length ?? 0) === 2 && !week[d]?.break_from));
 
   const notes = ["Check the hours with the owner, including public holidays."];
-  if (split.length) notes.push(`Split sessions on ${days(split)} (e.g. lunch and dinner). The system keeps one open and close time per day, so the gap in between isn't shown.`);
+  if (split.length) notes.push(`Split sessions on ${days(split)} (e.g. lunch and dinner).${tooMany.length ? ` On ${days(tooMany)} only the first open and last close are kept, so set the break by hand.` : " Each gap is saved as the day's break."}`);
   if (late.length) notes.push(`The site says "late" on ${days(uniq(late) as DayKey[])}. We put 23:00, so ask for the real closing time.`);
   if (notStated.length) notes.push(`The site doesn't mention ${days(notStated)}, so we set ${notStated.length > 1 ? "them" : "it"} to closed.`);
   if (h.notes) notes.push(`Site note: ${h.notes}`);

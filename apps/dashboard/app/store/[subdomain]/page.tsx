@@ -269,7 +269,7 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
         )}
         {biz?.taking_orders && plan?.state === "later" && plan.slots[0] && (
           <div style={{ marginTop:16, padding:"12px 14px", borderRadius:12, background:`color-mix(in srgb, ${C.g} 12%, transparent)`, color:C.cl, fontSize:13, lineHeight:1.5 }}>
-            We&apos;re not open yet. Order now for pick-up from {shopTime(plan.slots[0], tz)}.
+            {`We're closed until ${shopTime(plan.opensAt, tz)}. Order now for pick-up from ${shopTime(plan.slots[0], tz)}.`}
           </div>
         )}
 

@@ -6,16 +6,22 @@
 // Where the rules come from, all on businesses.settings:
 //   hours                  { mon: { open: "17:00", close: "21:00", closed }, ... }
 //                          A close at or before the open time runs past
-//                          midnight (17:00 to 01:00).
+//                          midnight (17:00 to 01:00). A day can also have a
+//                          break, { break_from: "14:00", break_to: "17:00" },
+//                          for a shop shut between lunch and dinner. open and
+//                          close stay the first open and the last close, so
+//                          anything that doesn't know about breaks still
+//                          reads the day sensibly. A break that doesn't sit
+//                          inside the day is ignored.
 //   timezone               e.g. "Australia/Adelaide". Hours are in shop time.
 //   ordering.prep_minutes  how long an order takes, 20 by default
 //   ordering.paused        true stops online orders (a busy night)
 //
 // What the customer can pick:
 //   • open now: "As soon as possible" (now plus prep time) or a later time
-//     today, on the quarter hour, up to closing time
-//   • closed now but opening later today: a time later today, from opening
-//     plus prep time
+//     today, on the quarter hour, up to closing time, skipping the break
+//   • closed now but opening later today, or in the break: a time later
+//     today, from opening plus prep time
 //   • closed for the day or paused: nothing, with when it opens next
 //   • no hours saved yet: "As soon as possible" only, as before
 
@@ -28,7 +34,7 @@ export const SLOT_MINUTES = 15;
 const GRACE_MS = 2 * 60_000;
 const MAX_SLOTS = 64;
 
-export type DayHours = { open?: string; close?: string; closed?: boolean };
+export type DayHours = { open?: string; close?: string; closed?: boolean; break_from?: string; break_to?: string };
 export type Week = Partial<Record<DayKey, DayHours>>;
 export type OrderingRules = { week: Week | null; timezone: string; prepMinutes: number; paused: boolean };
 
@@ -49,9 +55,13 @@ export function readOrderingRules(settings: unknown): OrderingRules {
       const h = (s.hours as Record<string, unknown>)[d];
       if (!h || typeof h !== "object") continue;
       const r = h as Record<string, unknown>;
-      const open = typeof r.open === "string" && HM.test(r.open) ? r.open : undefined;
-      const close = typeof r.close === "string" && HM.test(r.close) ? r.close : undefined;
-      week[d] = { open, close, closed: r.closed === true || !open || !close };
+      const hm = (v: unknown) => (typeof v === "string" && HM.test(v) ? v : undefined);
+      const open = hm(r.open), close = hm(r.close);
+      const breakFrom = hm(r.break_from), breakTo = hm(r.break_to);
+      week[d] = {
+        open, close, closed: r.closed === true || !open || !close,
+        ...(breakFrom && breakTo ? { break_from: breakFrom, break_to: breakTo } : {}),
+      };
     }
     if (!Object.keys(week).length) week = null;
   }
@@ -102,15 +112,37 @@ function shiftDays({ y, m, d }: Ymd, n: number): Ymd {
 
 const ceilTo = (ms: number, minutes: number) => Math.ceil(ms / (minutes * 60_000)) * minutes * 60_000;
 
-type Session = { openAt: Date; closeAt: Date };
+/** A stretch of time the shop is open. */
+type Stretch = { openAt: Date; closeAt: Date };
 
-function session(week: Week, day: DayKey, date: Ymd, tz: string): Session | null {
+/** One day's opening, as one stretch, or two when it has a break. */
+function dayStretches(week: Week, day: DayKey, date: Ymd, tz: string): Stretch[] {
   const h = week[day];
-  if (!h || h.closed || !h.open || !h.close) return null;
+  if (!h || h.closed || !h.open || !h.close) return [];
   const openAt = atShopTime(date, h.open, tz);
   let closeAt = atShopTime(date, h.close, tz);
   if (closeAt <= openAt) closeAt = atShopTime(shiftDays(date, 1), h.close, tz);
-  return { openAt, closeAt };
+  if (h.break_from && h.break_to) {
+    // Each time is the first one after the time before it, so a break after
+    // midnight on a late night works too.
+    let fromDay = date;
+    let from = atShopTime(fromDay, h.break_from, tz);
+    if (from <= openAt) { fromDay = shiftDays(date, 1); from = atShopTime(fromDay, h.break_from, tz); }
+    let to = atShopTime(fromDay, h.break_to, tz);
+    if (to <= from) to = atShopTime(shiftDays(fromDay, 1), h.break_to, tz);
+    if (openAt < from && to < closeAt) return [{ openAt, closeAt: from }, { openAt: to, closeAt }];
+  }
+  return [{ openAt, closeAt }];
+}
+
+/** Why a day's break won't work, for the hours editors, or null if it's fine. */
+export function breakProblem(h: DayHours | undefined): string | null {
+  if (!h || h.closed || (h.break_from === undefined && h.break_to === undefined)) return null;
+  if (!HM.test(h.break_from ?? "") || !HM.test(h.break_to ?? "")) return "Enter both break times.";
+  const day = readOrderingRules({ hours: { mon: h }, timezone: "UTC" }).week?.mon;
+  if (!day || day.closed) return null; // the opening times themselves are missing
+  const stretches = dayStretches({ mon: day }, "mon", { y: 2026, m: 1, d: 5 }, "UTC"); // any Monday
+  return stretches.length === 2 ? null : "The break has to fall between opening and closing.";
 }
 
 // ─── What the customer can pick ─────────────────────────────────────────────
@@ -133,24 +165,34 @@ export function pickupPlan(rules: OrderingRules, now: Date = new Date()): Pickup
   const date: Ymd = { y: today.y, m: today.m, d: today.d };
   const yesterdayKey = DAY_KEYS[(DAY_KEYS.indexOf(today.day) + 6) % 7]!;
 
-  // Last night's session if it runs past midnight, then today's.
-  const sessions = [
-    session(rules.week, yesterdayKey, shiftDays(date, -1), tz),
-    session(rules.week, today.day, date, tz),
-  ].filter((s): s is Session => s !== null && s.closeAt.getTime() > now.getTime());
+  // Last night's hours if they run past midnight, then today's. A day with a
+  // break is two stretches, and the times on offer skip the break.
+  const days = [
+    dayStretches(rules.week, yesterdayKey, shiftDays(date, -1), tz),
+    dayStretches(rules.week, today.day, date, tz),
+  ];
+  const nowMs = now.getTime();
 
-  for (const s of sessions) {
-    const isOpen = s.openAt.getTime() <= now.getTime();
-    const earliest = asapAt(Math.max(now.getTime(), s.openAt.getTime()));
-    if (earliest > s.closeAt) continue; // too close to closing time
-
+  for (const stretches of days) {
+    let asap: Date | null = null;
+    let opensAt: Date | null = null;
+    let closesAt: Date | null = null;
     const slots: Date[] = [];
-    const firstSlot = isOpen ? ceilTo(earliest.getTime() + 60_000, SLOT_MINUTES) : ceilTo(earliest.getTime(), SLOT_MINUTES);
-    for (let t = firstSlot; t <= s.closeAt.getTime() && slots.length < MAX_SLOTS; t += SLOT_MINUTES * 60_000) {
-      slots.push(new Date(t));
+    for (const s of stretches) {
+      if (s.closeAt.getTime() <= nowMs) continue;
+      const isOpen = s.openAt.getTime() <= nowMs;
+      const earliest = asapAt(Math.max(nowMs, s.openAt.getTime()));
+      if (earliest > s.closeAt) continue; // too close to closing time
+      if (isOpen) asap = earliest;
+      opensAt ??= s.openAt;
+      closesAt = s.closeAt;
+      const firstSlot = isOpen ? ceilTo(earliest.getTime() + 60_000, SLOT_MINUTES) : ceilTo(earliest.getTime(), SLOT_MINUTES);
+      for (let t = firstSlot; t <= s.closeAt.getTime() && slots.length < MAX_SLOTS; t += SLOT_MINUTES * 60_000) {
+        slots.push(new Date(t));
+      }
     }
-    if (isOpen) return { state: "open", asap: earliest, slots, closesAt: s.closeAt };
-    if (slots.length) return { state: "later", slots, opensAt: s.openAt, closesAt: s.closeAt };
+    if (asap && closesAt) return { state: "open", asap, slots, closesAt };
+    if (slots.length && opensAt && closesAt) return { state: "later", slots, opensAt, closesAt };
   }
 
   return { state: "closed", nextOpen: nextOpening(rules.week, today.day, today.hh * 60 + today.mm) };
@@ -215,9 +257,15 @@ export function checkPickup(rules: OrderingRules, choice: unknown, now: Date = n
   if (!Number.isFinite(t) || plan.state === "anytime") {
     return { ok: false, error: "Please pick a time again." };
   }
-  const earliest = plan.state === "open" ? plan.asap.getTime() : plan.slots[0]?.getTime() ?? Infinity;
   const onGrid = t % (SLOT_MINUTES * 60_000) === 0;
   if (!onGrid || t > plan.closesAt.getTime()) return { ok: false, error: "Please pick a time again." };
+  const earliest = plan.state === "open" ? plan.asap.getTime() : plan.slots[0]?.getTime() ?? Infinity;
   if (t < earliest - GRACE_MS) return { ok: false, error: "That time has gone. Please pick another." };
+  // Not in the shop's break: a time it offered, or one that only just
+  // dropped off the front of the list.
+  const offered = plan.slots.some(s => s.getTime() === t);
+  if (!offered && t > (plan.slots[0]?.getTime() ?? -Infinity)) {
+    return { ok: false, error: "We're closed then. Please pick another time." };
+  }
   return { ok: true, pickupAt: new Date(t), asap: false };
 }

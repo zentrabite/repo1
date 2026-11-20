@@ -10,6 +10,7 @@ import PasswordInput from "@/components/password-input";
 import { Icon, type IconName } from "@/components/zb-icon";
 import type { ImportedMenuCategory, StoredImport } from "@/lib/import/types";
 import { sizesFromVariants, type OptionGroup } from "@/lib/menu-options";
+import { breakProblem, type DayHours } from "@/lib/pickup-times";
 
 // ─── Theme ────────────────────────────────────────────────────────────────
 const C = {
@@ -242,7 +243,7 @@ export default function OnboardingWizard() {
       {/* Step body */}
       <div className="gc" style={{ padding: 24, minHeight: 360 }}>
         {step === 1 && <StepBasics      biz={biz} save={save} />}
-        {step === 2 && <StepHours       biz={biz} save={save} />}
+        {step === 2 && <StepHours       biz={biz} save={save} show={show} />}
         {step === 3 && <StepBranding    biz={biz} save={save} show={show} />}
         {step === 4 && <StepMenu        biz={biz} show={show} />}
         {step === 5 && <StepPayments    biz={biz} save={save} show={show} />}
@@ -349,10 +350,11 @@ function StepBasics({ biz, save }: { biz: Biz; save: SaveFn }) {
 }
 
 // ─── Step 2: Hours ────────────────────────────────────────────────────────
-function StepHours({ biz, save }: { biz: Biz; save: SaveFn }) {
+function StepHours({ biz, save, show }: { biz: Biz; save: SaveFn; show: (m: string) => void }) {
   const imp = importOf(biz);
   const initial = biz.settings?.hours ?? {};
-  const [hours, setHours] = useState<Record<string, { open: string; close: string; closed: boolean }>>(() => {
+  type Day = { open: string; close: string; closed: boolean; break_from?: string; break_to?: string };
+  const [hours, setHours] = useState<Record<string, Day>>(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const out: any = {};
     for (const [k] of DAYS) {
@@ -370,7 +372,7 @@ function StepHours({ biz, save }: { biz: Biz; save: SaveFn }) {
   }
 
   return (
-    <Section title="Operating hours" subtitle="These show on the storefront and drive AI-call routing.">
+    <Section title="Operating hours" subtitle="These show on the storefront, set when online orders can be placed, and drive AI-call routing. Shut between lunch and dinner? Add a break to that day.">
       {imp && (imp.hours || imp.checks.hours) && (
         <div style={importBox}>
           <div style={{ fontWeight: 600, color: C.cl, fontSize: 13 }}>
@@ -395,20 +397,46 @@ function StepHours({ biz, save }: { biz: Biz; save: SaveFn }) {
       <div className="zb-stack" style={{ display: "grid", gridTemplateColumns: "80px 1fr 1fr 100px", gap: 10, alignItems: "center" }}>
         {DAYS.map(([k, label]) => {
           const row = hours[k]!;
+          const hasBreak = row.break_from !== undefined;
+          const problem = row.closed ? null : breakProblem(row as DayHours);
+          const setRow = (patch: Partial<Day>) => setHours(hs => ({ ...hs, [k]: { ...hs[k]!, ...patch } }));
           return (
-            <RowContents key={k}>
-              <div style={{ fontSize: 13, color: C.cl, fontWeight: 600 }}>{label}</div>
-              <input type="time" disabled={row.closed} value={row.open}  onChange={e => setHours({ ...hours, [k]: { ...row, open: e.target.value } })} />
-              <input type="time" disabled={row.closed} value={row.close} onChange={e => setHours({ ...hours, [k]: { ...row, close: e.target.value } })} />
-              <label style={{ fontSize: 12, color: C.st, display: "flex", alignItems: "center", gap: 6 }}>
-                <input type="checkbox" checked={row.closed} onChange={e => setHours({ ...hours, [k]: { ...row, closed: e.target.checked } })} />
-                Closed
-              </label>
-            </RowContents>
+            <RowsFor key={k}>
+              <RowContents>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+                  <span style={{ fontSize: 13, color: C.cl, fontWeight: 600 }}>{label}</span>
+                  {!row.closed && !hasBreak && (
+                    <button type="button" onClick={() => setRow({ break_from: "14:00", break_to: "17:00" })} style={linkBtn}>Add a break</button>
+                  )}
+                </div>
+                <input type="time" aria-label={`${label} opens`} disabled={row.closed} value={row.open}  onChange={e => setRow({ open: e.target.value })} />
+                <input type="time" aria-label={`${label} closes`} disabled={row.closed} value={row.close} onChange={e => setRow({ close: e.target.value })} />
+                <label style={{ fontSize: 12, color: C.st, display: "flex", alignItems: "center", gap: 6 }}>
+                  <input type="checkbox" checked={row.closed} onChange={e => setRow({ closed: e.target.checked })} />
+                  Closed
+                </label>
+              </RowContents>
+              {!row.closed && hasBreak && (
+                <RowContents>
+                  <div style={{ fontSize: 12, color: C.st, paddingLeft: 2 }}>Break</div>
+                  <input type="time" aria-label={`${label} break starts`} value={row.break_from ?? ""} onChange={e => setRow({ break_from: e.target.value })} />
+                  <input type="time" aria-label={`${label} break ends`} value={row.break_to ?? ""} onChange={e => setRow({ break_to: e.target.value })} />
+                  <button type="button" style={{ ...linkBtn, color: C.st, justifySelf: "start" }}
+                    onClick={() => setHours(hs => { const d = { ...hs[k]! }; delete d.break_from; delete d.break_to; return { ...hs, [k]: d }; })}>
+                    Remove break
+                  </button>
+                </RowContents>
+              )}
+              {problem && <div style={{ gridColumn: "1 / -1", fontSize: 12, color: C.o, marginTop: -4 }}>{label}. {problem}</div>}
+            </RowsFor>
           );
         })}
       </div>
-      <SaveBar onSave={() => save({ settings: { hours } }, { advance: true })} />
+      <SaveBar onSave={() => {
+        const bad = DAYS.find(([k]) => !hours[k]!.closed && breakProblem(hours[k] as DayHours));
+        if (bad) { show(`Check the break on ${bad[1]} first`); return; }
+        return save({ settings: { hours } }, { advance: true });
+      }} />
     </Section>
   );
 }
@@ -1057,6 +1085,13 @@ function SaveBar({ onSave }: { onSave: () => void | Promise<unknown> }) {
 function RowContents({ children }: { children: React.ReactNode }) {
   return <div className="ob-hours-row" style={{ display: "contents" }}>{children}</div>;
 }
+
+/** A day's rows in the hours grid, without adding a grid cell of its own. */
+function RowsFor({ children }: { children: React.ReactNode }) {
+  return <div style={{ display: "contents" }}>{children}</div>;
+}
+
+const linkBtn: React.CSSProperties = { background: "none", border: 0, padding: "4px 0", color: C.g, fontSize: 12, cursor: "pointer", textAlign: "left" };
 
 const label = { fontSize: 12, fontWeight: 600 as const, color: C.st, textTransform: "uppercase" as const, letterSpacing: "0.05em" };
 function label_() { return label; }

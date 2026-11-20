@@ -102,7 +102,15 @@ export function prettyTime(t: string): string {
 
 const DAY_SHORT: Record<DayKey, string> = { mon: "Mon", tue: "Tue", wed: "Wed", thu: "Thu", fri: "Fri", sat: "Sat", sun: "Sun" };
 
-type Week = Partial<Record<DayKey, { open?: string; close?: string; closed?: boolean }>>;
+type Week = Partial<Record<DayKey, { open?: string; close?: string; closed?: boolean; break_from?: string; break_to?: string }>>;
+
+/** The day's break, when it sits inside a same-day open and close. */
+function dayBreak(w: Week[DayKey]): { from: string; to: string } | null {
+  if (!w?.open || !w.close || !w.break_from || !w.break_to) return null;
+  const pastMidnight = w.close <= w.open;
+  const ok = w.open < w.break_from && w.break_from < w.break_to && (pastMidnight || w.break_to < w.close);
+  return ok ? { from: w.break_from, to: w.break_to } : null;
+}
 
 /** One line per run of days with the same hours, e.g. "Mon to Thu" · "5pm to 9pm". */
 export function hoursLines(week: Week | null, imported: ImportedHours | null): { label: string; value: string }[] {
@@ -110,6 +118,8 @@ export function hoursLines(week: Week | null, imported: ImportedHours | null): {
   const valueFor = (d: DayKey): string => {
     const w = week[d];
     if (!w || w.closed || !w.open || !w.close) return "Closed";
+    const br = dayBreak(w);
+    if (br) return `${prettyTime(w.open)} to ${prettyTime(br.from)}, ${prettyTime(br.to)} to ${prettyTime(w.close)}`;
     // Use the imported split sessions while the day still matches the import
     const iw = imported?.week?.[d];
     const sessions = imported?.sessions?.[d];
@@ -142,6 +152,9 @@ export function openNow(week: Week | null, timezone: string, now = new Date()): 
   const nowHM = `${parts.hour}:${parts.minute}`;
   const today = week[day];
   if (today && !today.closed && today.open && today.close) {
+    const br = dayBreak(today);
+    if (br && nowHM >= today.open && nowHM < br.from) return `Open now until ${prettyTime(br.from)}`;
+    if (br && nowHM >= br.from && nowHM < br.to) return `Opens again ${prettyTime(br.to)} today`;
     if (nowHM >= today.open && nowHM < today.close) return `Open now until ${prettyTime(today.close)}`;
     if (nowHM < today.open) return `Opens ${prettyTime(today.open)} today`;
   }

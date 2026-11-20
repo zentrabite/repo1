@@ -2,7 +2,7 @@
 // Adelaide is on daylight time in November, 10:30 ahead of UTC.
 
 import { describe, expect, it } from "vitest";
-import { checkPickup, pickupLabel, pickupPlan, readOrderingRules, shopTime, type OrderingRules } from "@/lib/pickup-times";
+import { breakProblem, checkPickup, pickupLabel, pickupPlan, readOrderingRules, shopTime, type OrderingRules } from "@/lib/pickup-times";
 
 const WEEK = {
   mon: { open: "17:00", close: "21:00", closed: true },
@@ -109,5 +109,85 @@ describe("checking the pick-up time at checkout", () => {
   it("allows only as soon as possible when no hours are saved", () => {
     expect(checkPickup(rules({ week: null }), "asap", adl("03:00")).ok).toBe(true);
     expect(checkPickup(rules({ week: null }), adl("19:00").toISOString(), adl("03:00")).ok).toBe(false);
+  });
+});
+
+// ─── A break between lunch and dinner ────────────────────────────────────────
+// Tuesday 17 Nov 2026: 11:30am to 9pm, shut 2pm to 5pm.
+
+describe("a break between lunch and dinner", () => {
+  const SPLIT = { ...WEEK, tue: { open: "11:30", close: "21:00", closed: false, break_from: "14:00", break_to: "17:00" } };
+  const split = (over: Partial<OrderingRules> = {}): OrderingRules =>
+    ({ ...readOrderingRules({ hours: SPLIT, timezone: "Australia/Adelaide", ordering: { prep_minutes: 20 } }), ...over });
+  const tz = "Australia/Adelaide";
+  const times = (ds: Date[]) => ds.map(d => shopTime(d, tz));
+
+  it("keeps a good break when reading the hours, and drops a broken one", () => {
+    expect(split().week?.tue).toEqual({ open: "11:30", close: "21:00", closed: false, break_from: "14:00", break_to: "17:00" });
+    const r = readOrderingRules({ hours: { tue: { open: "11:30", close: "21:00", break_from: "2pm", break_to: "17:00" } } });
+    expect(r.week?.tue).toEqual({ open: "11:30", close: "21:00", closed: false });
+  });
+
+  it("offers lunch times and dinner times at lunch, and nothing in the break", () => {
+    const plan = pickupPlan(split(), adl("12:00", 17));
+    expect(plan.state).toBe("open");
+    if (plan.state !== "open") return;
+    expect(shopTime(plan.asap, tz)).toBe("12:20pm");
+    const list = times(plan.slots);
+    expect(list.slice(0, 2)).toEqual(["12:30pm", "12:45pm"]);
+    // 2pm is the last lunch time, then dinner from 5pm plus 20 minutes, on the quarter hour.
+    expect(list[list.indexOf("2pm") + 1]).toBe("5:30pm");
+    expect(list).not.toContain("3pm");
+    expect(list.at(-1)).toBe("9pm");
+  });
+
+  it("takes dinner orders ahead in the break, or once lunch is too close to the break", () => {
+    for (const at of ["13:50", "15:00"]) {
+      const plan = pickupPlan(split(), adl(at, 17));
+      expect(plan.state).toBe("later");
+      if (plan.state !== "later") return;
+      expect(shopTime(plan.opensAt, tz)).toBe("5pm");
+      expect(shopTime(plan.slots[0]!, tz)).toBe("5:30pm");
+    }
+  });
+
+  it("is open again for dinner", () => {
+    const plan = pickupPlan(split(), adl("17:05", 17));
+    expect(plan.state === "open" && shopTime(plan.asap, tz)).toBe("5:25pm");
+  });
+
+  it("refuses a time in the break at checkout", () => {
+    const now = adl("12:00", 17);
+    expect(checkPickup(split(), adl("15:00", 17).toISOString(), now)).toEqual({ ok: false, error: "We're closed then. Please pick another time." });
+    expect(checkPickup(split(), adl("17:15", 17).toISOString(), now).ok).toBe(false); // the kitchen opens at 5
+    expect(checkPickup(split(), adl("13:45", 17).toISOString(), now).ok).toBe(true);
+    expect(checkPickup(split(), adl("17:30", 17).toISOString(), now).ok).toBe(true);
+    expect(checkPickup(split(), "asap", adl("15:00", 17)).ok).toBe(false);
+  });
+
+  it("ignores a break that isn't inside the day", () => {
+    const odd = { ...WEEK, tue: { open: "17:00", close: "21:00", closed: false, break_from: "14:00", break_to: "15:00" } };
+    const plan = pickupPlan(readOrderingRules({ hours: odd, timezone: tz }), adl("18:00", 17));
+    expect(plan.state === "open" && times(plan.slots)).toContain("7pm");
+  });
+
+  it("works for a break after midnight on a late night", () => {
+    // Friday 6pm to 3am, shut midnight to 1am. Saturday 12:20am is in the break.
+    const late = { ...WEEK, fri: { open: "18:00", close: "03:00", closed: false, break_from: "00:00", break_to: "01:00" } };
+    const plan = pickupPlan(readOrderingRules({ hours: late, timezone: tz }), adl("00:20", 21));
+    expect(plan.state).toBe("later");
+    if (plan.state !== "later") return;
+    expect(shopTime(plan.opensAt, tz)).toBe("1am");
+    expect(shopTime(plan.slots[0]!, tz)).toBe("1:30am");
+  });
+});
+
+describe("checking a break in the hours editors", () => {
+  it("says what's wrong", () => {
+    expect(breakProblem({ open: "11:30", close: "21:00", break_from: "14:00", break_to: "17:00" })).toBeNull();
+    expect(breakProblem({ open: "17:00", close: "21:00", break_from: "14:00", break_to: "17:00" })).toBe("The break has to fall between opening and closing.");
+    expect(breakProblem({ open: "11:30", close: "21:00", break_from: "", break_to: "17:00" })).toBe("Enter both break times.");
+    expect(breakProblem({ open: "11:30", close: "21:00", closed: true, break_from: "", break_to: "" })).toBeNull();
+    expect(breakProblem({ open: "11:30", close: "21:00" })).toBeNull();
   });
 });

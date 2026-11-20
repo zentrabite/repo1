@@ -27,6 +27,7 @@ Before making any changes:
 - **The marketing site (`apps/web`) is different.** It follows the taste skill (design-taste-frontend), and its rules win over older site rules. See "Marketing site rules" below. The demo sandboxes under `/demo/*` stay dark and keep their old colours.
 - **Treat `docs/context/` as logic/architecture guidance** — when in doubt about *what should happen*, read context first, don't guess.
 - **Treat `docs/reference/` as UI/component guidance** — when in doubt about *what it should look like*, check reference first.
+- **Look at logged-in CRM pages locally** with `apps/dashboard/scripts/fake-login` (a fake Supabase with sample data, see its README). Check a changed page at desktop and phone widths before opening a pull request.
 - **Respect the Next.js 16 note** in `apps/dashboard/AGENTS.md` — App Router, React 19, TS strict. Read `node_modules/next/dist/docs/` before writing Next-specific code.
 - **Supabase is the backend.** Browser client in `lib/supabase.ts`, server/service-role client in `lib/supabase-server.ts`. Migrations under `supabase/migrations/`.
 

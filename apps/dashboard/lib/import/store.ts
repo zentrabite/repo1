@@ -29,6 +29,8 @@ function cleanHours(v: unknown): ImportedHours | null {
   for (const d of DAY_KEYS) {
     const w = obj(week[d]);
     outWeek[d] = { open: hhmm(w.open) ?? "09:00", close: hhmm(w.close) ?? "21:00", closed: w.closed === true };
+    const bf = hhmm(w.break_from), bt = hhmm(w.break_to);
+    if (bf && bt) outWeek[d] = { ...outWeek[d], break_from: bf, break_to: bt };
     const list = arr(obj(h.sessions)[d]).slice(0, 4).map(s => {
       const so = obj(s);
       const open = hhmm(so.open), close = hhmm(so.close);
