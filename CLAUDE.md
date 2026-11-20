@@ -9,7 +9,8 @@ Before making any changes:
 1. **Read [docs/context/system-architecture.md](docs/context/system-architecture.md)** to understand how the system is wired.
 2. **Read [docs/context/crm-breakdown.md](docs/context/crm-breakdown.md)** to understand what each page does, what's live, what's mocked, and what's pending.
 3. **Read [docs/context/rebuild-brief.md](docs/context/rebuild-brief.md)** for product positioning, information architecture, and the rewards/demo strategy.
-4. **Skim [docs/reference/](docs/reference/)** for the visual/UI language — component conventions, design tokens, prototype patterns.
+4. **Skim [docs/reference/](docs/reference/)** for the visual/UI language. Start with the brand sheet at [docs/reference/brand/zentrabite-brand.html](docs/reference/brand/zentrabite-brand.html). Ignore `docs/reference/archive/`, which holds old experiments.
+5. **For what's live and what isn't**, read [docs/context/product-status-roadmap.md](docs/context/product-status-roadmap.md). The other files in `docs/context/` were written in April 2026. They're right about how things are wired, but their status notes are out of date, and each says so at the top.
 
 ## How the two docs folders differ
 
@@ -20,9 +21,9 @@ Before making any changes:
 
 ## Rules when working in this repo
 
-- **Extend existing code, don't rebuild.** The monorepo already contains a working CRM (`apps/dashboard`), marketing site (`apps/web`), storefront (`apps/storefront`), and a Supabase schema with 10 applied migrations. Match existing patterns — don't invent parallel ones.
+- **Extend existing code, don't rebuild.** The monorepo already contains a working CRM (`apps/dashboard`), marketing site (`apps/web`), storefront (`apps/storefront`), and a Supabase schema with 17 applied migrations (001 to 017). Match existing patterns — don't invent parallel ones.
 - **Follow the architecture.** Tenant scoping (`business_id` + RLS), module flags (`businesses.settings.modules`), server routes that verify session → `business_id`. See `system-architecture.md` §4–§7.
-- **Follow the design system.** Reuse components from `apps/dashboard/components/` (shell, sidebar, topbar, stat-card, page-header, empty-state, modal, toast, badge). Match the look in `apps/zentrabite-dashboard-files/dashboard-build/`. Dark premium shell, green accent, glass-morphism cards.
+- **Follow the design system.** Reuse components from `apps/dashboard/components/` (shell, sidebar, topbar, stat-card, page-header, empty-state, modal, toast, badge). Match the look of the pages already in `apps/dashboard`. Dark shell, green accent, glass cards. This is the app's April 2026 look, and a colour tidy-up is planned.
 - **The marketing site (`apps/web`) is different.** It follows the taste skill (design-taste-frontend), and its rules win over older site rules. See "Marketing site rules" below. The demo sandboxes under `/demo/*` stay dark and keep their old colours.
 - **Treat `docs/context/` as logic/architecture guidance** — when in doubt about *what should happen*, read context first, don't guess.
 - **Treat `docs/reference/` as UI/component guidance** — when in doubt about *what it should look like*, check reference first.
@@ -41,7 +42,7 @@ Before making any changes:
 - **Motion.** Transform and opacity only. Words never fade in: only pictures and app screens move, each section in its own way, quick and short (about 300 to 450ms). The list is under "Reveals" in `globals.css`. Scroll reveals fire once (`data-reveal` and `data-r`, run by `components/reveal.tsx`). Every move has a `prefers-reduced-motion` fallback, and hover styles sit behind `(hover: hover) and (pointer: fine)`.
 - **Phones.** Inputs 16px or more, targets 44px or more, `env(safe-area-inset-*)` on anything fixed, and no sideways page scroll at 320px.
 - **The website assistant** is the floating button from `components/assistant.tsx` (rendered by the footer). It loads the chat only when first opened. Open it from anywhere with `AskAssistant` in `components/assistant-trigger.tsx`.
-- **Check before shipping.** Run the taste skill's `lint.mjs` and `inspect.mjs` on a production build. The features pages are done (12 Nov). The pricing and how-it-works pages still carry some older devices (labels, numbered steps, outlined cards) until they're redone.
+- **Check before shipping.** Run the taste skill's `lint.mjs` and `inspect.mjs` on a production build. The steps, with the phone check, are in `apps/web/scripts/checks/README.md`. The features pages are done (12 Nov). The pricing and how-it-works pages still carry some older devices (labels, numbered steps, outlined cards) until they're redone.
 
 ## Key references
 
@@ -49,17 +50,18 @@ Before making any changes:
 - [docs/context/crm-breakdown.md](docs/context/crm-breakdown.md) — page-by-page behaviour of every CRM screen.
 - [docs/context/rebuild-brief.md](docs/context/rebuild-brief.md) — product strategy, IA, demo architecture, rewards rebuild, roadmap.
 - [docs/context/deploy-runbook.md](docs/context/deploy-runbook.md) — env, migrations, Stripe webhook, domains.
-- [docs/reference/](docs/reference/) — visual/UI reference (component library, prototype, design tokens).
+- [docs/reference/](docs/reference/) — visual/UI reference. The brand sheet, logo, icons and the two looks (marketing site and app).
+- [docs/context/product-status-roadmap.md](docs/context/product-status-roadmap.md) — what's live, what's built but not finished, and what's left.
 
 ## Repo map (quick)
 
 ```
 apps/web              Marketing site + demo sandboxes
 apps/dashboard        Production merchant CRM (Supabase-backed)
-apps/storefront       Tenant storefront build
+apps/storefront       Tenant storefront build. Not deployed, the live ordering pages are in apps/dashboard
 packages/*-config     Shared eslint and TypeScript settings
-supabase/migrations   001 → 010 schema
-supabase/functions    Edge functions (nightly-analytics, win-back)
+supabase/migrations   001 → 017 schema
+supabase/functions    Edge functions (nightly-analytics, win-back, birthday-loyalty)
 docs/context          System logic + architecture (start here)
 docs/reference        UI/visual reference
 ```

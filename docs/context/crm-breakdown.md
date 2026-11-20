@@ -1,5 +1,7 @@
 # ZentraBite CRM — page-by-page breakdown
 
+> **Note, 12 November 2026.** This file was written in April 2026. What each page does still holds. The "what you still need to do" notes and the one-time setup steps are out of date, because most of that work has been done since. For what's live now, see [product-status-roadmap.md](./product-status-roadmap.md). The win-back page moved from `/biteback` to `/zentra-rewards`.
+
 This is a plain-English map of every page: what it does, how it works behind the scenes, and what you still need to do to finalise it. It reflects the state of the code after the CRM expansion pass (migration 009 + new endpoints + fixes).
 
 Everything talks to Supabase through the browser client (`lib/supabase.ts`) with RLS on, so each merchant only ever sees their own `business_id` rows. Server-only endpoints use a service-role client via `lib/supabase-server.ts`.
@@ -27,7 +29,7 @@ Everything talks to Supabase through the browser client (`lib/supabase.ts`) with
 
 **To finalise.**
 - Populate `analytics_daily` nightly (Supabase Scheduled Functions, or a cron that groups `orders` by day and upserts).
-- Create one winback rule on `/biteback` to light up the "Top winbacks" card.
+- Create one winback rule on `/zentra-rewards` to light up the "Top winbacks" card.
 - Seed `ai_recommendations` from your AI job to light up the copilot.
 
 ---
@@ -138,7 +140,7 @@ Buttons are disabled when no phone number is on file.
 
 ---
 
-## 10. Win-Back — `/biteback`
+## 10. Win-Back — `/zentra-rewards`
 
 **What it does.** Automated retention rules. Each rule is "if a customer hasn't ordered in N days, send an offer via SMS/email". Supports percent off, dollar off, free delivery, free item. Template supports `{name}`, `{offer}`, `{business}`, `{link}`. Tracks active rules, redemptions, revenue recovered.
 
@@ -209,7 +211,7 @@ The **evaluator job is not included** — you need to build a scheduled Supabase
 
 ## 15. Settings — `/settings`
 
-**What it does.** Business profile (name, type, suburb, subdomain, logo), operating hours (Mon–Sun with open/close + closed checkbox), Stripe Connect status, subscription status, pointer card to `/biteback` for winback config.
+**What it does.** Business profile (name, type, suburb, subdomain, logo), operating hours (Mon–Sun with open/close + closed checkbox), Stripe Connect status, subscription status, pointer card to `/zentra-rewards` for winback config.
 
 **How it works.** Persists to `businesses.settings` (JSONB) and first-class columns. `stripeConnected` from `business.stripe_account_id`. Subscription status from `business.settings.subscription_status`. Hours saved to `business.settings.hours` keyed by weekday.
 
