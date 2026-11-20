@@ -14,6 +14,8 @@
 import "server-only";
 import Stripe from "stripe";
 
+export const STRIPE_API_VERSION = "2026-08-26.dahlia" as const;
+
 let _stripe: Stripe | null = null;
 
 function getStripe(): Stripe {
@@ -25,8 +27,11 @@ function getStripe(): Stripe {
       "Add it to apps/dashboard/.env.local (sk_test_… for dev, sk_live_… for prod).",
     );
   }
+  // Pinned to the same API family ("dahlia") as both Stripe webhook endpoints,
+  // so the objects we fetch and the events Stripe sends have the same shape.
+  // Moving to a newer family means updating the endpoints' API version too.
   _stripe = new Stripe(key, {
-    apiVersion: "2024-06-20",
+    apiVersion: STRIPE_API_VERSION,
     typescript: true,
   });
   return _stripe;

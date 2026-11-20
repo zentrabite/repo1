@@ -7,7 +7,7 @@
 // to /api/stripe/checkout instead.
 
 import { NextResponse } from "next/server";
-import Stripe from "stripe";
+import { stripe } from "@/lib/stripe";
 import { createSessionClient, createAdminClient } from "@/lib/supabase-server";
 import { trustedOrigin } from "@/lib/tenant";
 
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
       .eq("id", businessId)
       .single();
 
-    const customerId = (business as any)?.stripe_customer_id as string | undefined;
+    const customerId = (business as { stripe_customer_id?: string | null } | null)?.stripe_customer_id ?? undefined;
 
     if (!customerId) {
       // They don't have a Stripe customer yet — direct them to start checkout
@@ -62,7 +62,6 @@ export async function POST(req: Request) {
       );
     }
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2024-06-20", typescript: true });
     // Only our own hosts, so a forged Origin can't send people elsewhere.
     const origin = trustedOrigin(req.headers.get("origin"), process.env.NEXT_PUBLIC_APP_URL ?? "https://dashboard.zentrabite.com");
 
