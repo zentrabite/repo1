@@ -10,11 +10,12 @@ const { chromium } = load("playwright");
 
 const dir = new URL(".", import.meta.url).pathname;
 
-/** The session cookie @supabase/ssr reads, for the fixtures' user. */
-export function sessionCookie() {
-  const { user } = JSON.parse(readFileSync(dir + "fixtures.json", "utf8"));
+/** The session cookie @supabase/ssr reads. as: "owner" (also a super admin) or "seller". */
+export function sessionCookie(as = "owner") {
+  const fx = JSON.parse(readFileSync(dir + "fixtures.json", "utf8"));
+  const user = as === "seller" ? fx.seller : fx.user;
   const session = {
-    access_token: "fake-access-token",
+    access_token: `fake-${user.id}`,
     token_type: "bearer",
     expires_in: 3600,
     expires_at: Math.floor(Date.now() / 1000) + 3600,
@@ -24,11 +25,11 @@ export function sessionCookie() {
   return { name: "sb-localhost-auth-token", value: "base64-" + Buffer.from(JSON.stringify(session)).toString("base64url"), domain: "localhost", path: "/" };
 }
 
-/** A logged-in page at path, e.g. open("/settings", { width: 390, height: 844 }). */
-export async function open(path, viewport = { width: 1280, height: 900 }) {
+/** A logged-in page at path, e.g. open("/settings", { width: 390, height: 844 }) or open("/sell", undefined, "seller"). */
+export async function open(path, viewport = { width: 1280, height: 900 }, as = "owner") {
   const browser = await chromium.launch();
   const context = await browser.newContext({ viewport, deviceScaleFactor: 1 });
-  await context.addCookies([sessionCookie()]);
+  await context.addCookies([sessionCookie(as)]);
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", e => errors.push(String(e)));

@@ -9,13 +9,14 @@ export type Filter = [column: string, value: unknown];
 
 export type Query = {
   table: string;
-  op: "select" | "insert" | "update" | "delete";
+  op: "select" | "insert" | "update" | "upsert" | "delete";
   columns?: string;
   payload?: unknown;
   filters: Filter[];
 };
 
-type Result = { data: unknown; error: { code?: string; message: string } | null };
+/** count is for select(..., { count: "exact", head: true }). */
+type Result = { data: unknown; error: { code?: string; message: string } | null; count?: number | null };
 type Handler = (q: Query) => Result | undefined;
 
 export function fakeDb(handlers: Record<string, Handler> = {}) {
@@ -32,10 +33,16 @@ export function fakeDb(handlers: Record<string, Handler> = {}) {
     const builder = {
       select(columns?: string) { if (q.op === "select") q.columns = columns; return builder; },
       insert(payload: unknown) { q.op = "insert"; q.payload = payload; return builder; },
+      upsert(payload: unknown) { q.op = "upsert"; q.payload = payload; return builder; },
       update(payload: unknown) { q.op = "update"; q.payload = payload; return builder; },
       delete() { q.op = "delete"; return builder; },
       eq(column: string, value: unknown) { q.filters.push([column, value]); return builder; },
       in(column: string, value: unknown) { q.filters.push([column, value]); return builder; },
+      // Range filters are recorded as "column>=" and so on.
+      gte(column: string, value: unknown) { q.filters.push([`${column}>=`, value]); return builder; },
+      lt(column: string, value: unknown) { q.filters.push([`${column}<`, value]); return builder; },
+      order() { return builder; },
+      limit() { return builder; },
       single: async () => run(q),
       maybeSingle: async () => run(q),
       then(resolve: (r: Result) => unknown, reject?: (e: unknown) => unknown) {

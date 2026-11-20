@@ -258,6 +258,14 @@ The **evaluator job is not included** — you need to build a scheduled Supabase
 
 **Table.** `enquiries` (migration 016). RLS on, no insert or delete for browser roles, super admins can read and change `status` only.
 
+### Sellers — `/admin/sellers`, `/sell` and `/sell/new`
+
+**What it does.** The people who sell ZentraBite to shops. A super admin adds a seller at `/admin/sellers` (name, email, mobile) and can take access away. A seller logs in to `/sell`, a list of the shops they sold with how far setup has got, and `/sell/new`, the sale handover form they fill in with the owner. The shop goes to the team as a draft, and the team finishes it in the onboarding wizard.
+
+**What a seller can't do.** Open any shop's CRM, customers, orders or settings, or get the owner's login. They have no business of their own, so every row rule shows them nothing, and `components/dashboard-shell.tsx` sends them from any CRM page to `/sell`. The handover form never sends the owner's invite, because the invite link logs in as the owner. Staff send it during setup.
+
+**How it works.** `users.is_seller` (migration 022) marks a seller. Browsers can't write to `users` (migration 015). `lib/seller-auth.ts` (`assertSellerOrAdmin`) lets sellers and super admins run the website import and create a shop, through the same routes the staff form uses (`/api/admin/onboarding/import` and `POST /api/admin/onboarding`). A seller gets 20 imports a day (each costs AI time, counted in `import_runs`) and can add 20 shops a day, and must give the owner's mobile. Every shop records who sold it (`businesses.sold_by`, `sold_at`), which an owner can't change from a browser (`protect_business_fields`). `GET /api/sell/shops` lists a seller's shops with only the name, address, sale date, setup step, and whether payments and the site are on. `/api/admin/sellers` (super admin) lists, adds and removes sellers. A new email gets a login and an invite link, which comes back to the super admin to pass on until Resend sends emails. An email that already has a login just becomes a seller. Removing access keeps the login and the sales history. The staff form and the handover form are one component, `components/new-shop-form.tsx`, with an ABN check (`lib/abn.ts`) in both.
+
 ---
 
 ## New API endpoints added in this pass

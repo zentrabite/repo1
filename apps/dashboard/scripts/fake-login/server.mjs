@@ -54,7 +54,12 @@ http.createServer((req, res) => {
       res.writeHead(status, { "content-type": "application/json", ...cors, ...extra });
       res.end(json === undefined ? "" : JSON.stringify(json));
     };
-    if (url.pathname === "/auth/v1/user") return send(200, data.user);
+    if (url.pathname === "/auth/v1/user") {
+      // The fake token is "fake-<user id>" (login.mjs), so either login works.
+      const token = (req.headers.authorization ?? "").replace(/^Bearer\s+/i, "");
+      const who = [data.user, data.seller].filter(Boolean).find(u => token === `fake-${u.id}`) ?? data.user;
+      return send(200, who);
+    }
     const m = /^\/rest\/v1\/([a-z_]+)$/.exec(url.pathname);
     if (!m) { log(`${req.method} ${url.pathname} (not handled)`); return send(404, { message: "not mocked" }); }
     const table = m[1];

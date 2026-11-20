@@ -6,9 +6,14 @@
 // Body:    { url: string, permission: true }
 //          permission = the owner has said we can copy their website content.
 // Returns: { result: ImportResult }  (see lib/import/types.ts)
+//
+// Staff and sellers (lib/seller-auth.ts) can run it. Each run is recorded in
+// import_runs (migration 022). A seller gets SELLER_IMPORTS_PER_DAY a day,
+// because each one costs AI time.
 
 import { NextResponse } from "next/server";
-import { assertSuperAdmin } from "@/lib/admin-auth";
+import { createAdminClient } from "@/lib/supabase-server";
+import { assertSellerOrAdmin, dayAgo, SELLER_IMPORTS_PER_DAY } from "@/lib/seller-auth";
 import { runImport } from "@/lib/import/run";
 import { ImportFetchError } from "@/lib/import/safe-fetch";
 
@@ -18,8 +23,8 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 export async function POST(req: Request) {
-  const user = await assertSuperAdmin();
-  if (!user) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  const who = await assertSellerOrAdmin();
+  if (!who) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
   const body = (await req.json().catch(() => ({}))) as { url?: unknown; permission?: unknown };
   const url = typeof body.url === "string" ? body.url.trim() : "";
@@ -28,6 +33,19 @@ export async function POST(req: Request) {
   if (body.permission !== true) {
     return NextResponse.json({ error: "Tick the box to confirm the owner is happy for us to copy their website" }, { status: 400 });
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = createAdminClient() as any;
+  if (!who.isSuperAdmin) {
+    const { count, error } = await db.from("import_runs").select("id", { count: "exact", head: true })
+      .eq("user_id", who.userId).gte("created_at", dayAgo());
+    if (error) return NextResponse.json({ error: "Couldn't check your imports. Try again." }, { status: 500 });
+    if ((count ?? 0) >= SELLER_IMPORTS_PER_DAY) {
+      return NextResponse.json({ error: `That's ${SELLER_IMPORTS_PER_DAY} imports today, the most a seller can run. Fill the form in by hand, or try tomorrow.` }, { status: 429 });
+    }
+  }
+  const { error: logErr } = await db.from("import_runs").insert({ user_id: who.userId, url: url.slice(0, 500) });
+  if (logErr) console.warn("[onboarding/import] couldn't record the run:", logErr.message);
 
   try {
     const result = await runImport(url, { deadlineMs: (maxDuration - 15) * 1000 });

@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { usePathname, useSelectedLayoutSegment } from "next/navigation";
+import { usePathname, useRouter, useSelectedLayoutSegment } from "next/navigation";
+import { useBusiness } from "@/hooks/use-business";
+import BrandMark from "./brand-mark";
 import DashboardSidebar from "./dashboard-sidebar";
 import DashboardTopbar from "./dashboard-topbar";
 import ImpersonationBanner from "./impersonation-banner";
@@ -20,6 +22,15 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const pathname   = usePathname();
   const segment    = useSelectedLayoutSegment();
   const isAuthPage = AUTH_ROUTES.some(r => pathname.startsWith(r));
+  const router     = useRouter();
+
+  // A seller with no shop of their own only has the sales pages (/sell).
+  // Anywhere else in the CRM, send them there.
+  const { loading, isSeller, isSuperAdmin, businessId } = useBusiness();
+  const sellerOnly = !loading && isSeller && !isSuperAdmin && !businessId;
+  const isPublic   = isAuthPage || Boolean(segment && PUBLIC_SEGMENTS.has(segment));
+  const sendToSell = sellerOnly && !isPublic && segment !== "sell";
+  useEffect(() => { if (sendToSell) router.replace("/sell"); }, [sendToSell, router]);
 
   // Phone menu (under 820px wide the sidebar slides in from the left). It is
   // open for the page it was opened on, so going to another page closes it.
@@ -63,7 +74,26 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   }, []);
 
   // Auth pages and customer pages — no sidebar/topbar
-  if (isAuthPage || (segment && PUBLIC_SEGMENTS.has(segment))) return <>{children}</>;
+  if (isPublic) return <>{children}</>;
+  if (sendToSell) return null;
+
+  // The sales pages: a plain header, no CRM menu.
+  if (segment === "sell") {
+    return (
+      <div style={{ minHeight:"100vh" }}>
+        <header style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, padding:"14px max(16px, env(safe-area-inset-right)) 14px max(16px, env(safe-area-inset-left))", borderBottom:"1px solid rgba(226,232,240,.08)" }}>
+          <a href="/sell" style={{ display:"flex", alignItems:"center", gap:10, textDecoration:"none", color:"#F8FAFB", fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:16 }}>
+            <BrandMark size={32} />ZentraBite sales
+          </a>
+          <div style={{ display:"flex", gap:8 }}>
+            {(isSuperAdmin || businessId) && <a href="/dashboard" className="bg-btn" style={{ textDecoration:"none" }}>CRM</a>}
+            <a href="/auth/logout" className="bg-btn" style={{ textDecoration:"none" }}>Log out</a>
+          </div>
+        </header>
+        <main style={{ maxWidth:760, margin:"0 auto", padding:"24px 16px 64px" }}>{children}</main>
+      </div>
+    );
+  }
 
   return (
     <>
