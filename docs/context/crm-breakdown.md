@@ -42,6 +42,8 @@ Everything talks to Supabase through the browser client (`lib/supabase.ts`) with
 
 **Pick-up times and pausing, since migration 019.** Online orders carry `pickup_at` (when the customer collects) and `pickup_asap` (they chose "as soon as possible"). The board has a Pick-up column, for example "ASAP 6:25pm" or "6:45pm". The "Pause online orders" button sets `settings.ordering.paused`. While paused the ordering page shows the menu but takes no orders, and checkout refuses them too.
 
+**New-order sound and dockets.** While an online order is still New, a chime repeats every 4 seconds (`lib/order-alarm.ts`, an `<audio>` loop so it keeps going in a background tab), the tab title shows the count, and a box at the top lists the waiting orders with Accept and Print. Accept moves the order to Preparing, which stops the chime. Orders older than 6 hours stay in the list but don't ring. Browsers need one click on the page before they play sound, so the box asks for one when needed. The sound can be turned off per device (saved in the browser). Print docket (in the box and in each order) prints an 80mm docket from a hidden frame (`lib/docket.ts`): pick-up or delivery, the time, the customer, the address, the items with options, the note and the total. A docket printer that prints with no dialog comes once a pilot names its printer.
+
 **Notes and delivery by the shop's own drivers, since migration 020.** Orders carry `notes`, the customer's note for the kitchen or driver, or one typed on the POS. The board shows a Note tag and the full note in the order. A delivery order has `fulfillment_type = 'delivery'`, the address in `ship_to.address` and the fee in `delivery_fee`, and "When" is the delivery time.
 
 **To finalise.**
