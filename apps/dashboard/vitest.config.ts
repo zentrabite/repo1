@@ -1,7 +1,9 @@
-// Tests for the money paths (checkout, the Stripe webhook, Stripe setup).
+// Tests for the money paths, the setup tools, win-back, every API route's
+// login check, and the database's row rules.
 // Run with: npm test -w apps/dashboard
-// Stripe and the database are replaced with fakes, so nothing here touches a
-// real account or charges anything.
+// Stripe, Twilio, email and the Supabase client are replaced with fakes. The
+// row rule tests run every migration on PGlite, a Postgres in memory. Nothing
+// here touches a real account or charges anything.
 import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
 

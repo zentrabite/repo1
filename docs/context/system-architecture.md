@@ -44,7 +44,7 @@ Stack: Next.js 16 (App Router), React 19, TS strict, Supabase (Postgres + RLS + 
 
 ## 3. Data model (canonical entities)
 
-Tenant-scoped by `business_id` with RLS policies locking each merchant to their own rows. Service-role bypass is used by server routes in `lib/supabase-server.ts`.
+Tenant-scoped by `business_id` with RLS policies locking each merchant to their own rows. Service-role bypass is used by server routes in `lib/supabase-server.ts`. Since 23 Nov 2026 two tests guard this. `apps/dashboard/tests/tenant-isolation.test.ts` runs every migration on PGlite (a real Postgres in memory, `tests/migrated-db.ts`), seeds two shops in every table and checks a shop owner, a seller with no shop and a logged-out browser against each other's rows. `tests/route-guards.test.ts` fails any API route that has no login check, or is open without a login and isn't on the reviewed list with its own protection.
 
 **Core**
 - `businesses` — tenant. `settings` JSONB holds hours, subscription_fee, modules_json feature flags, rewards catalogue.

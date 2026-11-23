@@ -21,7 +21,7 @@ Before making any changes:
 
 ## Rules when working in this repo
 
-- **Extend existing code, don't rebuild.** The monorepo already contains a working CRM (`apps/dashboard`), marketing site (`apps/web`), storefront (`apps/storefront`), and a Supabase schema with 25 applied migrations (001 to 025). Match existing patterns — don't invent parallel ones.
+- **Extend existing code, don't rebuild.** The monorepo already contains a working CRM (`apps/dashboard`), marketing site (`apps/web`), storefront (`apps/storefront`), and a Supabase schema with 26 applied migrations (001 to 026). `apps/dashboard/tests/tenant-isolation.test.ts` runs all of them on a real Postgres in memory and proves one shop can't read or change another's rows, and `tests/route-guards.test.ts` fails any API route without a login check. Keep both passing. Match existing patterns — don't invent parallel ones.
 - **Follow the architecture.** Tenant scoping (`business_id` + RLS), module flags (`businesses.settings.modules`), server routes that verify session → `business_id`. See `system-architecture.md` §4–§7.
 - **Follow the design system.** Reuse components from `apps/dashboard/components/` (shell, sidebar, topbar, stat-card, page-header, empty-state, modal, toast, badge). Match the look of the pages already in `apps/dashboard`. Dark shell, green accent, glass cards. This is the app's April 2026 look, and a colour tidy-up is planned.
 - **The marketing site (`apps/web`) is different.** It follows the taste skill (design-taste-frontend), and its rules win over older site rules. See "Marketing site rules" below. The demo sandboxes under `/demo/*` stay dark and keep their old colours.
@@ -61,7 +61,7 @@ apps/web              Marketing site + demo sandboxes
 apps/dashboard        Production merchant CRM (Supabase-backed)
 apps/storefront       Tenant storefront build. Not deployed, the live ordering pages are in apps/dashboard
 packages/*-config     Shared eslint and TypeScript settings
-supabase/migrations   001 → 025 schema
+supabase/migrations   001 → 026 schema
 supabase/functions    Edge functions (nightly-analytics, birthday-loyalty; win-back, quick-api and hyper-responder are switched-off stubs)
 docs/context          System logic + architecture (start here)
 docs/reference        UI/visual reference

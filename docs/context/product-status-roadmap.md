@@ -19,7 +19,7 @@ Sign-ups aren't open yet, and no price has been set.
 - **Staff onboarding wizard.** It can read a business's existing website and pre-fill the name, hours, menu, logo, colours and photos.
 - **Login, signup and password reset.**
 - **Payments in Stripe test mode.** Customer payments go to the business's own Stripe Connect account. Stripe's webhook saves the order, the customer and their points.
-- **Database.** Supabase, 27 tables, row level security on every table, migrations 001 to 025.
+- **Database.** Supabase, 30 tables, row level security on every table, migrations 001 to 026. Since 23 Nov the live row rules and grants match the migrations exactly (026 removed April rules no migration made), and tests prove one shop can't read, change, delete or add another shop's rows, and a logged-out browser can't read or add anything.
 - **Scheduled jobs.** Nightly analytics and birthday points run in Supabase. Win-back, automations and trial reminders run on Vercel cron (`/api/automations/run`, daily).
 - **Win-back offers that work.** Each win-back text or email carries its own one-use code in its link. Checkout takes it off on the shop's Stripe account, and the order counts towards the rule's redemptions and revenue recovered.
 - **What win-back earned.** About 1 in 10 customers due a win-back message is held back, so a monthly report on the Win-Back page compares the two groups, with codes used and where online orders came from. It's emailed to each owner on the 15th once email works.
