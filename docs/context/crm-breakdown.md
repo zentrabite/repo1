@@ -36,7 +36,7 @@ Everything talks to Supabase through the browser client (`lib/supabase.ts`) with
 
 ## 2. Orders — `/orders`
 
-**What it does.** Live order board. New orders arrive in realtime with a beep. Status filter, source filter, history.
+**What it does.** Live order board. New orders arrive in realtime with a beep. Status filter, source filter (All, Online, Counter, since 23 Nov 2026, because nothing brings in delivery app orders and Menulog closed in Australia), history.
 
 **How it works.** Subscribes to `postgres_changes` on `orders`, filtered to `business_id`. `INSERT` pushes to the top; `UPDATE` replaces the matching row. Browser `Notification` fires if permission is granted.
 

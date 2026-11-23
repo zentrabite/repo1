@@ -25,12 +25,15 @@ const RING_FOR_MS = 6 * 60 * 60_000;
 
 const C = { g:"#00AD82", o:"#FF6B35", r:"#DC3545", st:"#6B7C93" };
 
-type SourceFilter = "All" | "direct" | "uber_eats" | "menulog" | "pos";
+// Only sources that reach the CRM. Nothing brings in delivery app orders,
+// and Menulog closed in Australia on 26 Nov 2025, so neither has a filter
+// (taken out 23 Nov 2026). An order from another source still shows in All.
+type SourceFilter = "All" | "direct" | "pos";
 type FulfillFilter = "All" | "delivery";
 
-const SOURCE_FILTERS: SourceFilter[] = ["All","direct","uber_eats","menulog","pos"];
+const SOURCE_FILTERS: SourceFilter[] = ["All","direct","pos"];
 const SOURCE_LABELS: Record<string, string> = {
-  All:"All", direct:"Direct", uber_eats:"Uber Eats", menulog:"Menulog", pos:"POS",
+  All:"All", direct:"Online", pos:"Counter",
 };
 const FULFILL_ICON: Record<string, IconName> = { delivery:"delivery", takeaway:"takeaway", dine_in:"dine-in", pickup:"takeaway" };
 // The next step for an order, and its button. Other statuses (paid at the
