@@ -19,7 +19,7 @@
 --    themselves a better role.
 -- 5. Only owners and managers can change the shop's own row (settings, name,
 --    address, logo) from a browser. Staff and POS pause online orders through
---    /api/ordering/pause instead.
+--    /api/orders/pause instead.
 --
 -- Only rules and functions change. No rows are touched. Safe to run twice.
 
