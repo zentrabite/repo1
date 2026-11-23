@@ -356,7 +356,7 @@ export default function DeliveryPage() {
                 const col = rec.provider === "none" ? C.st : rec.provider === "uber_direct" ? C.b : rec.provider === "tasker" ? C.g : C.o;
                 const isToday = day.date === todayString();
                 return (
-                  <div key={i} onClick={() => setSelectedDate(day.date)} className="gc" style={{ padding:"12px 10px", textAlign:"center", cursor:"pointer", border:`1px solid ${selectedDate===day.date?col:C.mist}`, background:selectedDate===day.date?`${col}18`:undefined }}>
+                  <button type="button" key={i} onClick={() => setSelectedDate(day.date)} aria-pressed={selectedDate===day.date} className="gc zb-plain" style={{ padding:"12px 10px", textAlign:"center", cursor:"pointer", width:"100%", border:`1px solid ${selectedDate===day.date?col:C.mist}`, background:selectedDate===day.date?`${col}18`:undefined }}>
                     <div style={{ fontSize:11, fontWeight:700, color:isToday?C.g:C.st, marginBottom:4 }}>{isToday?"Today":DAYS[new Date(day.date).getDay()]}</div>
                     <div style={{ fontSize:10, color:"rgba(255,255,255,.3)", marginBottom:8 }}>{day.date.slice(5)}</div>
                     <div style={{ fontFamily:"var(--font-outfit)", fontWeight:800, fontSize:20, color:C.cl, marginBottom:4 }}>{day.predictedVolume}</div>
@@ -365,7 +365,7 @@ export default function DeliveryPage() {
                       {rec.provider==="none"?"—": rec.provider==="uber_direct"?"Uber": rec.provider==="tasker"?`${rec.taskersNeeded}× Driver`:`${rec.taskersNeeded}T+Uber`}
                     </div>
                     <div style={{ fontSize:10, color:C.st, marginTop:6 }}>${rec.estimatedCost.toFixed(0)}</div>
-                  </div>
+                  </button>
                 );
               })}
             </div>

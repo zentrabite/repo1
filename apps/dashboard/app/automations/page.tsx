@@ -142,6 +142,9 @@ export default function AutomationsPage() {
                     <div style={{ fontSize:9, color:C.st }}>{l}</div>
                   </div>
                 ))}
+                <button className="bg-btn" style={{ fontSize:11 }} onClick={e => { e.stopPropagation(); openEdit(c); }}>
+                  Edit
+                </button>
                 <button className="bg-btn" style={{ fontSize:11 }} onClick={e => { e.stopPropagation(); toggle(c); }}>
                   {c.active ? "Pause" : "Resume"}
                 </button>

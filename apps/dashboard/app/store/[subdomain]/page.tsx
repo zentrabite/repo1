@@ -13,6 +13,7 @@ import { cameFrom, codeDiscount, type OfferType } from "@/lib/offer-codes";
 import { analyticsId, track } from "@/lib/analytics";
 import { textOn } from "@/lib/contrast";
 import { allergenNote } from "@/lib/allergens";
+import { useDialog } from "@/components/use-dialog";
 
 // A win-back offer code from the link, as /api/store/[subdomain]?code= sends it.
 type CodeOffer = { code: string; type: OfferType; value: number; label: string; ends: string };
@@ -232,6 +233,9 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
   };
 
   const activeSection = menu.find(s => s.id === activeTab);
+  // Keyboard: focus moves into the order panel and the options picker, Escape closes them.
+  const cartPanel = useDialog<HTMLDivElement>(showCart && cartCount > 0, () => setShowCart(false));
+  const pickPanel = useDialog<HTMLDivElement>(!!picking, () => setPicking(null));
 
   if (loading) return (
     <div style={{ minHeight:"100vh", background:C.navy, display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -270,7 +274,7 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
           </div>
 
           {cartCount > 0 && (
-            <button onClick={() => setShowCart(!showCart)} style={{
+            <button onClick={() => setShowCart(!showCart)} aria-label={`View order, ${cartCount} ${cartCount === 1 ? "item" : "items"}, $${total.toFixed(2)}`} style={{
               display:"flex", alignItems:"center", gap:8, padding:"9px 16px", borderRadius:10,
               background:C.g, border:"none", color:C.onG, fontWeight:700, fontSize:13, cursor:"pointer",
             }}>
@@ -360,16 +364,16 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
                     {!canOrder ? null : groups.length ? (
                       <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                         {countInCart > 0 && <span style={{ fontSize:12, color:C.st }}>{countInCart} in order</span>}
-                        <button onClick={() => addToCart(item)} style={{ padding:"7px 18px", borderRadius:8, background:C.g, border:"none", color:C.onG, fontWeight:700, fontSize:13, cursor:"pointer" }}>Add</button>
+                        <button onClick={() => addToCart(item)} aria-label={`Add ${item.name}`} style={{ padding:"7px 18px", borderRadius:8, background:C.g, border:"none", color:C.onG, fontWeight:700, fontSize:13, cursor:"pointer" }}>Add</button>
                       </div>
                     ) : inCart ? (
                       <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                        <button onClick={() => updateQty(inCart.key, inCart.qty - 1)} style={{ width:28, height:28, borderRadius:7, background:"rgba(255,255,255,.1)", border:"none", color:C.cl, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center" }}>−</button>
+                        <button onClick={() => updateQty(inCart.key, inCart.qty - 1)} aria-label={`One less ${item.name}`} style={{ width:28, height:28, borderRadius:7, background:"rgba(255,255,255,.1)", border:"none", color:C.cl, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center" }}>−</button>
                         <span style={{ fontWeight:700, fontSize:13, color:C.cl, minWidth:16, textAlign:"center" }}>{inCart.qty}</span>
-                        <button onClick={() => updateQty(inCart.key, inCart.qty + 1)} style={{ width:28, height:28, borderRadius:7, background:C.g, border:"none", color:C.onG, cursor:"pointer", fontSize:16, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
+                        <button onClick={() => updateQty(inCart.key, inCart.qty + 1)} aria-label={`One more ${item.name}`} style={{ width:28, height:28, borderRadius:7, background:C.g, border:"none", color:C.onG, cursor:"pointer", fontSize:16, fontWeight:700, display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
                       </div>
                     ) : (
-                      <button onClick={() => addToCart(item)} style={{ padding:"7px 18px", borderRadius:8, background:C.g, border:"none", color:C.onG, fontWeight:700, fontSize:13, cursor:"pointer" }}>Add</button>
+                      <button onClick={() => addToCart(item)} aria-label={`Add ${item.name}`} style={{ padding:"7px 18px", borderRadius:8, background:C.g, border:"none", color:C.onG, fontWeight:700, fontSize:13, cursor:"pointer" }}>Add</button>
                     )}
                   </div>
                 </div>
@@ -391,8 +395,11 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
       {showCart && cartCount > 0 && (
         <div style={{ position:"fixed", inset:0, zIndex:100, display:"flex", flexDirection:"column", justifyContent:"flex-end" }}>
           <div onClick={() => setShowCart(false)} style={{ flex:1, background:"rgba(0,0,0,.5)" }} />
-          <div style={{ background:"#1A2E45", borderRadius:"20px 20px 0 0", padding:"24px 20px 40px", maxHeight:"85vh", overflowY:"auto" }}>
-            <div style={{ fontWeight:700, fontSize:17, color:C.cl, marginBottom:16 }}>Your Order</div>
+          <div ref={cartPanel} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Your order" style={{ background:"#1A2E45", borderRadius:"20px 20px 0 0", padding:"24px 20px 40px", maxHeight:"85vh", overflowY:"auto" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:12, marginBottom:16 }}>
+              <div style={{ fontWeight:700, fontSize:17, color:C.cl }}>Your Order</div>
+              <button onClick={() => setShowCart(false)} aria-label="Close" style={{ width:36, height:36, borderRadius:10, background:"rgba(255,255,255,.08)", border:"none", color:C.cl, fontSize:18, cursor:"pointer", flexShrink:0 }}>×</button>
+            </div>
 
             {cart.map(item => (
               <div key={item.key} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 0", borderBottom:`1px solid ${C.mist}` }}>
@@ -402,9 +409,9 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
                   <div style={{ fontSize:11, color:C.st }}>${(item.price * item.qty).toFixed(2)}</div>
                 </div>
                 <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                  <button onClick={() => updateQty(item.key, item.qty - 1)} style={{ width:26, height:26, borderRadius:6, background:"rgba(255,255,255,.1)", border:"none", color:C.cl, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center" }}>−</button>
+                  <button onClick={() => updateQty(item.key, item.qty - 1)} aria-label={`One less ${item.name}`} style={{ width:26, height:26, borderRadius:6, background:"rgba(255,255,255,.1)", border:"none", color:C.cl, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center" }}>−</button>
                   <span style={{ fontWeight:700, fontSize:13, color:C.cl, minWidth:16, textAlign:"center" }}>{item.qty}</span>
-                  <button onClick={() => updateQty(item.key, item.qty + 1)} style={{ width:26, height:26, borderRadius:6, background:`color-mix(in srgb, ${C.g} 20%, transparent)`, border:"none", color:C.g, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
+                  <button onClick={() => updateQty(item.key, item.qty + 1)} aria-label={`One more ${item.name}`} style={{ width:26, height:26, borderRadius:6, background:`color-mix(in srgb, ${C.g} 20%, transparent)`, border:"none", color:C.g, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
                 </div>
               </div>
             ))}
@@ -533,7 +540,7 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
         return (
           <div style={{ position:"fixed", inset:0, zIndex:110, display:"flex", flexDirection:"column", justifyContent:"flex-end" }}>
             <div onClick={() => setPicking(null)} style={{ flex:1, background:"rgba(0,0,0,.5)" }} />
-            <div role="dialog" aria-modal="true" aria-label={`Choose options for ${picking.item.name}`} style={{ background:"#1A2E45", borderRadius:"20px 20px 0 0", padding:"22px 20px calc(24px + env(safe-area-inset-bottom))", maxHeight:"88vh", overflowY:"auto" }}>
+            <div ref={pickPanel} tabIndex={-1} role="dialog" aria-modal="true" aria-label={`Choose options for ${picking.item.name}`} style={{ background:"#1A2E45", borderRadius:"20px 20px 0 0", padding:"22px 20px calc(24px + env(safe-area-inset-bottom))", maxHeight:"88vh", overflowY:"auto" }}>
               <div style={{ maxWidth:680, margin:"0 auto" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", gap:12, marginBottom:6 }}>
                   <div style={{ fontWeight:700, fontSize:18, color:C.cl }}>{picking.item.name}</div>
@@ -574,7 +581,7 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
             color:C.onG, fontWeight:700, fontSize:14, cursor:"pointer",
             boxShadow:`0 8px 32px color-mix(in srgb, ${C.g} 40%, transparent)`,
           }}>
-            <Icon name="storefront" size={16} accent={C.onG} style={{ marginRight: 6 }} />View order · {cartCount} items · ${total.toFixed(2)}
+            <Icon name="storefront" size={16} accent={C.onG} style={{ marginRight: 6 }} />View order · {cartCount} {cartCount === 1 ? "item" : "items"} · ${total.toFixed(2)}
           </button>
         </div>
       )}

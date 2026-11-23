@@ -215,24 +215,24 @@ export default function FulfillmentPage() {
 
       {/* Stage stat cards — clicking filters the list */}
       <div className="zb-two" style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
-        <div onClick={() => setStageFilter("open")} style={{ cursor: "pointer" }}>
+        <button type="button" className="zb-plain" aria-pressed={stageFilter === "open"} onClick={() => setStageFilter("open")} style={{ cursor: "pointer" }}>
           <StatCard label="Open" value={String(stats.placed + stats.picked + stats.packed + stats.shipped)} icon="dot" accent />
-        </div>
-        <div onClick={() => setStageFilter("placed")} style={{ cursor: "pointer" }}>
+        </button>
+        <button type="button" className="zb-plain" aria-pressed={stageFilter === "placed"} onClick={() => setStageFilter("placed")} style={{ cursor: "pointer" }}>
           <StatCard label="To pick" value={String(stats.placed)} icon="receipt" delay={50} />
-        </div>
-        <div onClick={() => setStageFilter("picked")} style={{ cursor: "pointer" }}>
+        </button>
+        <button type="button" className="zb-plain" aria-pressed={stageFilter === "picked"} onClick={() => setStageFilter("picked")} style={{ cursor: "pointer" }}>
           <StatCard label="To pack" value={String(stats.picked)} icon="storefront" delay={100} />
-        </div>
-        <div onClick={() => setStageFilter("packed")} style={{ cursor: "pointer" }}>
+        </button>
+        <button type="button" className="zb-plain" aria-pressed={stageFilter === "packed"} onClick={() => setStageFilter("packed")} style={{ cursor: "pointer" }}>
           <StatCard label="To ship" value={String(stats.packed)} icon="package" delay={150} />
-        </div>
-        <div onClick={() => setStageFilter("shipped")} style={{ cursor: "pointer" }}>
+        </button>
+        <button type="button" className="zb-plain" aria-pressed={stageFilter === "shipped"} onClick={() => setStageFilter("shipped")} style={{ cursor: "pointer" }}>
           <StatCard label="In transit" value={String(stats.shipped)} icon="delivery" delay={200} />
-        </div>
-        <div onClick={() => setStageFilter("delivered")} style={{ cursor: "pointer" }}>
+        </button>
+        <button type="button" className="zb-plain" aria-pressed={stageFilter === "delivered"} onClick={() => setStageFilter("delivered")} style={{ cursor: "pointer" }}>
           <StatCard label="Delivered" value={String(stats.delivered)} icon="done" delay={250} />
-        </div>
+        </button>
       </div>
 
       {/* Stage scope pills */}

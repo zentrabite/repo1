@@ -158,7 +158,19 @@ td {
   vertical-align: middle;
   font-family: var(--font-inter), sans-serif;
 }
-tbody tr { transition: background .13s; cursor: pointer; }
+tbody tr { transition: background .13s; }
+/* Rows that open something (components/use-dialog.ts rowKeys). Only these look clickable. */
+tbody tr.zb-click { cursor: pointer; }
+tbody tr.zb-click:focus-visible { outline: 2px solid rgba(0, 173, 130, .7); outline-offset: -2px; }
+/* A dialog's panel takes focus when it opens (components/use-dialog.ts). The ring goes on what's inside. */
+[role="dialog"]:focus { outline: none; }
+/* A card, switch or tile that's really a button. Looks the same, and a keyboard can reach it. */
+:where(.zb-plain) { appearance: none; margin: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: inherit; }
+.zb-plain:focus-visible { outline: 2px solid rgba(0, 173, 130, .7); outline-offset: 2px; }
+/* Skip link (components/dashboard-shell.tsx). Hidden until a keyboard reaches it. */
+.zb-skip { position: fixed; top: 8px; left: 8px; z-index: 300; padding: 10px 16px; border-radius: 8px; background: #00AD82; color: #0F1F2D; font: 600 14px var(--font-inter), sans-serif; text-decoration: none; transform: translateY(-200%); }
+.zb-skip:focus-visible { transform: none; outline: 2px solid #F8FAFB; outline-offset: 2px; }
+#zb-content:focus { outline: none; }
 tbody tr:last-child td { border-bottom: none; }
 @media (hover: hover) and (pointer: fine) {
   tbody tr:hover { background: rgba(255, 255, 255, .03); }
@@ -577,7 +589,8 @@ button, a, select, label, summary, [role="button"] { touch-action: manipulation;
   /* Menu photo picker: width 100% plus its dashed border, so count the border in */
   .zb-upload { box-sizing: border-box; }
 
-  /* Small switches drawn as divs: a bigger invisible hit area */
+  /* Small switches keep their shape, with a bigger invisible hit area instead */
+  .zb-content button.zb-switch { min-height: 0; min-width: 0; }
   .zb-switch::after { content: ""; position: absolute; inset: -10px -4px; }
 }
 

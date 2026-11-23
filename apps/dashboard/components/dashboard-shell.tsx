@@ -112,6 +112,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
   return (
     <>
+      {/* First Tab on any page. Jumps past the 20 menu links. */}
+      <a href="#zb-content" className="zb-skip">Skip to content</a>
       <DashboardSidebar ref={sidebarRef} open={menuOpen} onClose={closeMenu} />
       {/* Tap outside the phone menu to close it */}
       <div className={`zb-backdrop${menuOpen ? " open" : ""}`} onClick={closeMenu} aria-hidden />
@@ -122,7 +124,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           onMenu={() => setOpenOn(menuOpen ? null : pathname)}
           menuButtonRef={menuButtonRef}
         />
-        <main className="zb-content" style={{ flex:1, padding:"32px 40px" }}>
+        <main id="zb-content" tabIndex={-1} className="zb-content" style={{ flex:1, padding:"32px 40px" }}>
           <div style={{ maxWidth:1480, width:"100%" }} className="fd">
             {blocked ? (
               <div style={{ maxWidth:520, margin:"48px auto 0" }}>

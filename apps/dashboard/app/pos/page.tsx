@@ -238,13 +238,15 @@ export default function POSPage() {
           ) : (
             <div className="zb-two" style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(160px, 1fr))", gap:10 }}>
               {(activeSection?.items ?? []).filter((i: MenuItem) => i.available).map((item: MenuItem) => (
-                <div
+                <button
+                  type="button"
                   key={item.id}
+                  className="zb-plain"
                   onClick={() => addToCart(item)}
                   style={{
                     background:"rgba(28,45,72,.5)", border:`1px solid ${C.mist}`, borderRadius:12,
                     padding:16, cursor:"pointer", transition:"all .15s",
-                    display:"flex", flexDirection:"column", gap:6,
+                    display:"flex", flexDirection:"column", gap:6, textAlign:"left", width:"100%",
                   }}
                   onMouseEnter={e => (e.currentTarget.style.borderColor = "rgba(0,173,130,.3)")}
                   onMouseLeave={e => (e.currentTarget.style.borderColor = C.mist)}
@@ -261,7 +263,7 @@ export default function POSPage() {
                   <div style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:14, color:C.g, marginTop:"auto" }}>
                     {(() => { const groups = readOptions(item.options); return pricesVary(groups) ? `From $${cheapestPrice(Number(item.price), groups).toFixed(2)}` : `$${Number(item.price).toFixed(2)}`; })()}
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           )}
@@ -316,9 +318,9 @@ export default function POSPage() {
                     <div style={{ fontSize:11, color:C.st }}>${(item.price * item.qty).toFixed(2)}</div>
                   </div>
                   <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                    <button onClick={() => updateQty(item.key, item.qty - 1)} style={{ width:26, height:26, borderRadius:6, background:"rgba(255,255,255,.08)", border:"none", color:C.cl, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center" }}>−</button>
+                    <button onClick={() => updateQty(item.key, item.qty - 1)} aria-label={`One less ${item.name}`} style={{ width:26, height:26, borderRadius:6, background:"rgba(255,255,255,.08)", border:"none", color:C.cl, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center" }}>−</button>
                     <span style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:13, color:C.cl, minWidth:20, textAlign:"center" }}>{item.qty}</span>
-                    <button onClick={() => updateQty(item.key, item.qty + 1)} style={{ width:26, height:26, borderRadius:6, background:"rgba(0,173,130,.2)", border:"none", color:C.g, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
+                    <button onClick={() => updateQty(item.key, item.qty + 1)} aria-label={`One more ${item.name}`} style={{ width:26, height:26, borderRadius:6, background:"rgba(0,173,130,.2)", border:"none", color:C.g, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
                   </div>
                 </div>
               ))}

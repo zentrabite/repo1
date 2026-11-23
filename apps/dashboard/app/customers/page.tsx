@@ -13,6 +13,7 @@ import { Icon } from "@/components/zb-icon";
 import { checkCustomerText } from "@/lib/message-kinds";
 import { smsBody } from "@/lib/sms-text";
 import TextCost from "@/components/text-cost";
+import { rowKeys } from "@/components/use-dialog";
 
 const C = { g:"#00AD82", o:"#FF6B35", am:"#F59E0B", st:"#8B9DB5" };
 const SEGS = ["All","VIP","Regular","New","At Risk"];
@@ -183,7 +184,7 @@ export default function CustomersPage() {
 
   if (selected) return (
     <div>
-      <button className="bg-btn" onClick={() => setSelected(null)} style={{ marginBottom:16 }}>← Back</button>
+      <button className="bg-btn" autoFocus onClick={() => setSelected(null)} style={{ marginBottom:16 }}>← Back</button>
       <div className="zb-stack" style={{ display:"grid", gridTemplateColumns:"220px 1fr", gap:12 }}>
         <div className="gc" style={{ padding:20 }}>
           <Av n={selected.name} sz={48} />
@@ -343,7 +344,7 @@ export default function CustomersPage() {
                 <td colSpan={7}>{loading ? "Loading…" : customers.length === 0 ? "No customers yet — they'll appear as orders come in" : "No customers match this filter"}</td>
               </tr>
             ) : filtered.map((c, i) => (
-              <tr key={i} onClick={() => setSelected(c)}>
+              <tr key={i} {...rowKeys(() => setSelected(c))}>
                 <td className="zb-hide-phone"><Av n={c.name} /></td>
                 <td data-primary><div style={{ fontWeight:600, color:"#fff", fontSize:13 }}>{c.name}</div><div style={{ fontSize:10, color:C.st }}>{c.email}</div></td>
                 <td data-label="LTV" style={{ fontWeight:600, color:C.g, fontSize:13 }}>${c.total_spent.toLocaleString()}</td>

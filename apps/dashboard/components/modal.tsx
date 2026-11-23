@@ -1,6 +1,9 @@
 "use client";
 
-// Brand spec: 16px border radius for modals, Navy surface, Inter body text
+// Brand spec: 16px border radius for modals, Navy surface, Inter body text.
+// Keyboard: focus moves in, Tab stays inside, Escape closes (use-dialog.ts).
+
+import { useDialog } from "./use-dialog";
 
 interface ModalProps {
   open: boolean;
@@ -17,6 +20,7 @@ const CLOUD = "#F8FAFB";
 const MIST  = "rgba(226,232,240,.09)";
 
 export default function Modal({ open, onClose, title, wide, children }: ModalProps) {
+  const panel = useDialog<HTMLDivElement>(open, onClose);
   if (!open) return null;
 
   return (
@@ -38,6 +42,8 @@ export default function Modal({ open, onClose, title, wide, children }: ModalPro
 
       {/* Modal panel — 16px radius, Navy surface */}
       <div
+        ref={panel}
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
         className="zb-modal-panel"
         role="dialog"
