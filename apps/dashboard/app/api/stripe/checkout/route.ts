@@ -10,6 +10,11 @@
 //
 // Security: the business and email come from the login, never the body.
 //
+// A shop that already has a subscription (trial, active, payment due or
+// paused) gets a 409, so it can't end up paying twice. The 30-day free
+// trial is only for a shop that has never had one, so cancelling and
+// starting again doesn't give another (lib/subscription.ts).
+//
 // Pricing
 //   STRIPE_PRICE_MERCHANT_MONTHLY — standard $500/month
 //   STRIPE_PRICE_MERCHANT_PILOT   — $299/month for the first 3 pilot merchants.
@@ -21,6 +26,7 @@ import { stripe, PRICES } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase-server";
 import { MANAGER_ROLES, requireBusiness } from "@/lib/request-business";
 import { trustedOrigin } from "@/lib/tenant";
+import { hasSubscription, subscriptionView } from "@/lib/subscription";
 
 const TRIAL_DAYS = 30;
 
@@ -42,6 +48,10 @@ export async function POST(req: Request) {
     if (!business) return NextResponse.json({ error: "Business not found" }, { status: 404 });
 
     const settings = (business.settings ?? {}) as Record<string, unknown>;
+    if (hasSubscription(settings.subscription_status)) {
+      return NextResponse.json({ error: "You already have a subscription. Open Manage billing to change it." }, { status: 409 });
+    }
+    const firstTime = subscriptionView(settings.subscription_status).trial;
     const isPilot = settings.billing_plan === "pilot";
     const price = isPilot ? PRICES.merchantPilot : PRICES.merchantMonthly;
 
@@ -64,7 +74,7 @@ export async function POST(req: Request) {
       ...(customerId ? { customer: customerId } : { customer_email: email ?? undefined }),
       line_items: [{ price, quantity: 1 }],
       subscription_data: {
-        trial_period_days: TRIAL_DAYS,
+        ...(firstTime ? { trial_period_days: TRIAL_DAYS } : {}),
         metadata: {
           zentrabite_business_id: businessId,
           zentrabite_plan:        isPilot ? "pilot" : "standard",
