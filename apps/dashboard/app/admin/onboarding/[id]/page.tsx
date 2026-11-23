@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useBusiness } from "@/hooks/use-business";
+import { track } from "@/lib/analytics";
 import ImportCheck from "@/components/import-check";
 import { MAX_OFFER, offerProblem, offerText, readFirstOrderOffer } from "@/lib/first-order";
 import MenuUpload from "@/components/menu-upload";
@@ -121,6 +122,11 @@ export default function OnboardingWizard() {
     setToast(msg);
     setTimeout(() => setToast(null), 2400);
   }, []);
+
+  // Each step reached, for timing a shop's setup (lib/analytics.ts, "setup").
+  useEffect(() => {
+    if (biz) track("setup", "setup_step_viewed", { shop: id, step });
+  }, [biz, id, step]);
 
   const reload = useCallback(async () => {
     const res = await fetch(`/api/admin/onboarding/${id}`);

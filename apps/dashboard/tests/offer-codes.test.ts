@@ -27,6 +27,7 @@ const h = vi.hoisted(() => ({
   },
   sms: vi.fn(),
   email: vi.fn(),
+  capture: vi.fn(async () => {}),
 }));
 
 vi.mock("server-only", () => ({}));
@@ -42,6 +43,7 @@ vi.mock("@/lib/sms", () => ({
   withSenderAndOptOut: (m: string, b: string) => `${b}: ${m} Reply STOP to opt out`,
   sendTwilioSms: h.sms,
 }));
+vi.mock("@/lib/analytics-server", () => ({ captureServer: h.capture }));
 vi.mock("@/lib/request-business", () => ({
   MANAGER_ROLES: ["Owner", "Manager"],
   requireBusiness: vi.fn(async () => ({ ok: true, businessId: "biz-1", userId: "user-1" })),
@@ -320,6 +322,16 @@ describe("checkout with a code", () => {
     expect(from).toEqual(["counter", "direct", "direct"]);
     expect(h.stripe.checkout.sessions.create.mock.calls[0]![0].cancel_url).toBe("https://nonna.zentrabite.com/store/nonna?src=counter");
   });
+
+  it("passes the visit's random analytics id on, and nothing that isn't one", async () => {
+    setup(null);
+    const id = "anon-0193f1a2-7b3c-7d4e-8f50-123456789abc";
+    await order({ ph: id });
+    await order({ ph: "s@example.com" });
+    const [a, b] = h.stripe.checkout.sessions.create.mock.calls.map(([p]) => p.metadata);
+    expect(a.ph).toBe(id);
+    expect(b.ph).toBeUndefined();
+  });
 });
 
 describe("the ordering page", () => {
@@ -367,6 +379,10 @@ describe("the order", () => {
       winback_rule_id: "rule-1", customer_id: "c1", order_id: "order-1", event_type: "redeemed", revenue_attributed: 28.8, coupon_code: "K7MP4QXA",
     });
     expect(vi.mocked(sendCustomerReceipt).mock.calls[0]![0]).toMatchObject({ discount: 7.2, discountLabel: "Offer code" });
+    // Counted for the funnel with nothing about the customer.
+    const [part, event, distinctId, props] = h.capture.mock.calls[0]! as unknown as [string, string, string, Record<string, unknown>];
+    expect([part, event, distinctId]).toEqual(["ordering", "order_paid", "shop-biz-1"]);
+    expect(props).toEqual({ shop: "biz-1", total: 28.8, fulfilment: "pickup", came_from: "winback", offer: "code" });
   });
 
   it("doesn't count a code twice", async () => {

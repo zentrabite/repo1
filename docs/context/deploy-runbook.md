@@ -75,8 +75,11 @@ line into **Vercel → Project → Settings → Environment Variables** for the
 | Twilio | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER` |
 | Resend | `RESEND_API_KEY`, `RESEND_FROM_EMAIL` |
 | Set yourself | `NEXT_PUBLIC_APP_URL=https://dashboard.zentrabite.com.au`, `NEXT_PUBLIC_MARKETING_URL=https://zentrabite.com.au` |
+| PostHog → ZentraBite's own project → Settings (optional, both apps) | `NEXT_PUBLIC_POSTHOG_KEY` (the project's public key), `NEXT_PUBLIC_POSTHOG_HOST` (only if the project isn't on US cloud, e.g. `https://eu.i.posthog.com`), `NEXT_PUBLIC_POSTHOG_ON` (which parts count: `web` on repo1-web, `setup` and later `ordering` on repo1-dashboard) |
 
 After saving, redeploy: **Deployments → … → Redeploy**.
+
+**Counting with PostHog (since 23 Nov 2026).** Off until `NEXT_PUBLIC_POSTHOG_KEY` is set and `NEXT_PUBLIC_POSTHOG_ON` lists a part. `setup` (the staff onboarding wizard and shops created and published) can go on as soon as the key is in. `web` (the marketing site) and `ordering` (each shop's ordering page, and orders paid) wait until the published privacy policy names PostHog. In PostHog's project settings, turn on discarding IP addresses. There's no PostHog script, no cookies and no session replay. See `apps/web/lib/analytics.ts` and `apps/dashboard/lib/analytics.ts`. Use ZentraBite's own PostHog project, never another business's.
 
 ---
 

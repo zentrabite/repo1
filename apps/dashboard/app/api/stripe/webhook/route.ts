@@ -14,6 +14,7 @@ import { optionsLabel, readOptions, type ChosenOption } from "@/lib/menu-options
 import { pickupLabel, readOrderingRules } from "@/lib/pickup-times";
 import { saveRefunded } from "@/lib/refunds";
 import { cameFrom, cleanCode, redeemCode } from "@/lib/offer-codes";
+import { captureServer } from "@/lib/analytics-server";
 
 export const dynamic = "force-dynamic";
 
@@ -239,6 +240,16 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventAc
   // The code is used now, and the order counts towards its win-back rule.
   if (offerCode && newOrder?.id) {
     await redeemCode(db, { businessId: business_id, code: offerCode, orderId: newOrder.id, customerId, total: amount });
+  }
+
+  // Counted for the drop-off funnel, joined to the visit when the ordering
+  // page sent its random id. Nothing about the customer goes with it.
+  if (newOrder?.id) {
+    await captureServer("ordering", "order_paid", typeof meta.ph === "string" && meta.ph ? meta.ph : `shop-${business_id}`, {
+      shop: business_id, total: amount, fulfilment: fulfillment_type ?? "pickup",
+      came_from: typeof orderRecord.came_from === "string" ? orderRecord.came_from : null,
+      offer: offerCode ? "code" : orderRecord.discount ? "first_order" : "none",
+    });
   }
 
   // ── Notify the business owner (email + SMS) + email customer receipt ──

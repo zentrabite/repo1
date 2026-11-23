@@ -47,6 +47,7 @@ import { RESERVED_SUBDOMAINS } from "@/lib/tenant";
 import { emailSetupLink, newSetupLink } from "@/lib/stripe-setup-link";
 import { inviteOwner } from "@/lib/owner-invite";
 import { toStoredImport, withUploadedMenu } from "@/lib/import/store";
+import { captureServer } from "@/lib/analytics-server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -221,6 +222,11 @@ export async function POST(req: Request) {
   } catch (err) {
     console.error("[onboarding] Stripe link:", err instanceof Error ? err.message : err);
   }
+
+  // The start of the clock for timing a shop's setup.
+  await captureServer("setup", "shop_created", `shop-${biz.id}`, {
+    shop: biz.id, by: who.isSuperAdmin ? "staff" : "seller", imported: Boolean(stored), menu_from: stored?.menu_from ?? "none",
+  });
 
   return NextResponse.json({
     success:    true,
