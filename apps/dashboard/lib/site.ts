@@ -15,6 +15,10 @@ import { createAdminClient } from "@/lib/supabase-server";
 import { DAY_KEYS, type DayKey, type ImportedHours } from "@/lib/import/types";
 import { cheapestPrice, pricesVary, readOptions } from "@/lib/menu-options";
 import { offerText, readFirstOrderOffer } from "@/lib/first-order";
+import { readableOn, textOn } from "@/lib/contrast";
+
+// Each look's page colour (site.css), for text in the shop's colour.
+const LOOK_BG: Record<SiteLook, string> = { bold: "#FFFFFF", warm: "#16130F", clean: "#FAFBFC" };
 
 export type SiteLook = "bold" | "warm" | "clean";
 
@@ -42,6 +46,8 @@ export type SiteData = {
   look:        SiteLook;
   accent:      string;
   accentText:  string;
+  /** The accent as small text on this look's page colour, readable at 4.5 to 1. */
+  accentInk:   string;
   logoUrl:     string | null;
   phone:       string | null;
   address:     string | null;
@@ -135,11 +141,6 @@ export function stockPhotos(set: StockSet | null): SitePhoto[] {
 
 const str = (v: unknown, max = 2000): string | null => (typeof v === "string" && v.trim() ? v.trim().slice(0, max) : null);
 
-function textOn(hex: string): string {
-  const h = hex.replace("#", "");
-  const [r, g, b] = [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) / 255).map(c => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4))) as [number, number, number];
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.45 ? "#111111" : "#FFFFFF";
-}
 
 /** "17:00" → "5pm", "17:30" → "5:30pm", "12:00" → "12pm", "23:59" → "midnight" */
 export function prettyTime(t: string): string {
@@ -292,6 +293,7 @@ export function buildSite(biz: SiteRow, cats: SiteCategory[], allItems: SiteItem
   const set = stockSet(biz.type, [cuisine, biz.name, biz.type ?? "", ...picks.map(p => p.name)].join(" "), cuisine);
   const photos: SitePhoto[] = ownPhotos.length ? ownPhotos : stockPhotos(set);
 
+  const look: SiteLook = site.look === "warm" || site.look === "clean" ? site.look : "bold";
   const address = str(biz.address, 300);
   const social = (["instagram", "facebook", "tiktok"] as const)
     .map(k => ({ label: k === "tiktok" ? "TikTok" : k[0]!.toUpperCase() + k.slice(1), url: str(settings.social?.[k], 500) ?? str(imp?.social?.[k], 500) }))
@@ -305,9 +307,10 @@ export function buildSite(biz: SiteRow, cats: SiteCategory[], allItems: SiteItem
     kicker,
     tagline:     str(site.tagline, 200) ?? str(imp?.tagline, 200),
     about:       str(site.about, 1200) ?? str(biz.description, 1200),
-    look:        site.look === "warm" || site.look === "clean" ? site.look : "bold",
+    look,
     accent,
-    accentText:  textOn(accent),
+    accentText:  textOn(accent, "#111111"),
+    accentInk:   readableOn(accent, LOOK_BG[look]),
     logoUrl:     str(biz.logo_url, 1000),
     phone:       str(biz.contact_phone, 40) ?? str(settings.phone, 40),
     address,

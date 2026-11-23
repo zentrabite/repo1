@@ -11,6 +11,7 @@ import { DEFAULT_TIMEZONE, pickupPlan, shopTime, type OrderingRules } from "@/li
 import { checkDeliveryAddress } from "@/lib/own-delivery";
 import { cameFrom, codeDiscount, type OfferType } from "@/lib/offer-codes";
 import { analyticsId, track } from "@/lib/analytics";
+import { textOn } from "@/lib/contrast";
 
 // A win-back offer code from the link, as /api/store/[subdomain]?code= sends it.
 type CodeOffer = { code: string; type: OfferType; value: number; label: string; ends: string };
@@ -25,12 +26,6 @@ const INPUT_STYLE: React.CSSProperties = { width:"100%", marginBottom:8, backgro
 
 const BASE = { g:"#00AD82", st:"#8B9DB5", cl:"#F8FAFB", navy:"#0F1F2D", card:"#1C2D48", mist:"rgba(255,255,255,.08)", r:"#FF4757" };
 
-// Readable text colour on the restaurant's brand colour.
-function textOn(hex: string): string {
-  const h = hex.replace("#", "");
-  const [r, g, b] = [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) / 255).map(c => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)));
-  return 0.2126 * r! + 0.7152 * g! + 0.0722 * b! > 0.45 ? "#0F1F2D" : "#FFFFFF";
-}
 
 // One line per item and set of options. price is the unit price with options.
 // A menu item as /api/store/[subdomain] sends it.

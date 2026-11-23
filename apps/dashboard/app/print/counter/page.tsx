@@ -17,6 +17,7 @@ import QRCode from "qrcode";
 import { useBusiness } from "@/hooks/use-business";
 import { orderUrl } from "@/lib/tenant";
 import { offerText, readFirstOrderOffer } from "@/lib/first-order";
+import { textOn } from "@/lib/contrast";
 
 type Shop = { id: string; name: string; subdomain: string | null; logo_url: string | null; settings: Record<string, unknown> | null };
 
@@ -71,7 +72,7 @@ function PrintCounter() {
 
   const card = (
     <section className="card">
-      <div className="card-top" style={{ background: accent }}>
+      <div className="card-top" style={{ background: accent, color: textOn(accent, INK) }}>
         {shop.logo_url
           // eslint-disable-next-line @next/next/no-img-element
           ? <img src={shop.logo_url} alt="" className="logo" />
