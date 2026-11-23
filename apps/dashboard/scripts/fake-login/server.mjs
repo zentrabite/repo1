@@ -104,6 +104,16 @@ http.createServer((req, res) => {
         if (have < reward.points_cost) return send(200, { ok: false, error: "points", balance: have, cost: reward.points_cost });
         return send(200, { ok: true, id: "fake-redemption", title: reward.title, cost: reward.points_cost, balance: have - reward.points_cost });
       }
+      // Deleting a customer's details (037). Logged, nothing changes.
+      if (rpc[1] === "erase_customer") {
+        const a = body ? JSON.parse(body) : {};
+        log(`POST rpc/erase_customer ${body}`);
+        const cust = (data.tables.customers ?? []).find(x => x.id === a.p_customer && x.business_id === a.p_business && !x.erased_at);
+        if (!cust) return send(200, { ok: false, error: "customer" });
+        const orders = (data.tables.orders ?? []).filter(o => o.customer_id === cust.id).length;
+        const texts = (data.tables.sms_logs ?? []).filter(t => t.customer_id === cust.id).length;
+        return send(200, { ok: true, orders, texts, reviews: 0 });
+      }
       // The unsubscribe link secret (035). A fixed one, so /unsubscribe works here.
       if (rpc[1] === "link_signing_secret") return send(200, "fake-link-secret-".padEnd(64, "x"));
       return send(404, { message: "rpc not mocked" });
