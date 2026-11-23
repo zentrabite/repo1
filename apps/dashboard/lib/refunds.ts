@@ -23,6 +23,15 @@ export function paidByStripe(o: { source?: string | null; stripe_payment_id?: st
   return o.source === "direct" && typeof o.stripe_payment_id === "string" && o.stripe_payment_id.startsWith("pi_");
 }
 
+/**
+ * A counter sale. Its money went through the shop's own card machine or
+ * till, so a refund is given there and only recorded here, which takes it
+ * off the sale, the customer's spend and their points.
+ */
+export function counterSale(o: { source?: string | null }): boolean {
+  return o.source === "pos";
+}
+
 export const money = (dollars: number) => `$${dollars.toFixed(2)}`;
 
 /**

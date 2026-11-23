@@ -6,7 +6,10 @@
 //
 // Who: owners and managers. Staff can't give money back.
 // Which orders: online orders paid by card through Stripe (source "direct",
-// a pi_ payment). A counter sale is refunded on the card machine or in cash.
+// a pi_ payment), refunded here through Stripe. And counter sales (source
+// "pos"), refunded on the shop's card machine or in cash and only recorded
+// here, so the sale, the customer's spend and their points go down to match
+// (since 23 Nov 2026; before that a counter refund left all three as they were).
 //
 // How much is left comes from Stripe, not the order, so a refund made in the
 // shop's Stripe Dashboard counts too. The order saves the total refunded
@@ -26,7 +29,7 @@ import type Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase-server";
 import { MANAGER_ROLES, requireBusiness } from "@/lib/request-business";
-import { money, paidByStripe, refundCents, saveRefunded } from "@/lib/refunds";
+import { counterSale, money, paidByStripe, refundCents, saveRefunded } from "@/lib/refunds";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,8 +53,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     .select("id, business_id, total, status, source, stripe_payment_id, refunded_amount")
     .eq("id", id).eq("business_id", auth.businessId).maybeSingle();
   if (!order) return fail(404, "Order not found.");
+  if (counterSale(order)) return recordCounterRefund(db, order, body.amount, auth.businessId);
   if (!paidByStripe(order)) {
-    return fail(409, "Only online orders paid by card can be refunded here. Refund a counter sale on your card machine or in cash.");
+    return fail(409, "This order wasn't paid through ZentraBite, so there's nothing to refund here.");
   }
 
   const { data: biz } = await db.from("businesses").select("stripe_account_id").eq("id", auth.businessId).maybeSingle();
@@ -114,5 +118,46 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     refunded_amount: saved?.refunded_amount ?? (charge.amount_refunded + refund.amount) / 100,
     refunded_at:     saved?.refunded_at ?? new Date().toISOString(),
     status:          saved?.status ?? order.status,
+  });
+}
+
+/**
+ * A counter sale refunded on the card machine or in cash. Nothing moves
+ * through ZentraBite. The order saves the total refunded, migration 021 takes
+ * it off the customer's spend and points, and the reports follow.
+ *
+ * The save only goes through if nothing was recorded since the order was
+ * read, so a double click can't record the same refund twice.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function recordCounterRefund(db: any, order: { id: string; total: number | string; refunded_amount?: number | string | null; status?: string | null }, amount: unknown, businessId: string) {
+  const totalCents = Math.round(Number(order.total) * 100);
+  const beforeCents = Math.round(Number(order.refunded_amount ?? 0) * 100);
+  const leftCents = totalCents - beforeCents;
+  if (leftCents <= 0) return fail(409, "This sale has already been refunded in full.");
+
+  const asked = refundCents(amount, leftCents);
+  if (!asked.ok) return fail(400, asked.error);
+
+  const afterCents = beforeCents + asked.cents;
+  const full = afterCents >= totalCents;
+  const patch: Record<string, unknown> = { refunded_amount: afterCents / 100, refunded_at: new Date().toISOString() };
+  if (full) patch.status = "Refunded";
+
+  const { data: saved, error } = await db.from("orders")
+    .update(patch)
+    .eq("id", order.id).eq("business_id", businessId).eq("refunded_amount", beforeCents / 100)
+    .select("id");
+  if (error) return fail(500, "Couldn't record the refund. Try again.");
+  if (!Array.isArray(saved) || saved.length === 0) {
+    return fail(409, "This sale changed while you had it open. Close it, open it again and check.");
+  }
+
+  return NextResponse.json({
+    refunded:        money(asked.cents / 100),
+    refund_status:   "recorded",
+    refunded_amount: afterCents / 100,
+    refunded_at:     patch.refunded_at,
+    status:          full ? "Refunded" : order.status ?? null,
   });
 }
