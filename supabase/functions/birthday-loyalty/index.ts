@@ -6,8 +6,9 @@
 // UTC date at 10pm UTC, which is a day behind in Australia, and it read a
 // full date of birth.
 //
-// Safe to call any number of times (the cron job uses the public anon key,
-// so anyone with that key can call it):
+// Only our own pg_cron job can start it (since v4): the job sends x-zb-cron,
+// a secret kept in Supabase Vault (migration 034), and anything without it
+// gets a 401. It's also safe to run more than once:
 //   • one run per day, claimed in edge_function_runs (migration 017)
 //   • a customer gets birthday points at most once a year. The event row
 //     (source "birthday-year-<YYYY>") is written BEFORE the points, and a
@@ -17,7 +18,7 @@
 //     it's still safe before migration 017 is applied
 //   • points are added only if the balance hasn't changed since it was read,
 //     so a points-earning order at the same moment isn't overwritten
-// Needs migrations 017 and 033. Deploy with birthdays.ts beside it.
+// Needs migrations 017, 033 and 034. Deploy with birthdays.ts beside it.
 //
 // Deploy:   supabase functions deploy birthday-loyalty
 // Schedule: 0 22 * * *  (8 AM ACST → 10 PM UTC previous day)
@@ -45,6 +46,14 @@ async function claimDailyRun(functionName: string): Promise<boolean> {
   return true;
 }
 
+/** True when the call came from our own pg_cron job, which sends the Vault secret (migration 034). */
+async function fromOurScheduler(req: Request): Promise<boolean> {
+  const secret = req.headers.get("x-zb-cron") ?? "";
+  if (!secret) return false;
+  const { data, error } = await db.rpc("cron_secret_ok", { p_secret: secret });
+  return !error && data === true;
+}
+
 /** Adds points without losing a change made between the read and the write. */
 async function addPoints(customerId: string, points: number): Promise<boolean> {
   for (let attempt = 0; attempt < 5; attempt++) {
@@ -65,8 +74,11 @@ async function addPoints(customerId: string, points: number): Promise<boolean> {
   return false;
 }
 
-serve(async () => {
+serve(async (req: Request) => {
   try {
+    if (!(await fromOurScheduler(req))) {
+      return new Response(JSON.stringify({ error: "Not allowed" }), { status: 401, headers: { "Content-Type": "application/json" } });
+    }
     if (!(await claimDailyRun("birthday-loyalty"))) {
       return new Response(
         JSON.stringify({ message: "Already ran today", awarded: 0 }),

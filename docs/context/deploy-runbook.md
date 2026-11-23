@@ -59,6 +59,14 @@ Both are idempotent. Confirm success in **Database → Replication** — you
 should see `orders`, `notifications`, and `order_items` listed under
 `supabase_realtime`.
 
+**The nightly jobs' secret (migration 034).** The `nightly-analytics` and
+`birthday-loyalty` pg_cron jobs send an `x-zb-cron` header read from Supabase
+Vault (`zb_cron_secret`), and both edge functions refuse a call without it.
+Nobody needs to know the value. If a job is ever made again, its
+`net.http_post` headers must add
+`jsonb_build_object('x-zb-cron', (select decrypted_secret from vault.decrypted_secrets where name = 'zb_cron_secret'))`,
+or the function answers 401. Running 034 again adds it to a job that lacks it.
+
 ---
 
 ## Step 3 · Set production env vars in Vercel (10 min)

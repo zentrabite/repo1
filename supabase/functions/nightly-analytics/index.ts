@@ -7,10 +7,11 @@
 // Since 23 Nov 2026 (v3) each run works out the last 90 days again, not just
 // yesterday, in each shop's own time zone, so a refund made after the day
 // comes off that day. The sums are in totals.ts, which the CRM's tests check.
-// One run a day (edge_function_runs, migration 017), so a repeat call with
-// the public key does nothing. A run that finishes also writes
-// "nightly-analytics-done", which Super Admin's Daily jobs light reads, so a
-// night that fails shows there. Before v3 every save failed (the live table
+// Only our own pg_cron job can start it (since v5): the job sends x-zb-cron,
+// a secret kept in Supabase Vault (migration 034), and anything without it
+// gets a 401. One run a day (edge_function_runs, migration 017) as well. A
+// run that finishes also writes "nightly-analytics-done", which Super
+// Admin's Daily jobs light reads, so a night that fails shows there. Before v3 every save failed (the live table
 // had no unique key until migration 032) and nothing said so.
 //
 // Deploy with totals.ts beside it.
@@ -36,6 +37,14 @@ async function claimRun(runDate: string): Promise<boolean> {
   return true;
 }
 
+/** True when the call came from our own pg_cron job, which sends the Vault secret (migration 034). */
+async function fromOurScheduler(req: Request): Promise<boolean> {
+  const secret = req.headers.get("x-zb-cron") ?? "";
+  if (!secret) return false;
+  const { data, error } = await db.rpc("cron_secret_ok", { p_secret: secret });
+  return !error && data === true;
+}
+
 /** Every row of a query, a page at a time. */
 // deno-lint-ignore no-explicit-any
 async function all<T>(query: () => any): Promise<T[]> {
@@ -48,8 +57,11 @@ async function all<T>(query: () => any): Promise<T[]> {
   }
 }
 
-serve(async () => {
+serve(async (req: Request) => {
   try {
+    if (!(await fromOurScheduler(req))) {
+      return new Response(JSON.stringify({ error: "Not allowed" }), { status: 401, headers: { "Content-Type": "application/json" } });
+    }
     const now = new Date();
     if (!(await claimRun(now.toISOString().slice(0, 10)))) {
       return new Response(JSON.stringify({ skipped: "already ran today" }), { status: 200, headers: { "Content-Type": "application/json" } });
