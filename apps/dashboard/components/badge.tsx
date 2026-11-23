@@ -8,7 +8,6 @@ const STYLES: Record<string, { bg: string; color: string }> = {
   Regular:          { bg: "rgba(107,124,147,.15)",   color: "#6B7C93" },
   Direct:           { bg: "rgba(0,173,130,.12)",     color: "#00AD82" },
   "Uber Eats":      { bg: "rgba(255,107,53,.12)",   color: "#FF6B35" },
-  Menulog:          { bg: "rgba(168,85,247,.12)",    color: "#A855F7" },
   Marketplace:      { bg: "rgba(168,85,247,.12)",    color: "#A855F7" },
   active:           { bg: "rgba(0,173,130,.12)",     color: "#00AD82" },
   inactive:         { bg: "rgba(107,124,147,.14)",   color: "#6B7C93" },
