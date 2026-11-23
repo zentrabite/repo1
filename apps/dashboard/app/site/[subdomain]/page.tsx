@@ -5,7 +5,7 @@
 // Until the site is published, the public sees a short holding page. The
 // owner, their team and super admins see the full site with a preview bar.
 
-/* eslint-disable @next/next/no-img-element -- photos come from Unsplash and Supabase, outside next/image's allow list */
+/* eslint-disable @next/next/no-img-element -- photos come from the shop's own site, Supabase and public/site-stock, and next/image's allow list doesn't cover the first */
 
 import type { Metadata, Viewport } from "next";
 import { cache } from "react";
@@ -132,7 +132,7 @@ export default async function RestaurantSite({ params }: Props) {
     <div className={rootClass} style={style} id="top">
       {preview && <div className="zs-preview">Preview. This site isn&apos;t public yet. Publish it from onboarding when the owner is happy.</div>}
 
-      <section className="zs-hero">
+      <section className={site.photos[0] ? "zs-hero" : "zs-hero zs-hero-plain"}>
         <div className="zs-hero-bg">{site.photos[0] && <img src={site.photos[0].url} alt={site.photos[0].alt} fetchPriority="high" />}</div>
         <nav className="zs-in zs-nav" aria-label="Main">
           {Brand}
@@ -176,8 +176,8 @@ export default async function RestaurantSite({ params }: Props) {
       )}
 
       {site.about && (
-        <section className="zs-about" id="story">
-          <div className="zs-about-img">{site.photos[1] && <img src={site.photos[1].url} alt={site.photos[1].alt} loading="lazy" />}</div>
+        <section className={site.photos[1] ? "zs-about" : "zs-about zs-about-solo"} id="story">
+          {site.photos[1] && <div className="zs-about-img"><img src={site.photos[1].url} alt={site.photos[1].alt} loading="lazy" /></div>}
           <div className="zs-about-copy">
             <p className="zs-kicker">Our story</p>
             <h2 className="zs-disp">About {site.name}</h2>
@@ -231,6 +231,7 @@ export default async function RestaurantSite({ params }: Props) {
         <div className="zs-in">
           <span><b>{site.name}</b> · © {new Date().getFullYear()}</span>
           {site.social.length > 0 && <nav aria-label="Social">{site.social.map(s => <a key={s.label} className="zs-link" href={s.url} target="_blank" rel="noopener">{s.label}</a>)}</nav>}
+          {site.photos.some(p => p.stock) && <span>Photos are stock images, for illustration</span>}
           <span>Online ordering by ZentraBite</span>
         </div>
       </footer>

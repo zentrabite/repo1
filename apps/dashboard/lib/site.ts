@@ -59,25 +59,74 @@ export type SiteData = {
 };
 
 // ─── Stock photos ───────────────────────────────────────────────────────────
-// Unsplash licence (free for commercial use). Used until the owner gives us
-// their own photos. Each set is hero, story, then gallery.
-const UNSPLASH = (id: string) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=1800&q=75`;
-const STOCK: Record<string, [string, string][]> = {
-  pizza:  [["1513104890138-7c749659a591", "Wood-fired pizza on a board"], ["1517248135467-4c7edcad34c4", "Dining room"], ["1574071318508-1cdbab80d002", "Margherita pizza"], ["1565299624946-b28f40a0ae38", "Pizza slices"]],
-  asian:  [["1455619452474-d2be8b1e70cd", "Curry and rice"], ["1562565652-a0d8f0c59eb4", "Dishes on the table"], ["1548943487-a2e4e43b4853", "Bowl of soup"], ["1512058564366-18510be2db19", "Fried rice in a pan"]],
-  cafe:   [["1495474472287-4d71bcdd2085", "Two flat whites"], ["1501339847302-ac426a4a7cbb", "The counter"], ["1509042239860-f550ce710b93", "Coffee cups"], ["1511920170033-f8396924c348", "Coffee beans"]],
-  burger: [["1568901346375-23c9450c58cd", "Cheeseburger"], ["1555396273-367ea4eb4db5", "Dining room"], ["1571091718767-18b5b1457add", "Burger with fries"], ["1550547660-d9450f859349", "Two burgers"]],
-  // Generic dining room shots when the food doesn't match a set
-  dining: [["1517248135467-4c7edcad34c4", "Dining room"], ["1555396273-367ea4eb4db5", "Dining room"]],
-};
+// Shown until the owner gives us photos of their own. Copies of Unsplash
+// photos kept in public/site-stock, so a site never breaks if a photo leaves
+// Unsplash and a visitor's browser never calls Unsplash. The Unsplash License
+// (unsplash.com/license) lets us copy and use them commercially with no credit
+// needed, but it only covers the photographer's copyright. So the rules for
+// this list (checked 23 Nov 2026):
+//   • food and ingredients only, no logos, brands or labels you can read
+//   • no faces, and no rooms, counters or shopfronts, because a stranger's
+//     dining room beside "Our story" would pass as the shop's own
+//   • Unsplash License photos only (photo-…, never premium_photo-…, which is
+//     Unsplash+)
+// The footer says the photos are stock whenever these are used. Before
+// 23 Nov the sets had other venues' dining rooms and a photo with Coca-Cola
+// bottles in it. Each set is hero, story, then gallery. Each entry is
+// [file in public/site-stock, alt text, Unsplash photo id].
+const STOCK = {
+  pizza: [
+    ["pizza-board", "Pizza on a wooden board", "1513104890138-7c749659a591"],
+    ["pizza-ingredients", "Tomatoes, garlic and herbs around a wooden board", "1690983322070-22861e13ce47"],
+    ["pizza-margherita", "Margherita pizza", "1574071318508-1cdbab80d002"],
+    ["pizza-slices", "Pizza slices", "1565299624946-b28f40a0ae38"],
+  ],
+  asian: [
+    ["asian-curry", "Curry in a bowl", "1455619452474-d2be8b1e70cd"],
+    ["asian-dishes", "Dishes on a table", "1562565652-a0d8f0c59eb4"],
+    ["asian-soup", "Bowl of soup", "1548943487-a2e4e43b4853"],
+    ["asian-fried-rice", "Fried rice in a pan", "1512058564366-18510be2db19"],
+  ],
+  cafe: [
+    ["cafe-coffees", "Coffees on a table", "1495474472287-4d71bcdd2085"],
+    ["cafe-croissants", "Croissants", "1623334044303-241021148842"],
+    ["cafe-cups", "Coffee cups", "1509042239860-f550ce710b93"],
+    ["cafe-beans", "Ground coffee and beans", "1511920170033-f8396924c348"],
+  ],
+  burger: [
+    ["burger-cheeseburger", "Cheeseburger", "1568901346375-23c9450c58cd"],
+    ["burger-fries-basket", "Fries in a basket", "1630384060421-cb20d0e0649d"],
+    ["burger-classic", "Burger with lettuce and tomato", "1571091718767-18b5b1457add"],
+    ["burger-fries", "Fries with sauce", "1518013431117-eb1465fa5752"],
+  ],
+  // Any other food business. Ingredients at the top, because a dish there
+  // would say what the shop cooks. Three, so no gallery shows.
+  food: [
+    ["pizza-ingredients", "Tomatoes, garlic and herbs around a wooden board", "1690983322070-22861e13ce47"],
+    ["food-plate", "A plate of food", "1542528180-0c79567c66de"],
+    ["food-table", "Shared plates on a table", "1633195000232-ca6e3cbcfd41"],
+  ],
+} as const satisfies Record<string, readonly (readonly [string, string, string])[]>;
 
-function stockSet(text: string): keyof typeof STOCK {
+export type StockSet = keyof typeof STOCK;
+
+const FOOD_TYPES = new Set(["restaurant", "cafe", "bar", "bakery", "food_truck"]);
+const NOT_FOOD_TYPES = new Set(["retail", "salon", "gym", "service"]);
+
+/** Which stock photos fit a business, or null for none. Shops, salons, gyms and
+ *  trades get none, because pictures of food would be wrong for them. */
+export function stockSet(type: string | null, text: string, cuisine: string | null): StockSet | null {
+  if (NOT_FOOD_TYPES.has(type ?? "")) return null;
   const t = text.toLowerCase();
   if (/pizz/.test(t)) return "pizza";
   if (/burger/.test(t)) return "burger";
   if (/caf[eé]|coffee|bagel|bakery|brunch|espresso/.test(t)) return "cafe";
   if (/thai|asian|noodle|ramen|pho|vietnam|chinese|dumpling|malay|laksa|curry/.test(t)) return "asian";
-  return "dining";
+  return FOOD_TYPES.has(type ?? "") || cuisine ? "food" : null;
+}
+
+export function stockPhotos(set: StockSet | null): SitePhoto[] {
+  return set ? STOCK[set].map(([file, alt]) => ({ url: `/site-stock/${file}.webp`, alt, stock: true })) : [];
 }
 
 // ─── Small helpers ──────────────────────────────────────────────────────────
@@ -233,8 +282,8 @@ export function buildSite(biz: SiteRow, cats: SiteCategory[], allItems: SiteItem
   const ownPhotos = (Array.isArray(site.photos) ? site.photos : [])
     .filter((u): u is string => typeof u === "string" && /^https:\/\//.test(u)).slice(0, 8)
     .map(url => ({ url, alt: `${biz.name}`, stock: false }));
-  const set = STOCK[stockSet([cuisine, biz.name, biz.type ?? "", ...picks.map(p => p.name)].join(" "))]!;
-  const photos: SitePhoto[] = ownPhotos.length ? ownPhotos : set.map(([id, alt]) => ({ url: UNSPLASH(id), alt, stock: true }));
+  const set = stockSet(biz.type, [cuisine, biz.name, biz.type ?? "", ...picks.map(p => p.name)].join(" "), cuisine);
+  const photos: SitePhoto[] = ownPhotos.length ? ownPhotos : stockPhotos(set);
 
   const address = str(biz.address, 300);
   const social = (["instagram", "facebook", "tiktok"] as const)

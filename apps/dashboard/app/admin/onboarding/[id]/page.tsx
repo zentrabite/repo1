@@ -1055,7 +1055,7 @@ function StepWebsite({ biz, save, show, goTo }: { biz: Biz; save: SaveFn; show: 
       <div style={{ marginTop: 18 }}>
         <div style={label}>Their photos</div>
         <div style={{ fontSize: 12, color: C.st, margin: "4px 0 10px", lineHeight: 1.5 }}>
-          Tick only photos the owner took or has the rights to. The first one ticked is the big photo at the top. Until any are ticked, the site uses licensed stock photos.
+          {"Tick only photos the owner took or has the rights to. The first one ticked is the big photo at the top. Until any are ticked, a food business gets stock photos of food (the footer says they're stock) and any other business gets none."}
         </div>
         {imported.length === 0 && <div style={{ fontSize: 12, color: C.st }}>No photos came from the import.</div>}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))", gap: 8 }}>
