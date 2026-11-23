@@ -60,6 +60,12 @@ http.createServer((req, res) => {
     const logins = [data.user, data.seller, data.staff, ...(data.auth_users ?? [])].filter(Boolean);
     const me = logins.find(u => token === `fake-${u.id}`) ?? data.user;
     if (url.pathname === "/auth/v1/user") return send(200, me);
+    // Storage uploads (logos, the owner's site photos) are logged, not kept.
+    const upload = /^\/storage\/v1\/object\/([a-z0-9-]+)\/(.+)$/.exec(url.pathname);
+    if (upload && (req.method === "POST" || req.method === "PUT")) {
+      log(`UPLOAD ${upload[1]}/${upload[2]}`);
+      return send(200, { Key: `${upload[1]}/${upload[2]}` });
+    }
     const admin = /^\/auth\/v1\/admin\/users\/([^/]+)$/.exec(url.pathname);
     if (admin) {
       const u = logins.find(l => l.id === admin[1]);

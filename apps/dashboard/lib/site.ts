@@ -7,6 +7,7 @@
 //   look          "bold" | "warm" | "clean"
 //   tagline, about           override the imported or entered text
 //   photos        string[]  photos the owner has said we can use (first = hero)
+//   photo_copies  object    our copy of each of them (lib/site-photos.ts)
 //   offer_text    string    optional banner, e.g. "$10 off your first order"
 //   show_rewards  boolean   rewards band (only shown if rewards exist)
 
@@ -24,6 +25,7 @@ export type SiteSettings = {
   tagline?:      string;
   about?:        string;
   photos?:       string[];
+  photo_copies?: Record<string, string>;   // our copies of photos (lib/site-photos.ts)
   offer_text?:   string;
   show_rewards?: boolean;
 };
@@ -279,8 +281,13 @@ export function buildSite(biz: SiteRow, cats: SiteCategory[], allItems: SiteItem
   const accentRaw = str(settings.branding?.accent_color, 7);
   const accent = accentRaw && /^#[0-9a-f]{6}$/i.test(accentRaw) ? accentRaw : "#00AD82";
 
+  // Our copy of each ticked photo (lib/site-photos.ts), or the old site's
+  // address when it couldn't be copied.
+  const copies = site.photo_copies && typeof site.photo_copies === "object" ? site.photo_copies : {};
   const ownPhotos = (Array.isArray(site.photos) ? site.photos : [])
-    .filter((u): u is string => typeof u === "string" && /^https:\/\//.test(u)).slice(0, 8)
+    .filter((u): u is string => typeof u === "string")
+    .map(u => (typeof copies[u] === "string" ? copies[u] : u))
+    .filter(u => /^https:\/\//.test(u)).slice(0, 8)
     .map(url => ({ url, alt: `${biz.name}`, stock: false }));
   const set = stockSet(biz.type, [cuisine, biz.name, biz.type ?? "", ...picks.map(p => p.name)].join(" "), cuisine);
   const photos: SitePhoto[] = ownPhotos.length ? ownPhotos : stockPhotos(set);

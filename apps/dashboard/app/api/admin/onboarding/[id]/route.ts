@@ -19,6 +19,11 @@
 // Publishing the website (settings.site.published turning true) only happens
 // when the go-live check passes (lib/go-live.ts). Otherwise 409 with the checks.
 //
+// settings.site.photos (the owner's own photos, ticked in the Website step) are
+// copied into our storage (lib/site-photos.ts). Only photos the import found
+// can be ticked. Returns photos_not_copied when some stay linked from the
+// old site.
+//
 // GET /api/admin/onboarding/[id] — fetch the in-progress business (for resume).
 
 import { NextResponse } from "next/server";
@@ -26,6 +31,7 @@ import { createAdminClient } from "@/lib/supabase-server";
 import { assertSuperAdmin } from "@/lib/admin-auth";
 import { readGoLive } from "@/lib/go-live";
 import { captureServer } from "@/lib/analytics-server";
+import { savePhotos } from "@/lib/site-photos";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -71,6 +77,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const update: any = {};
   let publishing = false;
+  let photosNotCopied = 0;
   if (typeof body.name      === "string") update.name      = body.name.trim();
   if (typeof body.type      === "string") update.type      = body.type.trim();
   if (typeof body.subdomain === "string") update.subdomain = body.subdomain.trim();
@@ -94,6 +101,14 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
         return NextResponse.json({ error: `Not ready to go live. Still to do: ${gaps.join(", ")}.`, checks: live.checks }, { status: 409 });
       }
     }
+
+    if (body.settings.site && typeof body.settings.site === "object" && "photos" in body.settings.site) {
+      const saved = await savePhotos(db, id, existing, body.settings.site.photos, user.email ?? user.id);
+      if (!saved.ok) return NextResponse.json({ error: saved.error }, { status: 400 });
+      // Replaced, not merged, so photos that were unticked drop out of photo_copies.
+      update.settings.site = { ...update.settings.site, ...saved.site };
+      photosNotCopied = saved.failed;
+    }
   }
 
   if (Object.keys(update).length === 0) {
@@ -106,5 +121,5 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   if (publishing) await captureServer("setup", "shop_published", `shop-${id}`, { shop: id });
-  return NextResponse.json({ business: data });
+  return NextResponse.json({ business: data, ...(photosNotCopied ? { photos_not_copied: photosNotCopied } : {}) });
 }
