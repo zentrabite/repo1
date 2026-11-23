@@ -27,7 +27,9 @@ function Av({ n, sz=28 }: { n:string; sz?:number }) {
 
 export default function CustomersPage() {
   const { toast, show } = useToast();
-  const { businessId, business } = useBusiness();
+  const { businessId, business, role, isSuperAdmin } = useBusiness();
+  // Deleting a customer's details can't be undone, so owners and managers only.
+  const canDelete = isSuperAdmin || role === "Owner" || role === "Manager";
 
   const [customers,      setCustomers]      = useState<Customer[]>([]);
   const [custOrders,     setCustOrders]     = useState<Order[]>([]);
@@ -52,6 +54,10 @@ export default function CustomersPage() {
   const [rewards,    setRewards]    = useState<Reward[] | null>(null);
   const [swapPick,   setSwapPick]   = useState<string | null>(null);
   const [swapping,   setSwapping]   = useState(false);
+  // Deleting a customer's details when they ask (/api/customers/[id]/delete, migration 037).
+  const [delOpen,    setDelOpen]    = useState(false);
+  const [delTick,    setDelTick]    = useState(false);
+  const [deleting,   setDeleting]   = useState(false);
 
   useEffect(() => {
     if (!businessId) return;
@@ -95,6 +101,26 @@ export default function CustomersPage() {
   const filtered = customers
     .filter(c => seg === "All" || c.segment === seg)
     .filter(c => !search || c.name.toLowerCase().includes(search.toLowerCase()) || (c.phone ?? "").includes(search));
+
+  const deleteDetails = async () => {
+    if (!businessId || !selected || !delTick) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/customers/${selected.id}/delete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ business_id: businessId, confirm: true }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Couldn't delete their details");
+      setCustomers(prev => prev.filter(c => c.id !== selected.id));
+      setDelOpen(false);
+      setDelTick(false);
+      setSelected(null);
+      show(`${selected.name}'s details are deleted`);
+    } catch (e) { show(e instanceof Error ? e.message : "Couldn't delete their details"); }
+    finally { setDeleting(false); }
+  };
 
   const sendSms = async () => {
     if (!businessId || !selected) return;
@@ -208,6 +234,12 @@ export default function CustomersPage() {
             <button className="bp" style={{ flex:1, justifyContent:"center", fontSize:12, padding:"8px 0" }} onClick={() => { setSmsText(`Hi {name}, `); setSmsKind("must_reach"); setSmsOpen(true); }} disabled={!selected.phone}>SMS</button>
             <button className="bg-btn" style={{ flex:1, justifyContent:"center" }} onClick={startAiCall} disabled={!selected.phone || aiCalling}>{aiCalling ? "Calling…" : <><Icon name="ai-calls" size={14} />Call</>}</button>
           </div>
+          {canDelete && (
+            <button type="button" className="zb-tap" onClick={() => { setDelTick(false); setDelOpen(true); }}
+              style={{ marginTop:14, background:"none", border:"none", padding:0, color:"#FF8A8A", fontSize:12, cursor:"pointer", textDecoration:"underline", textUnderlineOffset:3, fontFamily:"var(--font-inter)" }}>
+              Delete their details
+            </button>
+          )}
         </div>
         <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
           <div className="gc" style={{ padding:18 }}>
@@ -226,6 +258,34 @@ export default function CustomersPage() {
           </div>
         </div>
       </div>
+      <Modal open={delOpen} onClose={() => setDelOpen(false)} title={`Delete ${selected.name}'s details`}>
+        <div style={{ fontSize:13, lineHeight:1.6, color:"#E2E8F0", display:"grid", gap:12 }}>
+          <p style={{ margin:0 }}>{"Do this when a customer asks you to delete what you hold about them. It can't be undone."}</p>
+          <div>
+            <div style={{ fontWeight:600, color:"#fff", marginBottom:4 }}>What goes</div>
+            <ul style={{ margin:0, paddingLeft:18 }}>
+              <li>Their name, phone, email and birthday</li>
+              <li>{`Their ${selected.points_balance} points`}</li>
+              <li>Delivery addresses and notes on their orders</li>
+              <li>What every text and email to them said</li>
+              <li>Their reviews</li>
+            </ul>
+          </div>
+          <p style={{ margin:0 }}>{"Their orders stay, with the amount, items and date, because you need your sales for tax. They'll show as Deleted customer."}</p>
+          <p style={{ margin:0, color:C.st }}>{"Card payments in your own Stripe account keep what they typed at checkout. If they ask, delete those in Stripe too."}</p>
+          <label style={{ display:"flex", gap:10, alignItems:"flex-start", cursor:"pointer", color:"#fff" }}>
+            <input type="checkbox" checked={delTick} onChange={e => setDelTick(e.target.checked)} style={{ width:18, height:18, marginTop:2, flexShrink:0 }} />
+            {"I understand this can't be undone"}
+          </label>
+          <div style={{ display:"flex", gap:8, justifyContent:"flex-end" }}>
+            <button className="bg-btn" onClick={() => setDelOpen(false)}>Cancel</button>
+            <button className="bp" onClick={deleteDetails} disabled={!delTick || deleting}
+              style={{ background:"#FF6B6B", color:"#0F1F2D", boxShadow:"none", opacity: !delTick || deleting ? .5 : 1 }}>
+              {deleting ? "Deleting…" : "Delete for good"}
+            </button>
+          </div>
+        </div>
+      </Modal>
       <Modal open={smsOpen} onClose={() => setSmsOpen(false)} title={`SMS to ${selected.name}`}>
         <div style={{ marginBottom:10, fontSize:12, color:C.st }}>
           Going to: <span style={{ color:"#fff" }}>{selected.phone ?? "—"}</span>

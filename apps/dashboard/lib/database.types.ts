@@ -52,6 +52,8 @@ export interface Database {
           opted_out:        boolean;
           // Agreed to marketing from this shop (015). Read through lib/message-kinds.ts.
           marketing_opt_in?: boolean;
+          // Their details were deleted at their request (037). Hidden from the Customers page.
+          erased_at?:       string | null;
           created_at:       string;
         };
         Insert: Omit<Database["public"]["Tables"]["customers"]["Row"], "id" | "created_at">;

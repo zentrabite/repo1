@@ -108,6 +108,7 @@ export async function getCustomers(businessId: string, segment?: string) {
     .from("customers")
     .select("*")
     .eq("business_id", businessId)
+    .is("erased_at", null) // deleted at their request (037)
     .order("total_spent", { ascending: false });
 
   if (segment && segment !== "All") {
