@@ -32,6 +32,7 @@ import "server-only";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createAdminClient, createSessionClient } from "@/lib/supabase-server";
+import { noteStaffUse } from "@/lib/access-log";
 
 const IMPERSONATE_COOKIE = "zb_impersonate";
 
@@ -81,6 +82,11 @@ export async function requireBusiness(
 
     const { data: biz } = await admin.from("businesses").select("id").eq("id", target).maybeSingle();
     if (!biz) return deny(404, "Business not found");
+    // Using another shop's CRM through the impersonation cookie is recorded
+    // for that shop's owner (lib/access-log.ts), even without the button.
+    if (!requested && impersonating === target && target !== userRow?.business_id) {
+      await noteStaffUse(admin, target, user.id, email);
+    }
 
     return { ok: true, userId: user.id, email, businessId: target, role: "Owner", isSuperAdmin: true };
   }

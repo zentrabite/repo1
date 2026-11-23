@@ -77,6 +77,8 @@ export default function AdminBusinessAboutPage() {
   const [saving, setSaving]   = useState(false);
   const [biz, setBiz]         = useState<Business | null>(null);
   const [owner, setOwner]     = useState<Owner>(null);
+  // Staff opening this shop's CRM as its owner (lib/access-log.ts, migration 036).
+  const [access, setAccess]   = useState<{ what: string; staff_email: string | null; created_at: string }[]>([]);
 
   // Editable fields (mirror of loaded state — we send a full PATCH on save)
   const [form, setForm] = useState({
@@ -101,9 +103,10 @@ export default function AdminBusinessAboutPage() {
 
     fetch(`/api/admin/businesses/${id}`)
       .then(r => r.json())
-      .then((data: { business: Business; owner: Owner; error?: string }) => {
+      .then((data: { business: Business; owner: Owner; access?: typeof access; error?: string }) => {
         if (data.error || !data.business) { toast("Business not found", "error"); router.replace("/admin"); return; }
         hydrate(data.business, data.owner);
+        setAccess(Array.isArray(data.access) ? data.access : []);
         setLoading(false);
       })
       .catch(() => {
@@ -396,6 +399,19 @@ export default function AdminBusinessAboutPage() {
             />
           )}
         </div>
+      </div>
+
+      {/* Staff access, also shown to the shop's owner in Settings */}
+      <div className="gc" style={{ padding: 20, marginTop: 14 }}>
+        <SectionHeader title="Staff access" subtitle="Each time someone here opened this shop's CRM as the owner. The owner sees this list in Settings" />
+        {access.length === 0 ? (
+          <div style={{ fontSize: 13, color: C.st, fontFamily: "var(--font-inter)" }}>Nobody has opened it yet.</div>
+        ) : access.map((a, i) => (
+          <div key={`${a.created_at}-${i}`} style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "4px 12px", padding: "8px 0", borderTop: i ? `1px solid ${C.mist}` : "none", fontSize: 13, fontFamily: "var(--font-inter)" }}>
+            <span style={{ color: C.cl, minWidth: 0, overflowWrap: "anywhere" }}>{a.what} · {a.staff_email ?? "unknown"}</span>
+            <span style={{ color: C.st, fontSize: 12 }}>{new Date(a.created_at).toLocaleString("en-AU", { timeZone: "Australia/Adelaide", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}</span>
+          </div>
+        ))}
       </div>
 
       {/* Sticky save bar */}

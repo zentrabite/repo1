@@ -4,10 +4,13 @@
 //
 // The cookie is read by useBusiness (client) and by server components that
 // need to know which business to act as. Only users with is_super_admin=true
-// are allowed to set this cookie.
+// are allowed to set this cookie. Starting and stopping are written to
+// staff_access_log (lib/access-log.ts, migration 036), which the shop's owner
+// sees in Settings.
 
 import { NextRequest, NextResponse } from "next/server";
 import { createSessionClient, createAdminClient } from "@/lib/supabase-server";
+import { logAccess } from "@/lib/access-log";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +48,7 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (!biz) return NextResponse.json({ error: "Business not found" }, { status: 404 });
+  await logAccess(db, { businessId: biz.id, staffId: user.id, staffEmail: user.email ?? null, action: "start" });
 
   const res = NextResponse.json({ ok: true, business: biz });
   res.cookies.set({
@@ -58,7 +62,14 @@ export async function POST(req: NextRequest) {
   return res;
 }
 
-export async function DELETE() {
+export async function DELETE(req: NextRequest) {
+  const user = await assertSuperAdmin();
+  const was = req.cookies.get(COOKIE)?.value;
+  if (user && was) {
+    const db = createAdminClient();
+    const { data: biz } = await db.from("businesses").select("id").eq("id", was).maybeSingle();
+    if (biz) await logAccess(db, { businessId: biz.id, staffId: user.id, staffEmail: user.email ?? null, action: "stop" });
+  }
   const res = NextResponse.json({ ok: true });
   res.cookies.set({
     name: COOKIE,

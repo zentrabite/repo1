@@ -1,7 +1,8 @@
 // ─── /api/admin/businesses/[id] ─────────────────────────────────────────────
 // Super-admin-only read/write for the per-business About page.
 //
-// GET  → { business, owner } full detail (contact fields + owner row with phone)
+// GET  → { business, owner, access } full detail (contact fields + owner row
+//        with phone) and the latest staff visits (lib/access-log.ts)
 // PATCH body accepts any subset of:
 //   {
 //     description?:   string,
@@ -20,6 +21,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import { assertSuperAdmin } from "@/lib/admin-auth";
+import { recentAccess } from "@/lib/access-log";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -54,6 +56,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   return NextResponse.json({
     business: bizRes.data,
     owner:    ownerRes.data ?? null,
+    access:   await recentAccess(db, id, 20).catch(() => []),
   });
 }
 
