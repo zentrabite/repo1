@@ -1,11 +1,16 @@
 // ═══════════════════════════════════════════════════════════════════════════
 // /api/copilot — In-CRM AI assistant
-// Reads the merchant's own data, sends to Claude with context, streams reply.
+// Reads the shop's own data, sends a snapshot to Claude, streams the reply.
+// Read only. The model gets no tools and the snapshot holds no customer's
+// name, contact details or words, only counts and the shop's own entries.
 // ═══════════════════════════════════════════════════════════════════════════
 
 import Anthropic from "@anthropic-ai/sdk";
-import { createSessionClient, createAdminClient } from "@/lib/supabase-server";
-import { netTotal } from "@/lib/refunds";
+import { createAdminClient } from "@/lib/supabase-server";
+import { requireBusiness } from "@/lib/request-business";
+import { canAccess } from "@/lib/permissions";
+import { shopMidnight, shopTimezone, shopToday } from "@/lib/pickup-times";
+import { buildSnapshot } from "@/lib/copilot-snapshot";
 import {
   COPILOT_SYSTEM_PROMPT,
   MAX_USER_MESSAGE_CHARS,
@@ -36,161 +41,78 @@ function isRateLimited(key: string): boolean {
 
 type IncomingMessage = { role: "user" | "assistant"; content: string };
 
-// ── Pull a snapshot of the merchant's data for context ───────────────────────
-async function buildBusinessContext(businessId: string): Promise<string> {
-  const admin = createAdminClient();
-  const today = new Date().toISOString().split("T")[0];
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+// ── Pull a snapshot of the shop's data for context ───────────────────────
+type Business = { name: string | null; type: string | null; subdomain: string | null; settings: unknown };
 
-  const [
-    bizRes,
-    todayOrdersRes,
-    weekOrdersRes,
-    customersRes,
-    winbackRes,
-    recsRes,
-    lowStockRes,
-    reviewsRes,
-  ] = await Promise.all([
-    admin
-      .from("businesses")
-      .select("name, type, subdomain, contact_phone, contact_email, address, settings")
-      .eq("id", businessId)
-      .single(),
-    admin
-      .from("orders")
-      .select("total, source, status, refunded_amount")
-      .eq("business_id", businessId)
-      .gte("created_at", `${today}T00:00:00`),
-    admin
-      .from("orders")
-      .select("total, source, refunded_amount")
-      .eq("business_id", businessId)
-      .gte("created_at", sevenDaysAgo),
-    admin
-      .from("customers")
-      .select("segment, ltv")
+async function buildBusinessContext(businessId: string, biz: Business): Promise<string> {
+  const admin = createAdminClient();
+  const now = new Date();
+  const tz = shopTimezone(biz);
+  const t = shopToday(now, tz);
+  const todayStart = shopMidnight(t.y, t.m, t.d, tz).toISOString();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+
+  const [todayOrders, weekOrders, customers, winback, recs, stock, reviews] = await Promise.all([
+    admin.from("orders").select("total, source, status, refunded_amount")
+      .eq("business_id", businessId).gte("created_at", todayStart),
+    admin.from("orders").select("total, source, refunded_amount")
+      .eq("business_id", businessId).gte("created_at", sevenDaysAgo),
+    // Customers whose details were deleted at their request (037) aren't counted.
+    admin.from("customers").select("segment")
+      .eq("business_id", businessId).is("erased_at", null),
+    admin.from("winback_rules").select("is_active, revenue")
       .eq("business_id", businessId),
-    admin
-      .from("winback_rules")
-      .select("name, is_active, redemptions, revenue")
-      .eq("business_id", businessId),
-    admin
-      .from("ai_recommendations")
-      .select("title, priority, body")
-      .eq("business_id", businessId)
-      .eq("status", "open")
-      .order("created_at", { ascending: false })
-      .limit(5),
-    admin
-      .from("stock_items")
-      .select("name, on_hand, par_level")
-      .eq("business_id", businessId)
-      .order("on_hand", { ascending: true })
-      .limit(10),
-    admin
-      .from("reviews")
-      .select("rating, status, source")
-      .eq("business_id", businessId)
-      .gte("created_at", thirtyDaysAgo),
+    admin.from("ai_recommendations").select("title, priority")
+      .eq("business_id", businessId).eq("status", "open")
+      .order("created_at", { ascending: false }).limit(5),
+    admin.from("stock_items").select("name, on_hand, par_level")
+      .eq("business_id", businessId).order("on_hand", { ascending: true }).limit(10),
+    admin.from("reviews").select("rating, status")
+      .eq("business_id", businessId).gte("created_at", thirtyDaysAgo),
   ]);
 
-  const biz = bizRes.data;
-  const todayOrders = todayOrdersRes.data ?? [];
-  const weekOrders = weekOrdersRes.data ?? [];
-  const customers = customersRes.data ?? [];
-  const winback = winbackRes.data ?? [];
-  const recs = recsRes.data ?? [];
-  const stock = lowStockRes.data ?? [];
-  const reviews = reviewsRes.data ?? [];
+  const failed = [todayOrders, weekOrders, customers, winback, recs, stock, reviews].find(r => r.error);
+  if (failed?.error) throw new Error(failed.error.message);
 
-  // Less refunds, so a refunded order doesn't count as a sale.
-  const todayRev = todayOrders.reduce((s: number, o: any) => s + netTotal(o), 0);
-  const weekRev = weekOrders.reduce((s: number, o: any) => s + netTotal(o), 0);
-  const directOrders = todayOrders.filter((o: any) => o.source === "direct").length;
-  const newStatus = todayOrders.filter((o: any) => o.status === "New").length;
-
-  const vip = customers.filter((c: any) => c.segment === "VIP").length;
-  const atRisk = customers.filter((c: any) => c.segment === "At Risk").length;
-  const newCust = customers.filter((c: any) => c.segment === "New").length;
-  const regular = customers.filter((c: any) => c.segment === "Regular").length;
-
-  const winbackRevenue = winback.reduce((s: number, r: any) => s + (Number(r.revenue) ?? 0), 0);
-  const winbackActive = winback.filter((r: any) => r.is_active).length;
-
-  const lowStock = stock.filter((s: any) =>
-    Number(s.on_hand ?? 0) <= Number(s.par_level ?? 0),
-  );
-
-  const avgRating = reviews.length > 0
-    ? (reviews.reduce((s: number, r: any) => s + (r.rating ?? 0), 0) / reviews.length).toFixed(1)
-    : "—";
-  const pendingReviews = reviews.filter((r: any) => r.status === "pending").length;
-
-  return `
-=== BUSINESS SNAPSHOT (live data — ${new Date().toLocaleString("en-AU")}) ===
-
-Business: ${biz?.name ?? "Unknown"} (${biz?.type ?? "—"})
-Storefront: ${biz?.subdomain ? `https://${biz.subdomain}.zentrabite.com` : "not set"}
-
-TODAY:
-- Orders: ${todayOrders.length} (${newStatus} new awaiting action)
-- Revenue: $${todayRev.toFixed(2)}
-- Direct vs aggregator: ${directOrders} direct / ${todayOrders.length - directOrders} aggregator
-
-LAST 7 DAYS:
-- Orders: ${weekOrders.length}
-- Revenue: $${weekRev.toFixed(2)}
-
-CUSTOMERS (${customers.length} total):
-- VIP: ${vip}
-- Regular: ${regular}
-- New: ${newCust}
-- At Risk: ${atRisk}
-
-WIN-BACK ENGINE:
-- Active rules: ${winbackActive} / ${winback.length} total
-- Lifetime recovered revenue: $${winbackRevenue.toFixed(2)}
-
-REVIEWS (last 30 days):
-- Total: ${reviews.length}
-- Avg rating: ${avgRating}
-- Pending replies: ${pendingReviews}
-
-LOW STOCK (≤ par level): ${lowStock.length > 0
-    ? lowStock.map((s: any) => `${s.name} (${s.on_hand}/${s.par_level})`).join(", ")
-    : "none"}
-
-OPEN AI RECOMMENDATIONS: ${recs.length > 0
-    ? recs.map((r: any) => `[${r.priority}] ${r.title}`).join(" · ")
-    : "none"}
-=== END SNAPSHOT ===
-`.trim();
+  return buildSnapshot({
+    business: biz,
+    todayOrders: todayOrders.data ?? [],
+    weekOrders: weekOrders.data ?? [],
+    customers: customers.data ?? [],
+    winback: winback.data ?? [],
+    recommendations: recs.data ?? [],
+    stock: stock.data ?? [],
+    reviews: reviews.data ?? [],
+  }, now, tz);
 }
 
 export async function POST(req: Request) {
   // ── Auth ──────────────────────────────────────────────────────────────────
-  const supabase = await createSessionClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  // The shop comes from the login, so team members and staff using a shop's
+  // CRM through Super Admin get their shop too (it used to read the owner's
+  // row only, so a team member got "No business linked").
+  const auth = await requireBusiness(null);
+  if (!auth.ok) return auth.response;
+  const { businessId } = auth;
 
-  if (!user) {
+  const { data: biz } = await createAdminClient()
+    .from("businesses")
+    .select("name, type, subdomain, settings")
+    .eq("id", businessId)
+    .maybeSingle();
+  if (!biz) {
     return new Response(
-      JSON.stringify({ error: "Not authenticated." }),
-      { status: 401, headers: { "Content-Type": "application/json" } },
+      JSON.stringify({ error: "Business not found." }),
+      { status: 404, headers: { "Content-Type": "application/json" } },
     );
   }
 
-  const { data: userRow } = await supabase
-    .from("users")
-    .select("business_id")
-    .eq("id", user.id)
-    .single();
-
-  const businessId = userRow?.business_id as string | undefined;
-  if (!businessId) {
+  // The same rule as the AI Copilot page in the menu (Settings → Permissions).
+  const overrides = (biz.settings as { role_permissions?: Record<string, string[]> } | null)?.role_permissions ?? null;
+  if (!canAccess("/copilot", auth.role, overrides, auth.isSuperAdmin)) {
     return new Response(
-      JSON.stringify({ error: "No business linked to this user." }),
+      JSON.stringify({ error: "Your role can't use the AI Copilot." }),
       { status: 403, headers: { "Content-Type": "application/json" } },
     );
   }
@@ -247,13 +169,11 @@ export async function POST(req: Request) {
   // ── Build snapshot + system prompt ───────────────────────────────────────
   let snapshot = "";
   try {
-    snapshot = await buildBusinessContext(businessId);
+    snapshot = await buildBusinessContext(businessId, biz as Business);
   } catch (err) {
     console.error("[copilot] Failed to build context:", err);
     snapshot = "=== BUSINESS SNAPSHOT ===\nUnable to load data snapshot.\n=== END ===";
   }
-
-  const fullSystem = `${COPILOT_SYSTEM_PROMPT}\n\n${snapshot}`;
 
   // ── Stream ────────────────────────────────────────────────────────────────
   const client = new Anthropic({ apiKey });
