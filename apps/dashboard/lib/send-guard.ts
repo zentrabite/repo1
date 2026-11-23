@@ -10,8 +10,11 @@
 //     a rule is broken. It runs at the start of each win-back run and after
 //     every bad outcome, so a bad send pauses itself while it's still going.
 //   • activePause() is checked before every marketing send. A pause with no
-//     shop (business_id null) stops every shop. Nothing here ever stops a
-//     must_reach or account message.
+//     shop (business_id null) stops every shop. That's a kill switch, set by
+//     a super admin (setKillSwitch). Only a kill switch with scope "all" on
+//     texts stops must_reach texts too (everyTextStopped, checked inside
+//     sendTwilioSms). Nothing here stops a must_reach or account email.
+//   • A new pause and every kill switch change tell the team (lib/alerts.ts).
 //
 // send_pauses is server only (migration 028). Super admins resume a pause at
 // /admin/sending, owners see it on the Win-Back page.
@@ -30,9 +33,11 @@ export type Pause = {
   detail: { count?: number; sent?: number; rate?: number } | null;
   paused_at: string;
   paused_by: string;
+  /** "marketing", or "all" for a kill switch that stops every text (029). */
+  scope?: "marketing" | "all";
 };
 
-const PAUSE_COLUMNS = "id, business_id, channel, reason, detail, paused_at, paused_by";
+const PAUSE_COLUMNS = "id, business_id, channel, reason, detail, paused_at, paused_by, scope";
 
 /** The pause stopping this shop's marketing on a channel right now, or null. */
 export async function activePause(db: Db, businessId: string, channel: Channel): Promise<Pause | null> {
@@ -106,7 +111,56 @@ export async function checkStopRules(db: Db, businessId: string, channel: Channe
   console.warn(`[stop rules] paused ${channel} marketing for ${businessId}: ${broke.reason} ${broke.count}/${broke.sent}`);
   // Another request may have paused it a moment ago (one open pause per shop and channel).
   if (error || !saved) return (await activePause(db, businessId, channel)) ?? { id: "new", ...pause, paused_at: now.toISOString() } as Pause;
+  await tellTeamAboutPause(db, saved as Pause);
   return saved as Pause;
+}
+
+async function tellTeamAboutPause(db: Db, p: Pause): Promise<void> {
+  try {
+    const [{ alertTeam }, { channelLabel, describePause }] = await Promise.all([import("@/lib/alerts"), import("@/lib/stop-rules")]);
+    const { data: shop } = await db.from("businesses").select("name").eq("id", p.business_id).maybeSingle();
+    const name = (shop as { name?: string } | null)?.name ?? "A shop";
+    await alertTeam(`${channelLabel(p.channel)} paused for ${name}`, [
+      `${channelLabel(p.channel)} are paused for ${name} by a stop rule.`,
+      describePause(p.channel, p.reason, p.detail),
+      "Order messages still go. Look at it and resume it in Super Admin, Sending.",
+    ]);
+  } catch { /* telling the team never stops the pause */ }
+}
+
+/** True while a kill switch stops every text for every shop, order texts too. */
+export async function everyTextStopped(db: Db): Promise<boolean> {
+  const { data, error } = await db
+    .from("send_pauses")
+    .select("id, business_id, scope")
+    .eq("channel", "sms")
+    .eq("scope", "all")
+    .is("cleared_at", null);
+  if (error) return false; // order texts must reach, so a failed check lets them go
+  return ((data ?? []) as { business_id: string | null; scope?: string }[]).some(p => p.business_id === null && p.scope === "all");
+}
+
+/**
+ * Turns a kill switch on for every shop. scope "marketing" stops every shop's
+ * marketing on the channel. "all" (texts only) stops every text. If one is
+ * already on for the channel, its scope is changed.
+ */
+export async function setKillSwitch(db: Db, channel: Channel, scope: "marketing" | "all", by: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (scope === "all" && channel !== "sms") return { ok: false, error: "Only texts can be stopped completely. Emails stop marketing only." };
+  const open = (await activePauses(db)).find(p => p.business_id === null && p.channel === channel);
+  const result = open
+    ? await db.from("send_pauses").update({ scope, paused_by: by }).eq("id", open.id)
+    : await db.from("send_pauses").insert({ business_id: null, channel, scope, reason: "manual", detail: {}, paused_by: by });
+  if (result.error) return { ok: false, error: "Couldn't turn it on. Try again." };
+  try {
+    const { alertTeam } = await import("@/lib/alerts");
+    const what = channel === "email" ? "Marketing emails" : scope === "all" ? "Every text" : "Marketing texts";
+    await alertTeam(`Kill switch on: ${what} stopped for every shop`, [
+      `${what} stopped for every shop by ${by}.${scope === "all" ? " That includes order texts and the owners' order alerts." : " Order messages still go."}`,
+      "Turn it off in Super Admin, Sending.",
+    ]);
+  } catch { /* the switch is on either way */ }
+  return { ok: true };
 }
 
 type LogRow = { id: string; business_id: string; channel: string; kind: string | null; customer_id: string | null; outcome: string | null };

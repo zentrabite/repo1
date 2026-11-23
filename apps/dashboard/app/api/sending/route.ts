@@ -18,8 +18,10 @@ export async function GET() {
   return NextResponse.json({
     pauses: pauses.map(p => ({
       channel:  p.channel,
-      label:    channelLabel(p.channel),
+      label:    p.scope === "all" ? "All texts" : channelLabel(p.channel),
       everyShop: p.business_id === null,
+      // An "every text" kill switch stops order texts too.
+      allTexts: p.scope === "all",
       reason:   p.business_id === null ? "Paused for every shop by the ZentraBite team." : describePause(p.channel, p.reason, p.detail),
       since:    p.paused_at,
     })),

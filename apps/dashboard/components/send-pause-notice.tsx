@@ -7,7 +7,7 @@
 
 import { useEffect, useState } from "react";
 
-type Pause = { channel: "sms" | "email"; label: string; everyShop: boolean; reason: string; since: string };
+type Pause = { channel: "sms" | "email"; label: string; everyShop: boolean; allTexts?: boolean; reason: string; since: string };
 
 export default function SendPauseNotice() {
   const [pauses, setPauses] = useState<Pause[]>([]);
@@ -31,7 +31,9 @@ export default function SendPauseNotice() {
         </div>
       ))}
       <div style={{ fontSize: 12, color: "#6B7C93", lineHeight: 1.55 }}>
-        Nothing is sent until the ZentraBite team has looked at it and turned them back on. Receipts and texts about orders still go.
+        {pauses.some(p => p.allTexts)
+          ? "Nothing is sent until the ZentraBite team turns them back on. That includes texts about orders, so call customers if you need to. Receipt emails still go."
+          : "Nothing is sent until the ZentraBite team has looked at it and turned them back on. Receipts and texts about orders still go."}
       </div>
     </div>
   );

@@ -25,7 +25,7 @@ import { createAdminClient } from "@/lib/supabase-server";
 import { MANAGER_ROLES, requireBusiness } from "@/lib/request-business";
 import { checkSmsAllowance, phoneVariants, sendTwilioSms, smsBody } from "@/lib/sms";
 import { checkCustomerText } from "@/lib/message-kinds";
-import { activePause } from "@/lib/send-guard";
+import { activePause, everyTextStopped } from "@/lib/send-guard";
 import { describePause } from "@/lib/stop-rules";
 import { inQuietHours, QUIET_HOURS_TEXT } from "@/lib/sms-text";
 import { readOrderingRules } from "@/lib/pickup-times";
@@ -86,6 +86,10 @@ export async function POST(req: Request) {
       last_order_date:  customer.last_order_date,
     });
     if (!check.ok) return NextResponse.json({ error: check.reason }, { status: 409 });
+
+    if (await everyTextStopped(db)) {
+      return NextResponse.json({ error: "Every text is stopped by the ZentraBite team right now. Try again later, or call the customer." }, { status: 409 });
+    }
 
     if (kind === "marketing") {
       const settings = (business?.settings ?? null) as Record<string, unknown> | null;
