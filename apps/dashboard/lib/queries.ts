@@ -11,6 +11,7 @@ import type {
   WinbackRule, AiCallProfile, RosterShift, AiRecommendation,
 } from "./database.types";
 import { netTotal } from "./refunds";
+import { DEFAULT_TIMEZONE, shopDayKey } from "./pickup-times";
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────
 
@@ -377,12 +378,13 @@ export async function getRepeatRate(businessId: string, days = 30) {
 }
 
 // Revenue, bucketed per day, for the last N days (for the trend chart).
-export async function getRevenueByDay(businessId: string, days = 14) {
+// What the shop kept (less refunds), on the shop's own days.
+export async function getRevenueByDay(businessId: string, days = 14, timezone = DEFAULT_TIMEZONE) {
   const from = new Date();
   from.setDate(from.getDate() - days);
   const { data, error } = await supabase
     .from("orders")
-    .select("total, created_at")
+    .select("total, refunded_amount, created_at")
     .eq("business_id", businessId)
     .gte("created_at", from.toISOString());
   if (error) throw error;
@@ -391,11 +393,11 @@ export async function getRevenueByDay(businessId: string, days = 14) {
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
-    buckets.set(d.toISOString().split("T")[0], 0);
+    buckets.set(shopDayKey(d, timezone), 0);
   }
   for (const row of data ?? []) {
-    const day = new Date((row as any).created_at).toISOString().split("T")[0];
-    buckets.set(day, (buckets.get(day) ?? 0) + Number((row as any).total ?? 0));
+    const day = shopDayKey(new Date((row as any).created_at), timezone);
+    if (buckets.has(day)) buckets.set(day, Math.round(((buckets.get(day) ?? 0) + netTotal(row as any)) * 100) / 100);
   }
   return Array.from(buckets.entries()).map(([date, revenue]) => ({ date, revenue }));
 }
@@ -406,15 +408,16 @@ export async function getRevenueByChannel(businessId: string, days = 30) {
   from.setDate(from.getDate() - days);
   const { data, error } = await supabase
     .from("orders")
-    .select("total, source")
+    .select("total, refunded_amount, source")
     .eq("business_id", businessId)
     .gte("created_at", from.toISOString());
   if (error) throw error;
 
+  // What the shop kept, less refunds.
   const map = new Map<string, number>();
   for (const r of data ?? []) {
     const ch = (r as any).source || "direct";
-    map.set(ch, (map.get(ch) ?? 0) + Number((r as any).total ?? 0));
+    map.set(ch, Math.round(((map.get(ch) ?? 0) + netTotal(r as any)) * 100) / 100);
   }
   return Array.from(map.entries())
     .map(([channel, revenue]) => ({ channel, revenue }))

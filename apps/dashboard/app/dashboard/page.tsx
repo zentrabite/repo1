@@ -12,6 +12,7 @@ import {
   getRevenueByDay, getRevenueByChannel, getTopCustomer,
   getTopWinbacks, getRecommendations, dismissRecommendation,
 } from "@/lib/queries";
+import { shopTimezone } from "@/lib/pickup-times";
 import type { Order, AiRecommendation } from "@/lib/database.types";
 import { Icon } from "@/components/zb-icon";
 
@@ -33,6 +34,7 @@ const KANBAN = [
 export default function DashboardPage() {
   const { toast, show } = useToast();
   const { businessId, business } = useBusiness();
+  const tz = shopTimezone(business);
 
   const [stats, setStats] = useState<Stats | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -52,7 +54,7 @@ export default function DashboardPage() {
       getOrders(businessId),
       getRecoveredRevenue(businessId, 30),
       getRepeatRate(businessId, 30),
-      getRevenueByDay(businessId, 14),
+      getRevenueByDay(businessId, 14, tz),
       getRevenueByChannel(businessId, 30),
       getTopCustomer(businessId),
       getTopWinbacks(businessId, 3),
@@ -74,7 +76,7 @@ export default function DashboardPage() {
         console.error(e);
         setLoading(false);
       });
-  }, [businessId]);
+  }, [businessId, tz]);
 
   // 14-day revenue chart
   const chart14 = useMemo(() => {

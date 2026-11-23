@@ -63,7 +63,7 @@ apps/dashboard        Production merchant CRM (Supabase-backed)
 apps/storefront       Tenant storefront build. Not deployed, the live ordering pages are in apps/dashboard
 packages/*-config     Shared eslint and TypeScript settings
 supabase/migrations   001 → 031 schema
-supabase/functions    Edge functions (nightly-analytics, birthday-loyalty; win-back, quick-api and hyper-responder are switched-off stubs)
+supabase/functions    Edge functions (nightly-analytics with its sums in totals.ts, birthday-loyalty; win-back, quick-api and hyper-responder are switched-off stubs)
 docs/context          System logic + architecture (start here)
 docs/reference        UI/visual reference
 ```

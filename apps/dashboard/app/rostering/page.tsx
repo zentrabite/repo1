@@ -6,6 +6,7 @@ import Toast from "@/components/toast";
 import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
 import { getShifts, createShift, updateShift, deleteShift, getRevenueByDay } from "@/lib/queries";
+import { shopTimezone } from "@/lib/pickup-times";
 import type { RosterShift } from "@/lib/database.types";
 
 const C = { g:"#00AD82", o:"#FF6B35", am:"#F59E0B", st:"#6B7C93", r:"#DC3545", be:"#63B3FF" };
@@ -43,7 +44,8 @@ const BLANK_FORM = {
 
 export default function RosteringPage() {
   const { toast, show } = useToast();
-  const { businessId } = useBusiness();
+  const { businessId, business } = useBusiness();
+  const tz = shopTimezone(business);
 
   const [weekStart, setWeekStart] = useState<Date>(() => startOfWeek(new Date()));
   const [shifts, setShifts] = useState<RosterShift[]>([]);
@@ -59,11 +61,11 @@ export default function RosteringPage() {
     setLoading(true);
     Promise.all([
       getShifts(businessId, weekStart.toISOString(), weekEnd.toISOString()),
-      getRevenueByDay(businessId, 28),    // 4 weeks of history for smart suggestions
+      getRevenueByDay(businessId, 28, tz),    // 4 weeks of history for smart suggestions
     ])
       .then(([s, rd]) => { setShifts(s); setRevByDay(rd); setLoading(false); })
       .catch(e => { console.error(e); setLoading(false); });
-  }, [businessId, weekStart, weekEnd]);
+  }, [businessId, weekStart, weekEnd, tz]);
 
   const shiftsByDay = useMemo(() => {
     const map = new Map<string, RosterShift[]>();
