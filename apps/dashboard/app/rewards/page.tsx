@@ -4,6 +4,8 @@
 // Earn → unlock → redeem model.
 // Removed "pay with points" (was UX noise) — points now redeem for catalogue
 // items (free coffee, $10 voucher, free main, etc.), not as checkout currency.
+// Staff swap them on the customer's page (Customers), and owners and managers
+// can undo a swap here (/api/rewards/redeem, migration 031).
 
 import { useState, useEffect, useMemo } from "react";
 import Badge from "@/components/badge";
@@ -33,7 +35,7 @@ function tierOf(pts: number): "Gold" | "Silver" | "Bronze" {
 
 type Customer = { id:string; name:string; email:string|null; pts:number; tier:"Gold"|"Silver"|"Bronze" };
 type CatalogueItem = { id:string; name:string; description?:string|null; points_cost:number; category?:string|null; is_active:boolean };
-type Redemption = { id:string; redeemed_at:string; points_spent:number; customers?:{name:string}|null; rewards_catalogue?:{name:string; points_cost:number}|null };
+type Redemption = { id:string; redeemed_at:string; created_at?:string; points_spent:number; status?:string; customers?:{name:string}|null; rewards_catalogue?:{name:string; points_cost:number}|null };
 
 const BLANK_ITEM: Omit<CatalogueItem,"id"|"is_active"> = { name:"", description:"", points_cost:100, category:"" };
 
@@ -62,7 +64,9 @@ function TierBar({ pts }: { pts: number }) {
 
 export default function RewardsPage() {
   const { toast, show } = useToast();
-  const { businessId } = useBusiness();
+  const { businessId, role, isSuperAdmin } = useBusiness();
+  const canUndo = isSuperAdmin || role === "Owner" || role === "Manager";
+  const [undoing, setUndoing] = useState<string | null>(null);
 
   const [customers,    setCustomers]    = useState<Customer[]>([]);
   const [catalogue,    setCatalogue]    = useState<CatalogueItem[]>([]);
@@ -123,6 +127,23 @@ export default function RewardsPage() {
     finally { setSaving(false); }
   };
 
+  // Undo a swap made by mistake. The points go back. Second tap to confirm.
+  const undoRedemption = async (r: Redemption) => {
+    if (undoing !== r.id) { setUndoing(r.id); return; }
+    try {
+      const res = await fetch("/api/rewards/redeem", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ businessId, redemptionId: r.id }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { show(data.error ?? "Couldn't undo it. Try again."); return; }
+      setRedemptions(prev => prev.map(x => (x.id === r.id ? { ...x, status: "cancelled" } : x)));
+      show(`Undone. ${data.points} points went back.`);
+    } catch { show("Network error. Try again."); }
+    finally { setUndoing(null); }
+  };
+
   const handleDelete = async (item: CatalogueItem) => {
     try {
       await deleteCatalogueItem(item.id);
@@ -169,7 +190,7 @@ export default function RewardsPage() {
           { label:"Total Members",     value:customers.length,           color:"#fff" },
           { label:"Points In Circulation", value:totalPts.toLocaleString(), color:C.am },
           { label:"Catalogue Items",   value:catalogue.filter(c=>c.is_active).length, color:C.g },
-          { label:"Redemptions",       value:redemptions.length,         color:C.o },
+          { label:"Redemptions",       value:redemptions.filter(r => r.status !== "cancelled").length, color:C.o },
         ].map(s => (
           <div key={s.label} className="gc" style={{ padding:"14px 16px" }}>
             <div style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:22, color:s.color }}>{s.value}</div>
@@ -181,9 +202,9 @@ export default function RewardsPage() {
       {/* ── Tier ladder ── */}
       <div className="zb-stack" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10, marginBottom:14 }}>
         {[
-          { icon:"tier" as const, accent:"#C28D5C", label:"Bronze", count:bronzeCount, range:"0–299 pts",   perk:"5% off every order",         bg:"rgba(205,127,50,.06)",  bd:"rgba(205,127,50,.18)", col:"#CD7F32" },
-          { icon:"tier" as const, accent:"#C0C7D1", label:"Silver", count:silverCount, range:"300–999 pts", perk:"10% off + free delivery",    bg:"rgba(192,192,192,.06)", bd:"rgba(192,192,192,.18)",col:"#C0C0C0" },
-          { icon:"tier" as const, accent:"#F5B83D", label:"Gold",   count:goldCount,   range:"1,000+ pts",  perk:"15% off + priority service", bg:"rgba(245,158,11,.06)",  bd:"rgba(245,158,11,.18)", col:C.am },
+          { icon:"tier" as const, accent:"#C28D5C", label:"Bronze", count:bronzeCount, range:"0–299 pts",   bg:"rgba(205,127,50,.06)",  bd:"rgba(205,127,50,.18)", col:"#CD7F32" },
+          { icon:"tier" as const, accent:"#C0C7D1", label:"Silver", count:silverCount, range:"300–999 pts", bg:"rgba(192,192,192,.06)", bd:"rgba(192,192,192,.18)",col:"#C0C0C0" },
+          { icon:"tier" as const, accent:"#F5B83D", label:"Gold",   count:goldCount,   range:"1,000+ pts",  bg:"rgba(245,158,11,.06)",  bd:"rgba(245,158,11,.18)", col:C.am },
         ].map((t, i) => (
           <div key={i} className="gc" style={{ padding:"14px 16px", background:t.bg, borderColor:t.bd }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:6 }}>
@@ -192,22 +213,24 @@ export default function RewardsPage() {
             </div>
             <div style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:14, color:t.col, marginBottom:2 }}>{t.label}</div>
             <div style={{ fontSize:10, color:C.st }}>{t.range}</div>
-            <div style={{ fontSize:11, color:t.col, marginTop:4, opacity:.85 }}>{t.perk}</div>
           </div>
         ))}
       </div>
 
-      {/* ── Earn rules strip ── */}
+      {/* ── How points work ── */}
+      {/* Only what actually happens. The database adds 10 points a dollar on
+          every order with a customer (migration 005) and takes them back on a
+          refund (021). Staff swap points on the customer's page (031). Tiers
+          are labels by points now and give no discount on their own. Review,
+          referral, streak and channel bonuses were shown here before but
+          nothing gave them. */}
       <div className="gc" style={{ padding:"12px 16px", marginBottom:14 }}>
-        <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:8 }}>Earn Rules</div>
+        <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:8 }}>How points work</div>
         <div style={{ display:"flex", gap:0, flexWrap:"wrap" }}>
           {[
-            { trigger:"Per $1 spent", points:"10 pts", icon:"storefront" as const },
-            { trigger:"Leave a review", points:"50 pts", icon:"reviews" as const },
-            { trigger:"Refer a friend", points:"200 pts", icon:"referral" as const },
-            { trigger:"Birthday order", points:"200 pts", icon:"birthday" as const },
-            { trigger:"Direct order", points:"×1.2 multiplier", icon:"smartphone" as const },
-            { trigger:"5-order streak", points:"100 bonus pts", icon:"streak" as const },
+            { trigger:"Every $1 spent", points:"10 points", icon:"storefront" as const },
+            { trigger:"An order refunded", points:"Its points come off", icon:"return" as const },
+            { trigger:"Swap for a reward", points:"On the customer's page", icon:"customers" as const },
           ].map((r, i, arr) => (
             <div key={i} style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 16px 6px 0", borderRight: i<arr.length-1 ? "1px solid rgba(255,255,255,.06)" : "none", marginRight: i<arr.length-1 ? 16 : 0 }}>
               <Icon name={r.icon} size={16} />
@@ -218,6 +241,7 @@ export default function RewardsPage() {
             </div>
           ))}
         </div>
+        <div style={{ fontSize:11, color:C.st, marginTop:6 }}>{"Tiers show how many points someone has. They don't give a discount on their own."}</div>
       </div>
 
       {/* ── Tabs ── */}
@@ -303,19 +327,29 @@ export default function RewardsPage() {
         <div className="gc" style={{ overflow:"hidden" }}>
           <table className="zb-table">
             <thead>
-              <tr>{["Customer","Reward","Points Spent","Date"].map(h => <th key={h}>{h}</th>)}</tr>
+              <tr>{["Customer","Reward","Points Spent","Date",""].map((h, i) => <th key={i}>{h}</th>)}</tr>
             </thead>
             <tbody>
               {redemptions.length === 0 ? (
                 <tr className="empty-row">
-                  <td colSpan={4}>{loading ? "Loading…" : "No redemptions yet"}</td>
+                  <td colSpan={5}>{loading ? "Loading…" : "No redemptions yet. Swap a customer's points on their page in Customers."}</td>
                 </tr>
               ) : redemptions.map((r, i) => (
                 <tr key={i}>
                   <td data-primary style={{ fontWeight:600, color:"#fff", fontSize:13 }}>{(r.customers as any)?.name ?? "—"}</td>
                   <td data-label="Reward" data-wide style={{ fontSize:13, color:C.cl }}>{(r.rewards_catalogue as any)?.name ?? "—"}</td>
                   <td data-label="Points spent" style={{ fontWeight:700, color:C.am, fontSize:13 }}>{r.points_spent.toLocaleString()} pts</td>
-                  <td data-label="Date" style={{ fontSize:12, color:C.st }}>{new Date(r.redeemed_at).toLocaleDateString()}</td>
+                  <td data-label="Date" style={{ fontSize:12, color:C.st }}>{new Date(r.redeemed_at ?? r.created_at ?? "").toLocaleDateString()}</td>
+                  <td data-label="" style={{ textAlign:"right" }}>
+                    {r.status === "cancelled" ? (
+                      <span style={{ fontSize:12, color:C.st }}>Undone</span>
+                    ) : canUndo && r.status === "redeemed" ? (
+                      <button className="bg-btn" style={{ minHeight:44, color: undoing === r.id ? C.o : undefined }} onClick={() => undoRedemption(r)}
+                        aria-label={undoing === r.id ? "Tap again to undo and give the points back" : "Undo this swap"}>
+                        {undoing === r.id ? "Tap again to undo" : "Undo"}
+                      </button>
+                    ) : null}
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -7,7 +7,7 @@ import Modal from "@/components/modal";
 import CustomerImport from "@/components/customer-import";
 import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
-import { getCustomers, getCustomerOrders, createCustomer } from "@/lib/queries";
+import { getCustomers, getCustomerOrders, createCustomer, getRewardsCatalogue } from "@/lib/queries";
 import type { Customer, Order } from "@/lib/database.types";
 import { Icon } from "@/components/zb-icon";
 import { checkCustomerText } from "@/lib/message-kinds";
@@ -46,6 +46,12 @@ export default function CustomersPage() {
   // About their order (must_reach) or an offer or news (marketing). lib/message-kinds.ts
   const [smsKind,    setSmsKind]    = useState<"must_reach" | "marketing">("must_reach");
   const [aiCalling,  setAiCalling]  = useState(false);
+  // Swapping points for a reward at the counter (/api/rewards/redeem, migration 031).
+  type Reward = { id: string; name: string; points_cost: number; is_active: boolean };
+  const [swapOpen,   setSwapOpen]   = useState(false);
+  const [rewards,    setRewards]    = useState<Reward[] | null>(null);
+  const [swapPick,   setSwapPick]   = useState<string | null>(null);
+  const [swapping,   setSwapping]   = useState(false);
 
   useEffect(() => {
     if (!businessId) return;
@@ -119,6 +125,37 @@ export default function CustomersPage() {
     }
   };
 
+  const openSwap = async () => {
+    setSwapPick(null);
+    setSwapOpen(true);
+    if (!businessId) return;
+    try {
+      const all = (await getRewardsCatalogue(businessId)) as Reward[];
+      setRewards(all.filter(r => r.is_active !== false).sort((a, b) => a.points_cost - b.points_cost));
+    } catch { setRewards([]); }
+  };
+
+  const swapPoints = async () => {
+    const reward = rewards?.find(r => r.id === swapPick);
+    if (!selected || !reward) return;
+    setSwapping(true);
+    try {
+      const res = await fetch("/api/rewards/redeem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ businessId, customerId: selected.id, rewardId: reward.id }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { show(data.error ?? "Couldn't swap the points. Try again."); return; }
+      const left = Number(data.balance ?? 0);
+      setSelected(c => (c ? { ...c, points_balance: left } : c));
+      setCustomers(list => list.map(c => (c.id === selected.id ? { ...c, points_balance: left } : c)));
+      setSwapOpen(false);
+      show(`Done. Give ${selected.name} the ${reward.name}. ${left} points left.`);
+    } catch { show("Network error. Try again."); }
+    finally { setSwapping(false); }
+  };
+
   const startAiCall = async () => {
     if (!businessId || !selected) return;
     if (!selected.phone) return show("No phone number on file");
@@ -159,6 +196,7 @@ export default function CustomersPage() {
             {selected.phone && <div style={{ display:"flex", alignItems:"center", gap:6 }}><Icon name="smartphone" size={16} />{selected.phone}</div>}
             <div style={{ display:"flex", alignItems:"center", gap:6 }}><Icon name="loyalty" size={16} />{selected.points_balance} points</div>
           </div>
+          <button className="bg-btn" style={{ width:"100%", justifyContent:"center", minHeight:44, marginBottom:12 }} onClick={openSwap}>Swap points for a reward</button>
           <div style={{ borderTop:"1px solid rgba(255,255,255,.06)", paddingTop:12 }}>
             {[["Orders",selected.total_orders],["Lifetime Value",`$${selected.total_spent}`]].map(([l,v]) => (
               <div key={String(l)} style={{ display:"flex", justifyContent:"space-between", marginBottom:6, fontSize:13 }}>
@@ -223,6 +261,36 @@ export default function CustomersPage() {
         <div style={{ display:"flex", gap:6, justifyContent:"flex-end" }}>
           <button className="bg-btn" onClick={() => setSmsOpen(false)}>Cancel</button>
           <button className="bp" onClick={sendSms} disabled={smsSending || !selected.phone || !smsCheck?.ok}>{smsSending ? "Sending…" : "Send SMS"}</button>
+        </div>
+      </Modal>
+      <Modal open={swapOpen} onClose={() => setSwapOpen(false)} title={`Swap ${selected.name}'s points`}>
+        <div style={{ fontSize:13, color:C.st, marginBottom:12 }}>
+          {selected.name} has <span style={{ color:"#fff", fontWeight:600 }}>{selected.points_balance ?? 0} points</span>. Pick a reward, swap, then give it to them.
+        </div>
+        {rewards === null ? (
+          <div style={{ fontSize:13, color:C.st, padding:"12px 0" }}>Loading rewards…</div>
+        ) : rewards.length === 0 ? (
+          <div style={{ fontSize:13, color:C.st, padding:"12px 0" }}>No rewards yet. The owner adds them on the Rewards page.</div>
+        ) : (
+          <div role="radiogroup" aria-label="Reward" style={{ display:"flex", flexDirection:"column", gap:6, marginBottom:14 }}>
+            {rewards.map(r => {
+              const short = r.points_cost - Number(selected.points_balance ?? 0);
+              return (
+                <button key={r.id} type="button" role="radio" aria-checked={swapPick === r.id} disabled={short > 0}
+                  className={`bg-btn ${swapPick === r.id ? "on" : ""}`} onClick={() => setSwapPick(r.id)}
+                  style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:10, minHeight:44, textAlign:"left", opacity: short > 0 ? .5 : 1 }}>
+                  <span style={{ color:"#fff" }}>{r.name}</span>
+                  <span style={{ fontSize:12, color: short > 0 ? C.st : C.am, flexShrink:0 }}>{short > 0 ? `Needs ${short} more` : `${r.points_cost} points`}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+        <div style={{ display:"flex", justifyContent:"flex-end", gap:8 }}>
+          <button className="bg-btn" onClick={() => setSwapOpen(false)}>Cancel</button>
+          <button className="bp" onClick={swapPoints} disabled={!swapPick || swapping}>
+            {swapping ? "Swapping…" : swapPick ? `Swap ${rewards?.find(r => r.id === swapPick)?.points_cost ?? ""} points` : "Swap points"}
+          </button>
         </div>
       </Modal>
       <Toast message={toast.message} visible={toast.visible} />

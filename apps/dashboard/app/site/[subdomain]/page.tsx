@@ -197,7 +197,7 @@ export default async function RestaurantSite({ params }: Props) {
           <div className="zs-in">
             <p className="zs-kicker" style={{ color: "inherit", opacity: 0.8 }}>Rewards</p>
             <h2 className="zs-disp">Earn points every time you order here</h2>
-            <p>Order with your phone number and points are added automatically. Swap them for rewards from {site.name}.</p>
+            <p>Order with your phone number and points are added automatically. Ask at the counter to swap them for rewards from {site.name}.</p>
             <div className="zs-pts"><span>{site.rewards.rate} points per $1</span></div>
             {site.hasMenu && site.takingOrders && <a className="zs-btn zs-inv" href={orderHref}>Start an order</a>}
           </div>

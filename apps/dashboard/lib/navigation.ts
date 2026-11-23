@@ -20,7 +20,7 @@ export const navigation: NavItem[] = [
   { label: "Drivers",     href: "/drivers",     icon: iconComponent("drivers"),     description: "Manage your in-house delivery drivers" },
   { label: "Reviews",     href: "/reviews",     icon: iconComponent("reviews"),     description: "Monitor and respond to customer reviews" },
   { label: "Customers",   href: "/customers",   icon: iconComponent("customers"),   description: "CRM database with lifecycle tracking" },
-  { label: "Rewards",     href: "/rewards",     icon: iconComponent("rewards"),     description: "Points, tiers, pay-with-points" },
+  { label: "Rewards",     href: "/rewards",     icon: iconComponent("rewards"),     description: "Points, tiers and rewards" },
   { label: "Win-Back",       href: "/zentra-rewards", icon: iconComponent("return"),      description: "Retention rules for lapsed customers" },
   { label: "Automations", href: "/automations", icon: iconComponent("automations"), description: "Triggers, rules & attribution" },
   { label: "Analytics",   href: "/analytics",   icon: iconComponent("analytics"),   description: "Top items, retention, channel mix" },

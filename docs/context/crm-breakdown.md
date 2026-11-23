@@ -151,13 +151,15 @@ Buttons are disabled when no phone number is on file.
 
 ## 9. Rewards — `/rewards`
 
-**What it does.** Points & tiers (Bronze 0–299 / Silver 300–999 / Gold 1000+), points table per customer, CSV export, earn-rules card, pay-with-points UI.
+**What it does.** Points & tiers (Bronze 0–299 / Silver 300–999 / Gold 1000+), a points table per customer with CSV export, the rewards a shop offers (Catalogue), and the swaps made (Redemptions).
 
-**How it works.** Reads `customers.points_balance`. Tier is a pure function in `tierOf()` on the page (not a shared lib). The Export button now produces a real CSV blob with id, name, email, points, cash_value (pts/100), tier.
+**How points work (checked 23 Nov 2026).** The database adds 10 points a dollar to the customer on every order with a customer (`on_order_update_customer`, migration 005) and takes them back on a refund (021). The nightly birthday job adds birthday points to customers with a saved birthday, and nothing in the CRM saves one yet. That's all. The "How points work" card shows only these. Before 23 Nov it showed review, referral, streak and channel bonuses and tier discounts that nothing gave, and `lib/loyalty.ts` (an unused engine with its own rates) was deleted. Tiers are labels by current points and give no discount.
+
+**Spending points, since migration 031.** Staff swap a customer's points for a reward on the customer's page in Customers ("Swap points for a reward"), through `POST /api/rewards/redeem` (anyone on the team). It calls `redeem_reward()`, which takes the points only if they're there, records `reward_redemptions` (status `redeemed`) and a `loyalty_events` row (`redeem`, minus the points), all in one step. Owners and managers undo a swap from the Redemptions tab (`DELETE`, `undo_redemption()`, status `cancelled`, points back). Both functions are server only. Customers can't spend points online yet, because nothing proves who's typing a phone number until texts work. The shop's website says to ask at the counter.
 
 **To finalise.**
-- Decide your points-per-dollar rate and tier cut-offs. Edit `tierOf()` on the page. The POS currently awards `pts = total × 10`; adjust in `app/pos/page.tsx → placeOrder`.
-- Build the redemption catalogue (free coffee at 500 pts etc.) under `business.settings.rewards.catalogue`. The "pay with points" toggle doesn't do anything server-side yet.
+- A points rate each shop can set. Change the order trigger (005) and the refund trigger (021) together, and the website's rate (`lib/site.ts`).
+- Spending points online, once a text code can prove who the customer is.
 - If you want points to decay, add a scheduled function that docks inactive customers.
 
 ---
