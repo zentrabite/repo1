@@ -60,7 +60,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     alternates: { canonical: siteUrl(site.subdomain) },
     robots: site.published ? undefined : { index: false, follow: false },
     icons: site.logoUrl ? { icon: site.logoUrl, apple: site.logoUrl } : undefined,
-    openGraph: { title, description, url: siteUrl(site.subdomain), siteName: site.name, images: site.photos[0] ? [{ url: site.photos[0].url }] : undefined, type: "website" },
+    openGraph: { title, description, url: siteUrl(site.subdomain), siteName: site.name, images: site.photos[0] ? [{ url: new URL(site.photos[0].url, siteUrl(site.subdomain)).toString() }] : undefined, type: "website" },
   };
 }
 
