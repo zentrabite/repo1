@@ -8,7 +8,10 @@
 // yesterday, in each shop's own time zone, so a refund made after the day
 // comes off that day. The sums are in totals.ts, which the CRM's tests check.
 // One run a day (edge_function_runs, migration 017), so a repeat call with
-// the public key does nothing.
+// the public key does nothing. A run that finishes also writes
+// "nightly-analytics-done", which Super Admin's Daily jobs light reads, so a
+// night that fails shows there. Before v3 every save failed (the live table
+// had no unique key until migration 032) and nothing said so.
 //
 // Deploy with totals.ts beside it.
 // ═══════════════════════════════════════════════════════════════════════════
@@ -82,6 +85,7 @@ serve(async () => {
       processed++;
     }
 
+    await db.from("edge_function_runs").insert({ function_name: "nightly-analytics-done", run_date: now.toISOString().slice(0, 10) });
     return new Response(JSON.stringify({ success: true, processed, days: WINDOW_DAYS }), {
       status: 200, headers: { "Content-Type": "application/json" },
     });

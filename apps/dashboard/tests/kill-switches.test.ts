@@ -182,7 +182,7 @@ describe("connection lights", () => {
     vi.stubEnv("TWILIO_PHONE_NUMBER", "+61400000000");
     vi.stubEnv("RESEND_API_KEY", "re_SECRET5");
     vi.stubEnv("ANTHROPIC_API_KEY", "sk-ant-SECRET6");
-    store([{ function_name: "automations-run", run_date: "2026-11-22" }, { function_name: "birthday-loyalty", run_date: "2026-11-23" }]);
+    store([{ function_name: "automations-run", run_date: "2026-11-22" }, { function_name: "birthday-loyalty", run_date: "2026-11-23" }, { function_name: "nightly-analytics-done", run_date: "2026-11-23" }]);
     reply({ "api.twilio.com": [200, { status: "active", type: "Trial" }], "api.resend.com": [200, { data: [{ name: "zentrabite.com", status: "pending" }] }], "api.anthropic.com": [401, {}] });
     const lights = await checkConnections(h.db);
     const l = byKey(lights);
@@ -190,7 +190,7 @@ describe("connection lights", () => {
     expect(l.twilio).toMatchObject({ status: "warn", detail: expect.stringContaining("Trial account") });
     expect(l.resend).toMatchObject({ status: "warn", detail: expect.stringContaining("No verified domain") });
     expect(l.anthropic).toMatchObject({ status: "down", detail: "Anthropic rejected the key." });
-    expect(l.jobs).toMatchObject({ status: "ok", detail: "Win-back run ran yesterday. Birthday points ran today." });
+    expect(l.jobs).toMatchObject({ status: "ok", detail: "Win-back run ran yesterday. Birthday points ran today. Analytics ran today." });
     expect(JSON.stringify(lights)).not.toMatch(/SECRET\d/); // none of the key values above
   });
 

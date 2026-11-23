@@ -5,6 +5,7 @@
 // orders, so Financials charged them a made-up 30% app fee.
 
 import { describe, expect, it } from "vitest";
+import { migratedDb } from "./migrated-db";
 import { dailyTotals, shopDate, windowDays } from "../../../supabase/functions/nightly-analytics/totals";
 
 const TZ = "Australia/Adelaide"; // UTC+10:30 in November
@@ -66,4 +67,19 @@ describe("a day's sums", () => {
     const [sat] = dailyTotals(days, TZ, [order(0.1, "2026-11-21T03:00:00Z"), order(0.2, "2026-11-21T03:00:00Z"), { total: "19.95", refunded_amount: "4.95", source: "direct", created_at: "2026-11-21T03:00:00Z" }], [], []);
     expect(sat!.total_revenue).toBe(15.3);
   });
+});
+
+describe("the table (032)", () => {
+  it("keeps one row per shop per day, so the nightly save can update it", async () => {
+    const { db } = await migratedDb();
+    const shop = "aaaaaaaa-0000-4000-8000-00000000000a";
+    await db.exec(`insert into businesses (id, name, subdomain) values ('${shop}', 'Shop A', 'shop-a')`);
+    for (const revenue of [10, 25]) {
+      await db.query(`insert into analytics_daily (business_id, date, total_revenue) values ($1, '2026-11-21', $2)
+        on conflict (business_id, date) do update set total_revenue = excluded.total_revenue`, [shop, revenue]);
+    }
+    const rows = (await db.query<{ total_revenue: string }>(`select total_revenue from analytics_daily where business_id = $1`, [shop])).rows;
+    expect(rows.map(r => Number(r.total_revenue))).toEqual([25]);
+    await db.close();
+  }, 60_000);
 });

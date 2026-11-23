@@ -127,7 +127,7 @@ function counting(): Light {
 /** The daily jobs, from the run log (edge_function_runs). Older than 2 days is a warning. */
 async function jobs(db: Db, now: Date): Promise<Light> {
   const name = "Daily jobs";
-  const watched: Record<string, string> = { "automations-run": "Win-back run", "birthday-loyalty": "Birthday points" };
+  const watched: Record<string, string> = { "automations-run": "Win-back run", "birthday-loyalty": "Birthday points", "nightly-analytics-done": "Analytics" };
   try {
     const { data, error } = await within(db.from("edge_function_runs").select("function_name, run_date").in("function_name", Object.keys(watched)).order("run_date", { ascending: false }).limit(50) as Promise<{ data: unknown; error: unknown }>);
     if (error) return { key: "jobs", name, status: "down", detail: "Couldn't read the run log." };
