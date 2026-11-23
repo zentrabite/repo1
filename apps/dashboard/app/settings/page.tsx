@@ -2,14 +2,14 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Toast from "@/components/toast";
 import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
 import { supabase } from "@/lib/supabase";
 import { navigation } from "@/lib/navigation";
-import { DEFAULT_ROLE_PERMISSIONS, NAV_HREFS } from "@/lib/permissions";
+import { ALL_ROLES, DEFAULT_ROLE_PERMISSIONS, NAV_HREFS } from "@/lib/permissions";
 import { orderUrl } from "@/lib/tenant";
 import { saveSettings } from "@/lib/queries";
 import { DEFAULT_PREP_MINUTES, DEFAULT_TIMEZONE, type DayHours, breakProblem, readOrderingRules } from "@/lib/pickup-times";
@@ -88,7 +88,7 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
 function SettingsContent() {
   const { toast, show } = useToast();
   const searchParams = useSearchParams();
-  const { businessId, business, email } = useBusiness();
+  const { businessId, business, role: myRole, isSuperAdmin } = useBusiness();
 
   // ── Local state ──────────────────────────────────────────────────────────
   const [profile, setProfile] = useState({
@@ -145,14 +145,49 @@ function SettingsContent() {
   // The customer-facing ordering page at name.zentrabite.com/order
   const storefrontUrl = profile.subdomain ? orderUrl(profile.subdomain) : "";
 
-  // Populate team from real auth user
-  useEffect(() => {
-    if (email) {
-      setTeam([{ email, role: "Owner" }]);
-    }
-  }, [email]);
-  const [team, setTeam] = useState<{ email:string; role:string }[]>([]);
+  // The team, from /api/team (business_members is server only since 030).
+  // Owners and managers change it. The shop's owner can't be changed here.
+  type TeamRow = { email: string; role: string; status: "owner" | "joined" | "invited"; you: boolean };
+  const [team, setTeam] = useState<TeamRow[]>([]);
+  const [teamError, setTeamError] = useState("");
   const [invite, setInvite] = useState("");
+  const [inviteRole, setInviteRole] = useState("Staff");
+  const [inviting, setInviting] = useState(false);
+  // Until Resend sends emails, the inviter passes the link on themselves.
+  const [inviteLink, setInviteLink] = useState<{ email: string; link: string } | null>(null);
+  // Remove takes a second tap.
+  const [removing, setRemoving] = useState<string | null>(null);
+  const isOwner = myRole === "Owner" || isSuperAdmin;
+  const canManageTeam = isOwner || myRole === "Manager";
+  const roleChoices = isOwner ? ALL_ROLES : ALL_ROLES.filter(r => r !== "Owner");
+  const canChangeMember = (m: TeamRow) => canManageTeam && m.status !== "owner" && !m.you && (isOwner || m.role !== "Owner");
+
+  const loadTeam = useCallback(async () => {
+    if (!businessId) return;
+    try {
+      const res = await fetch(`/api/team?businessId=${encodeURIComponent(businessId)}`);
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) { setTeam(data.team ?? []); setTeamError(""); }
+      else setTeamError(data.error ?? "Couldn't load the team.");
+    } catch { setTeamError("Couldn't load the team. Check your connection."); }
+  }, [businessId]);
+  useEffect(() => { void loadTeam(); }, [loadTeam]);
+
+  const changeMember = async (memberEmail: string, change: { role: string } | "remove") => {
+    try {
+      const res = await fetch("/api/team", {
+        method: change === "remove" ? "DELETE" : "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ businessId, email: memberEmail, ...(change === "remove" ? {} : change) }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { show(data.error ?? "Couldn't change the team. Try again."); return; }
+      show(change === "remove" ? `${memberEmail} removed. They lose the shop straight away.` : `${memberEmail} is now ${change.role}`);
+      if (inviteLink?.email === memberEmail && change === "remove") setInviteLink(null);
+      await loadTeam();
+    } catch { show("Network error. Try again."); }
+    finally { if (change === "remove") setRemoving(null); }
+  };
   const [stripeConnected, setStripeConnected] = useState(false);
   // Granular Stripe Connect onboarding state — drives the copy on the Stripe card.
   const [stripeCharges, setStripeCharges]   = useState(false); // can accept payments
@@ -275,7 +310,7 @@ function SettingsContent() {
       const res = await fetch("/api/stripe/checkout", {
         method:"POST",
         headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ business_id: businessId, email: email ?? team[0]?.email ?? "" }),
+        body: JSON.stringify({ business_id: businessId }), // the email comes from the login
       });
       const data = await res.json();
       if (data.url) {
@@ -291,42 +326,31 @@ function SettingsContent() {
   };
 
   const addMember = async () => {
-    const target = invite.trim();
+    const target = invite.trim().toLowerCase();
     if (!target) return show("Enter an email address first");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(target)) return show("That doesn't look like a valid email");
-
-    // Optimistic UI — add the row immediately, roll back on failure
-    setTeam(t => [...t, { email: target, role: "Staff" }]);
-    setInvite("");
-    show("Sending invite…");
-
+    setInviting(true);
     try {
       const res = await fetch("/api/team/invite", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email:        target,
-          businessId:   businessId,
-          role:         "Staff",
-          businessName: profile.name || business?.name || "your team",
-        }),
+        body: JSON.stringify({ email: target, businessId, role: inviteRole }),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setTeam(t => t.filter(m => m.email !== target));
-        show(`Couldn't send invite: ${data.error ?? "unknown error"}`);
-        return;
-      }
-      if (data.skipped) {
-        show("Invite recorded — set up RESEND_API_KEY to send emails");
-      } else if (data.delivered) {
-        show(`Invite sent to ${target} ✓`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { show(data.error ?? "Couldn't send the invite. Try again."); return; }
+      setInvite("");
+      if (data.delivered) {
+        setInviteLink(null);
+        show(`Invite sent to ${target}`);
       } else {
-        show("Invite recorded — email delivery failed");
+        setInviteLink(data.actionLink ? { email: target, link: data.actionLink } : null);
+        show("Invite saved. Email isn't set up yet, so send them the link below.");
       }
+      await loadTeam();
     } catch {
-      setTeam(t => t.filter(m => m.email !== target));
       show("Network error sending invite");
+    } finally {
+      setInviting(false);
     }
   };
 
@@ -1085,31 +1109,73 @@ function SettingsContent() {
           {/* Team */}
           <div className="gc" style={{ padding:24 }}>
             <SectionTitle>Team</SectionTitle>
-            {team.map((m, i) => (
-              <div key={i} className="zb-break" style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"10px 0", borderBottom:`1px solid ${C.mist}`, fontSize:13, fontFamily:"var(--font-inter)" }}>
-                <span style={{ color:C.cl }}>{m.email}</span>
-                <span style={{
-                  padding:"3px 10px", borderRadius:999, fontSize:11, fontWeight:600,
-                  fontFamily:"var(--font-outfit)",
-                  background: m.role==="Owner" ? "rgba(0,173,130,.12)" : "rgba(107,124,147,.14)",
-                  color: m.role==="Owner" ? C.g : C.st,
-                }}>
-                  {m.role}
-                </span>
+            <div style={{ fontFamily:"var(--font-inter)", fontSize:12, color:C.st, marginTop:-10, marginBottom:8, lineHeight:1.5 }}>
+              Managers run the shop except Financials. Staff see orders, the menu, stock, customers and rostering. POS sees the till and orders. Change what each role sees under Permissions.
+            </div>
+            {teamError && <div style={{ fontSize:13, color:C.o, fontFamily:"var(--font-inter)", padding:"8px 0" }}>{teamError}</div>}
+            {team.map(m => (
+              <div key={m.email} className="zb-break" style={{ display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:10, padding:"10px 0", borderBottom:`1px solid ${C.mist}`, fontSize:13, fontFamily:"var(--font-inter)" }}>
+                <div style={{ minWidth:0, flex:"1 1 220px" }}>
+                  <div style={{ color:C.cl, overflowWrap:"anywhere" }}>{m.email}{m.you ? " (you)" : ""}</div>
+                  <div style={{ color:C.st, fontSize:12, marginTop:2 }}>
+                    {m.status === "owner" ? "The shop's owner" : m.status === "joined" ? "Joined" : "Hasn't opened the invite yet"}
+                  </div>
+                </div>
+                <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
+                  {canChangeMember(m) ? (
+                    <>
+                      <select aria-label={`Role for ${m.email}`} value={m.role} onChange={e => changeMember(m.email, { role: e.target.value })} style={{ minHeight:44 }}>
+                        {(roleChoices.includes(m.role) ? roleChoices : [m.role, ...roleChoices]).map(r => <option key={r} value={r}>{r}</option>)}
+                      </select>
+                      <button className="bg-btn" style={{ minHeight:44, color: removing === m.email ? C.o : undefined }}
+                        aria-label={removing === m.email ? `Tap again to remove ${m.email}` : `Remove ${m.email}`}
+                        onClick={() => (removing === m.email ? changeMember(m.email, "remove") : setRemoving(m.email))}>
+                        {removing === m.email ? "Tap again to remove" : "Remove"}
+                      </button>
+                    </>
+                  ) : (
+                    <span style={{
+                      padding:"3px 10px", borderRadius:999, fontSize:11, fontWeight:600,
+                      fontFamily:"var(--font-outfit)",
+                      background: m.role==="Owner" ? "rgba(0,173,130,.12)" : "rgba(107,124,147,.14)",
+                      color: m.role==="Owner" ? C.g : C.st,
+                    }}>
+                      {m.role}
+                    </span>
+                  )}
+                </div>
               </div>
             ))}
-            <div style={{ display:"flex", gap:8, marginTop:14 }}>
-              <input
-                value={invite}
-                onChange={e => setInvite(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && addMember()}
-                placeholder="teammate@email.com"
-                style={{ flex:1 }}
-              />
-              <button className="bp" style={{ flexShrink:0, padding:"11px 18px" }} onClick={addMember}>
-                Invite
-              </button>
-            </div>
+            {canManageTeam && (
+              <div style={{ display:"flex", gap:8, marginTop:14, flexWrap:"wrap" }}>
+                <input
+                  value={invite}
+                  onChange={e => setInvite(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && !inviting && addMember()}
+                  placeholder="teammate@email.com"
+                  type="email"
+                  aria-label="Teammate's email"
+                  style={{ flex:"1 1 220px", minWidth:0 }}
+                />
+                <select aria-label="Their role" value={inviteRole} onChange={e => setInviteRole(e.target.value)} style={{ minHeight:44 }}>
+                  {roleChoices.map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
+                <button className="bp" style={{ flexShrink:0, padding:"11px 18px" }} onClick={addMember} disabled={inviting}>
+                  {inviting ? "Inviting…" : "Invite"}
+                </button>
+              </div>
+            )}
+            {inviteLink && (
+              <div style={{ marginTop:14, padding:14, borderRadius:10, background:"rgba(0,173,130,.06)", border:"1px solid rgba(0,173,130,.2)", fontFamily:"var(--font-inter)", fontSize:13, color:C.cl }}>
+                <div style={{ marginBottom:8, lineHeight:1.5 }}>
+                  Email isn&apos;t set up yet, so send {inviteLink.email} this link yourself. It logs them in to your shop, so only send it to them.
+                </div>
+                <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                  <input readOnly value={inviteLink.link} aria-label="Their invite link" onFocus={e => e.currentTarget.select()} style={{ flex:"1 1 220px", minWidth:0 }} />
+                  <button className="bg-btn" style={{ minHeight:44 }} onClick={() => { void navigator.clipboard?.writeText(inviteLink.link).then(() => show("Link copied"), () => show("Couldn't copy. Select the link and copy it.")); }}>Copy</button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Permissions */}

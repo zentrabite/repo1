@@ -11,6 +11,11 @@
 //
 // A new table with a business_id is tested automatically. A new table
 // without row level security fails the test.
+//
+// Team members (030) are logins with no shop of their own and a row in
+// business_members. They reach the shop they joined once the invite link is
+// opened, and nothing before, after being removed, or by signing up with an
+// invited email.
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { migratedDb, type MigratedDb } from "./migrated-db";
@@ -20,9 +25,16 @@ const SHOP_B = "bbbbbbbb-0000-4000-8000-00000000000b";
 const OWNER_A = "aaaaaaaa-1111-4000-8000-00000000000a";
 const OWNER_B = "bbbbbbbb-1111-4000-8000-00000000000b";
 const SELLER = "cccccccc-1111-4000-8000-00000000000c";
+// Shop A's team (030).
+const STAFF_A   = "aaaaaaaa-2222-4000-8000-000000000001"; // invited, opened the link
+const MANAGER_A = "aaaaaaaa-2222-4000-8000-000000000002"; // invited, opened the link
+const PENDING_A = "aaaaaaaa-2222-4000-8000-000000000003"; // invited, hasn't opened it
+const SQUAT_A   = "aaaaaaaa-2222-4000-8000-000000000004"; // signed up with an invited email, never invited
+const GONE_A    = "aaaaaaaa-2222-4000-8000-000000000005"; // opened it, then removed
 
 // Tables only the server reads or writes. Their owners can't read them either.
-const SERVER_ONLY = new Set(["offer_codes", "stripe_setup_links", "import_runs", "edge_function_runs", "enquiries", "send_pauses"]);
+// business_members since 030: the team is listed and changed through /api/team.
+const SERVER_ONLY = new Set(["offer_codes", "stripe_setup_links", "import_runs", "edge_function_runs", "enquiries", "send_pauses", "business_members"]);
 
 // Columns that point at another row of the same shop, so seeding fills them in.
 const PARENT: Record<string, Record<string, string>> = {
@@ -98,6 +110,23 @@ beforeAll(async () => {
       await m.db.exec(`insert into ${t} (${need.map(c => c.c).join(", ")}) values (${need.map(c => value(c, shop)).join(", ")})`);
     }
   }
+
+  // Shop A's team. Added after the seeding, so every shop table still has one row per shop.
+  await m.db.exec(`
+    insert into auth.users (id, email, invited_at, email_confirmed_at) values
+      ('${STAFF_A}',   'Mia@Example.com', now(), now()),
+      ('${MANAGER_A}', 'max@example.com', now(), now()),
+      ('${PENDING_A}', 'pia@example.com', now(), null),
+      ('${SQUAT_A}',   'sam@example.com', null,  now()),
+      ('${GONE_A}',    'gus@example.com', now(), now());
+    insert into business_members (business_id, email, role, status) values
+      ('${SHOP_A}', 'mia@example.com', 'Staff',   'invited'),
+      ('${SHOP_A}', 'max@example.com', 'Manager', 'invited'),
+      ('${SHOP_A}', 'pia@example.com', 'Staff',   'invited'),
+      ('${SHOP_A}', 'sam@example.com', 'Manager', 'invited'),
+      ('${SHOP_A}', 'gus@example.com', 'Manager', 'removed'),
+      ('${SHOP_A}', 'a@example.com',   'Staff',   'invited');
+  `);
 }, 60_000);
 
 afterAll(async () => { await m?.db.close(); });
@@ -220,6 +249,91 @@ describe("a shop owner", () => {
       expect(r, String(r)).toMatch(REFUSED);
     });
     expect(await count(`select count(*) n from sms_logs where business_id = $1`, [SHOP_A])).toBe(1);
+  });
+});
+
+describe("a team member (030)", () => {
+  const one = async (sql: string) => (await rows(sql))[0] as Record<string, unknown>;
+
+  it("who opened their invite works in that shop, in every table the owner can", async () => {
+    for (const [who, role] of [[STAFF_A, "Staff"], [MANAGER_A, "Manager"]] as const) {
+      await m.asUser(who, async () => {
+        expect(await one(`select get_my_business_id() b, get_my_role() r`)).toEqual({ b: SHOP_A, r: role });
+        for (const t of shopTables) {
+          const n = await count(`select count(*) n from ${t} where business_id = $1`, [SHOP_A]).catch(() => 0);
+          expect(n, `${role} ${t}`).toBe(SERVER_ONLY.has(t) ? 0 : 1);
+        }
+        expect(await count(`select count(*) n from businesses`)).toBe(1);
+      });
+    }
+  });
+
+  it("can't read, change or add to another shop", async () => {
+    const copy = (await rows(`select row_to_json(x) j from customers x where business_id = $1`, [SHOP_B]))[0]?.j as Record<string, unknown>;
+    await m.asUser(STAFF_A, async () => {
+      for (const t of shopTables) {
+        expect(await count(`select count(*) n from ${t} where business_id = $1`, [SHOP_B]).catch(() => 0), t).toBe(0);
+        const moved = await attempt(`update ${t} set business_id = $1 where business_id = $2`, [SHOP_B, SHOP_A]);
+        expect(moved === 0 || REFUSED.test(String(moved)), `${t} move: ${moved}`).toBe(true);
+        const deleted = await attempt(`delete from ${t} where business_id = $1`, [SHOP_B]);
+        expect(deleted === 0 || REFUSED.test(String(deleted)), `${t} delete: ${deleted}`).toBe(true);
+      }
+      const added = await attempt(`insert into customers select * from json_populate_record(null::customers, $1::json)`, [JSON.stringify({ ...copy, id: crypto.randomUUID() })]);
+      expect(REFUSED.test(String(added)), String(added)).toBe(true);
+    });
+    for (const t of shopTables) expect(await count(`select count(*) n from ${t} where business_id = $1`, [SHOP_B]), t).toBe(1);
+  });
+
+  it("gets nothing before opening the invite, after being removed, or by signing up with an invited email", async () => {
+    for (const who of [PENDING_A, SQUAT_A, GONE_A]) {
+      await m.asUser(who, async () => {
+        expect(await one(`select get_my_business_id() b, get_my_role() r`), who).toEqual({ b: null, r: null });
+        expect(await count(`select count(*) n from businesses`), who).toBe(0);
+        expect(await count(`select count(*) n from customers`), who).toBe(0);
+        expect(await count(`select count(*) n from roster_shifts`), who).toBe(0);
+      });
+    }
+  });
+
+  it("can't see or change the team, so nobody gives themselves a better role", async () => {
+    await m.asUser(STAFF_A, async () => {
+      expect(await count(`select count(*) n from business_members`).catch(() => 0)).toBe(0);
+      for (const sql of [
+        `update business_members set role = 'Owner' where email = 'mia@example.com'`,
+        `insert into business_members (business_id, email, role) values ('${SHOP_A}', 'friend@example.com', 'Owner')`,
+        `delete from business_members where email = 'max@example.com'`,
+      ]) {
+        const r = await attempt(sql);
+        expect(r === 0 || REFUSED.test(String(r)), `${sql}: ${r}`).toBe(true);
+      }
+      expect(await one(`select get_my_role() r`)).toEqual({ r: "Staff" });
+    });
+    await m.asUser(OWNER_A, async () => {
+      const r = await attempt(`update business_members set role = 'Owner' where email = 'mia@example.com'`);
+      expect(r === 0 || REFUSED.test(String(r)), String(r)).toBe(true);
+    });
+    expect(await count(`select count(*) n from business_members where business_id = $1`, [SHOP_A])).toBe(7);
+    expect((await rows(`select role from business_members where email = 'mia@example.com'`))[0]?.role).toBe("Staff");
+  });
+
+  it("only owners and managers change the shop's own settings", async () => {
+    const tried = async (who: string) => m.asUser(who, () => attempt(`update businesses set name = 'Renamed' where id = $1`, [SHOP_A]));
+    expect(await tried(STAFF_A)).toBe(0);
+    expect((await rows(`select name from businesses where id = $1`, [SHOP_A]))[0]?.name).toBe("Shop A");
+    expect(await tried(MANAGER_A)).toBe(1);
+    expect(await tried(OWNER_A)).toBe(1);
+    await m.db.query(`update businesses set name = 'Shop A' where id = $1`, [SHOP_A]);
+  });
+
+  it("an owner stays the owner, even if their email was invited to their own team", async () => {
+    await m.asUser(OWNER_A, async () => {
+      expect(await one(`select get_my_business_id() b, get_my_role() r`)).toEqual({ b: SHOP_A, r: "Owner" });
+    });
+  });
+
+  it("no rule reads users.business_id on its own any more", async () => {
+    const left = await rows(`select tablename, policyname from pg_policies where schemaname = 'public' and (coalesce(qual, '') ~ 'FROM users' or coalesce(with_check, '') ~ 'FROM users')`);
+    expect(left).toEqual([]);
   });
 });
 

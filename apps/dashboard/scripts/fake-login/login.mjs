@@ -10,10 +10,10 @@ const { chromium } = load("playwright");
 
 const dir = new URL(".", import.meta.url).pathname;
 
-/** The session cookie @supabase/ssr reads. as: "owner" (also a super admin) or "seller". */
+/** The session cookie @supabase/ssr reads. as: "owner" (also a super admin), "seller" or "staff" (Mia, a team member). */
 export function sessionCookie(as = "owner") {
   const fx = JSON.parse(readFileSync(dir + "fixtures.json", "utf8"));
-  const user = as === "seller" ? fx.seller : fx.user;
+  const user = as === "seller" ? fx.seller : as === "staff" ? fx.staff : fx.user;
   const session = {
     access_token: `fake-${user.id}`,
     token_type: "bearer",

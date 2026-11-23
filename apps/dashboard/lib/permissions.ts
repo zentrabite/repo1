@@ -63,3 +63,29 @@ export function canAccess(
   const allowed = resolvePermissions(role, overrides, isSuperAdmin);
   return allowed.includes(href);
 }
+
+/**
+ * The page a role can't open at this path, or null. A team member who types
+ * an address the sidebar hides for their role gets a notice instead of the
+ * page (DashboardShell). Paths outside the menu aren't checked here.
+ */
+export function blockedPage(
+  pathname: string,
+  role: string | null | undefined,
+  overrides: Record<string, string[]> | null | undefined,
+  isSuperAdmin = false,
+): string | null {
+  const page = NAV_HREFS.find(h => pathname === h || pathname.startsWith(h + "/"));
+  if (!page) return null;
+  return resolvePermissions(role, overrides, isSuperAdmin).includes(page) ? null : page;
+}
+
+/** The first page in the menu this role can open, for the notice's link. */
+export function firstAllowedPage(
+  role: string | null | undefined,
+  overrides: Record<string, string[]> | null | undefined,
+  isSuperAdmin = false,
+): string | null {
+  const allowed = resolvePermissions(role, overrides, isSuperAdmin);
+  return NAV_HREFS.find(h => allowed.includes(h)) ?? null;
+}

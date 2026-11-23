@@ -105,8 +105,10 @@ export async function requireBusiness(
   if (email && emailConfirmed && createdByInvite) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: memberships } = await (admin.from("business_members") as any)
-      .select("business_id, role, status")
-      .in("email", [...new Set([email, user.email!])]);
+      .select("business_id, role, status, created_at")
+      .in("email", [...new Set([email, user.email!])])
+      // Oldest first, the same pick the database makes in get_my_business_id() (030).
+      .order("created_at", { ascending: true });
     for (const m of (memberships ?? []) as { business_id: string; role: string | null; status: string | null }[]) {
       if (m.status === "removed" || m.status === "revoked") continue;
       if (!roles.has(m.business_id)) roles.set(m.business_id, m.role ?? "Staff");

@@ -3,11 +3,13 @@
 //
 // Behaviour:
 //   1. Verifies the caller is signed in (Supabase session cookie).
-//   2. Generates a Supabase auth "invite" link via the admin API (service role).
-//      Supabase handles the email itself IF you've configured SMTP, but in
-//      practice most teams haven't — so we ALSO send a pretty email via Resend
-//      that includes the signup link. Customer gets one invite either way.
-//   3. Records the invite locally so Settings can show it as "Invited".
+//   2. Refuses an email that can't join this shop's team (lib/team.ts).
+//   3. Generates a Supabase auth "invite" link via the admin API (service role),
+//      or a "magiclink" for someone invited before. We send it with Resend.
+//      Until Resend's domain is verified the email doesn't go, and Settings
+//      shows the link so the inviter can pass it on.
+//   4. Records the membership (business_members), which is what lets the
+//      login reach the shop once the link is opened (030).
 //
 // ENV required:
 //   SUPABASE_SERVICE_ROLE_KEY  — to call admin.generateLink
@@ -19,6 +21,7 @@ import { createAdminClient, createSessionClient } from "@/lib/supabase-server";
 import { sendEmail } from "@/lib/email";
 import { requireBusiness } from "@/lib/request-business";
 import { ALL_ROLES } from "@/lib/permissions";
+import { findMember, inviteProblem, teamChangeProblem } from "@/lib/team";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -69,45 +72,50 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Only an owner can add another owner" }, { status: 403 });
     }
 
+    // One shop per login, and nobody already on the team is changed by a
+    // second invite that a role change wouldn't allow (lib/team.ts).
+    const problem = await inviteProblem(admin, businessId, email, inviter.email ?? auth.email);
+    if (problem) return NextResponse.json({ error: problem }, { status: 409 });
+    const existing = await findMember(admin, businessId, email);
+    if (existing) {
+      const notAllowed = teamChangeProblem({ role: inviterRole, email: inviter.email ?? auth.email }, existing, role);
+      if (notAllowed) return NextResponse.json({ error: notAllowed }, { status: 403 });
+    }
+
     // Business name comes from the database so the email can't be spoofed.
     const { data: biz } = await admin.from("businesses").select("name").eq("id", businessId).single();
     const businessName = biz?.name ?? "your team";
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://dashboard.zentrabite.com";
 
-    // Generate the Supabase magic-link / invite URL (no email sent by Supabase
-    // unless SMTP configured — we handle delivery ourselves).
+    // The link they use to set a password and log in. A first link is an
+    // "invite", which is what lets the login join a team (invited_at, see
+    // lib/team.ts). Someone invited before (a link not opened yet, or a member
+    // who was removed and is coming back) already has that login, so they get
+    // a "magiclink" instead, the same as lib/owner-invite.ts.
+    let actionLink: string | null = null;
+    for (const type of ["invite", "magiclink"] as const) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: linkData, error: linkErr } = await (admin.auth as any).admin.generateLink({
+        type,
+        email,
+        options: { redirectTo: `${appUrl}/login` },
+      });
+      if (!linkErr && linkData?.properties?.action_link) { actionLink = linkData.properties.action_link as string; break; }
+      if (linkErr) console.warn(`[team/invite] generateLink (${type}):`, linkErr.message);
+    }
+    if (!actionLink) return NextResponse.json({ error: "Couldn't make their login link. Try again." }, { status: 500 });
+
+    // The membership. Without it the login reaches nothing.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: linkData, error: linkErr } = await (admin.auth as any).admin.generateLink({
-      type:     "invite",
+    const { error: memberErr } = await (admin.from("business_members") as any).upsert({
+      business_id: businessId,
       email,
-      options:  { redirectTo: `${appUrl}/login` },
-    });
-
-    // If Supabase can't mint a link (e.g. user already exists) we still send
-    // a "come join us" email with a plain login URL — don't hard-fail.
-    const actionLink: string = linkData?.properties?.action_link ?? `${appUrl}/login`;
-
-    if (linkErr) {
-      console.warn("[team/invite] Supabase generateLink error:", linkErr.message);
-    }
-
-    // Record in business_members if you've got that table; otherwise this is
-    // a no-op safety net for future auditing.
-    {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (admin.from("business_members") as any).upsert({
-          business_id: businessId,
-          email,
-          role,
-          invited_by:  inviter.id,
-          status:      "invited",
-        }, { onConflict: "business_id,email" });
-      } catch {
-        // business_members table may not exist yet — swallow
-      }
-    }
+      role,
+      invited_by:  inviter.id,
+      status:      "invited",
+    }, { onConflict: "business_id,email" });
+    if (memberErr) return NextResponse.json({ error: "Couldn't save the invite. Try again." }, { status: 500 });
 
     // Send the pretty email (no-op if RESEND_API_KEY missing)
     const subject = `You've been invited to ${businessName} on ZentraBite`;
@@ -186,7 +194,7 @@ function inviteHtml(input: {
           </p>
 
           <div style="margin-top:24px;padding-top:20px;border-top:1px solid #eceff4;font-size:12px;color:#6B7C93;line-height:1.6">
-            Didn't expect this invite? Just ignore this email — no account will be created.
+            Didn't expect this invite? Ignore this email. Nobody can use the invite without this link.
           </div>
         </td></tr>
       </table>
