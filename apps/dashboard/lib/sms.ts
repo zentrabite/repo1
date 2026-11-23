@@ -150,6 +150,13 @@ export async function sendTwilioSms(to: string, body: string): Promise<{ status:
     return { status: "skipped", sid: null, error: "Twilio not configured" };
   }
 
+  // A kill switch can stop every text for every shop (lib/send-guard.ts). If
+  // the check itself fails the text goes, because order texts must reach.
+  try {
+    const [{ createAdminClient }, { everyTextStopped }] = await Promise.all([import("@/lib/supabase-server"), import("@/lib/send-guard")]);
+    if (await everyTextStopped(createAdminClient())) return { status: "skipped", sid: null, error: "Every text is stopped by a kill switch" };
+  } catch { /* send */ }
+
   const params: Record<string, string> = { To: normaliseAuPhone(to), Body: body, StatusCallback: statusCallbackUrl() };
   if (messagingServiceSid) params.MessagingServiceSid = messagingServiceSid;
   else if (from) params.From = from;

@@ -53,6 +53,8 @@ import { canTextMarketing, checkSmsAllowance, sendTwilioSms, smsBody } from "@/l
 import { canSendMarketing } from "@/lib/unsubscribe";
 import { activePause, checkStopRules } from "@/lib/send-guard";
 import { inQuietHours } from "@/lib/sms-text";
+import { checkConnections } from "@/lib/health";
+import { alertTeam } from "@/lib/alerts";
 import { orderUrl } from "@/lib/tenant";
 import { issueCode, offerSubject, readOffer, WINBACK_TEMPLATE, winbackLink, winbackMessage } from "@/lib/offer-codes";
 import { readDeliveryRules } from "@/lib/own-delivery";
@@ -112,6 +114,10 @@ export async function POST(req: Request) {
 
     // The owners' monthly reports, on the 15th, from the daily run only.
     const reportsEmailed = isCron ? await sendMonthlyReports(db, m => sendEmail({ kind: "account", ...m }), now) : 0;
+
+    // The daily run notes that it ran (Super Admin, Sending shows it), and
+    // tells the team when a connection is down (lib/health.ts, lib/alerts.ts).
+    if (isCron) await dailyChecks(db, now);
 
     if (businessIds.length === 0) {
       return NextResponse.json({ message: "No businesses with active rules", sent: 0, reportsEmailed });
@@ -397,6 +403,20 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function dailyChecks(db: any, now: Date): Promise<void> {
+  try {
+    // One row a day. A second run the same day fails on the key, which is fine.
+    await db.from("edge_function_runs").insert({ function_name: "automations-run", run_date: now.toISOString().slice(0, 10) });
+    const down = (await checkConnections(db, now)).filter(l => l.status === "down");
+    if (down.length) {
+      await alertTeam(`${down.length === 1 ? `${down[0]!.name} is` : `${down.length} connections are`} down`, down.map(l => `${l.name}: ${l.detail}`));
+    }
+  } catch (err) {
+    console.error("[automations/run] daily checks:", err instanceof Error ? err.message : err);
+  }
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function logSend(db: any, l: {

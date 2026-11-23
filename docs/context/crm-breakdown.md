@@ -263,7 +263,7 @@ Buttons are disabled when no phone number is on file.
 
 ### Sending — `/admin/sending`
 
-Marketing texts and emails paused by the stop rules, with the shop, why ("4 of 120 people sent a marketing text in the last 30 days replied STOP (3%). The limit is 1%.") and a Resume button, plus the last 20 resumed. `GET` and `POST /api/admin/sending`, super admins only. `send_pauses` is server only (migration 028). A pause with no shop stops every shop.
+Connection lights for each outside service (`lib/health.ts`: database, Stripe, Twilio, Resend, Anthropic, PostHog, the daily jobs from `edge_function_runs`, and pauses), each working, limited, down or not set up, with no key shown. Three kill switches for every shop (migration 029, `send_pauses.scope`): marketing texts, every text (order texts and order alerts too, checked inside `sendTwilioSms`), and marketing emails, each needing a second tap. Who gets told: `ALERT_EMAIL` by email (`lib/alerts.ts`) when a stop rule pauses a shop, a switch changes, or the daily run finds a connection down. Then marketing texts and emails paused by the stop rules, with the shop, why ("4 of 120 people sent a marketing text in the last 30 days replied STOP (3%). The limit is 1%.") and a Resume button, plus the last 20 resumed. `GET` and `POST /api/admin/sending`, super admins only. `send_pauses` is server only (migration 028). A pause with no shop stops every shop.
 
 ### Enquiries — `/admin/enquiries`
 
