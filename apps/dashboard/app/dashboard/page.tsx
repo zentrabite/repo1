@@ -16,7 +16,7 @@ import { shopTimezone } from "@/lib/pickup-times";
 import type { Order, AiRecommendation } from "@/lib/database.types";
 import { Icon } from "@/components/zb-icon";
 
-const C = { g:"#00AD82", o:"#FF6B35", am:"#F59E0B", st:"#6B7C93", r:"#DC3545", b:"#63B3FF" };
+const C = { g:"#00AD82", o:"#FF6B35", am:"#F59E0B", st:"#8B9DB5", r:"#DC3545", b:"#63B3FF" };
 
 interface Stats {
   todayOrders: number; todayRevenue: number; directPct: number;

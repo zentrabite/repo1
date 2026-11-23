@@ -12,7 +12,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import StatCard from "@/components/stat-card";
 import type { WinbackReport } from "@/lib/winback-report";
 
-const C = { g: "#00AD82", st: "#6B7C93", cl: "#F8FAFB" };
+const C = { g: "#00AD82", st: "#8B9DB5", cl: "#F8FAFB" };
 const dollars = (n: number) => `$${n.toLocaleString("en-AU", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const pct = (n: number, of: number) => (of > 0 ? `${Math.round((n / of) * 100)}%` : "—");
 

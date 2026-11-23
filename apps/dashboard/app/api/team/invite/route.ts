@@ -177,7 +177,7 @@ function inviteHtml(input: {
     <tr><td align="center">
       <table width="520" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:14px;padding:32px 28px;box-shadow:0 1px 4px rgba(15,31,45,.06)">
         <tr><td>
-          <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#6B7C93;font-weight:600">ZentraBite</div>
+          <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#5B6B80;font-weight:600">ZentraBite</div>
           <h1 style="margin:4px 0 16px;font-size:22px;color:#0F1F2D;font-weight:600">You're invited to ${escapeHtml(businessName)}</h1>
 
           <p style="font-size:15px;line-height:1.6;color:#0F1F2D;margin:0 0 18px">
@@ -188,17 +188,17 @@ function inviteHtml(input: {
             <a href="${escapeHtml(actionLink)}" style="display:inline-block;padding:13px 26px;background:#00AD82;color:#fff;text-decoration:none;border-radius:10px;font-weight:600;font-size:14px">Accept invite →</a>
           </div>
 
-          <p style="font-size:13px;color:#6B7C93;margin:0;line-height:1.6">
+          <p style="font-size:13px;color:#5B6B80;margin:0;line-height:1.6">
             If the button doesn't work, paste this link into your browser:<br>
             <a href="${escapeHtml(actionLink)}" style="color:#00AD82;word-break:break-all">${escapeHtml(actionLink)}</a>
           </p>
 
-          <div style="margin-top:24px;padding-top:20px;border-top:1px solid #eceff4;font-size:12px;color:#6B7C93;line-height:1.6">
+          <div style="margin-top:24px;padding-top:20px;border-top:1px solid #eceff4;font-size:12px;color:#5B6B80;line-height:1.6">
             Didn't expect this invite? Ignore this email. Nobody can use the invite without this link.
           </div>
         </td></tr>
       </table>
-      <div style="margin-top:18px;font-size:11px;color:#6B7C93">Powered by ZentraBite</div>
+      <div style="margin-top:18px;font-size:11px;color:#5B6B80">Powered by ZentraBite</div>
     </td></tr>
   </table>
 </body></html>`;

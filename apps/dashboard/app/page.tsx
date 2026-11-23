@@ -54,7 +54,7 @@ export default function RootPage() {
       alignItems: "center",
       justifyContent: "center",
       fontFamily: "var(--font-inter)",
-      color: "#6B7C93",
+      color: "#8B9DB5",
       fontSize: 13,
     }}>
       <div style={{ textAlign: "center" }}>

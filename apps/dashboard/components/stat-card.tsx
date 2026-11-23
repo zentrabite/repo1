@@ -30,7 +30,7 @@ export default function StatCard({ label, value, subtitle, icon, accent, delay =
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
         <span className="zb-stat-label" style={{
           fontSize: 12,
-          color: "#6B7C93",
+          color: "#8B9DB5",
           fontFamily: "var(--font-inter)",
           fontWeight: 400,
           textTransform: "uppercase",
@@ -59,7 +59,7 @@ export default function StatCard({ label, value, subtitle, icon, accent, delay =
       {subtitle && (
         <div style={{
           fontSize: 12,
-          color: "#6B7C93",
+          color: "#8B9DB5",
           fontFamily: "var(--font-inter)",
           marginTop: 6,
         }}>

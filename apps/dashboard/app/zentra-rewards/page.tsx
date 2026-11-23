@@ -14,7 +14,7 @@ import SendPauseNotice from "@/components/send-pause-notice";
 import TextCost from "@/components/text-cost";
 import { readOffer, winbackPreview, WINBACK_TEMPLATE } from "@/lib/offer-codes";
 
-const C = { g:"#00AD82", r:"#DC3545", be:"#63B3FF", st:"#6B7C93" };
+const C = { g:"#00AD82", r:"#DC3545", be:"#63B3FF", st:"#8B9DB5" };
 
 const BLANK_FORM = {
   name: "",

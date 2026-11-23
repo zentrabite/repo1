@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, useId, Suspense, cloneElement, isValidElement } from "react";
 import { useSearchParams } from "next/navigation";
 import Toast from "@/components/toast";
 import { useToast } from "@/hooks/use-toast";
@@ -23,7 +23,7 @@ import PasswordInput from "@/components/password-input";
 import { Icon } from "@/components/zb-icon";
 import { subscriptionView } from "@/lib/subscription";
 
-const C = { g:"#00AD82", o:"#FF6B35", r:"#FF4757", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(226,232,240,.08)" };
+const C = { g:"#00AD82", o:"#FF6B35", r:"#FF4757", st:"#8B9DB5", cl:"#F8FAFB", mist:"rgba(226,232,240,.08)" };
 
 // ─── Section heading ──────────────────────────────────────────────────────────
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -35,13 +35,18 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 }
 
 // ─── Field row inside a settings card ────────────────────────────────────────
+// When the field is a single input, select or textarea, the label is tied to
+// it, so screen readers name it and tapping the label focuses it.
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  const autoId = useId();
+  const single = isValidElement<{ id?: string }>(children) && ["input", "select", "textarea"].includes(children.type as string);
+  const id = single ? (children.props.id ?? autoId) : undefined;
   return (
     <div style={{ marginBottom:14 }}>
-      <label style={{ display:"block", fontFamily:"var(--font-inter)", fontSize:12, color:C.st, marginBottom:6 }}>
+      <label htmlFor={id} style={{ display:"block", fontFamily:"var(--font-inter)", fontSize:12, color:C.st, marginBottom:6 }}>
         {label}
       </label>
-      {children}
+      {single ? cloneElement(children, { id }) : children}
     </div>
   );
 }

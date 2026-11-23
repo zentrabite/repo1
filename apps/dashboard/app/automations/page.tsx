@@ -13,7 +13,7 @@ import SendPauseNotice from "@/components/send-pause-notice";
 import TextCost from "@/components/text-cost";
 import { smsBody } from "@/lib/sms-text";
 
-const C = { g:"#00AD82", o:"#FF6B35", st:"#6B7C93" };
+const C = { g:"#00AD82", o:"#FF6B35", st:"#8B9DB5" };
 
 export default function AutomationsPage() {
   const { toast, show } = useToast();
@@ -142,6 +142,9 @@ export default function AutomationsPage() {
                     <div style={{ fontSize:9, color:C.st }}>{l}</div>
                   </div>
                 ))}
+                <button className="bg-btn" style={{ fontSize:11 }} onClick={e => { e.stopPropagation(); openEdit(c); }}>
+                  Edit
+                </button>
                 <button className="bg-btn" style={{ fontSize:11 }} onClick={e => { e.stopPropagation(); toggle(c); }}>
                   {c.active ? "Pause" : "Resume"}
                 </button>

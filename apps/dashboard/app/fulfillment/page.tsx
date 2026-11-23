@@ -28,7 +28,7 @@ import { supabase } from "@/lib/supabase";
 import { Icon, type IconName } from "@/components/zb-icon";
 import type { Order } from "@/lib/database.types";
 
-const C = { g: "#00AD82", o: "#FF6B35", r: "#DC3545", st: "#6B7C93", mist: "#E2E8F0" };
+const C = { g: "#00AD82", o: "#FF6B35", r: "#DC3545", st: "#8B9DB5", mist: "#E2E8F0" };
 
 const STAGE_LABEL: Record<FulfillmentStage, string> = {
   placed:    "Placed",
@@ -215,24 +215,24 @@ export default function FulfillmentPage() {
 
       {/* Stage stat cards — clicking filters the list */}
       <div className="zb-two" style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
-        <div onClick={() => setStageFilter("open")} style={{ cursor: "pointer" }}>
+        <button type="button" className="zb-plain" aria-pressed={stageFilter === "open"} onClick={() => setStageFilter("open")} style={{ cursor: "pointer" }}>
           <StatCard label="Open" value={String(stats.placed + stats.picked + stats.packed + stats.shipped)} icon="dot" accent />
-        </div>
-        <div onClick={() => setStageFilter("placed")} style={{ cursor: "pointer" }}>
+        </button>
+        <button type="button" className="zb-plain" aria-pressed={stageFilter === "placed"} onClick={() => setStageFilter("placed")} style={{ cursor: "pointer" }}>
           <StatCard label="To pick" value={String(stats.placed)} icon="receipt" delay={50} />
-        </div>
-        <div onClick={() => setStageFilter("picked")} style={{ cursor: "pointer" }}>
+        </button>
+        <button type="button" className="zb-plain" aria-pressed={stageFilter === "picked"} onClick={() => setStageFilter("picked")} style={{ cursor: "pointer" }}>
           <StatCard label="To pack" value={String(stats.picked)} icon="storefront" delay={100} />
-        </div>
-        <div onClick={() => setStageFilter("packed")} style={{ cursor: "pointer" }}>
+        </button>
+        <button type="button" className="zb-plain" aria-pressed={stageFilter === "packed"} onClick={() => setStageFilter("packed")} style={{ cursor: "pointer" }}>
           <StatCard label="To ship" value={String(stats.packed)} icon="package" delay={150} />
-        </div>
-        <div onClick={() => setStageFilter("shipped")} style={{ cursor: "pointer" }}>
+        </button>
+        <button type="button" className="zb-plain" aria-pressed={stageFilter === "shipped"} onClick={() => setStageFilter("shipped")} style={{ cursor: "pointer" }}>
           <StatCard label="In transit" value={String(stats.shipped)} icon="delivery" delay={200} />
-        </div>
-        <div onClick={() => setStageFilter("delivered")} style={{ cursor: "pointer" }}>
+        </button>
+        <button type="button" className="zb-plain" aria-pressed={stageFilter === "delivered"} onClick={() => setStageFilter("delivered")} style={{ cursor: "pointer" }}>
           <StatCard label="Delivered" value={String(stats.delivered)} icon="done" delay={250} />
-        </div>
+        </button>
       </div>
 
       {/* Stage scope pills */}
@@ -531,7 +531,7 @@ function LabeledInput({
 }) {
   return (
     <label style={{ display: "block" }}>
-      <div style={{ fontSize: 11, color: "#6B7C93", marginBottom: 4, fontWeight: 600 }}>{label}</div>
+      <div style={{ fontSize: 11, color: "#8B9DB5", marginBottom: 4, fontWeight: 600 }}>{label}</div>
       <input
         type="text"
         value={value}

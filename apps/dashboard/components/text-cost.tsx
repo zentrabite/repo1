@@ -13,7 +13,7 @@ export default function TextCost({ text }: { text: string }) {
   const many = c.parts > 1;
   return (
     <div style={{ fontSize: 11, lineHeight: 1.5, marginTop: 4 }}>
-      <div style={{ color: many ? "#FFC14B" : "#6B7C93" }}>{costLine(c)}</div>
+      <div style={{ color: many ? "#FFC14B" : "#8B9DB5" }}>{costLine(c)}</div>
       {c.encoding === "unicode" && (
         <div style={{ color: "#FF6B35", marginTop: 2 }}>
           {`${c.unicode.map(ch => `"${ch}"`).join(" ")} ${c.unicode.length === 1 ? "isn't a plain character" : "aren't plain characters"}, so each text fits 70 characters instead of 160. Take ${c.unicode.length === 1 ? "it" : "them"} out to send it as plain text.`}

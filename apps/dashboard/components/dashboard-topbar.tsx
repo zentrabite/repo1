@@ -5,7 +5,7 @@ import { navigation } from "@/lib/navigation";
 
 const NAVY  = "#1C2D48";
 const GREEN = "#00AD82";
-const STEEL = "#6B7C93";
+const STEEL = "#8B9DB5";
 const CLOUD = "#F8FAFB";
 const MIST  = "rgba(226,232,240,.09)";
 
@@ -100,14 +100,13 @@ export default function DashboardTopbar({ menuOpen = false, onMenu, menuButtonRe
       <div style={{ display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
         <SearchBox className="zb-search-desktop" />
 
-        {/* User avatar: ZB = Navy on Green, brand spec */}
-        <div style={{
+        {/* ZB badge, Navy on Green (brand spec). It isn't a button, so no pointer. */}
+        <div aria-hidden="true" style={{
           width: 38, height: 38, borderRadius: 10,
           background: GREEN,
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 13, fontFamily: "var(--font-outfit)", fontWeight: 800,
           color: NAVY,   // ← Navy on Green
-          cursor: "pointer",
           boxShadow: "0 2px 12px rgba(0,173,130,.3)",
         }}>
           ZB

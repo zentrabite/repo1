@@ -30,7 +30,7 @@ export default function PageHeader({ title, subtitle, action }: PageHeaderProps)
           <p style={{
             fontFamily: "var(--font-inter)",
             fontSize: 14,
-            color: "#6B7C93",
+            color: "#8B9DB5",
             marginTop: 5,
           }}>
             {subtitle}

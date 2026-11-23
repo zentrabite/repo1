@@ -16,7 +16,7 @@ type Shop = {
   gaps: Gap[]; stripeLink: { opened: boolean; expired: boolean } | null;
 };
 
-const C = { g: "#00AD82", st: "#6B7C93", cl: "#F8FAFB", r: "#FF4757", y: "#FFC14B", mist: "rgba(226,232,240,.06)" };
+const C = { g: "#00AD82", st: "#8B9DB5", cl: "#F8FAFB", r: "#FF4757", y: "#FFC14B", mist: "rgba(226,232,240,.06)" };
 const STEP_LABEL = ["", "Basics", "Hours", "Branding", "Menu", "Payments", "Delivery", "Notifications", "Website", "Team"];
 
 // What the shop is waiting for, and on whom.

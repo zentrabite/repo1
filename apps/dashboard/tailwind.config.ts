@@ -24,7 +24,7 @@ const config: Config = {
           green:      "#00AD82",   // CTAs, active, success — primary action
           orange:     "#FF6B35",   // Alerts, urgency, Uber badges — accent only
           nearBlack:  "#0F1F2D",   // Page background
-          steel:      "#6B7C93",   // Labels, secondary text, metadata
+          steel:      "#8B9DB5",   // Labels, secondary text, metadata. #6B7C93 until 23 Nov 2026, too faint on the dark cards
           cloud:      "#F8FAFB",   // Primary foreground text
           mist:       "#E2E8F0",   // Borders, dividers, input outlines
         },

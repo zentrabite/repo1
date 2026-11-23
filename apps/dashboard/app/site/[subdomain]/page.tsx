@@ -83,7 +83,8 @@ export default async function RestaurantSite({ params }: Props) {
   const orderHref = `${onOwnHost ? "/order" : `/store/${site.subdomain}`}?src=website`;
   const preview = !site.published && await canPreview(site);
 
-  const style = { "--a": site.accent, "--aT": site.accentText } as React.CSSProperties;
+  // --sa2 is the accent as small text (prices, links, labels), readable on this look's page (lib/contrast.ts).
+  const style = { "--a": site.accent, "--aT": site.accentText, "--sa2": site.accentInk } as React.CSSProperties;
   const rootClass = `zsite zs-look-${site.look} ${bricolage.variable} ${fraunces.variable}`;
   const phoneHref = site.phone ? `tel:${site.phone.replace(/[^\d+]/g, "")}` : null;
   const allergy = allergenNote(site.name, site.phone);

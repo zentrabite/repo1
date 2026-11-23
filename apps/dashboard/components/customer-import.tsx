@@ -10,7 +10,7 @@
 import { useMemo, useRef, useState } from "react";
 import { FIELD_LABEL, guessMapping, MAX_IMPORT_ROWS, parseCsv, rowsFrom, type Field, type Mapping } from "@/lib/customer-import";
 
-const C = { g: "#00AD82", st: "#6B7C93", cl: "#F8FAFB", y: "#FFC14B", r: "#FF4757", mist: "rgba(226,232,240,.09)", bg: "rgba(28,45,72,.5)" };
+const C = { g: "#00AD82", st: "#8B9DB5", cl: "#F8FAFB", y: "#FFC14B", r: "#FF4757", mist: "rgba(226,232,240,.09)", bg: "rgba(28,45,72,.5)" };
 const FIELDS: Field[] = ["name", "first", "last", "phone", "email", "consent", "last_visit"];
 const MAX_BYTES = 5_000_000;
 

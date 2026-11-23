@@ -14,7 +14,7 @@ import { Icon } from "@/components/zb-icon";
 
 type Shop = { id: string; name: string; address: string; sold_at: string; step: number; steps: number; stripe: boolean; live: boolean };
 
-const C = { g:"#00AD82", st:"#6B7C93", cl:"#F8FAFB", r:"#FF4757" };
+const C = { g:"#00AD82", st:"#8B9DB5", cl:"#F8FAFB", r:"#FF4757" };
 
 export default function SellPage() {
   // useSearchParams needs a Suspense boundary in Next 16.

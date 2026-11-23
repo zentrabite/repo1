@@ -11,7 +11,7 @@ import { useState } from "react";
 import type { Order } from "@/lib/database.types";
 import { money, refundLeft } from "@/lib/refunds";
 
-const C = { r:"#DC3545", st:"#6B7C93" };
+const C = { r:"#DC3545", st:"#8B9DB5" };
 
 export default function RefundPanel({ order, businessId, counter = false, onRefunded, onCancel }: {
   order: Order;

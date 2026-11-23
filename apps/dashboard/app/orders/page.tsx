@@ -18,12 +18,13 @@ import { docketHtml, printDocument } from "@/lib/docket";
 import { orderAlarm, setSoundPreferred, soundPreferred } from "@/lib/order-alarm";
 import { counterSale, money, netTotal, paidByStripe, refundLeft, refundedOf } from "@/lib/refunds";
 import RefundPanel from "@/components/refund-panel";
+import { rowKeys } from "@/components/use-dialog";
 
 // Only orders this recent ring. An old order nobody accepted still shows in
 // the waiting list, but doesn't ring every time the page opens.
 const RING_FOR_MS = 6 * 60 * 60_000;
 
-const C = { g:"#00AD82", o:"#FF6B35", r:"#DC3545", st:"#6B7C93" };
+const C = { g:"#00AD82", o:"#FF6B35", r:"#DC3545", st:"#8B9DB5" };
 
 // Only sources that reach the CRM. Nothing brings in delivery app orders,
 // and Menulog closed in Australia on 26 Nov 2025, so neither has a filter
@@ -337,7 +338,7 @@ export default function OrdersPage() {
                 <td colSpan={8}>{loading ? "Loading…" : "No orders yet"}</td>
               </tr>
             ) : filtered.map((o, i) => (
-              <tr key={i} onClick={() => openOrder(o)}>
+              <tr key={i} {...rowKeys(() => openOrder(o))}>
                 <td data-label="ID" style={{ fontFamily:"var(--font-mono)", fontSize:10, color:C.st }}>{o.id.slice(0,8)}…</td>
                 <td data-label="Items">
                   {Array.isArray(o.items) ? `${(o.items as any[]).length} item(s)` : "—"}

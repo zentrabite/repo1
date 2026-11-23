@@ -7,8 +7,9 @@ import Modal from "@/components/modal";
 import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
 import { getDrivers, createDriver, updateDriver, deleteDriver } from "@/lib/queries";
+import { rowKeys } from "@/components/use-dialog";
 
-const C = { g:"#00AD82", o:"#FF6B35", r:"#FF4757", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(226,232,240,.08)" };
+const C = { g:"#00AD82", o:"#FF6B35", r:"#FF4757", st:"#8B9DB5", cl:"#F8FAFB", mist:"rgba(226,232,240,.08)" };
 
 type Driver = {
   id: string;
@@ -149,7 +150,7 @@ export default function DriversPage() {
                 <td colSpan={7}>{loading ? "Loading…" : drivers.length === 0 ? "No drivers yet — add your first driver above" : "No drivers match this filter"}</td>
               </tr>
             ) : filtered.map((d, i) => (
-              <tr key={i} style={{ cursor:"pointer" }} onClick={() => openEdit(d)}>
+              <tr key={i} {...rowKeys(() => openEdit(d))}>
                 <td className="zb-hide-phone"><Av n={d.name} /></td>
                 <td data-first>
                   <div style={{ fontWeight:600, color:"#fff", fontSize:13 }}>{d.name}</div>

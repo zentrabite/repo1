@@ -11,7 +11,7 @@ import {
 } from "@/lib/queries";
 import { shopTimezone } from "@/lib/pickup-times";
 
-const C = { g:"#00AD82", o:"#FF6B35", am:"#F59E0B", be:"#63B3FF", st:"#6B7C93", r:"#DC3545" };
+const C = { g:"#00AD82", o:"#FF6B35", am:"#F59E0B", be:"#63B3FF", st:"#8B9DB5", r:"#DC3545" };
 
 const RANGES = [7, 30, 90] as const;
 

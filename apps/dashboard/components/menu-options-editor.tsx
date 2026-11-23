@@ -6,7 +6,7 @@
 
 import { MAX_CHOICES, MAX_GROUPS, newOptionId, readOptions, type OptionGroup } from "@/lib/menu-options";
 
-const C = { st: "#6B7C93", r: "#FF4757", mist: "rgba(255,255,255,.07)" };
+const C = { st: "#8B9DB5", r: "#FF4757", mist: "rgba(255,255,255,.07)" };
 
 export type DraftChoice = { id: string; name: string; price: string; available: boolean };
 export type DraftGroup  = { id: string; name: string; required: boolean; max: number; choices: DraftChoice[] };

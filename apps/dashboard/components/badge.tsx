@@ -5,13 +5,13 @@ const STYLES: Record<string, { bg: string; color: string }> = {
   VIP:              { bg: "rgba(0,173,130,.12)",    color: "#00AD82" },
   "At Risk":        { bg: "rgba(255,107,53,.12)",   color: "#FF6B35" },
   New:              { bg: "rgba(28,45,72,.8)",       color: "#E2E8F0" },
-  Regular:          { bg: "rgba(107,124,147,.15)",   color: "#6B7C93" },
+  Regular:          { bg: "rgba(107,124,147,.15)",   color: "#8B9DB5" },
   Direct:           { bg: "rgba(0,173,130,.12)",     color: "#00AD82" },
   "Uber Eats":      { bg: "rgba(255,107,53,.12)",   color: "#FF6B35" },
   Marketplace:      { bg: "rgba(168,85,247,.12)",    color: "#A855F7" },
   active:           { bg: "rgba(0,173,130,.12)",     color: "#00AD82" },
-  inactive:         { bg: "rgba(107,124,147,.14)",   color: "#6B7C93" },
-  paused:           { bg: "rgba(107,124,147,.14)",   color: "#6B7C93" },
+  inactive:         { bg: "rgba(107,124,147,.14)",   color: "#8B9DB5" },
+  paused:           { bg: "rgba(107,124,147,.14)",   color: "#8B9DB5" },
   Gold:             { bg: "rgba(245,158,11,.14)",    color: "#F59E0B" },
   Silver:           { bg: "rgba(192,192,192,.14)",   color: "#C0C0C0" },
   Bronze:           { bg: "rgba(205,127,50,.14)",    color: "#CD7F32" },
@@ -20,7 +20,7 @@ const STYLES: Record<string, { bg: string; color: string }> = {
   New_order:        { bg: "rgba(99,130,246,.14)",    color: "#818CF8" },
   Preparing:        { bg: "rgba(245,158,11,.14)",    color: "#F59E0B" },
   Ready:            { bg: "rgba(0,173,130,.12)",     color: "#00AD82" },
-  Delivered:        { bg: "rgba(107,124,147,.14)",   color: "#6B7C93" },
+  Delivered:        { bg: "rgba(107,124,147,.14)",   color: "#8B9DB5" },
   Refunded:         { bg: "rgba(220,53,69,.12)",     color: "#FF4757" },
   "Refund failed":  { bg: "rgba(255,107,53,.12)",    color: "#FF6B35" },
   Converted:        { bg: "rgba(0,173,130,.12)",     color: "#00AD82" },
@@ -38,7 +38,7 @@ const STYLES: Record<string, { bg: string; color: string }> = {
 };
 
 export default function Badge({ type, children }: { type: string; children: React.ReactNode }) {
-  const s = STYLES[type] ?? { bg: "rgba(107,124,147,.14)", color: "#6B7C93" };
+  const s = STYLES[type] ?? { bg: "rgba(107,124,147,.14)", color: "#8B9DB5" };
   return (
     <span
       className="bd"

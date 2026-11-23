@@ -16,7 +16,7 @@ import { supabase } from "@/lib/supabase";
 import { Icon, type IconName } from "@/components/zb-icon";
 import type { DeliveryPrediction, RoutingDecision, ProviderQuote, ProviderId } from "@/lib/delivery-types";
 
-const C = { g:"#00AD82", o:"#FF6B35", b:"#3B82F6", r:"#FF4757", am:"#F59E0B", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(255,255,255,.07)" };
+const C = { g:"#00AD82", o:"#FF6B35", b:"#3B82F6", r:"#FF4757", am:"#F59E0B", st:"#8B9DB5", cl:"#F8FAFB", mist:"rgba(255,255,255,.07)" };
 
 const PROVIDER_META: Record<string, { label:string; color:string; icon:IconName; accent?:string }> = {
   uber_direct: { label:"Uber Direct",   color:"#3B82F6",  icon:"car" },
@@ -24,7 +24,7 @@ const PROVIDER_META: Record<string, { label:string; color:string; icon:IconName;
   sherpa:      { label:"Sherpa",         color:"#7C3AED",  icon:"package" },
   zoom2u:      { label:"Zoom2u",         color:"#059669",  icon:"fast" },
   gopeople:    { label:"GoPeople",       color:"#F59E0B",  icon:"delivery" },
-  none:        { label:"No providers",   color:"#6B7C93",  icon:"x" },
+  none:        { label:"No providers",   color:"#8B9DB5",  icon:"x" },
 };
 
 function QuoteCard({ q, selected }: { q: ProviderQuote; selected: boolean }) {
@@ -356,7 +356,7 @@ export default function DeliveryPage() {
                 const col = rec.provider === "none" ? C.st : rec.provider === "uber_direct" ? C.b : rec.provider === "tasker" ? C.g : C.o;
                 const isToday = day.date === todayString();
                 return (
-                  <div key={i} onClick={() => setSelectedDate(day.date)} className="gc" style={{ padding:"12px 10px", textAlign:"center", cursor:"pointer", border:`1px solid ${selectedDate===day.date?col:C.mist}`, background:selectedDate===day.date?`${col}18`:undefined }}>
+                  <button type="button" key={i} onClick={() => setSelectedDate(day.date)} aria-pressed={selectedDate===day.date} className="gc zb-plain" style={{ padding:"12px 10px", textAlign:"center", cursor:"pointer", width:"100%", border:`1px solid ${selectedDate===day.date?col:C.mist}`, background:selectedDate===day.date?`${col}18`:undefined }}>
                     <div style={{ fontSize:11, fontWeight:700, color:isToday?C.g:C.st, marginBottom:4 }}>{isToday?"Today":DAYS[new Date(day.date).getDay()]}</div>
                     <div style={{ fontSize:10, color:"rgba(255,255,255,.3)", marginBottom:8 }}>{day.date.slice(5)}</div>
                     <div style={{ fontFamily:"var(--font-outfit)", fontWeight:800, fontSize:20, color:C.cl, marginBottom:4 }}>{day.predictedVolume}</div>
@@ -365,7 +365,7 @@ export default function DeliveryPage() {
                       {rec.provider==="none"?"—": rec.provider==="uber_direct"?"Uber": rec.provider==="tasker"?`${rec.taskersNeeded}× Driver`:`${rec.taskersNeeded}T+Uber`}
                     </div>
                     <div style={{ fontSize:10, color:C.st, marginTop:6 }}>${rec.estimatedCost.toFixed(0)}</div>
-                  </div>
+                  </button>
                 );
               })}
             </div>

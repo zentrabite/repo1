@@ -12,7 +12,7 @@ import { Icon } from "@/components/zb-icon";
 
 type Seller = { id: string; name: string | null; email: string | null; phone: string | null; shops: number; last_sale: string | null };
 
-const C = { g:"#00AD82", st:"#6B7C93", cl:"#F8FAFB", r:"#FF4757", o:"#FF6B35" };
+const C = { g:"#00AD82", st:"#8B9DB5", cl:"#F8FAFB", r:"#FF4757", o:"#FF6B35" };
 
 export default function SellersPage() {
   const router = useRouter();

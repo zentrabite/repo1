@@ -50,7 +50,7 @@ type AdminBiz = {
   owner:              { name: string | null; email: string | null; phone: string | null } | null;
 };
 
-const C = { g:"#00AD82", o:"#FF6B35", r:"#FF4757", y:"#FFC14B", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(226,232,240,.09)" };
+const C = { g:"#00AD82", o:"#FF6B35", r:"#FF4757", y:"#FFC14B", st:"#8B9DB5", cl:"#F8FAFB", mist:"rgba(226,232,240,.09)" };
 
 function toast(text: string, kind: "success" | "warn" | "error" = "success") {
   if (typeof document === "undefined") return;

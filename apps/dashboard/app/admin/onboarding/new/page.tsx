@@ -18,7 +18,7 @@ export default function NewOnboardingPage() {
     if (!loading && !isSuperAdmin) router.replace("/dashboard");
   }, [loading, isSuperAdmin, router]);
 
-  if (loading) return <div style={{ padding: 80, color: "#6B7C93", textAlign: "center" }}>Loading…</div>;
+  if (loading) return <div style={{ padding: 80, color: "#8B9DB5", textAlign: "center" }}>Loading…</div>;
   if (!isSuperAdmin) return null;
   return <NewShopForm mode="staff" />;
 }
