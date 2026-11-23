@@ -40,6 +40,16 @@ const SUPABASE_STANDINS = `
   create function cron.unschedule(jobname text) returns boolean language sql as
     $$ delete from cron.job where jobname = $1 returning true $$;
   create function net.http_post(url text, headers jsonb default '{}', body jsonb default '{}') returns bigint language sql as $$ select 1::bigint $$;
+  create function cron.alter_job(job_id bigint, schedule text default null, command text default null, database text default null, username text default null, active boolean default null) returns void language sql as
+    $$ update cron.job set schedule = coalesce($2, schedule), command = coalesce($3, command), active = coalesce($6, active) where jobid = $1 $$;
+
+  -- Supabase Vault: secrets stored by the database (encrypted live, plain here).
+  create schema vault;
+  create table vault.secrets (id uuid primary key default gen_random_uuid(), name text unique, secret text not null, description text default '', created_at timestamptz default now());
+  create view vault.decrypted_secrets as select id, name, secret as decrypted_secret, description, created_at from vault.secrets;
+  create function vault.create_secret(new_secret text, new_name text default null, new_description text default '') returns uuid language sql as
+    $$ insert into vault.secrets (secret, name, description) values ($1, $2, $3) returning id $$;
+  revoke all on schema vault from public;
 
   -- What Supabase grants on everything new in public, before any migration revokes it.
   grant usage on schema public, auth, storage to anon, authenticated, service_role;
