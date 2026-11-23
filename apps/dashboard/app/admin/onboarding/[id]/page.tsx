@@ -161,7 +161,10 @@ export default function OnboardingWizard() {
         }
         const data = await res.json();
         setBiz(data.business);
-        if (!opts?.silent) show("Saved ✓");
+        // Ticked photos are copied into our storage (lib/site-photos.ts).
+        const notCopied = Number(data.photos_not_copied) || 0;
+        if (notCopied) show(`Saved, but ${notCopied === 1 ? "1 photo" : `${notCopied} photos`} couldn't be copied and will break if their old website closes. Untick it or try again.`);
+        else if (!opts?.silent) show("Saved ✓");
         if (opts?.advance) {
           const next = Math.min(LAST_STEP, step + 1) as StepId;
           setStep(next);
