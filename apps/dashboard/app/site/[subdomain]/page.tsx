@@ -17,6 +17,7 @@ import { requireBusiness } from "@/lib/request-business";
 import { siteUrl, tenantFromHost } from "@/lib/tenant";
 import { PUBLIC_NOT_FOUND_BG } from "@/components/public-not-found";
 import "./site.css";
+import { allergenNote } from "@/lib/allergens";
 
 export const dynamic = "force-dynamic";
 
@@ -86,6 +87,7 @@ export default async function RestaurantSite({ params }: Props) {
   const style = { "--a": site.accent, "--aT": site.accentText, "--sa2": site.accentInk } as React.CSSProperties;
   const rootClass = `zsite zs-look-${site.look} ${bricolage.variable} ${fraunces.variable}`;
   const phoneHref = site.phone ? `tel:${site.phone.replace(/[^\d+]/g, "")}` : null;
+  const allergy = allergenNote(site.name, site.phone);
 
   const Brand = (
     <a href="#top" className="zs-brand">
@@ -173,6 +175,10 @@ export default async function RestaurantSite({ params }: Props) {
             ))}
           </ol>
           <a className="zs-btn zs-outline" href={orderHref}>See the full menu</a>
+          <p className="zs-allergy">
+            {allergy.menu}{" "}
+            {allergy.tel ? <a className="zs-link" href={allergy.tel}>{allergy.ask}</a> : allergy.ask} before you order.
+          </p>
         </section>
       )}
 

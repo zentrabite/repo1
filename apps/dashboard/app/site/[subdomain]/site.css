@@ -94,6 +94,7 @@ body:has(.zs-look-warm){background:#16130F!important}
 .zs-big{font-size:20px;font-weight:600;margin:0 0 6px}
 .zs-visit p{margin:0 0 6px}
 .zs-link{color:var(--sa2)!important;font-weight:600;text-decoration:underline!important;text-underline-offset:3px}
+.zs-allergy{margin:18px 0 0;max-width:60ch;font-size:13px;line-height:1.55;color:var(--smuted)}
 .zs-foot{border-top:1px solid var(--sline)}
 .zs-foot .zs-in{padding-block:22px;font-size:13px;color:var(--smuted);display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 16px}
 .zs-foot b{color:var(--sfg)}
