@@ -217,6 +217,22 @@ describe("sending win-back", () => {
     expect(calls("sms_logs", "insert")).toHaveLength(0);
   });
 
+  it("sends nothing, and makes no code, while the shop's marketing texts are paused by a stop rule", async () => {
+    setup(SHOP, RULE, { "send_pauses.select": () => ({ data: [{ id: "p1", business_id: "biz-1", channel: "sms", reason: "opt_outs", detail: {} }], error: null }) });
+    const res = await run();
+    expect(h.sms).not.toHaveBeenCalled();
+    expect(calls("offer_codes", "insert")).toHaveLength(0);
+    expect(calls("sms_logs", "insert")).toHaveLength(0);
+    expect((await res.json()).results).toEqual([expect.objectContaining({ customer_id: "c1", status: "paused" })]);
+  });
+
+  it("checks each shop's rates before its run, and saves Twilio's id for its reports", async () => {
+    setup(SHOP, RULE);
+    await run();
+    expect(calls("sms_logs", "select").some(q => filterValue(q, "kind") === "marketing" && filterValue(q, "status") === "sent")).toBe(true);
+    expect(calls("sms_logs", "insert")[0]!.payload).toMatchObject({ provider_id: expect.any(String) });
+  });
+
   it("logs every win-back text as marketing", async () => {
     setup(SHOP, RULE);
     await run();

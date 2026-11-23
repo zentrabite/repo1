@@ -14,6 +14,7 @@
 // businesses.settings.sms_monthly_cap and businesses.settings.sms_per_minute.
 
 import "server-only";
+import crypto from "node:crypto";
 import type { MessageKind } from "@/lib/message-kinds";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -146,6 +147,23 @@ export async function checkSmsAllowance(
   return { ok: true };
 }
 
+/**
+ * Where Twilio reports what happened to each text (/api/sms/status, for the
+ * stop rules). Sent with every text, and Twilio signs its reports with it.
+ */
+export function statusCallbackUrl(): string {
+  return `${(process.env.NEXT_PUBLIC_APP_URL ?? "https://dashboard.zentrabite.com").replace(/\/+$/, "")}/api/sms/status`;
+}
+
+/** Twilio's signature: base64(HMAC-SHA1(authToken, url + sorted key/value pairs)). */
+export function validTwilioSignature(authToken: string, url: string, params: Record<string, string>, signature: string): boolean {
+  const data = Object.keys(params).sort().reduce((acc, key) => acc + key + params[key], url);
+  const expected = crypto.createHmac("sha1", authToken).update(Buffer.from(data, "utf-8")).digest("base64");
+  const a = Buffer.from(expected);
+  const b = Buffer.from(signature);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
 /** Sends one SMS through Twilio. Never throws. */
 export async function sendTwilioSms(to: string, body: string): Promise<{ status: "sent" | "failed" | "skipped"; sid: string | null; error?: string }> {
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -157,7 +175,7 @@ export async function sendTwilioSms(to: string, body: string): Promise<{ status:
     return { status: "skipped", sid: null, error: "Twilio not configured" };
   }
 
-  const params: Record<string, string> = { To: normaliseAuPhone(to), Body: body };
+  const params: Record<string, string> = { To: normaliseAuPhone(to), Body: body, StatusCallback: statusCallbackUrl() };
   if (messagingServiceSid) params.MessagingServiceSid = messagingServiceSid;
   else if (from) params.From = from;
 

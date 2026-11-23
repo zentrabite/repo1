@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
 import { getCampaigns, updateCampaign, createCampaign, getSmsStats } from "@/lib/queries";
 import type { Campaign } from "@/lib/database.types";
+import SendPauseNotice from "@/components/send-pause-notice";
 
 const C = { g:"#00AD82", o:"#FF6B35", st:"#6B7C93" };
 
@@ -105,6 +106,7 @@ export default function AutomationsPage() {
           <button className="bp" onClick={openNew}>+ New</button>
         </div>
       </div>
+      <SendPauseNotice />
 
       <div style={{ display:"flex", gap:10, flexWrap:"wrap", marginBottom:12 }}>
         <StatCard label="Active"    value={String(totalActive)} icon="fast" />

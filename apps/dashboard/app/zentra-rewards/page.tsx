@@ -10,6 +10,7 @@ import {
   getWinbackRules, createWinbackRule, updateWinbackRule, deleteWinbackRule,
 } from "@/lib/queries";
 import type { WinbackRule } from "@/lib/database.types";
+import SendPauseNotice from "@/components/send-pause-notice";
 
 const C = { g:"#00AD82", r:"#DC3545", be:"#63B3FF", st:"#6B7C93" };
 
@@ -114,6 +115,7 @@ export default function WinBackPage() {
           <button className="bp" onClick={() => { reset(); window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }); }}>+ New rule</button>
         </div>
       </div>
+      <SendPauseNotice />
 
       <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:14 }}>
         <StatCard label="Active rules"       value={String(active)} accent icon="return" />

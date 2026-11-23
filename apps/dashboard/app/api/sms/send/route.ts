@@ -8,7 +8,8 @@
 //     order. Refused if it reads like an offer.
 //   • marketing, "an offer or news". Only to someone who agreed and hasn't
 //     opted out, nor anyone else at this shop with the same number. Ends
-//     with "Reply STOP to opt out".
+//     with "Reply STOP to opt out". Not while the shop's marketing texts are
+//     paused by a stop rule (lib/stop-rules.ts).
 // checkCustomerText() is the same rule the page shows as the owner types.
 //
 // Security
@@ -23,6 +24,8 @@ import { createAdminClient } from "@/lib/supabase-server";
 import { MANAGER_ROLES, requireBusiness } from "@/lib/request-business";
 import { checkSmsAllowance, phoneVariants, sendTwilioSms, smsBody } from "@/lib/sms";
 import { checkCustomerText } from "@/lib/message-kinds";
+import { activePause } from "@/lib/send-guard";
+import { describePause } from "@/lib/stop-rules";
 
 export async function POST(req: Request) {
   try {
@@ -81,6 +84,13 @@ export async function POST(req: Request) {
     });
     if (!check.ok) return NextResponse.json({ error: check.reason }, { status: 409 });
 
+    if (kind === "marketing") {
+      const pause = await activePause(db, businessId, "sms");
+      if (pause) {
+        return NextResponse.json({ error: `Marketing texts are paused for your shop. ${describePause("sms", pause.reason, pause.detail)} Texts about an order still go.` }, { status: 409 });
+      }
+    }
+
     const allowance = await checkSmsAllowance(db, businessId, (business?.settings ?? null) as Record<string, unknown> | null);
     if (!allowance.ok) return NextResponse.json({ error: allowance.reason }, { status: allowance.status });
 
@@ -101,6 +111,7 @@ export async function POST(req: Request) {
       message:     body,
       status:      out.status,
       twilio_sid:  out.sid,
+      provider_id: out.sid,
     });
 
     if (out.status !== "sent") {

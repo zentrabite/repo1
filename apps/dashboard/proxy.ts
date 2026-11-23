@@ -17,6 +17,8 @@ const PUBLIC_PATHS = ["/login", "/signup", "/auth", "/forgot-password", "/reset-
 // them through:
 //   /api/stripe/webhook    — Stripe, verified by signature
 //   /api/sms/inbound       — Twilio replies (STOP), verified by signature
+//   /api/sms/status        — Twilio delivery reports, verified by signature
+//   /api/email/events      — Resend delivery reports, verified by Svix signature
 //   /api/automations/run   — Vercel cron, verified by CRON_SECRET (the manual
 //                            path inside it checks the login itself)
 //   /api/billing/trial-reminders — Vercel cron, verified by CRON_SECRET
@@ -29,8 +31,8 @@ const PUBLIC_PATHS = ["/login", "/signup", "/auth", "/forgot-password", "/reset-
 // Match exact paths or a trailing-slash prefix so "/api/store" can't be used
 // to open something like "/api/storefront-admin" by accident.
 const PUBLIC_API_EXACT  = [
-  "/api/stripe/webhook", "/api/sms/inbound", "/api/automations/run", "/api/billing/trial-reminders",
-  "/api/delivery/fee", "/api/unsubscribe", "/api/public/enquiries",
+  "/api/stripe/webhook", "/api/sms/inbound", "/api/sms/status", "/api/email/events", "/api/automations/run",
+  "/api/billing/trial-reminders", "/api/delivery/fee", "/api/unsubscribe", "/api/public/enquiries",
 ];
 const PUBLIC_API_PREFIX = ["/api/store/", "/api/stripe-setup/"];
 

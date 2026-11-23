@@ -24,6 +24,8 @@ const LOGIN_GUARDS = /\brequireBusiness\(|\bassertSuperAdmin\(|\bassertSellerOrA
 const PUBLIC: Record<string, { why: string; check: RegExp }> = {
   "/api/stripe/webhook":           { why: "Stripe, checked by its signature", check: /constructEvent\(/ },
   "/api/sms/inbound":              { why: "Twilio, checked by its signature", check: /validTwilioSignature\(/ },
+  "/api/sms/status":               { why: "Twilio's delivery reports, checked by its signature", check: /validTwilioSignature\(/ },
+  "/api/email/events":             { why: "Resend's delivery reports, checked by their Svix signature", check: /validResendSignature\(/ },
   "/api/automations/run":          { why: "Vercel cron with CRON_SECRET, or a logged-in manager", check: /CRON_SECRET[\s\S]*requireBusiness\(/ },
   "/api/billing/trial-reminders":  { why: "Vercel cron with CRON_SECRET", check: /CRON_SECRET/ },
   "/api/delivery/fee":             { why: "A shop's public delivery price, nothing private", check: /delivery/ },

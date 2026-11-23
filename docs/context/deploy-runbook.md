@@ -72,8 +72,8 @@ line into **Vercel → Project → Settings → Environment Variables** for the
 | Supabase → Settings → API | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` |
 | Stripe → Developers → API keys (live) | `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_PRICE_MERCHANT_MONTHLY` |
 | (after Step 4) | `STRIPE_WEBHOOK_SECRET` |
-| Twilio | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER` |
-| Resend | `RESEND_API_KEY`, `RESEND_FROM_EMAIL` (must reach and account mail, on its own sending subdomain), `RESEND_MARKETING_FROM_EMAIL` (marketing mail, on a second subdomain so a spam complaint about an offer can't hurt receipts. Falls back to `RESEND_FROM_EMAIL` until it's set) |
+| Twilio | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`. Nothing to set for delivery reports: every text asks Twilio to report to `/api/sms/status` (from `NEXT_PUBLIC_APP_URL`), signed with the auth token |
+| Resend | `RESEND_API_KEY`, `RESEND_FROM_EMAIL` (must reach and account mail, on its own sending subdomain), `RESEND_MARKETING_FROM_EMAIL` (marketing mail, on a second subdomain so a spam complaint about an offer can't hurt receipts. Falls back to `RESEND_FROM_EMAIL` until it's set), `RESEND_WEBHOOK_SECRET` (the signing secret of the Resend webhook to `https://dashboard.zentrabite.com/api/email/events` with email.delivered, email.bounced and email.complained, for the stop rules. Until it's set, bounces and spam reports aren't counted) |
 | Set yourself | `NEXT_PUBLIC_APP_URL=https://dashboard.zentrabite.com.au`, `NEXT_PUBLIC_MARKETING_URL=https://zentrabite.com.au` |
 | PostHog → ZentraBite's own project → Settings (optional, both apps) | `NEXT_PUBLIC_POSTHOG_KEY` (the project's public key), `NEXT_PUBLIC_POSTHOG_HOST` (only if the project isn't on US cloud, e.g. `https://eu.i.posthog.com`), `NEXT_PUBLIC_POSTHOG_ON` (which parts count: `web` on repo1-web, `setup` and later `ordering` on repo1-dashboard) |
 

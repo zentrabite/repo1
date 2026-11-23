@@ -11,16 +11,18 @@
 // If you use a Messaging Service, set the same URL on the service instead.
 //
 // Twilio's own Advanced Opt-Out also stops sending after STOP. This handler
-// keeps our database in step so automations skip that customer too.
+// keeps our database in step so automations skip that customer too, and puts
+// the STOP on the last marketing text to that number, which counts towards
+// that shop's stop rules (lib/send-guard.ts).
 //
 // Security: every request must carry a valid X-Twilio-Signature, checked with
 // TWILIO_AUTH_TOKEN. Set TWILIO_WEBHOOK_URL if the public URL differs from
 // what the server sees (for example behind a proxy).
 
-import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
-import { isStartKeyword, isStopKeyword, normaliseAuPhone, phoneVariants } from "@/lib/sms";
+import { isStartKeyword, isStopKeyword, normaliseAuPhone, phoneVariants, validTwilioSignature } from "@/lib/sms";
+import { recordStop } from "@/lib/send-guard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,15 +32,6 @@ function twiml(message?: string) {
     ? `<?xml version="1.0" encoding="UTF-8"?><Response><Message>${message}</Message></Response>`
     : `<?xml version="1.0" encoding="UTF-8"?><Response></Response>`;
   return new NextResponse(body, { status: 200, headers: { "Content-Type": "text/xml" } });
-}
-
-// Twilio signature: base64(HMAC-SHA1(authToken, url + sorted key/value pairs))
-function validTwilioSignature(authToken: string, url: string, params: Record<string, string>, signature: string): boolean {
-  const data = Object.keys(params).sort().reduce((acc, key) => acc + key + params[key], url);
-  const expected = crypto.createHmac("sha1", authToken).update(Buffer.from(data, "utf-8")).digest("base64");
-  const a = Buffer.from(expected);
-  const b = Buffer.from(signature);
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
 export async function POST(req: Request) {
@@ -69,6 +62,8 @@ export async function POST(req: Request) {
     await (db.from("customers") as any)
       .update({ opted_out: true, opted_out_at: new Date().toISOString(), marketing_opt_in: false })
       .in("phone", variants);
+    // Counts against the shop that last sent this number an offer.
+    await recordStop(db, variants).catch(err => console.error("[sms/inbound] stop rules:", err instanceof Error ? err.message : err));
     // Twilio sends its own STOP confirmation, so reply with nothing.
     return twiml();
   }
