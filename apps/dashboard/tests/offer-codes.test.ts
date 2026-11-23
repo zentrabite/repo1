@@ -31,6 +31,11 @@ const h = vi.hoisted(() => ({
 }));
 
 vi.mock("server-only", () => ({}));
+
+// Marketing texts don't go between 8pm and 9am in the shop's time zone, so the
+// clock is set to the middle of an Adelaide day (1:30pm, 23 Nov 2026).
+vi.useFakeTimers({ toFake: ["Date"] });
+vi.setSystemTime(new Date("2026-11-23T03:00:00Z"));
 vi.mock("@/lib/stripe", () => ({ stripe: h.stripe }));
 vi.mock("@/lib/supabase-server", () => ({ createAdminClient: () => h.db, createServerClient: () => h.db }));
 vi.mock("@/lib/notify", () => ({ notifyOwnerOfOrder: vi.fn(async () => {}) }));
@@ -201,7 +206,8 @@ describe("sending win-back", () => {
     const [to, text] = h.sms.mock.calls[0]!;
     expect(to).toBe("+61412345678");
     expect(text).toContain(`here's 20% off your next order`);
-    expect(text).toContain(`https://nonna.zentrabite.com/order?code=${saved.code}&src=winback`);
+    expect(text).toContain(`https://nonna.zentrabite.com/order?code=${saved.code}`);
+    expect(text).not.toContain("src=winback"); // the code alone marks it as win-back
     expect(text).toMatch(/Online orders only, ends \w{3} \d{1,2} \w{3}\./);
     expect(text).toMatch(/Reply STOP/);
     expect(calls("sms_logs", "insert")[0]!.payload).toMatchObject({ customer_id: "c1", rule_id: "rule-1", status: "sent" });
@@ -231,6 +237,24 @@ describe("sending win-back", () => {
     await run();
     expect(calls("sms_logs", "select").some(q => filterValue(q, "kind") === "marketing" && filterValue(q, "status") === "sent")).toBe(true);
     expect(calls("sms_logs", "insert")[0]!.payload).toMatchObject({ provider_id: expect.any(String) });
+  });
+
+  it("sends no text between 8pm and 9am in the shop's time zone, but emails still go", async () => {
+    vi.setSystemTime(new Date("2026-11-23T10:00:00Z")); // 8:30pm in Adelaide
+    try {
+      setup(SHOP, RULE);
+      const res = await run();
+      expect(h.sms).not.toHaveBeenCalled();
+      expect(calls("offer_codes", "insert")).toHaveLength(0);
+      expect(calls("sms_logs", "insert")).toHaveLength(0);
+      expect((await res.json()).results).toEqual([expect.objectContaining({ customer_id: "c1", status: "quiet_hours" })]);
+
+      setup(SHOP, { ...RULE, channel: "email" });
+      await run();
+      expect(h.email).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.setSystemTime(new Date("2026-11-23T03:00:00Z"));
+    }
   });
 
   it("logs every win-back text as marketing", async () => {

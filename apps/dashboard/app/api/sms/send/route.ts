@@ -9,7 +9,8 @@
 //   • marketing, "an offer or news". Only to someone who agreed and hasn't
 //     opted out, nor anyone else at this shop with the same number. Ends
 //     with "Reply STOP to opt out". Not while the shop's marketing texts are
-//     paused by a stop rule (lib/stop-rules.ts).
+//     paused by a stop rule (lib/stop-rules.ts), and not between 8pm and
+//     9am in the shop's time zone (lib/sms-text.ts).
 // checkCustomerText() is the same rule the page shows as the owner types.
 //
 // Security
@@ -26,6 +27,8 @@ import { checkSmsAllowance, phoneVariants, sendTwilioSms, smsBody } from "@/lib/
 import { checkCustomerText } from "@/lib/message-kinds";
 import { activePause } from "@/lib/send-guard";
 import { describePause } from "@/lib/stop-rules";
+import { inQuietHours, QUIET_HOURS_TEXT } from "@/lib/sms-text";
+import { readOrderingRules } from "@/lib/pickup-times";
 
 export async function POST(req: Request) {
   try {
@@ -85,6 +88,10 @@ export async function POST(req: Request) {
     if (!check.ok) return NextResponse.json({ error: check.reason }, { status: 409 });
 
     if (kind === "marketing") {
+      const settings = (business?.settings ?? null) as Record<string, unknown> | null;
+      if (inQuietHours(new Date(), readOrderingRules(settings).timezone)) {
+        return NextResponse.json({ error: QUIET_HOURS_TEXT }, { status: 409 });
+      }
       const pause = await activePause(db, businessId, "sms");
       if (pause) {
         return NextResponse.json({ error: `Marketing texts are paused for your shop. ${describePause("sms", pause.reason, pause.detail)} Texts about an order still go.` }, { status: 409 });

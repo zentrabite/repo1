@@ -16,6 +16,11 @@ const h = vi.hoisted(() => ({
 }));
 
 vi.mock("server-only", () => ({}));
+
+// Marketing texts don't go between 8pm and 9am in the shop's time zone, so the
+// clock is set to the middle of an Adelaide day (1:30pm, 23 Nov 2026).
+vi.useFakeTimers({ toFake: ["Date"] });
+vi.setSystemTime(new Date("2026-11-23T03:00:00Z"));
 vi.mock("@/lib/supabase-server", () => ({ createAdminClient: () => h.db, createServerClient: () => h.db }));
 vi.mock("@/lib/request-business", () => ({
   MANAGER_ROLES: ["Owner", "Manager"],
@@ -166,6 +171,20 @@ describe("POST /api/sms/send", () => {
     expect(res.status).toBe(200);
     expect(h.sms).toHaveBeenCalledWith("0412345678", "Nonna's Kitchen: 20% off tonight Reply STOP to opt out");
     expect(logged()).toMatchObject({ kind: "marketing" });
+  });
+
+  it("refuses an offer between 8pm and 9am at the shop, but an order text goes", async () => {
+    vi.setSystemTime(new Date("2026-11-23T10:00:00Z")); // 8:30pm in Adelaide
+    try {
+      shop({ ...recent, opted_out: false, marketing_opt_in: true, last_order_date: new Date(Date.now() - 86_400_000).toISOString() });
+      const offer = await post({ customerId: "c1", kind: "marketing", message: "20% off tonight" });
+      expect(offer.status).toBe(409);
+      expect((await offer.json()).error).toContain("between 8pm and 9am");
+      expect((await post({ customerId: "c1", kind: "must_reach", message: "Your order is ready" })).status).toBe(200);
+      expect(h.sms).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.setSystemTime(new Date("2026-11-23T03:00:00Z"));
+    }
   });
 
   it("treats a missing kind as an offer, and a STOP on another record with the same number counts", async () => {

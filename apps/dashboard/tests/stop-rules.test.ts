@@ -18,6 +18,11 @@ const h = vi.hoisted(() => ({
 }));
 
 vi.mock("server-only", () => ({}));
+
+// Marketing texts don't go between 8pm and 9am in the shop's time zone, so the
+// clock is set to the middle of an Adelaide day (1:30pm, 23 Nov 2026).
+vi.useFakeTimers({ toFake: ["Date"] });
+vi.setSystemTime(new Date("2026-11-23T03:00:00Z"));
 vi.mock("@/lib/supabase-server", () => ({ createAdminClient: () => h.db, createServerClient: () => h.db }));
 vi.mock("@/lib/request-business", () => ({
   MANAGER_ROLES: ["Owner", "Manager"],

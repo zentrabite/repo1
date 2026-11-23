@@ -10,12 +10,14 @@ import { useBusiness } from "@/hooks/use-business";
 import { getCampaigns, updateCampaign, createCampaign, getSmsStats } from "@/lib/queries";
 import type { Campaign } from "@/lib/database.types";
 import SendPauseNotice from "@/components/send-pause-notice";
+import TextCost from "@/components/text-cost";
+import { smsBody } from "@/lib/sms-text";
 
 const C = { g:"#00AD82", o:"#FF6B35", st:"#6B7C93" };
 
 export default function AutomationsPage() {
   const { toast, show } = useToast();
-  const { businessId } = useBusiness();
+  const { businessId, business } = useBusiness();
 
   const [camps,   setCamps]   = useState<Campaign[]>([]);
   const [editing, setEditing] = useState<Campaign | null>(null);
@@ -159,7 +161,12 @@ export default function AutomationsPage() {
           <div><label>Discount ($)</label><input type="number" value={form.discount_amount} onChange={e=>setForm(f=>({...f,discount_amount:Number(e.target.value)}))} /></div>
           <div><label>Cooldown (days)</label><input type="number" value={form.cooldown_days} onChange={e=>setForm(f=>({...f,cooldown_days:Number(e.target.value)}))} /></div>
         </div>
-        <div style={{ marginBottom:14 }}><label>SMS Template</label><textarea value={form.template} onChange={e=>setForm(f=>({...f,template:e.target.value}))} placeholder="Hey {name}, we miss you! $10 off: {link}" /></div>
+        <div style={{ marginBottom:14 }}>
+          <label>SMS Template</label>
+          <textarea value={form.template} onChange={e=>setForm(f=>({...f,template:e.target.value}))} placeholder="Hey {name}, we miss you! $10 off: {link}" />
+          {/* Roughly as it goes out. The link and code add about 50 characters when the template has {link}. */}
+          <TextCost text={smsBody("marketing", form.template.replace(/\{name\}/g, "Sofia").replace(/\{link\}/g, "https://yourshop.zentrabite.com/order?code=W4NTPRZZ"), business?.name)} />
+        </div>
         <div style={{ display:"flex", gap:6, justifyContent:"flex-end" }}>
           <button className="bg-btn" onClick={() => setEditing(null)}>Cancel</button>
           <button className="bp" onClick={save}>Save</button>
