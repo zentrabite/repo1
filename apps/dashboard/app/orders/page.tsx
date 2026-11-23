@@ -16,7 +16,7 @@ import { optionsLabel } from "@/lib/menu-options";
 import { readOrderingRules, shopTime } from "@/lib/pickup-times";
 import { docketHtml, printDocument } from "@/lib/docket";
 import { orderAlarm, setSoundPreferred, soundPreferred } from "@/lib/order-alarm";
-import { money, netTotal, paidByStripe, refundLeft, refundedOf } from "@/lib/refunds";
+import { counterSale, money, netTotal, paidByStripe, refundLeft, refundedOf } from "@/lib/refunds";
 import RefundPanel from "@/components/refund-panel";
 
 // Only orders this recent ring. An old order nobody accepted still shows in
@@ -448,6 +448,7 @@ export default function OrdersPage() {
               <RefundPanel
                 order={selected}
                 businessId={businessId}
+                counter={counterSale(selected)}
                 onRefunded={(patch, message) => refunded(selected, patch, message)}
                 onCancel={() => setRefundOpen(false)}
               />
@@ -461,9 +462,9 @@ export default function OrdersPage() {
                 </button>
               )}
               <button className="bg-btn" onClick={() => printDocket(selected)}><Icon name="printer" size={14} />Print docket</button>
-              {canRefund && paidByStripe(selected) && refundLeft(selected) > 0 && !refundOpen && (
+              {canRefund && (paidByStripe(selected) || counterSale(selected)) && refundLeft(selected) > 0 && !refundOpen && (
                 <button className="bg-btn" onClick={() => setRefundOpen(true)}>
-                  <Icon name="card" size={14} />Refund
+                  <Icon name="card" size={14} />{counterSale(selected) ? "Record refund" : "Refund"}
                 </button>
               )}
             </div>

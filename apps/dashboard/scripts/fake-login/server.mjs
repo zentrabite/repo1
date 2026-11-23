@@ -105,7 +105,10 @@ http.createServer((req, res) => {
     const table = m[1];
     if (req.method !== "GET" && req.method !== "HEAD") {
       log(`${req.method} ${table} ${url.search} ${body}`);
-      return send(200, req.headers.prefer?.includes("return=representation") ? (body ? JSON.parse(body) : []) : undefined);
+      if (!req.headers.prefer?.includes("return=representation")) return send(200, undefined);
+      // Like PostgREST, an array unless one object was asked for (.single()).
+      const rows = body ? [JSON.parse(body)].flat() : [];
+      return send(200, (req.headers.accept ?? "").includes("vnd.pgrst.object") ? rows[0] ?? null : rows);
     }
     const rows = filterRows(data.tables[table] ?? [], url.searchParams);
     const single = (req.headers.accept ?? "").includes("vnd.pgrst.object");

@@ -2,6 +2,8 @@
 
 // ─── Refund box, inside an order on the Orders page ─────────────────────────
 // Gives money back on an online card order through /api/orders/[id]/refund.
+// For a counter sale (counter) it records a refund the shop gave on its card
+// machine or in cash, through the same route. Nothing is paid from here then.
 // Two steps, so a slip of the finger doesn't refund: Refund $X, then
 // "Yes, refund $X". The amount starts at everything that's left.
 
@@ -11,9 +13,11 @@ import { money, refundLeft } from "@/lib/refunds";
 
 const C = { r:"#DC3545", st:"#6B7C93" };
 
-export default function RefundPanel({ order, businessId, onRefunded, onCancel }: {
+export default function RefundPanel({ order, businessId, counter = false, onRefunded, onCancel }: {
   order: Order;
   businessId: string;
+  /** A counter sale: record a refund made on the card machine or in cash. */
+  counter?: boolean;
   onRefunded: (patch: Partial<Order>, message: string) => void;
   onCancel: () => void;
 }) {
@@ -44,7 +48,9 @@ export default function RefundPanel({ order, businessId, onRefunded, onCancel }:
       if (!res.ok) { setError(data.error ?? "Couldn't make the refund. Try again."); setConfirm(false); return; }
       onRefunded(
         { refunded_amount: data.refunded_amount, refunded_at: data.refunded_at, status: data.status },
-        data.refund_status === "pending"
+        data.refund_status === "recorded"
+          ? `Recorded a ${data.refunded} refund ✓`
+          : data.refund_status === "pending"
           ? `Refund of ${data.refunded} started. Stripe sends it once your Stripe balance covers it.`
           : `Refunded ${data.refunded} ✓`,
       );
@@ -57,7 +63,7 @@ export default function RefundPanel({ order, businessId, onRefunded, onCancel }:
   return (
     <div style={{ background:"rgba(220,53,69,.06)", border:"1px solid rgba(220,53,69,.25)", borderRadius:10, padding:"12px 14px", marginBottom:14 }}>
       <label htmlFor="zb-refund-amount" style={{ display:"block", fontSize:13, fontWeight:600, color:"#fff", marginBottom:8 }}>
-        Refund to the customer&apos;s card
+        {counter ? "Record a refund given at the counter" : "Refund to the customer's card"}
       </label>
       <div className="zb-wrap" style={{ display:"flex", gap:8, alignItems:"center" }}>
         <span style={{ color:C.st, fontSize:16 }}>$</span>
@@ -74,12 +80,14 @@ export default function RefundPanel({ order, businessId, onRefunded, onCancel }:
         <span style={{ fontSize:12, color:C.st }}>up to {money(left)}</span>
       </div>
       <p id="zb-refund-help" style={{ fontSize:12, color:C.st, lineHeight:1.5, margin:"8px 0 0" }}>
-        It comes out of your Stripe balance. Stripe keeps its card fee on the original payment. The customer sees the money in about 5 to 10 business days. Their spend and points go down to match.
+        {counter
+          ? "Give the money back on your card machine or in cash first. This only records it, so the sale, the customer's spend and their points go down to match. Nothing is paid from here."
+          : "It comes out of your Stripe balance. Stripe keeps its card fee on the original payment. The customer sees the money in about 5 to 10 business days. Their spend and points go down to match."}
       </p>
       {error && <p role="alert" style={{ fontSize:12, color:C.r, margin:"8px 0 0" }}>{error}</p>}
       {confirm && !error && (
         <p style={{ fontSize:13, fontWeight:600, color:"#fff", margin:"10px 0 0" }}>
-          {`Give ${money(asked)} back to the customer? You can't undo a refund.`}
+          {counter ? `Record ${money(asked)} given back? You can't undo this.` : `Give ${money(asked)} back to the customer? You can't undo a refund.`}
         </p>
       )}
       <div className="zb-wrap" style={{ display:"flex", gap:8, marginTop:10 }}>
@@ -89,11 +97,11 @@ export default function RefundPanel({ order, businessId, onRefunded, onCancel }:
             style={{ background:C.r, boxShadow:"none" }}
             onClick={() => { const err = check(); if (err) setError(err); else setConfirm(true); }}
           >
-            Refund{valid ? ` ${money(asked)}` : ""}
+            {counter ? "Record" : "Refund"}{valid ? ` ${money(asked)}` : ""}
           </button>
         ) : (
           <button className="bp" style={{ background:C.r, boxShadow:"none" }} disabled={busy} onClick={send}>
-            {busy ? "Refunding…" : `Yes, refund ${money(asked)}`}
+            {busy ? (counter ? "Recording…" : "Refunding…") : counter ? `Yes, record ${money(asked)}` : `Yes, refund ${money(asked)}`}
           </button>
         )}
         <button className="bg-btn" disabled={busy} onClick={onCancel}>Cancel</button>
