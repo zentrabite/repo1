@@ -22,7 +22,7 @@ const OWNER_B = "bbbbbbbb-1111-4000-8000-00000000000b";
 const SELLER = "cccccccc-1111-4000-8000-00000000000c";
 
 // Tables only the server reads or writes. Their owners can't read them either.
-const SERVER_ONLY = new Set(["offer_codes", "stripe_setup_links", "import_runs", "edge_function_runs", "enquiries"]);
+const SERVER_ONLY = new Set(["offer_codes", "stripe_setup_links", "import_runs", "edge_function_runs", "enquiries", "send_pauses"]);
 
 // Columns that point at another row of the same shop, so seeding fills them in.
 const PARENT: Record<string, Record<string, string>> = {
@@ -33,6 +33,7 @@ const PARENT: Record<string, Record<string, string>> = {
 };
 const FIXED: Record<string, Record<string, string>> = {
   offer_codes: { offer_type: "'percent'" },
+  send_pauses: { channel: "'sms'" },
 };
 
 type Col = { t: string; c: string; u: string; nullable: boolean; hasDefault: boolean };
@@ -91,7 +92,8 @@ beforeAll(async () => {
     return "null";
   };
   for (const t of shopTables) {
-    const need = cols.filter(c => c.t === t && !c.nullable && !c.hasDefault);
+    // business_id always, even where it may be null (send_pauses uses null for every shop).
+    const need = cols.filter(c => c.t === t && (c.c === "business_id" || (!c.nullable && !c.hasDefault)));
     for (const shop of [SHOP_A, SHOP_B]) {
       await m.db.exec(`insert into ${t} (${need.map(c => c.c).join(", ")}) values (${need.map(c => value(c, shop)).join(", ")})`);
     }
@@ -210,6 +212,14 @@ describe("a shop owner", () => {
     for (const t of ["orders", "customers", "sms_logs", "analytics_daily"]) {
       expect(await count(`select count(*) n from ${t} where business_id = $1`, [SHOP_A]), t).toBe(1);
     }
+  });
+
+  it("can't add made-up sends to their own text log, so the stop rules can't be watered down (028)", async () => {
+    await m.asUser(OWNER_A, async () => {
+      const r = await attempt(`insert into sms_logs (business_id, status, channel, kind) values ($1, 'sent', 'sms', 'marketing')`, [SHOP_A]);
+      expect(r, String(r)).toMatch(REFUSED);
+    });
+    expect(await count(`select count(*) n from sms_logs where business_id = $1`, [SHOP_A])).toBe(1);
   });
 });
 

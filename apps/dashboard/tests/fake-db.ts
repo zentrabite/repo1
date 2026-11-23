@@ -38,6 +38,8 @@ export function fakeDb(handlers: Record<string, Handler> = {}) {
       delete() { q.op = "delete"; return builder; },
       eq(column: string, value: unknown) { q.filters.push([column, value]); return builder; },
       in(column: string, value: unknown) { q.filters.push([column, value]); return builder; },
+      // Recorded as "column not op", for example ["cleared_at not is", null].
+      not(column: string, op: string, value: unknown) { q.filters.push([`${column} not ${op}`, value]); return builder; },
       // Recorded as "column ilike", for example ["email ilike", "sam@example.com"].
       ilike(column: string, value: unknown) { q.filters.push([`${column} ilike`, value]); return builder; },
       // Recorded as "column is", for example ["redeemed_at is", null].

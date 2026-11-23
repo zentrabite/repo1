@@ -193,6 +193,9 @@ export default function AdminPage() {
           <Link href="/admin/setup" className="bg-btn" style={{ textDecoration: "none", padding: "10px 16px" }}>
             <Icon name="goal" size={16} /> Setup board
           </Link>
+          <Link href="/admin/sending" className="bg-btn" style={{ textDecoration: "none", padding: "10px 16px" }}>
+            <Icon name="winback" size={16} /> Sending
+          </Link>
           <button
             onClick={() => router.push("/admin/onboarding/new")}
             style={{

@@ -24,7 +24,9 @@
 // don't need keys to test an order flow.
 
 import "server-only";
+import crypto from "node:crypto";
 import { canSendMarketing, unsubscribeLinks } from "@/lib/unsubscribe";
+import { activePause } from "@/lib/send-guard";
 import type { MessageKind } from "@/lib/message-kinds";
 
 export type EmailResult =
@@ -45,6 +47,29 @@ export type SendEmailInput = {
 };
 
 const DEFAULT_FROM = "ZentraBite <hello@zentrabite.com>";
+
+/**
+ * Checks a Resend webhook (Svix signing). secret is RESEND_WEBHOOK_SECRET,
+ * "whsec_" then base64. Signed content is "id.timestamp.body", the signature
+ * header holds one or more "v1,<base64>", and the timestamp must be within
+ * 5 minutes so an old report can't be replayed.
+ */
+export function validResendSignature(secret: string, headers: { id: string; timestamp: string; signature: string }, body: string, now: number = Date.now()): boolean {
+  const { id, timestamp, signature } = headers;
+  if (!secret || !id || !timestamp || !signature) return false;
+  const ts = Number(timestamp);
+  if (!Number.isFinite(ts) || Math.abs(now / 1000 - ts) > 300) return false;
+  let key: Buffer;
+  try { key = Buffer.from(secret.replace(/^whsec_/, ""), "base64"); } catch { return false; }
+  if (!key.length) return false;
+  const expected = Buffer.from(crypto.createHmac("sha256", key).update(`${id}.${timestamp}.${body}`).digest("base64"));
+  return signature.split(" ").some(part => {
+    const [version, sig] = part.split(",");
+    if (version !== "v1" || !sig) return false;
+    const given = Buffer.from(sig);
+    return given.length === expected.length && crypto.timingSafeEqual(given, expected);
+  });
+}
 
 /** The sending address for a kind. Marketing has its own, once it's set up. */
 export function fromAddress(kind: MessageKind): string {
@@ -109,6 +134,7 @@ async function deliver(input: Omit<SendEmailInput, "kind"> & { from: string }): 
 
 // ─── Marketing email ───────────────────────────────────────────────────────
 // Every marketing send goes through here. It:
+//   0. checks the shop's marketing email isn't paused (lib/send-guard.ts)
 //   1. checks the customer still has marketing consent and hasn't opted out
 //      (canSendMarketing), so a customer who unsubscribed a minute ago is
 //      skipped even mid-run
@@ -131,6 +157,10 @@ export type MarketingEmailInput = {
 export async function sendMarketingEmail(input: MarketingEmailInput): Promise<EmailResult> {
   const { db, businessId, businessName, customerId, to, subject, text } = input;
 
+  // A stop rule (lib/stop-rules.ts) or staff may have paused this shop's marketing email.
+  if (await activePause(db, businessId, "email")) {
+    return { ok: false, error: "Marketing email is paused for this shop", skipped: true };
+  }
   if (!(await canSendMarketing(db, businessId, customerId, to))) {
     return { ok: false, error: "Customer has opted out or hasn't agreed to marketing", skipped: true };
   }

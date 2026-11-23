@@ -13,6 +13,7 @@ function filterRows(rows, params) {
   return rows.filter(r => {
     for (const [k, v] of params) {
       if (["select", "order", "limit", "offset", "or", "and", "on_conflict", "columns"].includes(k)) continue;
+      if (v === "not.is.null") { if (r[k] == null) return false; continue; }
       const m = /^(eq|neq|gt|gte|lt|lte|in|is)\.(.*)$/.exec(v);
       if (!m) continue;
       const [, op, raw] = m;

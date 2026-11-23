@@ -18,6 +18,10 @@
 // the business and says "Reply STOP". Every email carries the unsubscribe
 // link and headers. The owners' monthly reports are account messages.
 //
+// Stop rules (lib/stop-rules.ts): each shop's rates are checked before its
+// run, and every send first checks the shop's channel isn't paused, so a
+// pause from a bounce or a STOP that comes in mid-run stops the rest.
+//
 // The runner processes `winback_rules` (Zentra Rewards rules from the dashboard) AND
 // the legacy `campaigns` table so old data keeps working while we migrate.
 // Offers are real: each message gets its own one-use code in its link
@@ -41,6 +45,7 @@ import { sendEmail, sendMarketingEmail } from "@/lib/email";
 import { MANAGER_ROLES, requireBusiness } from "@/lib/request-business";
 import { canTextMarketing, checkSmsAllowance, sendTwilioSms, smsBody } from "@/lib/sms";
 import { canSendMarketing } from "@/lib/unsubscribe";
+import { activePause, checkStopRules } from "@/lib/send-guard";
 import { orderUrl } from "@/lib/tenant";
 import { issueCode, offerSubject, readOffer, winbackMessage } from "@/lib/offer-codes";
 import { readDeliveryRules } from "@/lib/own-delivery";
@@ -175,6 +180,13 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
   if (customers.length === 0) return { sent, results };
   if (rules.length === 0 && legacyCampaigns.length === 0) return { sent, results };
 
+  // Rates first. A shop that broke a stop rule since the last run is paused
+  // before anything else goes.
+  for (const ch of ["sms", "email"] as const) {
+    const pause = await checkStopRules(db, businessId, ch, now);
+    if (pause) console.warn(`[automations/run] ${businessId} ${ch} marketing paused (${pause.reason})`);
+  }
+
   // Look back 120 days for cooldown checks (longest typical cooldown is ~90)
   const cooldownFrom = new Date(now);
   cooldownFrom.setDate(cooldownFrom.getDate() - 120);
@@ -244,6 +256,12 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
           console.warn(`[automations/run] ${businessId} ${allowance.reason}`);
           break;
         }
+      }
+
+      // The channel may have been paused by a stop rule since the run began.
+      if (await activePause(db, businessId, channel as "sms" | "email")) {
+        results.push({ business_id: businessId, rule_id: rule.id, rule_name: rule.name, customer_id: customer.id, customer: customer.name, channel, status: "paused" });
+        continue;
       }
 
       // Consent again, right before sending. Someone who replied STOP or
@@ -324,6 +342,10 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
         break;
       }
 
+      if (await activePause(db, businessId, "sms")) {
+        results.push({ business_id: businessId, rule_id: null, rule_name: campaign.name ?? campaign.type, customer_id: customer.id, customer: customer.name, channel: "sms", status: "paused" });
+        continue;
+      }
       if (!(await canTextMarketing(db, businessId, customer.id, customer.phone))) continue;
 
       const issued = offer ? await issueCode(db, { businessId, customerId: customer.id, campaignId: campaign.id, offer, timezone, now }) : null;
@@ -374,6 +396,7 @@ async function logSend(db: any, l: {
     message:     l.message,
     status:      l.status,
     twilio_sid:  l.channel === "sms" ? l.providerId : null,
+    provider_id: l.providerId,
   });
 }
 
