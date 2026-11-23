@@ -11,6 +11,8 @@ import { getCustomers, getCustomerOrders, createCustomer } from "@/lib/queries";
 import type { Customer, Order } from "@/lib/database.types";
 import { Icon } from "@/components/zb-icon";
 import { checkCustomerText } from "@/lib/message-kinds";
+import { smsBody } from "@/lib/sms-text";
+import TextCost from "@/components/text-cost";
 
 const C = { g:"#00AD82", o:"#FF6B35", am:"#F59E0B", st:"#6B7C93" };
 const SEGS = ["All","VIP","Regular","New","At Risk"];
@@ -25,7 +27,7 @@ function Av({ n, sz=28 }: { n:string; sz?:number }) {
 
 export default function CustomersPage() {
   const { toast, show } = useToast();
-  const { businessId } = useBusiness();
+  const { businessId, business } = useBusiness();
 
   const [customers,      setCustomers]      = useState<Customer[]>([]);
   const [custOrders,     setCustOrders]     = useState<Order[]>([]);
@@ -212,7 +214,8 @@ export default function CustomersPage() {
             placeholder="Use {name} to personalise"
             style={{ width:"100%" }}
           />
-          <div style={{ fontSize:11, color:C.st, marginTop:4 }}>{smsText.length} chars · {`{name}`} will be replaced with "{selected.name}"</div>
+          <div style={{ fontSize:11, color:C.st, marginTop:4 }}>{`{name} will be replaced with "${selected.name}". `}{smsKind === "marketing" ? "Counted with your shop's name and Reply STOP added." : "Counted with your shop's name added."}</div>
+          <TextCost text={smsBody(smsKind, smsText.replace(/\{name\}/g, selected.name), business?.name)} />
           {smsCheck && !smsCheck.ok && smsText.trim() && (
             <div role="alert" style={{ fontSize:12, color:C.o, marginTop:8, lineHeight:1.5 }}>{smsCheck.reason}</div>
           )}

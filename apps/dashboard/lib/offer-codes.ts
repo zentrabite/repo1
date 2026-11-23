@@ -1,7 +1,8 @@
 // ─── Win-back offer codes, and where an order came from ─────────────────────
 // A win-back text or email promises money off ("20% off your next order").
 // Each one sent gets its own code (offer_codes, migration 025), in the link
-// to the shop's ordering page (?code=K7MP4QXA&src=winback). Checkout takes
+// to the shop's ordering page (?code=K7MP4QXA, which also marks the order as
+// win-back, so there's no ?src= to make the text longer). Checkout takes
 // the money off on the shop's own Stripe account and the payment webhook
 // marks the code used, so the promise is real and each code works once.
 //
@@ -23,7 +24,9 @@
 // code), winback, google (the link for the shop's Google profile), website
 // (the shop's own site), social, or direct (none of those).
 
-import { shopDate, shopDayEnd } from "@/lib/pickup-times";
+import { readOrderingRules, shopDate, shopDayEnd } from "@/lib/pickup-times";
+import { orderUrl } from "@/lib/tenant";
+import { smsBody } from "@/lib/sms-text";
 
 export const CODE_DAYS = 14;
 export const CODE_LENGTH = 8;
@@ -220,6 +223,41 @@ export function offerSubject(o: Offer, business: string): string {
  * leaves out {ends} or {link}, they're added at the end, so every message
  * says it's for online orders and when it ends.
  */
+/**
+ * The win-back text a rule starts with. With the link, the end date and
+ * Reply STOP it fits one text (160 characters) for Nonna's Kitchen with 9 to
+ * 15 characters to spare. The shop's name is in it twice (the words and the
+ * web address), so a much longer name takes two, and the editor says so. The
+ * old one ("Here's {offer} on your next online order") always took two, and
+ * read "20% off on".
+ */
+export const WINBACK_TEMPLATE = "{name}, we miss you at {business}. Get {offer} online until {ends}: {link}";
+
+/** The link in a win-back message. The code alone marks the order as win-back. */
+export function winbackLink(storeUrl: string, code: string): string {
+  return `${storeUrl}?code=${code}`;
+}
+
+/**
+ * A rule's text as one sample customer would get it, written the way it goes
+ * out (shop name, the code and its end date, Reply STOP), so the editor can
+ * show it and count what it costs.
+ */
+export function winbackPreview(
+  template: string,
+  offer: Offer | null,
+  shop: { name?: string | null; subdomain?: string | null; settings?: unknown },
+  now: Date = new Date(),
+): string {
+  const name = shop.name?.trim() || "your shop";
+  const timezone = readOrderingRules(shop.settings ?? null).timezone;
+  const code = "W4NTPRZZ";
+  const link = winbackLink(orderUrl(shop.subdomain || "yourshop"), code);
+  const ends = shopDate(shopDayEnd(now, CODE_DAYS, timezone), timezone);
+  const text = winbackMessage(template.trim() || WINBACK_TEMPLATE, { name: "Sofia", business: name, shop: name }, { offer, link, code, ends });
+  return smsBody("marketing", text, name);
+}
+
 export function winbackMessage(template: string, vars: Record<string, string>, o: { offer: Offer | null; link: string; code?: string; ends?: string }): string {
   let tpl = template;
   if (o.offer) {

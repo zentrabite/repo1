@@ -15,7 +15,6 @@
 
 import "server-only";
 import crypto from "node:crypto";
-import type { MessageKind } from "@/lib/message-kinds";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Db = any;
@@ -36,33 +35,9 @@ export function isStartKeyword(body: string): boolean {
   return START_WORDS.includes(word);
 }
 
-/** Puts the business name at the start if the text doesn't already mention it. */
-export function withSender(message: string, businessName: string | null | undefined): string {
-  const text = message.trim();
-  const name = (businessName ?? "").trim();
-  return name && !text.toLowerCase().includes(name.toLowerCase()) ? `${name}: ${text}` : text;
-}
-
-/**
- * Makes a marketing text Spam Act friendly. Adds the business name at the
- * start if the template doesn't already mention it, and a STOP line at the end.
- */
-export function withSenderAndOptOut(message: string, businessName: string | null | undefined): string {
-  let text = withSender(message, businessName);
-  if (!/reply\s+stop/i.test(text)) {
-    text = `${text} Reply STOP to opt out`;
-  }
-  return text;
-}
-
-/**
- * A text as it goes out. Every text names the shop. Marketing also says
- * "Reply STOP to opt out". A must_reach text doesn't, because STOP doesn't
- * stop texts about an order and saying so would mislead.
- */
-export function smsBody(kind: MessageKind, message: string, businessName: string | null | undefined): string {
-  return kind === "marketing" ? withSenderAndOptOut(message, businessName) : withSender(message, businessName);
-}
+// How a text is written (name, Reply STOP, plain characters) lives in
+// lib/sms-text.ts so the pages can show the same thing. Re-exported here.
+export { plainSms, smsBody, withSender, withSenderAndOptOut } from "@/lib/sms-text";
 
 /** Normalises an Australian mobile to E.164 (+614...). Leaves other formats alone. */
 export function normaliseAuPhone(raw: string): string {

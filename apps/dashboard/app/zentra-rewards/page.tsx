@@ -11,6 +11,8 @@ import {
 } from "@/lib/queries";
 import type { WinbackRule } from "@/lib/database.types";
 import SendPauseNotice from "@/components/send-pause-notice";
+import TextCost from "@/components/text-cost";
+import { readOffer, winbackPreview, WINBACK_TEMPLATE } from "@/lib/offer-codes";
 
 const C = { g:"#00AD82", r:"#DC3545", be:"#63B3FF", st:"#6B7C93" };
 
@@ -20,14 +22,14 @@ const BLANK_FORM = {
   offer_type: "percent",
   offer_value: 20,
   channel: "sms",
-  template: "Hey {name}, we miss you at {business}. Here's {offer} on your next online order: {link}",
+  template: WINBACK_TEMPLATE,
   cooldown_days: 30,
   is_active: true,
 };
 
 export default function WinBackPage() {
   const { toast, show } = useToast();
-  const { businessId } = useBusiness();
+  const { businessId, business } = useBusiness();
 
   const [rules, setRules] = useState<WinbackRule[]>([]);
   const [loading, setLoading] = useState(true);
@@ -219,7 +221,7 @@ export default function WinBackPage() {
             Message template. Use <code>{"{name}"}</code>, <code>{"{offer}"}</code>, <code>{"{business}"}</code>, <code>{"{link}"}</code>, <code>{"{code}"}</code> and <code>{"{ends}"}</code>
           </label>
           <p style={{ fontSize:11, color:C.st, lineHeight:1.5, margin:"0 0 6px" }}>
-            Each customer gets their own code in the link, good for one online order. It comes off at checkout and ends after 14 days. If the template leaves out {"{ends}"}, the message ends with &ldquo;Online orders only, ends&rdquo; and the date. Offers only go out while you take online payments, and free delivery only while you deliver.
+            Each customer gets their own code in the link, good for one online order. It comes off at checkout and ends after 14 days. If the template leaves out {"{ends}"}, the message ends with &ldquo;Online orders only, ends&rdquo; and the date. Offers only go out while you take online payments, and free delivery only while you deliver.{" Texts never go between 8pm and 9am, your shop's time."}
           </p>
           <textarea
             value={form.template}
@@ -227,6 +229,17 @@ export default function WinBackPage() {
             rows={3}
             style={{ width:"100%", fontFamily:"inherit", fontSize:12, background:"rgba(255,255,255,.03)", border:"1px solid rgba(255,255,255,.08)", borderRadius:6, padding:"10px 12px", color:"#fff", resize:"vertical" }}
           />
+          {form.channel === "sms" && (() => {
+            // The text as a customer would get it, with the code, the end date and Reply STOP.
+            const preview = winbackPreview(form.template, readOffer(form.offer_type, form.offer_value), business ?? {});
+            return (
+              <div style={{ marginTop:8, background:"rgba(255,255,255,.03)", borderRadius:8, padding:"10px 12px" }}>
+                <div style={{ fontSize:10, color:C.st, marginBottom:4 }}>{"Sofia would get"}</div>
+                <div style={{ fontSize:12, color:"#fff", lineHeight:1.5, wordBreak:"break-word" }}>{preview}</div>
+                <TextCost text={preview} />
+              </div>
+            );
+          })()}
         </div>
 
         <div className="zb-wrap" style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>

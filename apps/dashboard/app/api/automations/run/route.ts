@@ -18,6 +18,12 @@
 // the business and says "Reply STOP". Every email carries the unsubscribe
 // link and headers. The owners' monthly reports are account messages.
 //
+// Quiet hours (lib/sms-text.ts): no win-back text goes between 8pm and 9am
+// in the shop's time zone. Those customers are skipped, not logged, so the
+// next run picks them up. Emails can go any time. The daily cron runs at
+// 07:00 UTC (5:30pm Adelaide in summer), inside the hours everywhere in
+// Australia.
+//
 // Stop rules (lib/stop-rules.ts): each shop's rates are checked before its
 // run, and every send first checks the shop's channel isn't paused, so a
 // pause from a bounce or a STOP that comes in mid-run stops the rest.
@@ -46,8 +52,9 @@ import { MANAGER_ROLES, requireBusiness } from "@/lib/request-business";
 import { canTextMarketing, checkSmsAllowance, sendTwilioSms, smsBody } from "@/lib/sms";
 import { canSendMarketing } from "@/lib/unsubscribe";
 import { activePause, checkStopRules } from "@/lib/send-guard";
+import { inQuietHours } from "@/lib/sms-text";
 import { orderUrl } from "@/lib/tenant";
-import { issueCode, offerSubject, readOffer, winbackMessage } from "@/lib/offer-codes";
+import { issueCode, offerSubject, readOffer, WINBACK_TEMPLATE, winbackLink, winbackMessage } from "@/lib/offer-codes";
 import { readDeliveryRules } from "@/lib/own-delivery";
 import { readOrderingRules } from "@/lib/pickup-times";
 import { heldBack, sendMonthlyReports } from "@/lib/winback-report";
@@ -135,7 +142,7 @@ export async function GET(req: Request) {
 
 // ─── Per-business runner ──────────────────────────────────────────────────────
 
-const DEFAULT_TEMPLATE = "Hey {name}, we miss you at {business}. Here's {offer} on your next online order: {link}";
+const DEFAULT_TEMPLATE = WINBACK_TEMPLATE;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function runForBusiness(db: any, businessId: string, now: Date): Promise<{ sent: number; results: RunResult[] }> {
@@ -158,6 +165,7 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
   const takingOrders = Boolean(storeUrl && business?.stripe_account_id && business?.stripe_charges_enabled);
   const deliveryOn = readDeliveryRules(settings).enabled;
   const timezone = readOrderingRules(settings).timezone;
+  const quiet = inQuietHours(now, timezone);
 
   // Rules + legacy campaigns
   const [rulesRes, campaignsRes, customersRes] = await Promise.all([
@@ -258,6 +266,12 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
         }
       }
 
+      // No marketing texts between 8pm and 9am, shop time. Picked up next run.
+      if (channel === "sms" && quiet) {
+        results.push({ business_id: businessId, rule_id: rule.id, rule_name: rule.name, customer_id: customer.id, customer: customer.name, channel, status: "quiet_hours" });
+        continue;
+      }
+
       // The channel may have been paused by a stop rule since the run began.
       if (await activePause(db, businessId, channel as "sms" | "email")) {
         results.push({ business_id: businessId, rule_id: rule.id, rule_name: rule.name, customer_id: customer.id, customer: customer.name, channel, status: "paused" });
@@ -280,7 +294,7 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
         name:     (customer.name ?? "").split(" ")[0] || "there",
         business: businessName,
         shop:     businessName,
-      }, { offer, link: `${storeUrl}?code=${issued.code}&src=winback`, code: issued.code, ends: issued.ends });
+      }, { offer, link: winbackLink(storeUrl, issued.code), code: issued.code, ends: issued.ends });
 
       let status = "sent";
       let providerId: string | null = null;
@@ -342,6 +356,10 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
         break;
       }
 
+      if (quiet) {
+        results.push({ business_id: businessId, rule_id: null, rule_name: campaign.name ?? campaign.type, customer_id: customer.id, customer: customer.name, channel: "sms", status: "quiet_hours" });
+        continue;
+      }
       if (await activePause(db, businessId, "sms")) {
         results.push({ business_id: businessId, rule_id: null, rule_name: campaign.name ?? campaign.type, customer_id: customer.id, customer: customer.name, channel: "sms", status: "paused" });
         continue;
@@ -351,7 +369,7 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
       const issued = offer ? await issueCode(db, { businessId, customerId: customer.id, campaignId: campaign.id, offer, timezone, now }) : null;
       if (offer && !issued) continue;
 
-      const link = issued ? `${storeUrl}?code=${issued.code}&src=winback` : storeUrl ? `${storeUrl}?src=winback` : "";
+      const link = issued ? winbackLink(storeUrl, issued.code) : storeUrl ? `${storeUrl}?src=winback` : "";
       const message = smsBody("marketing", winbackMessage(campaign.template ?? "Hey {name}, we miss you! Come back for ${discount} off your next order.", {
         name:     (customer.name ?? "").split(" ")[0] || "there",
         discount: String(campaign.discount_amount ?? 0),
