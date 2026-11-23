@@ -157,7 +157,7 @@ export default function DriversPage() {
                 </td>
                 <td data-label="Phone" style={{ fontSize:13, color:C.cl }}>{d.phone || <span style={{ color:C.st }}>—</span>}</td>
                 <td data-label="Email" data-wide style={{ fontSize:12, color:C.st }}>{d.email || "—"}</td>
-                <td data-label="Provider"><Badge type={d.provider ?? undefined}>{d.provider || "—"}</Badge></td>
+                <td data-label="Provider"><Badge type={d.provider ?? ""}>{d.provider || "—"}</Badge></td>
                 <td data-first data-end>
                   <Badge type={d.is_active ? "active" : "inactive"}>{d.is_active ? "Active" : "Inactive"}</Badge>
                 </td>
@@ -185,19 +185,19 @@ export default function DriversPage() {
         </div>
         <div style={{ marginBottom:12 }}>
           <label>Phone</label>
-          <input value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="+61 400 000 000" />
+          <input value={form.phone ?? ""} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="+61 400 000 000" />
         </div>
         <div style={{ marginBottom:12 }}>
           <label>Email</label>
-          <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="driver@email.com" />
+          <input type="email" value={form.email ?? ""} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="driver@email.com" />
         </div>
         <div style={{ marginBottom:12 }}>
           <label>Provider / Type</label>
-          <input value={form.provider} onChange={e => setForm(f => ({ ...f, provider: e.target.value }))} placeholder="e.g. Tasker, In-house, Casual" />
+          <input value={form.provider ?? ""} onChange={e => setForm(f => ({ ...f, provider: e.target.value }))} placeholder="e.g. Tasker, In-house, Casual" />
         </div>
         <div style={{ marginBottom:18 }}>
           <label>Notes</label>
-          <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} placeholder="Any additional notes…" style={{ width:"100%" }} />
+          <textarea value={form.notes ?? ""} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} placeholder="Any additional notes…" style={{ width:"100%" }} />
         </div>
         <div style={{ display:"flex", gap:6, justifyContent:"flex-end" }}>
           <button className="bg-btn" onClick={closeModal}>Cancel</button>

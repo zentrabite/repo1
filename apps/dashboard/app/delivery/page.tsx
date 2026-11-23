@@ -114,15 +114,20 @@ export default function DeliveryPage() {
         .gte("created_at", thirtyDaysAgo.toISOString());
 
       if (!jobData || jobData.length === 0) { setAnalytics(null); return; }
+      const rows = jobData as {
+        selected_provider: string | null; provider_cost: number | string | null; customer_fee: number | string | null;
+        service_fee: number | string | null; delivery_margin: number | string | null;
+        estimated_delivery_eta_min: number | string | null; status: string | null;
+      }[];
 
-      const total    = jobData.length;
-      const success  = jobData.filter(j => j.status === "delivered").length;
-      const totalMrg = jobData.reduce((s, j) => s + Number(j.delivery_margin ?? 0), 0);
+      const total    = rows.length;
+      const success  = rows.filter(j => j.status === "delivered").length;
+      const totalMrg = rows.reduce((s, j) => s + Number(j.delivery_margin ?? 0), 0);
       const avgMrg   = total > 0 ? totalMrg / total : 0;
-      const avgEta   = total > 0 ? jobData.reduce((s, j) => s + Number(j.estimated_delivery_eta_min ?? 0), 0) / total : 0;
+      const avgEta   = total > 0 ? rows.reduce((s, j) => s + Number(j.estimated_delivery_eta_min ?? 0), 0) / total : 0;
 
       const provMap: Record<string, { count:number; totalCost:number; totalEta:number }> = {};
-      for (const j of jobData) {
+      for (const j of rows) {
         const p = j.selected_provider as string;
         if (!provMap[p]) provMap[p] = { count:0, totalCost:0, totalEta:0 };
         provMap[p]!.count++;

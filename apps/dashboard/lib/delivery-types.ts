@@ -87,6 +87,15 @@ export interface DeliveryPrediction {
   historicalAverage: number;
   historicalData:    { date: string; count: number }[];
   recommendation:    DeliveryRecommendation;
+  /** The rates the prediction used, for the page to show. */
+  meta?: {
+    uberRateSource:     string;
+    uberPerDelivery:    number;
+    taskerDayRate:      number;
+    taskerCapacity:     number;
+    taskerLabel:        string;
+    settingsConfigured: boolean;
+  };
 }
 
 // ─── Analytics (from delivery_jobs table) ────────────────────────────────────
