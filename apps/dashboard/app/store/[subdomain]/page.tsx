@@ -11,6 +11,7 @@ import { DEFAULT_TIMEZONE, pickupPlan, shopTime, type OrderingRules } from "@/li
 import { checkDeliveryAddress } from "@/lib/own-delivery";
 import { cameFrom, codeDiscount, type OfferType } from "@/lib/offer-codes";
 import { analyticsId, track } from "@/lib/analytics";
+import { allergenNote } from "@/lib/allergens";
 
 // A win-back offer code from the link, as /api/store/[subdomain]?code= sends it.
 type CodeOffer = { code: string; type: OfferType; value: number; label: string; ends: string };
@@ -75,6 +76,7 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
   // Brand colour on buttons and prices, ZentraBite green if none is set.
   const accent = biz?.accent_color ?? BASE.g;
   const C = { ...BASE, g: accent, onG: textOn(accent) };
+  const allergy = allergenNote(biz?.name, biz?.phone);
 
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
@@ -380,6 +382,14 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
             );
           })}
         </div>
+
+        {/* Allergens (lib/allergens.ts). The shop knows what's in its food. */}
+        {(activeSection?.items ?? []).length > 0 && (
+          <p style={{ margin:"18px 2px 0", fontSize:12, color:C.st, lineHeight:1.5 }}>
+            {allergy.menu}{" "}
+            {allergy.tel ? <a href={allergy.tel} style={{ color:C.cl, textDecoration:"underline" }}>{allergy.ask}</a> : allergy.ask} before you order.
+          </p>
+        )}
       </div>
 
       {/* Checkout panel — slides up when cart has items */}
@@ -479,6 +489,10 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
                 aria-label="Note for the order"
                 placeholder={isDelivery ? "Note for the kitchen or driver (optional)" : "Note for the kitchen (optional)"}
                 style={{ ...INPUT_STYLE, marginTop:12, marginBottom:0, resize:"vertical", fontFamily:"inherit" }} />
+              <div style={{ marginTop:8, fontSize:12, color:C.st, lineHeight:1.5 }}>
+                {"Food allergy? A note isn't enough. "}
+                {allergy.tel ? <a href={allergy.tel} style={{ color:C.cl, textDecoration:"underline" }}>{allergy.ask}</a> : allergy.ask} before you pay.
+              </div>
             </div>
 
             {deliveryFee > 0 && (
