@@ -63,7 +63,6 @@ Sign-ups aren't open yet, and no price has been set.
 
 ## Leftovers in the repo
 
-- `apps/storefront` isn't deployed. The live ordering pages are in `apps/dashboard`.
-- `zentrabite/` at the top level and `apps/zentrabite-dashboard-files/` are old April 2026 builds.
-- `apps/dashboard/supabase/migrations/007_stock.sql` is a stray copy. The real migrations are in `supabase/migrations`.
+- The old `apps/storefront` app was deleted on 23 Nov 2026. It was never deployed and took prices from the browser. Each shop's site and ordering pages are in `apps/dashboard`.
+- The April 2026 leftovers went on 23 Nov 2026. The top-level `zentrabite/` app, a copy of the prototype inside `apps/dashboard` and a stray `007_stock.sql` were deleted, and the CRM prototype moved to `docs/reference/archive/april-crm-prototype/`.
 - `docs/reference/archive/` holds old design experiments.

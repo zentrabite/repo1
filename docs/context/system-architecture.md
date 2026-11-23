@@ -27,8 +27,6 @@ apps/
   dashboard/        Production merchant CRM (dashboard.zentrabite.com)
                     — real Supabase-backed app, 19 modules under /app/*
   docs/             Next.js docs app (scaffolded)
-  storefront/       Tenant-facing storefront build
-  zentrabite-dashboard-files/  UI prototype reference (see docs/reference/)
 packages/
   ui/               Shared React components
   eslint-config/    Lint presets
