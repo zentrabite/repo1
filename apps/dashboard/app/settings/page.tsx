@@ -21,6 +21,7 @@ const PREP_CHOICES = [10, 15, 20, 25, 30, 40, 45, 60, 90];
 import BrandMark from "@/components/brand-mark";
 import PasswordInput from "@/components/password-input";
 import { Icon } from "@/components/zb-icon";
+import { subscriptionView } from "@/lib/subscription";
 
 const C = { g:"#00AD82", o:"#FF6B35", r:"#FF4757", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(226,232,240,.08)" };
 
@@ -157,9 +158,11 @@ function SettingsContent() {
   const [stripeCharges, setStripeCharges]   = useState(false); // can accept payments
   const [stripePayouts, setStripePayouts]   = useState(false); // can receive payouts
   const [stripeDetails, setStripeDetails]   = useState(false); // completed onboarding form
-  const [subscriptionStatus, setSubscriptionStatus] = useState<"inactive"|"trialing"|"active">("inactive");
+  // The raw status the Stripe webhook saved. subscriptionView() says what it means.
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string>("inactive");
   // While trialing, Stripe's current period ends when the trial does.
   const [trialEnds, setTrialEnds] = useState<string | null>(null);
+  const sub = subscriptionView(subscriptionStatus, trialEnds);
   const [connectLoading, setConnectLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [hours, setHours] = useState<Record<string, { open: string; close: string; closed: boolean; break_from?: string; break_to?: string }>>({
@@ -196,8 +199,8 @@ function SettingsContent() {
     setStripePayouts(Boolean(b.stripe_payouts_enabled));
     setStripeDetails(Boolean(b.stripe_details_submitted));
     const settings = (b.settings ?? {}) as Record<string, unknown>;
-    if (settings.subscription_status) {
-      setSubscriptionStatus(settings.subscription_status as any);
+    if (typeof settings.subscription_status === "string") {
+      setSubscriptionStatus(settings.subscription_status);
     }
     if (settings.subscription_status === "trialing" && typeof settings.subscription_period_end === "string") {
       const end = new Date(settings.subscription_period_end);
@@ -844,16 +847,13 @@ function SettingsContent() {
           <div className="gc" style={{ padding:24 }}>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:18 }}>
               <SectionTitle>Subscription</SectionTitle>
-              <StatusPill
-                active={subscriptionStatus === "active" || subscriptionStatus === "trialing"}
-                label={subscriptionStatus === "active" ? "Active" : subscriptionStatus === "trialing" ? "Free trial" : "Inactive"}
-              />
+              <StatusPill active={sub.good} label={sub.pill} />
             </div>
 
-            {subscriptionStatus === "inactive" ? (
+            {sub.action === "start" ? (
               <div>
                 <div style={{ fontFamily:"var(--font-inter)", fontSize:13, color:C.st, lineHeight:1.6, marginBottom:16 }}>
-                  Start your 30-day free trial. You add a card at checkout. The first payment is taken when the trial ends.
+                  {sub.line}
                 </div>
                 <div style={{ padding:"16px", background:"rgba(28,45,72,.5)", borderRadius:12, marginBottom:16 }}>
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:8 }}>
@@ -870,16 +870,14 @@ function SettingsContent() {
                   onClick={handleSubscribe}
                   disabled={checkoutLoading}
                 >
-                  {checkoutLoading ? "Opening checkout…" : "Start 1-Month Free Trial →"}
+                  {checkoutLoading ? "Opening checkout…" : sub.trial ? "Start 1-Month Free Trial →" : "Subscribe again →"}
                 </button>
               </div>
             ) : (
               <div>
-                <div style={{ padding:"12px 16px", background:"rgba(0,173,130,.06)", border:"1px solid rgba(0,173,130,.15)", borderRadius:10, marginBottom:16 }}>
-                  <div style={{ fontFamily:"var(--font-inter)", fontSize:13, color:C.g, fontWeight:600 }}>
-                    {subscriptionStatus === "trialing"
-                      ? (trialEnds ? `✓ Free trial active. It ends on ${trialEnds}, and your first payment is taken then.` : "✓ Free trial active")
-                      : "✓ Subscription active"}
+                <div style={{ padding:"12px 16px", background: sub.good ? "rgba(0,173,130,.06)" : "rgba(255,193,75,.08)", border: `1px solid ${sub.good ? "rgba(0,173,130,.15)" : "rgba(255,193,75,.3)"}`, borderRadius:10, marginBottom:16 }}>
+                  <div style={{ fontFamily:"var(--font-inter)", fontSize:13, color: sub.good ? C.g : "#FFC14B", fontWeight:600 }}>
+                    {sub.good ? `✓ ${sub.line}` : sub.line}
                   </div>
                 </div>
                 <button
