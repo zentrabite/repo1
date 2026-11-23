@@ -9,6 +9,7 @@ import {
   getTopMenuItems, getRevenueByChannel, getRevenueByDay,
   getRepeatRate, getSmsStats, getAnalytics,
 } from "@/lib/queries";
+import { shopTimezone } from "@/lib/pickup-times";
 
 const C = { g:"#00AD82", o:"#FF6B35", am:"#F59E0B", be:"#63B3FF", st:"#6B7C93", r:"#DC3545" };
 
@@ -16,7 +17,8 @@ const RANGES = [7, 30, 90] as const;
 
 export default function AnalyticsPage() {
   const { toast, show } = useToast();
-  const { businessId } = useBusiness();
+  const { businessId, business } = useBusiness();
+  const tz = shopTimezone(business);
 
   const [days, setDays] = useState<number>(30);
   const [loading, setLoading] = useState(true);
@@ -34,7 +36,7 @@ export default function AnalyticsPage() {
     Promise.all([
       getTopMenuItems(businessId, days),
       getRevenueByChannel(businessId, days),
-      getRevenueByDay(businessId, days),
+      getRevenueByDay(businessId, days, tz),
       getRepeatRate(businessId, days),
       getSmsStats(businessId),
       getAnalytics(businessId, days),
@@ -45,7 +47,7 @@ export default function AnalyticsPage() {
         setLoading(false);
       })
       .catch(e => { console.error(e); setLoading(false); });
-  }, [businessId, days]);
+  }, [businessId, days, tz]);
 
   const totalRevenue = byDay.reduce((s, d) => s + d.revenue, 0);
   const totalOrders  = analytics.reduce((s, a) => s + (a.total_orders ?? 0), 0);

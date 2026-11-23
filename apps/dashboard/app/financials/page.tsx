@@ -78,7 +78,7 @@ export default function FinancialsPage() {
       {/* Header */}
       <div style={{ marginBottom:20 }}>
         <h2 style={{ fontFamily:"var(--font-outfit)", fontWeight:700, fontSize:20, color:"#fff" }}>Financials</h2>
-        <p style={{ color:C.st, fontSize:12, marginTop:2 }}>Revenue, margins & ROI · Last 90 days</p>
+        <p style={{ color:C.st, fontSize:12, marginTop:2 }}>Revenue, margins & ROI · Last 90 days, after refunds</p>
       </div>
 
       {/* Stat cards */}
@@ -153,7 +153,7 @@ export default function FinancialsPage() {
             <Icon name="receipt" size={22} />
             <div>
               <div style={{ fontWeight:600, color:"#fff", fontSize:14 }}>Xero Accounting</div>
-              <div style={{ fontSize:11, color:C.st, marginTop:2 }}>Download a CSV of the last 30 days of orders, ready to import into Xero</div>
+              <div style={{ fontSize:11, color:C.st, marginTop:2 }}>Orders and refunds from the last 30 days, ready to import into Xero. Refunds come in as credit notes. When Xero asks, the amounts include tax.</div>
             </div>
           </div>
           <a

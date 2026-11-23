@@ -46,7 +46,9 @@ export function fakeDb(handlers: Record<string, Handler> = {}) {
       is(column: string, value: unknown) { q.filters.push([`${column} is`, value]); return builder; },
       // Range filters are recorded as "column>=" and so on.
       gte(column: string, value: unknown) { q.filters.push([`${column}>=`, value]); return builder; },
+      gt(column: string, value: unknown) { q.filters.push([`${column}>`, value]); return builder; },
       lt(column: string, value: unknown) { q.filters.push([`${column}<`, value]); return builder; },
+      lte(column: string, value: unknown) { q.filters.push([`${column}<=`, value]); return builder; },
       order() { return builder; },
       limit() { return builder; },
       // Recorded as "range" with [from, to].

@@ -250,6 +250,16 @@ export function shopToday(now: Date, timezone: string): { y: number; m: number; 
   return { y: z.y, m: z.m, d: z.d };
 }
 
+/** The shop's time zone from its settings (Adelaide when none is saved). */
+export function shopTimezone(business: { settings?: unknown } | null | undefined): string {
+  return readOrderingRules(business?.settings).timezone;
+}
+
+/** "2026-12-05", the day in the shop's time zone, for grouping by day. */
+export function shopDayKey(date: Date, timezone: string): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
+}
+
 /** "Fri 5 Dec" in the shop's time zone. */
 export function shopDate(date: Date, timezone: string): string {
   return new Intl.DateTimeFormat("en-AU", { timeZone: timezone, weekday: "short", day: "numeric", month: "short" })

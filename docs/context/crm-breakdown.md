@@ -203,6 +203,8 @@ Buttons are disabled when no phone number is on file.
 
 **How it works.** Six parallel Supabase queries: top menu items (from `orders.items` JSON), revenue by channel (group by `source`), revenue by day, repeat-rate rollup, SMS stats, and `analytics_daily`.
 
+**Refunds and the shop's days (23 Nov 2026).** Revenue by day and by channel is what the shop kept (`netTotal()`, less refunds), grouped by the shop's own day (`settings.timezone`). `analytics_daily` comes from the `nightly-analytics` edge function, which since v3 works out the last 90 days again every night from the shop's set-up date, so a refund made after the day comes off it. Its sums are in `supabase/functions/nightly-analytics/totals.ts`, tested in `tests/daily-totals.test.ts`. A run that finishes writes `nightly-analytics-done` to `edge_function_runs`, which the Daily jobs light in Super Admin, Sending reads. Until migration 032 (23 Nov 2026) the live `analytics_daily` had no `UNIQUE (business_id, date)`, so every nightly save failed and the table stayed empty. An order refunded in full isn't counted as an order. `agg_orders` are delivery app orders only, and counter sales count as the shop's own. Top menu items still count what was sold, because a refund isn't split by item.
+
 **To finalise.**
 - Nothing new beyond what's needed for the dashboard.
 - To unlock margin analytics, add recipes (see Stock).
@@ -217,6 +219,7 @@ Buttons are disabled when no phone number is on file.
 
 **To finalise.**
 - Set `business.settings.subscription_fee` per tenant from `/admin`.
+- The Xero CSV export (`/api/export/xero`, owners and managers, rows from `lib/xero-export.ts`) gives an invoice for each order on its day and, since 23 Nov 2026, a credit note (a negative line, number ending "-CR") for each refund on the day of the refund. Dates are DD/MM/YYYY in the shop's time zone. TaxType is the tax rate name, "GST on Income" unless `settings.xero.tax_type` says otherwise. Totals include GST, so pick tax inclusive in Xero's import. Since no delivery app orders reach the CRM, the 30% app fee here is 0 until they do.
 - Xero auto-export is a "coming soon" stub. When ready, build `app/api/xero/push/route.ts` against the Xero OAuth app.
 
 ---

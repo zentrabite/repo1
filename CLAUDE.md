@@ -21,7 +21,7 @@ Before making any changes:
 
 ## Rules when working in this repo
 
-- **Extend existing code, don't rebuild.** The monorepo already contains a working CRM (`apps/dashboard`), marketing site (`apps/web`), storefront (`apps/storefront`), and a Supabase schema with 31 applied migrations (001 to 031). `apps/dashboard/tests/tenant-isolation.test.ts` runs all of them on a real Postgres in memory and proves one shop can't read or change another's rows, and `tests/route-guards.test.ts` fails any API route without a login check. Keep both passing. Match existing patterns — don't invent parallel ones.
+- **Extend existing code, don't rebuild.** The monorepo already contains a working CRM (`apps/dashboard`), marketing site (`apps/web`), storefront (`apps/storefront`), and a Supabase schema with 32 applied migrations (001 to 032). `apps/dashboard/tests/tenant-isolation.test.ts` runs all of them on a real Postgres in memory and proves one shop can't read or change another's rows, and `tests/route-guards.test.ts` fails any API route without a login check. Keep both passing. Match existing patterns — don't invent parallel ones.
 - **Follow the architecture.** Tenant scoping (`business_id` + RLS), module flags (`businesses.settings.modules`), server routes that verify session → `business_id`. See `system-architecture.md` §4–§7. A row rule uses `get_my_business_id()`, never `users.business_id` on its own, so team members are covered (030, and the isolation tests check it).
 - **Every text and email has a kind** (`apps/dashboard/lib/message-kinds.ts`): must_reach, account or marketing. Marketing only goes through `sendMarketingEmail` or `smsBody("marketing", …)` after `canTextMarketing` and `activePause` (the stop rules, `lib/send-guard.ts`), and must_reach and account messages carry nothing that sells. `tests/message-kinds.test.ts` checks our own templates.
 - **Follow the design system.** Reuse components from `apps/dashboard/components/` (shell, sidebar, topbar, stat-card, page-header, empty-state, modal, toast, badge). Match the look of the pages already in `apps/dashboard`. Dark shell, green accent, glass cards. This is the app's April 2026 look, and a colour tidy-up is planned.
@@ -62,8 +62,8 @@ apps/web              Marketing site + demo sandboxes
 apps/dashboard        Production merchant CRM (Supabase-backed)
 apps/storefront       Tenant storefront build. Not deployed, the live ordering pages are in apps/dashboard
 packages/*-config     Shared eslint and TypeScript settings
-supabase/migrations   001 → 031 schema
-supabase/functions    Edge functions (nightly-analytics, birthday-loyalty; win-back, quick-api and hyper-responder are switched-off stubs)
+supabase/migrations   001 → 032 schema
+supabase/functions    Edge functions (nightly-analytics with its sums in totals.ts, birthday-loyalty; win-back, quick-api and hyper-responder are switched-off stubs)
 docs/context          System logic + architecture (start here)
 docs/reference        UI/visual reference
 ```
