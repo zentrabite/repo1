@@ -94,6 +94,7 @@ export async function POST(req: Request) {
   if (upErr) return NextResponse.json({ error: upErr.message }, { status: 500 });
 
   await sendEmail({
+    kind: "must_reach",
     to: email,
     subject: "You're set up to sell ZentraBite",
     text: [

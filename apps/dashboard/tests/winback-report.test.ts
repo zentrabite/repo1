@@ -25,6 +25,8 @@ vi.mock("@/lib/email", () => ({ sendMarketingEmail: vi.fn(async () => ({ ok: tru
 vi.mock("@/lib/sms", () => ({
   checkSmsAllowance: vi.fn(async () => ({ ok: true })),
   withSenderAndOptOut: (m: string) => m,
+  smsBody: (_k: string, m: string) => m,
+  canTextMarketing: vi.fn(async () => true),
   sendTwilioSms: h.sms,
 }));
 vi.mock("@/lib/request-business", () => ({

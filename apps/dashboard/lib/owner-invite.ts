@@ -69,6 +69,7 @@ export async function inviteOwner(db: Db, input: {
 
   const hi = input.name?.trim() ? input.name.trim().split(/\s+/)[0]! : "there";
   const sent = await sendEmail({
+    kind:    "must_reach",
     to:      email,
     subject: `Your ZentraBite dashboard is ready for ${input.businessName}`,
     text: [

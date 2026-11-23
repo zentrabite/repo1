@@ -437,6 +437,76 @@
     "opened_at": "2026-11-12T03:00:00Z",
     "created_by": null
    }
+  ],
+  "customers": [
+   {
+    "id": "aaaaaaa2-c000-4000-8000-000000000001",
+    "business_id": "22222222-2222-4222-8222-222222222222",
+    "name": "Sofia Rossi",
+    "phone": "0412 345 678",
+    "email": "sofia@example.com",
+    "source": "direct",
+    "segment": "At Risk",
+    "first_order": "2026-06-01T08:00:00Z",
+    "last_order_date": "2026-10-30T08:00:00Z",
+    "total_spent": 412.5,
+    "total_orders": 14,
+    "points_balance": 4125,
+    "opted_out": false,
+    "marketing_opt_in": true,
+    "created_at": "2026-06-01T08:00:00Z"
+   },
+   {
+    "id": "aaaaaaa2-c000-4000-8000-000000000002",
+    "business_id": "22222222-2222-4222-8222-222222222222",
+    "name": "Marco Bianchi",
+    "phone": "0423 456 789",
+    "email": null,
+    "source": "pos",
+    "segment": "Regular",
+    "first_order": "2026-06-01T08:00:00Z",
+    "last_order_date": "2026-11-21T07:30:00Z",
+    "total_spent": 168,
+    "total_orders": 6,
+    "points_balance": 1680,
+    "opted_out": false,
+    "marketing_opt_in": false,
+    "created_at": "2026-06-01T08:00:00Z"
+   },
+   {
+    "id": "aaaaaaa2-c000-4000-8000-000000000003",
+    "business_id": "22222222-2222-4222-8222-222222222222",
+    "name": "Jess Nguyen",
+    "phone": "0434 567 890",
+    "email": "jess@example.com",
+    "source": "direct",
+    "segment": "New",
+    "first_order": "2026-06-01T08:00:00Z",
+    "last_order_date": "2026-11-22T08:15:00Z",
+    "total_spent": 31,
+    "total_orders": 1,
+    "points_balance": 310,
+    "opted_out": true,
+    "marketing_opt_in": true,
+    "created_at": "2026-06-01T08:00:00Z"
+   },
+   {
+    "id": "aaaaaaa2-c000-4000-8000-000000000004",
+    "business_id": "22222222-2222-4222-8222-222222222222",
+    "name": "Tom Walsh",
+    "phone": "0445 678 901",
+    "email": null,
+    "source": "direct",
+    "segment": "At Risk",
+    "first_order": "2026-06-01T08:00:00Z",
+    "last_order_date": "2026-09-01T09:00:00Z",
+    "total_spent": 96,
+    "total_orders": 4,
+    "points_balance": 960,
+    "opted_out": true,
+    "marketing_opt_in": true,
+    "created_at": "2026-06-01T08:00:00Z"
+   }
   ]
  },
  "seller": {
@@ -452,5 +522,5 @@
   "user_metadata": {},
   "created_at": "2026-11-01T00:00:00Z"
  },
- "_notes": "Sample Stripe links: /stripe-setup/JJJ... (43 J's) is Joe's Pizza, not set up yet. /stripe-setup/NNN... (43 N's) is Nonna's Kitchen, already taking payments."
+ "_notes": "Sample Stripe links: /stripe-setup/JJJ... (43 J's) is Joe's Pizza, not set up yet. /stripe-setup/NNN... (43 N's) is Nonna's Kitchen, already taking payments. Customers: Sofia agreed to marketing, Marco didn't, Jess opted out after an order on 22 Nov (so order texts work until 29 Nov), Tom opted out with no recent order."
 }

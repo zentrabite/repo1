@@ -10,6 +10,7 @@ import { useBusiness } from "@/hooks/use-business";
 import { getCustomers, getCustomerOrders, createCustomer } from "@/lib/queries";
 import type { Customer, Order } from "@/lib/database.types";
 import { Icon } from "@/components/zb-icon";
+import { checkCustomerText } from "@/lib/message-kinds";
 
 const C = { g:"#00AD82", o:"#FF6B35", am:"#F59E0B", st:"#6B7C93" };
 const SEGS = ["All","VIP","Regular","New","At Risk"];
@@ -40,6 +41,8 @@ export default function CustomersPage() {
   const [smsOpen,    setSmsOpen]    = useState(false);
   const [smsText,    setSmsText]    = useState("");
   const [smsSending, setSmsSending] = useState(false);
+  // About their order (must_reach) or an offer or news (marketing). lib/message-kinds.ts
+  const [smsKind,    setSmsKind]    = useState<"must_reach" | "marketing">("must_reach");
   const [aiCalling,  setAiCalling]  = useState(false);
 
   useEffect(() => {
@@ -72,6 +75,15 @@ export default function CustomersPage() {
     finally { setSaving(false); }
   };
 
+  // The same rule the server applies, shown as the owner types.
+  const smsCheck = selected
+    ? checkCustomerText(smsKind, smsText.replace(/\{name\}/g, selected.name), {
+        opted_out:        selected.opted_out,
+        marketing_opt_in: selected.marketing_opt_in,
+        last_order_date:  selected.last_order_date,
+      })
+    : null;
+
   const filtered = customers
     .filter(c => seg === "All" || c.segment === seg)
     .filter(c => !search || c.name.toLowerCase().includes(search.toLowerCase()) || (c.phone ?? "").includes(search));
@@ -80,14 +92,15 @@ export default function CustomersPage() {
     if (!businessId || !selected) return;
     if (!selected.phone) return show("No phone number on file");
     if (!smsText.trim())  return show("Write a message first");
+    if (!smsCheck?.ok) return show(smsCheck?.reason ?? "This text can't be sent");
     setSmsSending(true);
     try {
       const res = await fetch("/api/sms/send", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          to:         selected.phone,
           message:    smsText.replace(/\{name\}/g, selected.name),
+          kind:       smsKind,
           businessId,
           customerId: selected.id,
         }),
@@ -152,7 +165,7 @@ export default function CustomersPage() {
             ))}
           </div>
           <div style={{ display:"flex", gap:6, marginTop:14 }}>
-            <button className="bp" style={{ flex:1, justifyContent:"center", fontSize:12, padding:"8px 0" }} onClick={() => { setSmsText(`Hi {name}, `); setSmsOpen(true); }} disabled={!selected.phone}>SMS</button>
+            <button className="bp" style={{ flex:1, justifyContent:"center", fontSize:12, padding:"8px 0" }} onClick={() => { setSmsText(`Hi {name}, `); setSmsKind("must_reach"); setSmsOpen(true); }} disabled={!selected.phone}>SMS</button>
             <button className="bg-btn" style={{ flex:1, justifyContent:"center" }} onClick={startAiCall} disabled={!selected.phone || aiCalling}>{aiCalling ? "Calling…" : <><Icon name="ai-calls" size={14} />Call</>}</button>
           </div>
         </div>
@@ -178,6 +191,19 @@ export default function CustomersPage() {
           Going to: <span style={{ color:"#fff" }}>{selected.phone ?? "—"}</span>
         </div>
         <div style={{ marginBottom:12 }}>
+          <label id="sms-kind-label">{"What's it about?"}</label>
+          <div role="radiogroup" aria-labelledby="sms-kind-label" style={{ display:"flex", gap:6, flexWrap:"wrap", marginTop:4 }}>
+            {([["must_reach","Their order"],["marketing","An offer or news"]] as const).map(([k, label]) => (
+              <button key={k} type="button" role="radio" aria-checked={smsKind===k} className={`bg-btn ${smsKind===k?"on":""}`} onClick={() => setSmsKind(k)}>{label}</button>
+            ))}
+          </div>
+          <div style={{ fontSize:11, color:C.st, marginTop:6, lineHeight:1.5 }}>
+            {smsKind === "must_reach"
+              ? "Order news only, like a delay or a sold-out item. No offers."
+              : "Only for customers who agreed to hear from you. We add your shop's name and \"Reply STOP to opt out\"."}
+          </div>
+        </div>
+        <div style={{ marginBottom:12 }}>
           <label>Message</label>
           <textarea
             value={smsText}
@@ -187,10 +213,13 @@ export default function CustomersPage() {
             style={{ width:"100%" }}
           />
           <div style={{ fontSize:11, color:C.st, marginTop:4 }}>{smsText.length} chars · {`{name}`} will be replaced with "{selected.name}"</div>
+          {smsCheck && !smsCheck.ok && smsText.trim() && (
+            <div role="alert" style={{ fontSize:12, color:C.o, marginTop:8, lineHeight:1.5 }}>{smsCheck.reason}</div>
+          )}
         </div>
         <div style={{ display:"flex", gap:6, justifyContent:"flex-end" }}>
           <button className="bg-btn" onClick={() => setSmsOpen(false)}>Cancel</button>
-          <button className="bp" onClick={sendSms} disabled={smsSending || !selected.phone}>{smsSending ? "Sending…" : "Send SMS"}</button>
+          <button className="bp" onClick={sendSms} disabled={smsSending || !selected.phone || !smsCheck?.ok}>{smsSending ? "Sending…" : "Send SMS"}</button>
         </div>
       </Modal>
       <Toast message={toast.message} visible={toast.visible} />

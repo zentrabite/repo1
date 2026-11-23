@@ -129,7 +129,7 @@ Everything talks to Supabase through the browser client (`lib/supabase.ts`) with
 **What it does.** Your CRM database. Search, segment filter (All / VIP / Regular / New / At Risk), detail drawer with order history, LTV, points, add-customer modal, real SMS send, real AI call.
 
 **How it works.** Reads `customers` with `getCustomers()`. The detail drawer:
-- **SMS button** opens a compose modal and POSTs to `/api/sms/send` (real Twilio send, logged to `sms_logs`). Supports `{name}` placeholder replacement.
+- **SMS button** opens a compose modal and POSTs to `/api/sms/send` (real Twilio send, logged to `sms_logs` with its kind). Supports `{name}` placeholder replacement. Since 23 Nov 2026 the owner picks what it's about. "Their order" (must reach) goes to anyone, even someone who opted out if they ordered in the last 7 days, and is refused if it reads like an offer. "An offer or news" (marketing) only goes to customers who agreed and haven't opted out, and ends with "Reply STOP to opt out". The modal shows the same check as the server (`checkCustomerText` in `lib/message-kinds.ts`). It only texts a saved customer, never a typed number.
 - **🤖 Call button** POSTs to `/api/ai-calls/start`, which loads the business's AI profile, verifies it's enabled, and initiates a Twilio outbound call to the customer. Logs a `campaign_events` row with `event_type='ai_call_started'`. If Twilio isn't configured, returns a clear error.
 
 Buttons are disabled when no phone number is on file.

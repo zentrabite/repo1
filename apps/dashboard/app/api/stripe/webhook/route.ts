@@ -9,7 +9,6 @@ import { createServerClient } from "@/lib/supabase-server";
 import { notifyOwnerOfOrder } from "@/lib/notify";
 import { sendCustomerReceipt } from "@/lib/email";
 import { normaliseAuPhone } from "@/lib/sms";
-import { orderUrl } from "@/lib/tenant";
 import { optionsLabel, readOptions, type ChosenOption } from "@/lib/menu-options";
 import { pickupLabel, readOrderingRules } from "@/lib/pickup-times";
 import { saveRefunded } from "@/lib/refunds";
@@ -279,7 +278,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventAc
         deliveryAddress: fulfillment_type === "delivery" ? delivery_address ?? null : null,
         note:         note ?? null,
         discount:     typeof orderRecord.discount === "number" ? orderRecord.discount : null,
-        discountLabel: offerCode ? "Offer code" : "First order offer",
+        discountLabel: offerCode ? "Your code" : "First order offer",
       }) : Promise.resolve(),
     ]);
   }
@@ -311,12 +310,14 @@ async function sendOrderReceipt(args: {
   try {
     const { data: biz } = await args.db
       .from("businesses")
-      .select("name, subdomain")
+      .select("name, settings")
       .eq("id", args.businessId)
       .single();
     if (!biz) return;
 
-    const storeUrl = biz.subdomain ? orderUrl(biz.subdomain) : undefined;
+    // A reply reaches the shop through its order alert email, when it has one.
+    const alertEmail = (biz.settings as Record<string, unknown> | null)?.notify_email;
+    const replyTo = typeof alertEmail === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(alertEmail) ? alertEmail : undefined;
 
     const rawItems = Array.isArray(args.items) ? args.items as OrderItemLike[] : [];
     const items = rawItems.map(it => ({
@@ -332,7 +333,7 @@ async function sendOrderReceipt(args: {
       orderNumber:  args.orderId.slice(0, 8),
       total:        args.amount,
       items,
-      storeUrl,
+      replyTo,
       pickupLabel:  args.pickupLabel ?? undefined,
       delivery:     args.delivery,
       deliveryAddress: args.deliveryAddress ?? undefined,

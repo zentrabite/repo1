@@ -1,28 +1,39 @@
 // ─── Email (Resend) ────────────────────────────────────────────────────────
 // Tiny wrapper around the Resend REST API — no SDK dep, runs on edge or node.
 //
-// Two kinds of email:
-//   • transactional (receipts, invites, billing notices): sendEmail()
+// Every email is one of the three kinds in lib/message-kinds.ts.
+//   • must_reach and account (receipts, alerts, invites, billing notices,
+//     reports): sendEmail({ kind, ... }). Never checks opt-outs, so an
+//     unsubscribe never stops an order receipt or a login link.
 //   • marketing (win-back offers, promotions): sendMarketingEmail() ONLY.
 //     It checks consent right before sending, adds the unsubscribe link and
-//     the List-Unsubscribe headers. Spam Act 2003 needs all three.
+//     the List-Unsubscribe headers (Spam Act 2003 needs all three), and sends
+//     from the marketing address under the shop's name.
 //
 // ENV:
-//   RESEND_API_KEY          — pk/sk from resend.com
-//   RESEND_FROM_EMAIL       — optional; defaults to "ZentraBite <hello@zentrabite.com>"
-//   NEXT_PUBLIC_APP_URL     — used for links in templates
+//   RESEND_API_KEY            pk/sk from resend.com
+//   RESEND_FROM_EMAIL         must_reach and account mail. Defaults to
+//                             "ZentraBite <hello@zentrabite.com>"
+//   RESEND_MARKETING_FROM_EMAIL  marketing mail, on its own sending
+//                             subdomain so a spam complaint about an offer
+//                             can't hurt receipts. Falls back to
+//                             RESEND_FROM_EMAIL until that subdomain exists
+//   NEXT_PUBLIC_APP_URL       used for links in templates
 //
 // If RESEND_API_KEY is unset the helper no-ops — useful for local dev so you
 // don't need keys to test an order flow.
 
 import "server-only";
 import { canSendMarketing, unsubscribeLinks } from "@/lib/unsubscribe";
+import type { MessageKind } from "@/lib/message-kinds";
 
 export type EmailResult =
   | { ok: true;  id: string }
   | { ok: false; error: string; skipped?: boolean };
 
 export type SendEmailInput = {
+  /** must_reach or account. Marketing goes through sendMarketingEmail(). */
+  kind:    Exclude<MessageKind, "marketing">;
   to:      string;
   subject: string;
   text:    string;
@@ -33,14 +44,37 @@ export type SendEmailInput = {
   headers?: Record<string, string>;
 };
 
+const DEFAULT_FROM = "ZentraBite <hello@zentrabite.com>";
+
+/** The sending address for a kind. Marketing has its own, once it's set up. */
+export function fromAddress(kind: MessageKind): string {
+  const account = process.env.RESEND_FROM_EMAIL || DEFAULT_FROM;
+  return kind === "marketing" ? (process.env.RESEND_MARKETING_FROM_EMAIL || account) : account;
+}
+
+/** "Nonna's Kitchen via ZentraBite <offers@...>", so the shop is the sender people see. */
+export function fromShop(from: string, shopName: string): string {
+  const address = from.match(/<([^>]+)>/)?.[1] ?? from.trim();
+  const name = shopName.replace(/["<>,;\\]/g, "").replace(/\s+/g, " ").trim().slice(0, 60);
+  return name ? `"${name} via ZentraBite" <${address}>` : from;
+}
+
 export async function sendEmail(input: SendEmailInput): Promise<EmailResult> {
+  if ((input.kind as string) === "marketing") {
+    // Marketing must go through sendMarketingEmail, which checks consent.
+    return { ok: false, error: "Marketing email must go through sendMarketingEmail" };
+  }
+  return deliver({ ...input, from: input.from ?? fromAddress(input.kind) });
+}
+
+async function deliver(input: Omit<SendEmailInput, "kind"> & { from: string }): Promise<EmailResult> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     console.warn("[email] RESEND_API_KEY missing — email skipped");
     return { ok: false, error: "RESEND_API_KEY not set", skipped: true };
   }
 
-  const from = input.from ?? process.env.RESEND_FROM_EMAIL ?? "ZentraBite <hello@zentrabite.com>";
+  const from = input.from;
   const html = input.html ?? `<pre style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;line-height:1.6;color:#0F1F2D;white-space:pre-wrap">${escapeHtml(input.text)}</pre>`;
 
   try {
@@ -113,7 +147,8 @@ export async function sendMarketingEmail(input: MarketingEmailInput): Promise<Em
     `Sent by ZentraBite for ${businessName}.`,
   ].join("\n");
 
-  return sendEmail({
+  return deliver({
+    from: fromShop(fromAddress("marketing"), businessName),
     to,
     subject,
     text: `${text.trim()}\n\n--\n${footer}`,
@@ -156,7 +191,6 @@ export type CustomerReceiptInput = {
   orderNumber:  string;
   total:        number;
   items:        { name: string; qty?: number; price?: number }[];
-  storeUrl?:    string;
   /** "As soon as possible, about 6:20pm" or "6:30pm". */
   pickupLabel?: string;
   /** Delivered by the shop's own driver, to deliveryAddress. */
@@ -166,12 +200,16 @@ export type CustomerReceiptInput = {
   note?: string;
   /** Taken off by the first order offer or a win-back code. total is after it. */
   discount?: number;
-  /** What took it off, "First order offer" (the default) or "Offer code". */
+  /** What took it off, "First order offer" (the default) or "Your code" (a win-back code). */
   discountLabel?: string;
+  /** The shop's order alert email, so a reply reaches the shop. */
+  replyTo?: string;
 };
 
+// A receipt is must_reach, so it carries nothing that sells. No "order
+// again" button, which would make it marketing (lib/message-kinds.ts).
 export async function sendCustomerReceipt(input: CustomerReceiptInput): Promise<EmailResult> {
-  const { customerName, businessName, orderNumber, total, items, storeUrl } = input;
+  const { customerName, businessName, orderNumber, total, items } = input;
   const subject = `Your ${businessName} order — #${orderNumber}`;
   const itemLines = items
     .map(it => `  • ${it.qty ? `${it.qty}× ` : ""}${it.name}${it.price ? ` — $${it.price.toFixed(2)}` : ""}`)
@@ -190,17 +228,23 @@ export async function sendCustomerReceipt(input: CustomerReceiptInput): Promise<
     `Items:`,
     itemLines,
     ``,
-    storeUrl ? `View or reorder: ${storeUrl}` : "",
+    contactLine(input),
     ``,
     `— ${businessName}`,
   ].filter(Boolean).join("\n");
 
   const html = receiptHtml(input);
-  return sendEmail({ to: input.to, subject, text, html });
+  return sendEmail({ kind: "must_reach", to: input.to, subject, text, html, from: fromShop(fromAddress("must_reach"), businessName), replyTo: input.replyTo });
+}
+
+function contactLine(input: CustomerReceiptInput): string {
+  return input.replyTo
+    ? `Questions? Reply to this email and it goes to ${input.businessName}.`
+    : `Questions? Contact ${input.businessName} directly.`;
 }
 
 function receiptHtml(input: CustomerReceiptInput): string {
-  const { customerName, businessName, orderNumber, total, items, storeUrl } = input;
+  const { customerName, businessName, orderNumber, total, items } = input;
   const rows = items.map(it => `
     <tr>
       <td style="padding:10px 0;border-bottom:1px solid #eceff4;font-size:14px;color:#0F1F2D">
@@ -243,13 +287,8 @@ function receiptHtml(input: CustomerReceiptInput): string {
             </tr>
           </table>
 
-          ${storeUrl ? `
-          <div style="text-align:center;margin-top:28px">
-            <a href="${escapeHtml(storeUrl)}" style="display:inline-block;padding:12px 22px;background:#00AD82;color:#fff;text-decoration:none;border-radius:10px;font-weight:600;font-size:14px">View or reorder →</a>
-          </div>` : ""}
-
           <div style="margin-top:24px;padding-top:20px;border-top:1px solid #eceff4;font-size:12px;color:#6B7C93;line-height:1.6">
-            Questions? Just reply to this email — it'll go straight to ${escapeHtml(businessName)}.
+            ${escapeHtml(contactLine(input))}
           </div>
         </td></tr>
       </table>

@@ -128,7 +128,7 @@ async function remindOne(db: any, biz: BusinessRow, now: number): Promise<string
     `ZentraBite`,
   ].join("\n");
 
-  const out = await sendEmail({ to, subject, text });
+  const out = await sendEmail({ kind: "account", to, subject, text });
   if (!out.ok) {
     if (!out.skipped) console.error(`[trial-reminders] ${biz.id} email failed: ${out.error}`);
     return out.skipped ? "email_not_set_up" : "email_failed";

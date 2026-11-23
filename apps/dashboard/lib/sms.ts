@@ -1,5 +1,9 @@
 // ─── SMS helpers: Spam Act footer, opt-out keywords, send limits ─────────────
 //
+// Every text is one of the three kinds in lib/message-kinds.ts. smsBody()
+// writes it the way its kind needs. A STOP reply opts a customer out of
+// marketing only. It never stops a must_reach text about their order.
+//
 // Australian Spam Act 2003 rules for marketing texts:
 //   • identify who sent it (the restaurant's name)
 //   • include a working way to unsubscribe
@@ -10,6 +14,7 @@
 // businesses.settings.sms_monthly_cap and businesses.settings.sms_per_minute.
 
 import "server-only";
+import type { MessageKind } from "@/lib/message-kinds";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Db = any;
@@ -30,20 +35,32 @@ export function isStartKeyword(body: string): boolean {
   return START_WORDS.includes(word);
 }
 
+/** Puts the business name at the start if the text doesn't already mention it. */
+export function withSender(message: string, businessName: string | null | undefined): string {
+  const text = message.trim();
+  const name = (businessName ?? "").trim();
+  return name && !text.toLowerCase().includes(name.toLowerCase()) ? `${name}: ${text}` : text;
+}
+
 /**
  * Makes a marketing text Spam Act friendly. Adds the business name at the
  * start if the template doesn't already mention it, and a STOP line at the end.
  */
 export function withSenderAndOptOut(message: string, businessName: string | null | undefined): string {
-  let text = message.trim();
-  const name = (businessName ?? "").trim();
-  if (name && !text.toLowerCase().includes(name.toLowerCase())) {
-    text = `${name}: ${text}`;
-  }
+  let text = withSender(message, businessName);
   if (!/reply\s+stop/i.test(text)) {
     text = `${text} Reply STOP to opt out`;
   }
   return text;
+}
+
+/**
+ * A text as it goes out. Every text names the shop. Marketing also says
+ * "Reply STOP to opt out". A must_reach text doesn't, because STOP doesn't
+ * stop texts about an order and saying so would mislead.
+ */
+export function smsBody(kind: MessageKind, message: string, businessName: string | null | undefined): string {
+  return kind === "marketing" ? withSenderAndOptOut(message, businessName) : withSender(message, businessName);
 }
 
 /** Normalises an Australian mobile to E.164 (+614...). Leaves other formats alone. */
@@ -66,6 +83,30 @@ export function phoneVariants(raw: string): string[] {
   const spaced = /^0\d{9}$/.test(local) ? `${local.slice(0, 4)} ${local.slice(4, 7)} ${local.slice(7)}` : local;
   const dashed = spaced.replace(/ /g, "-");
   return [...new Set([raw.trim(), e164, local, e164.replace(/^\+/, ""), spaced, dashed])];
+}
+
+/**
+ * Checked right before each marketing text, so a STOP that came in a minute
+ * ago counts even mid-run. The customer must have agreed and not opted out,
+ * and nobody with the same number at this shop may have opted out.
+ */
+export async function canTextMarketing(db: Db, businessId: string, customerId: string, phone: string): Promise<boolean> {
+  const { data: row, error } = await db
+    .from("customers")
+    .select("id, opted_out, marketing_opt_in")
+    .eq("id", customerId)
+    .eq("business_id", businessId)
+    .maybeSingle();
+  if (error || !row || row.opted_out || !row.marketing_opt_in) return false;
+  const { data: others, error: othersErr } = await db
+    .from("customers")
+    .select("id")
+    .eq("business_id", businessId)
+    .in("phone", phoneVariants(phone))
+    .eq("opted_out", true)
+    .limit(1);
+  if (othersErr) return false;
+  return (others ?? []).length === 0;
 }
 
 export type AllowanceResult = { ok: true } | { ok: false; reason: string; status: 429 };
