@@ -9,9 +9,9 @@
 // comes off that day. The sums are in totals.ts, which the CRM's tests check.
 // Only our own pg_cron job can start it (since v5): the job sends x-zb-cron,
 // a secret kept in Supabase Vault (migration 034), and anything without it
-// gets a 401. One run a day (edge_function_runs, migration 017) as well. A run that finishes also writes
-// "nightly-analytics-done", which Super Admin's Daily jobs light reads, so a
-// night that fails shows there. Before v3 every save failed (the live table
+// gets a 401. One run a day (edge_function_runs, migration 017) as well. A
+// run that finishes also writes "nightly-analytics-done", which Super
+// Admin's Daily jobs light reads, so a night that fails shows there. Before v3 every save failed (the live table
 // had no unique key until migration 032) and nothing said so.
 //
 // Deploy with totals.ts beside it.
