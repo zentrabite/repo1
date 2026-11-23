@@ -23,8 +23,8 @@ interface BusinessState {
   // With no business of their own, they only see /sell.
   isSeller:     boolean;
   impersonatingBusinessId: string | null;
-  // Role of the current user for the current business. "Owner" by default —
-  // drives role-based nav hiding in the sidebar.
+  // Role of the current user for the current business: Owner, Manager, Staff
+  // or POS. Drives which pages they see (sidebar and DashboardShell).
   role:         string | null;
 }
 
@@ -80,7 +80,25 @@ export function useBusiness(): BusinessState {
         }
       }
 
-      // 4. Get business details
+      // 4. Resolve the role. A login with its own shop (users.business_id) is
+      // its Owner, and so is a super admin. Anyone else is a team member: the
+      // database says which shop they joined and their role there (030), by
+      // the same rule the server uses (lib/request-business.ts), once they've
+      // opened their invite link and while they haven't been removed.
+      let role: string | null = null;
+      if (businessId || isSuperAdmin) {
+        role = "Owner";
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const rpc = (supabase as any).rpc.bind(supabase) as (fn: string) => Promise<{ data: string | null }>;
+        const [{ data: memberOf }, { data: memberRole }] = await Promise.all([rpc("get_my_business_id"), rpc("get_my_role")]);
+        if (memberOf) {
+          businessId = memberOf;
+          role = memberRole ?? "Staff";
+        }
+      }
+
+      // 5. Get business details
       let business: Business | null = null;
       if (businessId) {
         const { data: biz } = await supabase
@@ -89,22 +107,6 @@ export function useBusiness(): BusinessState {
           .eq("id", businessId)
           .single();
         business = biz;
-      }
-
-      // 5. Resolve role. Users.business_id owners are always "Owner"; everyone
-      // else's role comes from business_members keyed on their email.
-      let role: string | null = null;
-      const ownsBusiness = !impersonatingBusinessId && userRow?.business_id === businessId;
-      if (ownsBusiness || isSuperAdmin) {
-        role = "Owner";
-      } else if (businessId && email) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: memberRow } = await (supabase.from("business_members") as any)
-          .select("role")
-          .eq("business_id", businessId)
-          .eq("email", email)
-          .maybeSingle();
-        role = memberRow?.role ?? "Staff";
       }
 
       setState({

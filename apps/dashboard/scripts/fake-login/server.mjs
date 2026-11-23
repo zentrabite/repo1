@@ -55,11 +55,34 @@ http.createServer((req, res) => {
       res.writeHead(status, { "content-type": "application/json", ...cors, ...extra });
       res.end(json === undefined ? "" : JSON.stringify(json));
     };
-    if (url.pathname === "/auth/v1/user") {
-      // The fake token is "fake-<user id>" (login.mjs), so either login works.
-      const token = (req.headers.authorization ?? "").replace(/^Bearer\s+/i, "");
-      const who = [data.user, data.seller].filter(Boolean).find(u => token === `fake-${u.id}`) ?? data.user;
-      return send(200, who);
+    // The fake token is "fake-<user id>" (login.mjs), so any login works.
+    const token = (req.headers.authorization ?? "").replace(/^Bearer\s+/i, "");
+    const logins = [data.user, data.seller, data.staff, ...(data.auth_users ?? [])].filter(Boolean);
+    const me = logins.find(u => token === `fake-${u.id}`) ?? data.user;
+    if (url.pathname === "/auth/v1/user") return send(200, me);
+    const admin = /^\/auth\/v1\/admin\/users\/([^/]+)$/.exec(url.pathname);
+    if (admin) {
+      const u = logins.find(l => l.id === admin[1]);
+      return u ? send(200, u) : send(404, { message: "User not found" });
+    }
+    // An invite or magic link. The link goes nowhere real.
+    if (url.pathname === "/auth/v1/admin/generate_link") {
+      const { type, email } = body ? JSON.parse(body) : {};
+      log(`POST generate_link ${type} ${email}`);
+      const known = logins.find(l => l.email === email);
+      if (type === "invite" && known) return send(422, { code: 422, error_code: "email_exists", msg: "A user with this email address has already been registered" });
+      return send(200, { action_link: `http://localhost:3000/fake-${type}/${encodeURIComponent(email)}`, email_otp: "000000", hashed_token: "fake", redirect_to: "http://localhost:3000/login", verification_type: type, ...(known ?? { id: "66666666-6666-4666-8666-666666666666", email, invited_at: new Date().toISOString() }) });
+    }
+    // get_my_business_id() and get_my_role() the way migration 030 works them out.
+    const rpc = /^\/rest\/v1\/rpc\/([a-z_]+)$/.exec(url.pathname);
+    if (rpc) {
+      const row = (data.tables.users ?? []).find(u => u.id === me.id);
+      const member = row?.business_id ? null : (data.tables.business_members ?? [])
+        .filter(m => m.email === String(me.email).toLowerCase() && me.invited_at && me.email_confirmed_at && !["removed", "revoked"].includes(m.status))
+        .sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)))[0];
+      if (rpc[1] === "get_my_business_id") return send(200, row?.business_id ?? member?.business_id ?? null);
+      if (rpc[1] === "get_my_role") return send(200, row?.business_id ? "Owner" : member?.role ?? null);
+      return send(404, { message: "rpc not mocked" });
     }
     const m = /^\/rest\/v1\/([a-z_]+)$/.exec(url.pathname);
     if (!m) { log(`${req.method} ${url.pathname} (not handled)`); return send(404, { message: "not mocked" }); }

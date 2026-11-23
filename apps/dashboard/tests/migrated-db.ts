@@ -21,7 +21,7 @@ const SUPABASE_STANDINS = `
 
   create schema auth; create schema storage; create schema cron; create schema net; create schema extensions;
 
-  create table auth.users (id uuid primary key, email text, raw_user_meta_data jsonb default '{}'::jsonb, created_at timestamptz default now());
+  create table auth.users (id uuid primary key, email text, raw_user_meta_data jsonb default '{}'::jsonb, invited_at timestamptz, email_confirmed_at timestamptz, created_at timestamptz default now());
   create function auth.uid() returns uuid language sql stable as
     $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
   create function auth.role() returns text language sql stable as

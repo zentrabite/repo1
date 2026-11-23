@@ -7,7 +7,7 @@ import Modal from "@/components/modal";
 import Toast from "@/components/toast";
 import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
-import { getOrders, saveSettings, updateOrderStatus } from "@/lib/queries";
+import { getOrders, updateOrderStatus } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 import type { Order } from "@/lib/database.types";
 import { cameFromLabel } from "@/lib/offer-codes";
@@ -59,7 +59,14 @@ export default function OrdersPage() {
     if (!businessId) return;
     setPausing(true);
     try {
-      await saveSettings(businessId, { ordering: { paused: !paused } });
+      // Through the server, so staff can pause too (only owners and managers
+      // change the shop's settings from a browser since 030).
+      const res = await fetch("/api/orders/pause", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ businessId, paused: !paused }),
+      });
+      if (!res.ok) throw new Error("pause failed");
       setPausedNow(!paused);
       show(paused ? "Online orders are on again ✓" : "Online orders paused");
     } catch { show("Couldn't change online orders. Try again."); }

@@ -7,6 +7,10 @@ import BrandMark from "./brand-mark";
 import DashboardSidebar from "./dashboard-sidebar";
 import DashboardTopbar from "./dashboard-topbar";
 import ImpersonationBanner from "./impersonation-banner";
+import EmptyState from "./empty-state";
+import { iconComponent } from "./zb-icon";
+import { blockedPage, firstAllowedPage } from "@/lib/permissions";
+import { navigation } from "@/lib/navigation";
 
 const AUTH_ROUTES = ["/login", "/signup", "/auth", "/forgot-password", "/reset-password"];
 
@@ -28,11 +32,19 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
   // A seller with no shop of their own only has the sales pages (/sell).
   // Anywhere else in the CRM, send them there.
-  const { loading, isSeller, isSuperAdmin, businessId } = useBusiness();
+  const { loading, isSeller, isSuperAdmin, businessId, role, business } = useBusiness();
   const sellerOnly = !loading && isSeller && !isSuperAdmin && !businessId;
   const isPublic   = isAuthPage || Boolean(segment && PUBLIC_SEGMENTS.has(segment));
   const sendToSell = sellerOnly && !isPublic && segment !== "sell";
   useEffect(() => { if (sendToSell) router.replace("/sell"); }, [sendToSell, router]);
+
+  // A team member's role decides which pages they open, not just which ones
+  // the sidebar shows. Typing the address of a hidden page shows a notice.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const overrides = ((business?.settings as any)?.role_permissions ?? null) as Record<string, string[]> | null;
+  const blocked = !loading && Boolean(businessId) && blockedPage(pathname, role, overrides, isSuperAdmin) !== null;
+  const homeHref = blocked ? firstAllowedPage(role, overrides, isSuperAdmin) : null;
+  const homePage = homeHref ? navigation.find(n => n.href === homeHref) ?? null : null;
 
   // Phone menu (under 820px wide the sidebar slides in from the left). It is
   // open for the page it was opened on, so going to another page closes it.
@@ -112,7 +124,16 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         />
         <main className="zb-content" style={{ flex:1, padding:"32px 40px" }}>
           <div style={{ maxWidth:1480, width:"100%" }} className="fd">
-            {children}
+            {blocked ? (
+              <div style={{ maxWidth:520, margin:"48px auto 0" }}>
+                <EmptyState icon={iconComponent("settings")} title="Your role can't open this page" description={`You're on the team as ${role ?? "Staff"}. Ask the shop's owner if you need it.`} />
+                {homePage && (
+                  <div style={{ textAlign:"center", marginTop:16 }}>
+                    <a href={homePage.href} className="bg-btn" style={{ textDecoration:"none", display:"inline-flex", minHeight:44, alignItems:"center" }}>Go to {homePage.label}</a>
+                  </div>
+                )}
+              </div>
+            ) : children}
           </div>
         </main>
       </div>
