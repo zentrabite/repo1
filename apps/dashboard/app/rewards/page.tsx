@@ -365,7 +365,7 @@ export default function RewardsPage() {
         </div>
         <div style={{ marginBottom:12 }}>
           <label>Description</label>
-          <input value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="e.g. Any coffee from our menu" />
+          <input value={form.description ?? ""} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="e.g. Any coffee from our menu" />
         </div>
         <div style={{ marginBottom:12 }}>
           <label>Points Cost *</label>
@@ -379,7 +379,7 @@ export default function RewardsPage() {
         </div>
         <div style={{ marginBottom:18 }}>
           <label>Category</label>
-          <input value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="e.g. Drinks, Mains, Discounts" />
+          <input value={form.category ?? ""} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="e.g. Drinks, Mains, Discounts" />
         </div>
         <div style={{ display:"flex", gap:6, justifyContent:"flex-end" }}>
           <button className="bg-btn" onClick={closeModal}>Cancel</button>

@@ -1,10 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Skip type checking during build — types are checked locally via IDE.
-  // Re-enable once the codebase has full strict-mode coverage.
+  // Type errors fail the build. There were 14 old ones until 23 Nov 2026,
+  // when they were cleared, so this is back on and a new one stands out.
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   images: {
     remotePatterns: [

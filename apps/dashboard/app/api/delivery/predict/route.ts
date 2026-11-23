@@ -204,7 +204,7 @@ export async function GET(req: Request) {
         taskerCapacity,
         taskerLabel: otherLabel,
         settingsConfigured: taskerDayRate > 0 || uberPerDelivery > 0,
-      } as any,
+      },
     };
 
     return NextResponse.json(result);

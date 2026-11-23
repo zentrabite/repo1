@@ -401,7 +401,7 @@ export default function POSPage() {
                   feeBreakdown.prioritySurcharge    ? ["Priority",       feeBreakdown.prioritySurcharge]    : null,
                   feeBreakdown.highValueDiscount    ? ["High value disc",`-${feeBreakdown.highValueDiscount}`] : null,
                   ["Service fee", feeBreakdown.serviceFee],
-                ].filter(Boolean).map(([label, val]) => (
+                ].filter((row): row is [string, string | number] => row !== null).map(([label, val]) => (
                   <div key={String(label)} style={{ display:"flex", justifyContent:"space-between", fontSize:11, color:"rgba(255,255,255,.6)", marginBottom:3 }}>
                     <span>{label}</span>
                     <span>${typeof val === "number" ? val.toFixed(2) : val}</span>

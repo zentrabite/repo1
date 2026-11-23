@@ -29,7 +29,7 @@ Before making any changes:
 - **Treat `docs/context/` as logic/architecture guidance** — when in doubt about *what should happen*, read context first, don't guess.
 - **Treat `docs/reference/` as UI/component guidance** — when in doubt about *what it should look like*, check reference first.
 - **Look at logged-in CRM pages locally** with `apps/dashboard/scripts/fake-login` (a fake Supabase with sample data, see its README). Check a changed page at desktop and phone widths before opening a pull request.
-- **Respect the Next.js 16 note** in `apps/dashboard/AGENTS.md` — App Router, React 19, TS strict. Read `node_modules/next/dist/docs/` before writing Next-specific code.
+- **Respect the Next.js 16 note** in `apps/dashboard/AGENTS.md` — App Router, React 19, TS strict. Read `node_modules/next/dist/docs/` before writing Next-specific code. The CRM has no type errors since 23 Nov 2026, and its build fails on one, so run `npx tsc --noEmit -p apps/dashboard` before pushing.
 - **Supabase is the backend.** Browser client in `lib/supabase.ts`, server/service-role client in `lib/supabase-server.ts`. Migrations under `supabase/migrations/`.
 
 ## Marketing site rules (`apps/web`, not the demos)
