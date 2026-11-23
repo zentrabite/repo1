@@ -257,7 +257,6 @@ describe("our own must_reach and account emails", () => {
   });
 
   it("a marketing email goes from the marketing address under the shop's name, and never through sendEmail", async () => {
-    vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "service-role-test");
     vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://dashboard.zentrabite.com");
     h.db = fakeDb({
       "customers.select": q => filterValue(q, "id") ? { data: { id: CUST, opted_out: false, marketing_opt_in: true }, error: null } : { data: [], error: null },

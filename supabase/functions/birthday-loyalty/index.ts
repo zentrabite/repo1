@@ -8,7 +8,9 @@
 //
 // Only our own pg_cron job can start it (since v4): the job sends x-zb-cron,
 // a secret kept in Supabase Vault (migration 034), and anything without it
-// gets a 401. It's also safe to run more than once:
+// gets a 401. Deployed with Supabase's JWT check off (verify_jwt false) since
+// v5, because that check only knows the older keys and x-zb-cron does the job.
+// It's also safe to run more than once:
 //   • one run per day, claimed in edge_function_runs (migration 017)
 //   • a customer gets birthday points at most once a year. The event row
 //     (source "birthday-year-<YYYY>") is written BEFORE the points, and a
@@ -18,9 +20,9 @@
 //     it's still safe before migration 017 is applied
 //   • points are added only if the balance hasn't changed since it was read,
 //     so a points-earning order at the same moment isn't overwritten
-// Needs migrations 017, 033 and 034. Deploy with birthdays.ts beside it.
+// Needs migrations 017, 033, 034 and 035. Deploy with birthdays.ts beside it,
+// with the JWT check off (supabase functions deploy birthday-loyalty --no-verify-jwt).
 //
-// Deploy:   supabase functions deploy birthday-loyalty
 // Schedule: 0 22 * * *  (8 AM ACST → 10 PM UTC previous day)
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -28,10 +30,18 @@ import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { DEFAULT_TIMEZONE, candidateDays, isBirthday, shopToday } from "./birthdays.ts";
 
-const SUPABASE_URL         = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+/** The server's key. The newer secret key once one is made (Supabase gives
+ *  functions SUPABASE_SECRET_KEYS, a JSON list by name), else the older
+ *  service_role key. */
+function serverKey(): string {
+  try {
+    const keys = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}");
+    if (typeof keys?.default === "string" && keys.default) return keys.default;
+  } catch { /* none made yet */ }
+  return Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+}
 
-const db = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+const db = createClient(Deno.env.get("SUPABASE_URL")!, serverKey());
 
 const DEFAULT_BIRTHDAY_POINTS = 200;
 

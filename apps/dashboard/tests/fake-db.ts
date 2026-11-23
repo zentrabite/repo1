@@ -4,6 +4,8 @@
 // Answers come from handlers keyed "table.operation" (for example
 // "businesses.select" or "orders.insert"). A handler gets the recorded query
 // and returns { data, error }. With no handler, a query returns no data.
+// db.rpc(name, args) answers from a handler keyed "rpc.<name>", and
+// link_signing_secret (migration 035) has a test secret by default.
 
 export type Filter = [column: string, value: unknown];
 
@@ -62,7 +64,17 @@ export function fakeDb(handlers: Record<string, Handler> = {}) {
     return builder;
   }
 
-  return { from, calls };
+  const rpcCalls: { name: string; args: unknown }[] = [];
+  async function rpc(name: string, args?: unknown): Promise<Result> {
+    rpcCalls.push({ name, args });
+    const h = handlers[`rpc.${name}`];
+    const out = h?.({ table: name, op: "select", filters: [], payload: args });
+    if (out) return out;
+    if (name === "link_signing_secret") return { data: "test-link-secret-".padEnd(64, "x"), error: null };
+    return { data: null, error: null };
+  }
+
+  return { from, rpc, calls, rpcCalls };
 }
 
 /** The value a query filtered on, for example filterValue(q, "id"). */
