@@ -1,7 +1,10 @@
 // ═══════════════════════════════════════════════════════════════════════════
 // ZentraBite — Birthday Loyalty Bonus
-// Runs daily; awards birthday_points to every customer whose date_of_birth
-// matches today's month/day (year ignored).
+// Runs daily; awards birthday_points to every customer whose birthday (a
+// day and a month only, migration 033) is today in their shop's time zone.
+// Since v3 (23 Nov 2026) the day is the shop's own. Before that it was the
+// UTC date at 10pm UTC, which is a day behind in Australia, and it read a
+// full date of birth.
 //
 // Safe to call any number of times (the cron job uses the public anon key,
 // so anyone with that key can call it):
@@ -14,7 +17,7 @@
 //     it's still safe before migration 017 is applied
 //   • points are added only if the balance hasn't changed since it was read,
 //     so a points-earning order at the same moment isn't overwritten
-// Apply migration 017 before redeploying.
+// Needs migrations 017 and 033. Deploy with birthdays.ts beside it.
 //
 // Deploy:   supabase functions deploy birthday-loyalty
 // Schedule: 0 22 * * *  (8 AM ACST → 10 PM UTC previous day)
@@ -22,6 +25,7 @@
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { DEFAULT_TIMEZONE, candidateDays, isBirthday, shopToday } from "./birthdays.ts";
 
 const SUPABASE_URL         = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -70,24 +74,29 @@ serve(async () => {
       );
     }
 
-    const today = new Date();
-    const month = today.getMonth() + 1; // 1-12
-    const day   = today.getDate();      // 1-31
+    const now = new Date();
 
-    // Pull all customers with a DOB matching today's month/day.
-    // Using a SQL function would be cleaner; here we filter in JS for
-    // portability across Postgres versions.
+    // Customers whose birthday is near today anywhere, then each one checked
+    // against their own shop's date. 29 Feb is read too, for 28 Feb.
+    const months = Array.from(new Set(candidateDays(now).map(d => d.month).concat(2)));
     const { data: candidates, error } = await db
       .from("customers")
-      .select("id, business_id, name, date_of_birth")
-      .not("date_of_birth", "is", null);
+      .select("id, business_id, name, birth_month, birth_day")
+      .in("birth_month", months)
+      .not("birth_day", "is", null);
 
     if (error) throw error;
 
+    const shopIds = Array.from(new Set((candidates ?? []).map((c: any) => c.business_id)));
+    const { data: shops } = shopIds.length
+      ? await db.from("businesses").select("id, settings").in("id", shopIds)
+      : { data: [] };
+    const todayOf = new Map<string, ReturnType<typeof shopToday>>();
+    for (const b of shops ?? []) todayOf.set(b.id, shopToday(now, (b as any).settings?.timezone || DEFAULT_TIMEZONE));
+
     const todays = (candidates ?? []).filter((c: any) => {
-      if (!c.date_of_birth) return false;
-      const d = new Date(c.date_of_birth);
-      return d.getMonth() + 1 === month && d.getDate() === day;
+      const today = todayOf.get(c.business_id) ?? shopToday(now, DEFAULT_TIMEZONE);
+      return isBirthday(c.birth_month, c.birth_day, today);
     });
 
     if (todays.length === 0) {
@@ -97,14 +106,9 @@ serve(async () => {
       );
     }
 
-    // Pull business loyalty settings for each unique business in batch.
-    const businessIds = Array.from(new Set(todays.map((c: any) => c.business_id)));
-    const { data: businesses } = await db
-      .from("businesses")
-      .select("id, settings")
-      .in("id", businessIds);
+    // Each shop's birthday points.
     const settingsByBiz = new Map<string, number>();
-    for (const b of businesses ?? []) {
+    for (const b of shops ?? []) {
       const pts = (b as any).settings?.loyalty?.birthday_points ?? DEFAULT_BIRTHDAY_POINTS;
       settingsByBiz.set(b.id, Number(pts));
     }
@@ -142,7 +146,7 @@ serve(async () => {
           event_type:  "birthday",
           points,
           multiplier:  1.0,
-          source:      `birthday-year-${today.getFullYear()}`,
+          source:      `birthday-year-${(todayOf.get(customer.business_id) ?? shopToday(now, DEFAULT_TIMEZONE)).year}`,
         }).select("id").single();
         if (claimErr) {
           if ((claimErr as any).code === "23505") { skipped++; continue; }
