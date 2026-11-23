@@ -5,10 +5,13 @@
 //   settings.notify_email   — owner email (optional; falls back to auth email)
 //   settings.notify_phone   — owner phone for SMS (optional; set in Settings UI)
 // Missing creds or destinations are silently skipped so the webhook never fails.
+// Both are must_reach messages (lib/message-kinds.ts). The text has no emoji
+// or long dashes, which would turn it into a costlier unicode text.
 
 import "server-only";
 import { createServerClient } from "@/lib/supabase-server";
 import { sendEmail } from "@/lib/email";
+import { sendTwilioSms } from "@/lib/sms";
 
 type NotifyOrderInput = {
   businessId: string;
@@ -61,39 +64,23 @@ export async function notifyOwnerOfOrder(input: NotifyOrderInput): Promise<void>
 
   // Run email and SMS in parallel — failures don't block the webhook
   await Promise.allSettled([
-    notifyEmail ? sendEmail({ to: notifyEmail, subject, text: plainBody }) : Promise.resolve(),
-    notifyPhone ? sendSms(notifyPhone, `${subject} — ${businessName} (${shortId})${when ? `. ${when}` : ""}`) : Promise.resolve(),
+    notifyEmail ? sendEmail({ kind: "must_reach", to: notifyEmail, subject, text: plainBody }) : Promise.resolve(),
+    notifyPhone ? sendSms(notifyPhone, ownerAlertText(businessName, amount, shortId, when)) : Promise.resolve(),
     writeNotificationRow(db, businessId, orderId, subject, plainBody),
   ]);
 }
 
 // ─── SMS via Twilio ───────────────────────────────────────────────────────────
 
+/** "New order $26.00 at Nonna's Kitchen (3f2a9c1b). Pick-up 6:30pm" */
+export function ownerAlertText(businessName: string, amount: number, shortId: string, when: string | null): string {
+  return `New order $${amount.toFixed(2)} at ${businessName} (${shortId}).${when ? ` ${when}` : ""}`;
+}
+
 async function sendSms(to: string, message: string): Promise<void> {
-  const accountSid = process.env.TWILIO_ACCOUNT_SID;
-  const authToken  = process.env.TWILIO_AUTH_TOKEN;
-  const fromNumber = process.env.TWILIO_PHONE_NUMBER;
-  if (!accountSid || !authToken || !fromNumber) {
-    console.warn("[notify] Twilio not configured — skipping SMS");
-    return;
-  }
-  try {
-    const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Authorization": `Basic ${Buffer.from(`${accountSid}:${authToken}`).toString("base64")}`,
-        "Content-Type":  "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({ To: to, From: fromNumber, Body: message }).toString(),
-    });
-    if (!res.ok) {
-      const body = await res.text();
-      console.error("[notify] Twilio error:", res.status, body);
-    }
-  } catch (err) {
-    console.error("[notify] SMS send failed:", err);
-  }
+  const out = await sendTwilioSms(to, message);
+  if (out.status === "skipped") console.warn("[notify] Twilio not configured, SMS skipped");
+  else if (out.status === "failed") console.error("[notify] SMS failed:", out.error);
 }
 
 // ─── In-app notification row (optional; table created by migration) ──────────

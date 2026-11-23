@@ -129,6 +129,7 @@ export async function POST(req: Request) {
   // already saved, so a failed email only shows in the logs.
   after(async () => {
     const sent = await sendEmail({
+      kind: "account",
       to: NOTIFY_TO,
       subject: `New enquiry from ${enquiry.business_name}`,
       text: enquiryEmailText(enquiry, source),

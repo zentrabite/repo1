@@ -65,6 +65,7 @@ export async function emailSetupLink(to: string | null | undefined, ownerName: s
   if (!to || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return false;
   const hi = ownerName?.trim() ? `Hi ${ownerName.trim().split(/\s+/)[0]},` : "Hi,";
   const result = await sendEmail({
+    kind: "must_reach",
     to,
     subject: `Set up payments for ${shopName}`,
     text: [

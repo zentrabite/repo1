@@ -50,6 +50,8 @@ export interface Database {
           total_orders:     number;
           points_balance:   number;
           opted_out:        boolean;
+          // Agreed to marketing from this shop (015). Read through lib/message-kinds.ts.
+          marketing_opt_in?: boolean;
           created_at:       string;
         };
         Insert: Omit<Database["public"]["Tables"]["customers"]["Row"], "id" | "created_at">;
@@ -127,6 +129,8 @@ export interface Database {
           channel:      string | null;
           rule_id:      string | null;
           recipient:    string | null;
+          // must_reach, account or marketing (027, lib/message-kinds.ts).
+          kind?:        string;
         };
         Insert: Omit<Database["public"]["Tables"]["sms_logs"]["Row"], "id" | "sent_at">;
         Update: Partial<Database["public"]["Tables"]["sms_logs"]["Insert"]>;

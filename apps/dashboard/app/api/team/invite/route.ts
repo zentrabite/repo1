@@ -132,7 +132,7 @@ export async function POST(req: Request) {
       appUrl,
     });
 
-    const result = await sendEmail({ to: email, subject, text, html });
+    const result = await sendEmail({ kind: "must_reach", to: email, subject, text, html });
 
     if (!result.ok && !result.skipped) {
       return NextResponse.json({ error: result.error, actionLink }, { status: 500 });

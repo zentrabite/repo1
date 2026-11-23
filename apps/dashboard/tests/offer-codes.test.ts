@@ -41,9 +41,13 @@ vi.mock("@/lib/sms", () => ({
   normaliseAuPhone: (p: string) => p,
   checkSmsAllowance: vi.fn(async () => ({ ok: true })),
   withSenderAndOptOut: (m: string, b: string) => `${b}: ${m} Reply STOP to opt out`,
+  smsBody: (_k: string, m: string, b: string) => `${b}: ${m} Reply STOP to opt out`,
+  canTextMarketing: vi.fn(async () => true),
   sendTwilioSms: h.sms,
 }));
 vi.mock("@/lib/analytics-server", () => ({ captureServer: h.capture }));
+// The consent check right before each send has its own tests (tests/message-kinds.test.ts).
+vi.mock("@/lib/unsubscribe", async (importOriginal) => ({ ...(await importOriginal<object>()), canSendMarketing: vi.fn(async () => true) }));
 vi.mock("@/lib/request-business", () => ({
   MANAGER_ROLES: ["Owner", "Manager"],
   requireBusiness: vi.fn(async () => ({ ok: true, businessId: "biz-1", userId: "user-1" })),
@@ -53,6 +57,7 @@ import {
   cameFrom, cameFromLabel, checkCode, cleanCode, codeDiscount, issueCode, makeCode, offerLabel, readOffer, winbackMessage,
 } from "@/lib/offer-codes";
 import { GET as runAutomations } from "@/app/api/automations/run/route";
+import { canTextMarketing } from "@/lib/sms";
 import { POST as checkout } from "@/app/api/store/checkout/route";
 import { POST as webhook } from "@/app/api/stripe/webhook/route";
 import { GET as storeApi } from "@/app/api/store/[subdomain]/route";
@@ -200,6 +205,22 @@ describe("sending win-back", () => {
     expect(text).toMatch(/Online orders only, ends \w{3} \d{1,2} \w{3}\./);
     expect(text).toMatch(/Reply STOP/);
     expect(calls("sms_logs", "insert")[0]!.payload).toMatchObject({ customer_id: "c1", rule_id: "rule-1", status: "sent" });
+  });
+
+  it("sends nothing, and makes no code, when the customer replied STOP since the run started", async () => {
+    setup(SHOP, RULE);
+    vi.mocked(canTextMarketing).mockResolvedValueOnce(false);
+    await run();
+    expect(canTextMarketing).toHaveBeenCalledWith(h.db, "biz-1", "c1", "+61412345678");
+    expect(h.sms).not.toHaveBeenCalled();
+    expect(calls("offer_codes", "insert")).toHaveLength(0);
+    expect(calls("sms_logs", "insert")).toHaveLength(0);
+  });
+
+  it("logs every win-back text as marketing", async () => {
+    setup(SHOP, RULE);
+    await run();
+    expect(calls("sms_logs", "insert")[0]!.payload).toMatchObject({ kind: "marketing" });
   });
 
   it("puts the code in emails too", async () => {
@@ -378,7 +399,7 @@ describe("the order", () => {
     expect(calls("campaign_events", "insert")[0]!.payload).toMatchObject({
       winback_rule_id: "rule-1", customer_id: "c1", order_id: "order-1", event_type: "redeemed", revenue_attributed: 28.8, coupon_code: "K7MP4QXA",
     });
-    expect(vi.mocked(sendCustomerReceipt).mock.calls[0]![0]).toMatchObject({ discount: 7.2, discountLabel: "Offer code" });
+    expect(vi.mocked(sendCustomerReceipt).mock.calls[0]![0]).toMatchObject({ discount: 7.2, discountLabel: "Your code" });
     // Counted for the funnel with nothing about the customer.
     const [part, event, distinctId, props] = h.capture.mock.calls[0]! as unknown as [string, string, string, Record<string, unknown>];
     expect([part, event, distinctId]).toEqual(["ordering", "order_paid", "shop-biz-1"]);

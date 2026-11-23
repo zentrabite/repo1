@@ -21,8 +21,9 @@ Before making any changes:
 
 ## Rules when working in this repo
 
-- **Extend existing code, don't rebuild.** The monorepo already contains a working CRM (`apps/dashboard`), marketing site (`apps/web`), storefront (`apps/storefront`), and a Supabase schema with 26 applied migrations (001 to 026). `apps/dashboard/tests/tenant-isolation.test.ts` runs all of them on a real Postgres in memory and proves one shop can't read or change another's rows, and `tests/route-guards.test.ts` fails any API route without a login check. Keep both passing. Match existing patterns — don't invent parallel ones.
+- **Extend existing code, don't rebuild.** The monorepo already contains a working CRM (`apps/dashboard`), marketing site (`apps/web`), storefront (`apps/storefront`), and a Supabase schema with 27 applied migrations (001 to 027). `apps/dashboard/tests/tenant-isolation.test.ts` runs all of them on a real Postgres in memory and proves one shop can't read or change another's rows, and `tests/route-guards.test.ts` fails any API route without a login check. Keep both passing. Match existing patterns — don't invent parallel ones.
 - **Follow the architecture.** Tenant scoping (`business_id` + RLS), module flags (`businesses.settings.modules`), server routes that verify session → `business_id`. See `system-architecture.md` §4–§7.
+- **Every text and email has a kind** (`apps/dashboard/lib/message-kinds.ts`): must_reach, account or marketing. Marketing only goes through `sendMarketingEmail` or `smsBody("marketing", …)` after `canTextMarketing`, and must_reach and account messages carry nothing that sells. `tests/message-kinds.test.ts` checks our own templates.
 - **Follow the design system.** Reuse components from `apps/dashboard/components/` (shell, sidebar, topbar, stat-card, page-header, empty-state, modal, toast, badge). Match the look of the pages already in `apps/dashboard`. Dark shell, green accent, glass cards. This is the app's April 2026 look, and a colour tidy-up is planned.
 - **The marketing site (`apps/web`) is different.** It follows the taste skill (design-taste-frontend), and its rules win over older site rules. See "Marketing site rules" below. The demo sandboxes under `/demo/*` stay dark and keep their old colours.
 - **Treat `docs/context/` as logic/architecture guidance** — when in doubt about *what should happen*, read context first, don't guess.
@@ -61,7 +62,7 @@ apps/web              Marketing site + demo sandboxes
 apps/dashboard        Production merchant CRM (Supabase-backed)
 apps/storefront       Tenant storefront build. Not deployed, the live ordering pages are in apps/dashboard
 packages/*-config     Shared eslint and TypeScript settings
-supabase/migrations   001 → 026 schema
+supabase/migrations   001 → 027 schema
 supabase/functions    Edge functions (nightly-analytics, birthday-loyalty; win-back, quick-api and hyper-responder are switched-off stubs)
 docs/context          System logic + architecture (start here)
 docs/reference        UI/visual reference

@@ -11,10 +11,12 @@
 //      Iterates EVERY business with active rules. Rejects without the secret.
 //      This path is let through the login gate in proxy.ts.
 //
-// Spam Act: only customers who opted in to marketing and haven't opted out
-// are contacted. Every text names the business and says "Reply STOP". Every
-// email goes through sendMarketingEmail, which checks consent again right
-// before sending and adds the unsubscribe link and headers.
+// Every win-back message is marketing (lib/message-kinds.ts). Spam Act: only
+// customers who opted in to marketing and haven't opted out are contacted,
+// checked again right before each one goes (canTextMarketing for texts,
+// sendMarketingEmail for emails), so a STOP mid-run counts. Every text names
+// the business and says "Reply STOP". Every email carries the unsubscribe
+// link and headers. The owners' monthly reports are account messages.
 //
 // The runner processes `winback_rules` (Zentra Rewards rules from the dashboard) AND
 // the legacy `campaigns` table so old data keeps working while we migrate.
@@ -37,7 +39,8 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import { sendEmail, sendMarketingEmail } from "@/lib/email";
 import { MANAGER_ROLES, requireBusiness } from "@/lib/request-business";
-import { checkSmsAllowance, sendTwilioSms, withSenderAndOptOut } from "@/lib/sms";
+import { canTextMarketing, checkSmsAllowance, sendTwilioSms, smsBody } from "@/lib/sms";
+import { canSendMarketing } from "@/lib/unsubscribe";
 import { orderUrl } from "@/lib/tenant";
 import { issueCode, offerSubject, readOffer, winbackMessage } from "@/lib/offer-codes";
 import { readDeliveryRules } from "@/lib/own-delivery";
@@ -96,7 +99,7 @@ export async function POST(req: Request) {
     }
 
     // The owners' monthly reports, on the 15th, from the daily run only.
-    const reportsEmailed = isCron ? await sendMonthlyReports(db, sendEmail, now) : 0;
+    const reportsEmailed = isCron ? await sendMonthlyReports(db, m => sendEmail({ kind: "account", ...m }), now) : 0;
 
     if (businessIds.length === 0) {
       return NextResponse.json({ message: "No businesses with active rules", sent: 0, reportsEmailed });
@@ -243,6 +246,13 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
         }
       }
 
+      // Consent again, right before sending. Someone who replied STOP or
+      // unsubscribed since the run started gets nothing, and no code.
+      const stillAgreed = channel === "sms"
+        ? await canTextMarketing(db, businessId, customer.id, recipient)
+        : await canSendMarketing(db, businessId, customer.id, recipient);
+      if (!stillAgreed) continue;
+
       // The customer's own code. No code, no message: it would promise a
       // discount checkout won't give. Tried again on the next run.
       const issued = await issueCode(db, { businessId, customerId: customer.id, ruleId: rule.id, offer, timezone, now });
@@ -258,7 +268,7 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
       let providerId: string | null = null;
       let finalMessage = message;
       if (channel === "sms") {
-        finalMessage = withSenderAndOptOut(message, businessName);
+        finalMessage = smsBody("marketing", message, businessName);
         const out = await sendTwilioSms(recipient, finalMessage);
         status = out.status;
         providerId = out.sid;
@@ -314,11 +324,13 @@ async function runForBusiness(db: any, businessId: string, now: Date): Promise<{
         break;
       }
 
+      if (!(await canTextMarketing(db, businessId, customer.id, customer.phone))) continue;
+
       const issued = offer ? await issueCode(db, { businessId, customerId: customer.id, campaignId: campaign.id, offer, timezone, now }) : null;
       if (offer && !issued) continue;
 
       const link = issued ? `${storeUrl}?code=${issued.code}&src=winback` : storeUrl ? `${storeUrl}?src=winback` : "";
-      const message = withSenderAndOptOut(winbackMessage(campaign.template ?? "Hey {name}, we miss you! Come back for ${discount} off your next order.", {
+      const message = smsBody("marketing", winbackMessage(campaign.template ?? "Hey {name}, we miss you! Come back for ${discount} off your next order.", {
         name:     (customer.name ?? "").split(" ")[0] || "there",
         discount: String(campaign.discount_amount ?? 0),
         shop:     businessName,
@@ -356,6 +368,7 @@ async function logSend(db: any, l: {
     customer_id: l.customerId,
     rule_id:     l.ruleId ?? null,
     campaign_id: l.campaignId ?? null,
+    kind:        "marketing",
     channel:     l.channel,
     recipient:   l.recipient,
     message:     l.message,
