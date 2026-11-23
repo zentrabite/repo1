@@ -199,6 +199,13 @@ describe("Twilio's reports", () => {
     expect(calls("sms_logs", "select").some(q => filterValue(q, "kind") === "marketing" && filterValue(q, "status") === "sent")).toBe(true);
   });
 
+  it("turns away an empty request instead of crashing", async () => {
+    vi.stubEnv("TWILIO_AUTH_TOKEN", "tw-token");
+    h.db = fakeDb();
+    expect((await twilioStatus(new Request(statusCallbackUrl(), { method: "POST" }))).status).toBe(400);
+    expect((await inbound(new Request("https://dashboard.zentrabite.com/api/sms/inbound", { method: "POST" }))).status).toBe(400);
+  });
+
   it("ignores the in-between statuses", async () => {
     vi.stubEnv("TWILIO_AUTH_TOKEN", "tw-token");
     h.db = fakeDb();
