@@ -7,7 +7,9 @@
    Green:       #00AD82  — CTAs, active states, success
    Orange:      #FF6B35  — alerts, urgency, Uber/aggregator
    Near Black:  #0F1F2D  — page background
-   Steel:       #6B7C93  — labels, secondary text
+   Steel:       #8B9DB5  — labels, secondary text (lighter since 23 Nov 2026,
+                           #6B7C93 was under 4.5 to 1 on the dark cards.
+                           Emails on white use #5B6B80)
    Cloud:       #F8FAFB  — primary foreground text
    Mist:        #E2E8F0  — borders, dividers
    ─────────────────────────────────────────────────────────────────────────── */
@@ -103,7 +105,7 @@ body {
 /* ── Secondary button — Green border + green text (brand spec) ── */
 .bg-btn {
   background: transparent;
-  color: #6B7C93;
+  color: #8B9DB5;
   padding: 9px 16px;
   border-radius: 10px;
   border: 1px solid rgba(226, 232, 240, .12);
@@ -143,7 +145,7 @@ th {
   font-family: var(--font-outfit), sans-serif;
   font-weight: 600;
   font-size: 11px;
-  color: #6B7C93;
+  color: #8B9DB5;
   text-transform: uppercase;
   letter-spacing: .6px;
   border-bottom: 1px solid rgba(226, 232, 240, .08);
@@ -199,7 +201,7 @@ input::-ms-reveal, input::-ms-clear { display: none; }
   position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
   width: 34px; height: 34px; padding: 0; border: 0; border-radius: 8px;
   display: grid; place-items: center; cursor: pointer;
-  background: transparent; color: #6B7C93; transition: color .15s, background .15s;
+  background: transparent; color: #8B9DB5; transition: color .15s, background .15s;
 }
 .zb-eye:hover { color: #F8FAFB; background: rgba(255, 255, 255, .06); }
 .zb-eye:focus-visible { outline: 2px solid rgba(0, 173, 130, .6); outline-offset: 1px; color: #F8FAFB; }
@@ -216,7 +218,7 @@ label {
   display: block;
   font-size: 12px;
   font-family: var(--font-inter), sans-serif;
-  color: #6B7C93;
+  color: #8B9DB5;
   font-weight: 400;
   margin-bottom: 6px;
 }
@@ -300,7 +302,7 @@ label {
 .toggle span {
   font-size: 11px;
   font-weight: 600;
-  color: #6B7C93;
+  color: #8B9DB5;
   letter-spacing: .5px;
 }
 .toggle input[type="checkbox"]:checked + span {
@@ -507,7 +509,7 @@ button, a, select, label, summary, [role="button"] { touch-action: manipulation;
   .zb-table td[data-label]::before {
     content: attr(data-label); display: block; margin-bottom: 3px;
     font-family: var(--font-outfit), sans-serif; font-size: 11px; font-weight: 600;
-    color: #6B7C93; text-transform: uppercase; letter-spacing: .5px;
+    color: #8B9DB5; text-transform: uppercase; letter-spacing: .5px;
   }
   .zb-table td[data-primary] { order: -2; grid-column: 1 / -1; font-size: 15px; }
   .zb-table td[data-wide] { grid-column: 1 / -1; }

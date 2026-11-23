@@ -28,7 +28,7 @@ import { supabase } from "@/lib/supabase";
 import { Icon, type IconName } from "@/components/zb-icon";
 import type { Order } from "@/lib/database.types";
 
-const C = { g: "#00AD82", o: "#FF6B35", r: "#DC3545", st: "#6B7C93", mist: "#E2E8F0" };
+const C = { g: "#00AD82", o: "#FF6B35", r: "#DC3545", st: "#8B9DB5", mist: "#E2E8F0" };
 
 const STAGE_LABEL: Record<FulfillmentStage, string> = {
   placed:    "Placed",
@@ -531,7 +531,7 @@ function LabeledInput({
 }) {
   return (
     <label style={{ display: "block" }}>
-      <div style={{ fontSize: 11, color: "#6B7C93", marginBottom: 4, fontWeight: 600 }}>{label}</div>
+      <div style={{ fontSize: 11, color: "#8B9DB5", marginBottom: 4, fontWeight: 600 }}>{label}</div>
       <input
         type="text"
         value={value}

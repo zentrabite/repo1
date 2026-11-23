@@ -19,7 +19,7 @@ const MAX_FILES = 5;
 const MAX_TOTAL = 4_300_000;
 const MAX_TEXT = 20_000;
 
-const C = { g: "#00AD82", st: "#6B7C93", cl: "#F8FAFB", y: "#FFC14B", r: "#FF4757", mist: "rgba(226,232,240,.09)", bg: "rgba(28,45,72,.5)" };
+const C = { g: "#00AD82", st: "#8B9DB5", cl: "#F8FAFB", y: "#FFC14B", r: "#FF4757", mist: "rgba(226,232,240,.09)", bg: "rgba(28,45,72,.5)" };
 const ghost: React.CSSProperties = {
   background: "transparent", border: `1px solid ${C.mist}`, color: C.cl, borderRadius: 8,
   padding: "10px 14px", minHeight: 44, boxSizing: "border-box", margin: 0, fontSize: 13, lineHeight: 1.3,

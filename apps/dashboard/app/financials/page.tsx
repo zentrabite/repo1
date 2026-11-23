@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
 import { getAnalytics } from "@/lib/queries";
 
-const C = { g:"#00AD82", o:"#FF6B35", r:"#FF4757", vi:"#A855F7", st:"#6B7C93" };
+const C = { g:"#00AD82", o:"#FF6B35", r:"#FF4757", vi:"#A855F7", st:"#8B9DB5" };
 
 function SourceRow({ label, rev, fee, color, total }: { label:string; rev:number; fee:number; color:string; total:number }) {
   const pct = total > 0 ? Math.round(rev / total * 100) : 0;

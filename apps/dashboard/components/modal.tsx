@@ -12,7 +12,7 @@ interface ModalProps {
 
 const NAVY  = "#1C2D48";
 const GREEN = "#00AD82";
-const STEEL = "#6B7C93";
+const STEEL = "#8B9DB5";
 const CLOUD = "#F8FAFB";
 const MIST  = "rgba(226,232,240,.09)";
 

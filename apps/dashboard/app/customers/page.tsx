@@ -14,7 +14,7 @@ import { checkCustomerText } from "@/lib/message-kinds";
 import { smsBody } from "@/lib/sms-text";
 import TextCost from "@/components/text-cost";
 
-const C = { g:"#00AD82", o:"#FF6B35", am:"#F59E0B", st:"#6B7C93" };
+const C = { g:"#00AD82", o:"#FF6B35", am:"#F59E0B", st:"#8B9DB5" };
 const SEGS = ["All","VIP","Regular","New","At Risk"];
 
 function Av({ n, sz=28 }: { n:string; sz?:number }) {

@@ -30,7 +30,7 @@ export default function SendPauseNotice() {
           <b style={{ color: "#FFC14B" }}>{p.label} are paused.</b> {p.reason}
         </div>
       ))}
-      <div style={{ fontSize: 12, color: "#6B7C93", lineHeight: 1.55 }}>
+      <div style={{ fontSize: 12, color: "#8B9DB5", lineHeight: 1.55 }}>
         {pauses.some(p => p.allTexts)
           ? "Nothing is sent until the ZentraBite team turns them back on. That includes texts about orders, so call customers if you need to. Receipt emails still go."
           : "Nothing is sent until the ZentraBite team has looked at it and turned them back on. Receipts and texts about orders still go."}

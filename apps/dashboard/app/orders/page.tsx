@@ -23,7 +23,7 @@ import RefundPanel from "@/components/refund-panel";
 // the waiting list, but doesn't ring every time the page opens.
 const RING_FOR_MS = 6 * 60 * 60_000;
 
-const C = { g:"#00AD82", o:"#FF6B35", r:"#DC3545", st:"#6B7C93" };
+const C = { g:"#00AD82", o:"#FF6B35", r:"#DC3545", st:"#8B9DB5" };
 
 // Only sources that reach the CRM. Nothing brings in delivery app orders,
 // and Menulog closed in Australia on 26 Nov 2025, so neither has a filter

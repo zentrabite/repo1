@@ -22,7 +22,7 @@ import Toast from "@/components/toast";
 import { iconComponent } from "@/components/zb-icon";
 import { MODULE_LABELS, type EnquiryRow, type EnquiryStatus } from "@/lib/enquiries";
 
-const C = { g: "#00AD82", r: "#FF4757", st: "#6B7C93", cl: "#F8FAFB", mist: "rgba(226,232,240,.09)" };
+const C = { g: "#00AD82", r: "#FF4757", st: "#8B9DB5", cl: "#F8FAFB", mist: "rgba(226,232,240,.09)" };
 
 const STATUS_LABEL: Record<EnquiryStatus, string> = { new: "New", contacted: "Contacted", closed: "Closed" };
 // Existing badge colours: blue for new, amber while we're talking, grey when done.

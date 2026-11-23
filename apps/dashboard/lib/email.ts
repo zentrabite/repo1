@@ -197,15 +197,15 @@ function marketingHtml(businessName: string, text: string, unsubscribeUrl: strin
     <tr><td align="center">
       <table width="560" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:14px;padding:32px 28px;box-shadow:0 1px 4px rgba(15,31,45,.06)">
         <tr><td>
-          <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#6B7C93;font-weight:600">${escapeHtml(businessName)}</div>
+          <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#5B6B80;font-weight:600">${escapeHtml(businessName)}</div>
           <div style="margin-top:12px;font-size:15px;line-height:1.6;color:#0F1F2D;white-space:pre-wrap">${escapeHtml(text.trim())}</div>
-          <div style="margin-top:24px;padding-top:20px;border-top:1px solid #eceff4;font-size:12px;color:#6B7C93;line-height:1.6">
+          <div style="margin-top:24px;padding-top:20px;border-top:1px solid #eceff4;font-size:12px;color:#5B6B80;line-height:1.6">
             You're getting this because you agreed to hear from ${escapeHtml(businessName)}.
-            <a href="${escapeHtml(unsubscribeUrl)}" style="color:#6B7C93;text-decoration:underline">Unsubscribe</a>
+            <a href="${escapeHtml(unsubscribeUrl)}" style="color:#5B6B80;text-decoration:underline">Unsubscribe</a>
           </div>
         </td></tr>
       </table>
-      <div style="margin-top:18px;font-size:11px;color:#6B7C93">Sent by ZentraBite for ${escapeHtml(businessName)}</div>
+      <div style="margin-top:18px;font-size:11px;color:#5B6B80">Sent by ZentraBite for ${escapeHtml(businessName)}</div>
     </td></tr>
   </table>
 </body></html>`;
@@ -278,7 +278,7 @@ function receiptHtml(input: CustomerReceiptInput): string {
   const rows = items.map(it => `
     <tr>
       <td style="padding:10px 0;border-bottom:1px solid #eceff4;font-size:14px;color:#0F1F2D">
-        ${it.qty ? `<span style="color:#6B7C93">${it.qty}× </span>` : ""}${escapeHtml(it.name)}
+        ${it.qty ? `<span style="color:#5B6B80">${it.qty}× </span>` : ""}${escapeHtml(it.name)}
       </td>
       <td style="padding:10px 0;border-bottom:1px solid #eceff4;font-size:14px;color:#0F1F2D;text-align:right">
         ${it.price ? `$${it.price.toFixed(2)}` : ""}
@@ -292,17 +292,17 @@ function receiptHtml(input: CustomerReceiptInput): string {
     <tr><td align="center">
       <table width="560" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:14px;padding:32px 28px;box-shadow:0 1px 4px rgba(15,31,45,.06)">
         <tr><td>
-          <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#6B7C93;font-weight:600">${escapeHtml(businessName)}</div>
+          <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#5B6B80;font-weight:600">${escapeHtml(businessName)}</div>
           <h1 style="margin:4px 0 20px;font-size:22px;color:#0F1F2D;font-weight:600">Thanks, ${escapeHtml(customerName)} — we're on it.</h1>
 
           <div style="background:#F0F4F8;border-radius:10px;padding:14px 16px;margin-bottom:20px">
-            <div style="font-size:12px;color:#6B7C93">Order</div>
+            <div style="font-size:12px;color:#5B6B80">Order</div>
             <div style="font-size:15px;font-weight:600;color:#0F1F2D;margin-top:2px">#${escapeHtml(orderNumber)}</div>
-            ${input.pickupLabel ? `<div style="font-size:12px;color:#6B7C93;margin-top:10px">${input.delivery ? "Delivery" : "Pick-up"}</div>
+            ${input.pickupLabel ? `<div style="font-size:12px;color:#5B6B80;margin-top:10px">${input.delivery ? "Delivery" : "Pick-up"}</div>
             <div style="font-size:15px;font-weight:600;color:#0F1F2D;margin-top:2px">${escapeHtml(input.pickupLabel)}</div>` : ""}
-            ${input.delivery && input.deliveryAddress ? `<div style="font-size:12px;color:#6B7C93;margin-top:10px">Deliver to</div>
+            ${input.delivery && input.deliveryAddress ? `<div style="font-size:12px;color:#5B6B80;margin-top:10px">Deliver to</div>
             <div style="font-size:15px;font-weight:600;color:#0F1F2D;margin-top:2px">${escapeHtml(input.deliveryAddress)}</div>` : ""}
-            ${input.note ? `<div style="font-size:12px;color:#6B7C93;margin-top:10px">Your note</div>
+            ${input.note ? `<div style="font-size:12px;color:#5B6B80;margin-top:10px">Your note</div>
             <div style="font-size:14px;color:#0F1F2D;margin-top:2px">${escapeHtml(input.note)}</div>` : ""}
           </div>
 
@@ -317,12 +317,12 @@ function receiptHtml(input: CustomerReceiptInput): string {
             </tr>
           </table>
 
-          <div style="margin-top:24px;padding-top:20px;border-top:1px solid #eceff4;font-size:12px;color:#6B7C93;line-height:1.6">
+          <div style="margin-top:24px;padding-top:20px;border-top:1px solid #eceff4;font-size:12px;color:#5B6B80;line-height:1.6">
             ${escapeHtml(contactLine(input))}
           </div>
         </td></tr>
       </table>
-      <div style="margin-top:18px;font-size:11px;color:#6B7C93">Powered by ZentraBite</div>
+      <div style="margin-top:18px;font-size:11px;color:#5B6B80">Powered by ZentraBite</div>
     </td></tr>
   </table>
 </body></html>`;

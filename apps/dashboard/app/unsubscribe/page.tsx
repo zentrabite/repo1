@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-const C = { st: "#6B7C93", cl: "#F8FAFB" };
+const C = { st: "#8B9DB5", cl: "#F8FAFB" };
 
 type View =
   | { kind: "ask" | "done" | "already"; name: string | null }

@@ -21,7 +21,7 @@ const C = {
   o:    "#FF6B35",
   r:    "#FF4757",
   y:    "#FFC14B",
-  st:   "#6B7C93",
+  st:   "#8B9DB5",
   cl:   "#F8FAFB",
   mist: "rgba(226,232,240,.09)",
   bg:   "rgba(28,45,72,.5)",

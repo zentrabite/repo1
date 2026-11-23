@@ -17,7 +17,7 @@ type Data = {
   switches: { marketingTexts: string | null; everyText: string | null; marketingEmails: string | null };
 };
 
-const C = { g: "#00AD82", st: "#6B7C93", cl: "#F8FAFB", r: "#FF4757", y: "#FFC14B", mist: "rgba(226,232,240,.06)" };
+const C = { g: "#00AD82", st: "#8B9DB5", cl: "#F8FAFB", r: "#FF4757", y: "#FFC14B", mist: "rgba(226,232,240,.06)" };
 
 const LIGHT: Record<Light["status"], { color: string; word: string }> = {
   ok:   { color: C.g,       word: "Working" },

@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
 import { getDrivers, createDriver, updateDriver, deleteDriver } from "@/lib/queries";
 
-const C = { g:"#00AD82", o:"#FF6B35", r:"#FF4757", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(226,232,240,.08)" };
+const C = { g:"#00AD82", o:"#FF6B35", r:"#FF4757", st:"#8B9DB5", cl:"#F8FAFB", mist:"rgba(226,232,240,.08)" };
 
 type Driver = {
   id: string;

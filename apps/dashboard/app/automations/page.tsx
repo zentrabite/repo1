@@ -13,7 +13,7 @@ import SendPauseNotice from "@/components/send-pause-notice";
 import TextCost from "@/components/text-cost";
 import { smsBody } from "@/lib/sms-text";
 
-const C = { g:"#00AD82", o:"#FF6B35", st:"#6B7C93" };
+const C = { g:"#00AD82", o:"#FF6B35", st:"#8B9DB5" };
 
 export default function AutomationsPage() {
   const { toast, show } = useToast();

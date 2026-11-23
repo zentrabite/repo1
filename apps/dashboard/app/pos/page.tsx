@@ -14,7 +14,7 @@ import type { MenuItem } from "@/lib/database.types";
 import type { DeliveryFeeBreakdown } from "@/lib/delivery-types";
 
 const C = {
-  g:"#00AD82", o:"#FF6B35", r:"#FF4757", st:"#6B7C93",
+  g:"#00AD82", o:"#FF6B35", r:"#FF4757", st:"#8B9DB5",
   cl:"#F8FAFB", navy:"#1C2D48", mist:"rgba(226,232,240,.08)",
 };
 

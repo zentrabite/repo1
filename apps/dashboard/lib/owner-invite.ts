@@ -91,7 +91,7 @@ function welcomeHtml(businessName: string, ownerName: string, actionLink: string
     <tr><td align="center">
       <table width="520" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:14px;padding:32px 28px;box-shadow:0 1px 4px rgba(15,31,45,.06)">
         <tr><td>
-          <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#6B7C93;font-weight:600">ZentraBite</div>
+          <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#5B6B80;font-weight:600">ZentraBite</div>
           <h1 style="margin:4px 0 16px;font-size:22px;color:#0F1F2D;font-weight:600">Welcome, ${escapeHtml(ownerName)}</h1>
           <p style="font-size:15px;line-height:1.6;color:#0F1F2D;margin:0 0 18px">
             Your dashboard for <strong>${escapeHtml(businessName)}</strong> is set up and ready. Click below to set a password and log in.
@@ -99,7 +99,7 @@ function welcomeHtml(businessName: string, ownerName: string, actionLink: string
           <div style="text-align:center;margin:24px 0 18px">
             <a href="${escapeHtml(actionLink)}" style="display:inline-block;padding:13px 26px;background:#00AD82;color:#0F1F2D;text-decoration:none;border-radius:10px;font-weight:600;font-size:14px">Set password and log in</a>
           </div>
-          <p style="font-size:13px;color:#6B7C93;margin:0;line-height:1.6">
+          <p style="font-size:13px;color:#5B6B80;margin:0;line-height:1.6">
             Link not working? Paste it into your browser:<br>
             <a href="${escapeHtml(actionLink)}" style="color:#007457;word-break:break-all">${escapeHtml(actionLink)}</a>
           </p>

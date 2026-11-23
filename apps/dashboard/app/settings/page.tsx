@@ -23,7 +23,7 @@ import PasswordInput from "@/components/password-input";
 import { Icon } from "@/components/zb-icon";
 import { subscriptionView } from "@/lib/subscription";
 
-const C = { g:"#00AD82", o:"#FF6B35", r:"#FF4757", st:"#6B7C93", cl:"#F8FAFB", mist:"rgba(226,232,240,.08)" };
+const C = { g:"#00AD82", o:"#FF6B35", r:"#FF4757", st:"#8B9DB5", cl:"#F8FAFB", mist:"rgba(226,232,240,.08)" };
 
 // ─── Section heading ──────────────────────────────────────────────────────────
 function SectionTitle({ children }: { children: React.ReactNode }) {

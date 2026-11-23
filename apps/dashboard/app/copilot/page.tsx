@@ -8,7 +8,7 @@ import { Icon } from "@/components/zb-icon";
 const C = {
   g: "#00AD82",
   o: "#FF6B35",
-  st: "#6B7C93",
+  st: "#8B9DB5",
   cl: "#F8FAFB",
   mist: "rgba(226,232,240,.08)",
 };
@@ -211,7 +211,7 @@ export default function CopilotPage() {
               fontFamily: "var(--font-inter)", fontSize: 13.5, lineHeight: 1.55, color: C.cl,
               wordBreak: "break-word",
             }}
-            dangerouslySetInnerHTML={{ __html: streaming === "" ? "<span style=\"color:#6B7C93\">Thinking…</span>" : renderMarkdown(streaming) }} />
+            dangerouslySetInnerHTML={{ __html: streaming === "" ? "<span style=\"color:#8B9DB5\">Thinking…</span>" : renderMarkdown(streaming) }} />
           )}
         </div>
 

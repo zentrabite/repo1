@@ -48,7 +48,7 @@ export default function EmptyState({ icon: Icon, title, description }: EmptyStat
       <p style={{
         fontFamily: "var(--font-inter)",
         fontSize: 14,
-        color: "#6B7C93",
+        color: "#8B9DB5",
         maxWidth: 400,
         lineHeight: 1.65,
       }}>
