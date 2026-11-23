@@ -12,7 +12,7 @@ import { navigation } from "@/lib/navigation";
 import { ALL_ROLES, DEFAULT_ROLE_PERMISSIONS, NAV_HREFS } from "@/lib/permissions";
 import { orderUrl } from "@/lib/tenant";
 import { saveSettings } from "@/lib/queries";
-import { DEFAULT_PREP_MINUTES, DEFAULT_TIMEZONE, type DayHours, breakProblem, readOrderingRules } from "@/lib/pickup-times";
+import { DEFAULT_PREP_MINUTES, DEFAULT_TIMEZONE, type DayHours, breakProblem, readOrderingRules, shopTimezone } from "@/lib/pickup-times";
 import { DEFAULT_DELIVERY_MINUTES, parseAreas, readDeliveryRules } from "@/lib/own-delivery";
 import { MAX_OFFER, offerProblem, offerText, readFirstOrderOffer } from "@/lib/first-order";
 
@@ -172,6 +172,18 @@ function SettingsContent() {
     } catch { setTeamError("Couldn't load the team. Check your connection."); }
   }, [businessId]);
   useEffect(() => { void loadTeam(); }, [loadTeam]);
+
+  // When ZentraBite staff opened this CRM as the owner (/api/access-log,
+  // migration 036). Owners and managers see it.
+  type AccessRow = { what: string; staff_email: string | null; created_at: string };
+  const [access, setAccess] = useState<AccessRow[] | null>(null);
+  useEffect(() => {
+    if (!businessId || !canManageTeam) return;
+    fetch(`/api/access-log?businessId=${encodeURIComponent(businessId)}`)
+      .then(r => (r.ok ? r.json() : { access: null }))
+      .then(d => setAccess(Array.isArray(d.access) ? d.access : null))
+      .catch(() => setAccess(null));
+  }, [businessId, canManageTeam]);
 
   const changeMember = async (memberEmail: string, change: { role: string } | "remove") => {
     try {
@@ -1177,6 +1189,29 @@ function SettingsContent() {
               </div>
             )}
           </div>
+
+          {/* ZentraBite staff access (migration 036) */}
+          {canManageTeam && access && (
+            <div className="gc" style={{ padding:24 }}>
+              <SectionTitle>ZentraBite staff access</SectionTitle>
+              <div style={{ fontFamily:"var(--font-inter)", fontSize:12, color:C.st, marginTop:-10, marginBottom:8, lineHeight:1.5 }}>
+                Our team sometimes opens your CRM to help set it up or fix something. Every time shows here.
+              </div>
+              {access.length === 0 ? (
+                <div style={{ fontFamily:"var(--font-inter)", fontSize:13, color:C.st, padding:"8px 0" }}>Nobody from ZentraBite has opened your CRM.</div>
+              ) : access.map((a, i) => (
+                <div key={`${a.created_at}-${i}`} className="zb-break" style={{ display:"flex", justifyContent:"space-between", flexWrap:"wrap", gap:"4px 12px", padding:"10px 0", borderBottom: i < access.length - 1 ? `1px solid ${C.mist}` : "none", fontSize:13, fontFamily:"var(--font-inter)" }}>
+                  <div style={{ minWidth:0, flex:"1 1 220px" }}>
+                    <div style={{ color:C.cl }}>{a.what}</div>
+                    <div style={{ color:C.st, fontSize:12, marginTop:2, overflowWrap:"anywhere" }}>{a.staff_email ?? "ZentraBite staff"}</div>
+                  </div>
+                  <div style={{ color:C.st, fontSize:12, flexShrink:0 }}>
+                    {new Date(a.created_at).toLocaleString("en-AU", { timeZone: shopTimezone(business), day:"numeric", month:"short", hour:"numeric", minute:"2-digit" })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Permissions */}
           <div className="gc" style={{ padding:24 }}>

@@ -658,6 +658,24 @@
         "redeemed_at": "2026-11-20T05:00:00Z",
         "created_at": "2026-11-20T05:00:00Z"
       }
+    ],
+    "staff_access_log": [
+      {
+        "id": "5a000000-0000-4000-8000-000000000002",
+        "business_id": "22222222-2222-4222-8222-222222222222",
+        "staff_id": "11111111-1111-4111-8111-111111111111",
+        "staff_email": "support@zentrabite.com",
+        "action": "stop",
+        "created_at": "2026-11-22T04:20:00Z"
+      },
+      {
+        "id": "5a000000-0000-4000-8000-000000000001",
+        "business_id": "22222222-2222-4222-8222-222222222222",
+        "staff_id": "11111111-1111-4111-8111-111111111111",
+        "staff_email": "support@zentrabite.com",
+        "action": "start",
+        "created_at": "2026-11-22T03:55:00Z"
+      }
     ]
   },
   "seller": {
@@ -673,7 +691,7 @@
     "user_metadata": {},
     "created_at": "2026-11-01T00:00:00Z"
   },
-  "_notes": "Sample Stripe links: /stripe-setup/JJJ... (43 J's) is Joe's Pizza, not set up yet. /stripe-setup/NNN... (43 N's) is Nonna's Kitchen, already taking payments. Customers: Sofia agreed to marketing, Marco didn't, Jess opted out after an order on 22 Nov (so order texts work until 29 Nov), Tom opted out with no recent order. Sending: Nonna's marketing texts are paused by a stop rule (4 STOPs in 120), and one email pause was resumed on 11 Nov, for /admin/sending and the notice on /zentra-rewards. Team: Mia (mia@example.com) is Staff and has opened her invite, so open(path, viewport, \"staff\") logs in as her. Pia was invited as Manager and hasn't opened hers. Gus was removed. Rewards: Free coffee 100, Free garlic bread 250, Free pizza 900 and a switched-off Old reward, with one swap (coffee) and one undone swap on the Rewards page's Redemptions tab.",
+  "_notes": "Sample Stripe links: /stripe-setup/JJJ... (43 J's) is Joe's Pizza, not set up yet. /stripe-setup/NNN... (43 N's) is Nonna's Kitchen, already taking payments. Customers: Sofia agreed to marketing, Marco didn't, Jess opted out after an order on 22 Nov (so order texts work until 29 Nov), Tom opted out with no recent order. Sending: Nonna's marketing texts are paused by a stop rule (4 STOPs in 120), and one email pause was resumed on 11 Nov, for /admin/sending and the notice on /zentra-rewards. Team: Mia (mia@example.com) is Staff and has opened her invite, so open(path, viewport, \"staff\") logs in as her. Pia was invited as Manager and hasn't opened hers. Gus was removed. Rewards: Free coffee 100, Free garlic bread 250, Free pizza 900 and a switched-off Old reward, with one swap (coffee) and one undone swap on the Rewards page's Redemptions tab. Staff access: two visits by support@zentrabite.com on 22 Nov, for the card in Settings and the shop's Super Admin page.",
   "staff": {
     "id": "44444444-4444-4444-8444-444444444444",
     "aud": "authenticated",

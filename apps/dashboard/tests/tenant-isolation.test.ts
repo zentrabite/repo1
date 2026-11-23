@@ -34,7 +34,7 @@ const GONE_A    = "aaaaaaaa-2222-4000-8000-000000000005"; // opened it, then rem
 
 // Tables only the server reads or writes. Their owners can't read them either.
 // business_members since 030: the team is listed and changed through /api/team.
-const SERVER_ONLY = new Set(["offer_codes", "stripe_setup_links", "import_runs", "edge_function_runs", "enquiries", "send_pauses", "business_members"]);
+const SERVER_ONLY = new Set(["offer_codes", "stripe_setup_links", "import_runs", "edge_function_runs", "enquiries", "send_pauses", "business_members", "staff_access_log"]);
 
 // Columns that point at another row of the same shop, so seeding fills them in.
 const PARENT: Record<string, Record<string, string>> = {
@@ -46,6 +46,7 @@ const PARENT: Record<string, Record<string, string>> = {
 const FIXED: Record<string, Record<string, string>> = {
   offer_codes: { offer_type: "'percent'" },
   send_pauses: { channel: "'sms'" },
+  staff_access_log: { action: "'start'" },
 };
 
 type Col = { t: string; c: string; u: string; nullable: boolean; hasDefault: boolean };
