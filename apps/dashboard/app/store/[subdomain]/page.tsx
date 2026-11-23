@@ -9,7 +9,8 @@ import { OptionPicker, missingGroup } from "@/components/option-picker";
 import { cheapestPrice, lineKey, optionsLabel, priceSelection, pricesVary, readOptions, type OptionGroup } from "@/lib/menu-options";
 import { DEFAULT_TIMEZONE, pickupPlan, shopTime, type OrderingRules } from "@/lib/pickup-times";
 import { checkDeliveryAddress } from "@/lib/own-delivery";
-import { codeDiscount, type OfferType } from "@/lib/offer-codes";
+import { cameFrom, codeDiscount, type OfferType } from "@/lib/offer-codes";
+import { analyticsId, track } from "@/lib/analytics";
 
 // A win-back offer code from the link, as /api/store/[subdomain]?code= sends it.
 type CodeOffer = { code: string; type: OfferType; value: number; label: string; ends: string };
@@ -112,11 +113,16 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
           }
         }
         setLoading(false);
+        track("ordering", "ordering_viewed", {
+          shop: String(data.business?.id ?? subdomain), came_from: cameFrom(query.get("src"), Boolean(data.offer)),
+          taking_orders: Boolean(data.business?.taking_orders), has_code: Boolean(data.offer),
+        });
       })
       .catch(() => { setError("Failed to load menu"); setLoading(false); });
   }, [subdomain]);
 
   const addLine = (line: CartItem) => {
+    track("ordering", "item_added", { shop: String(biz?.id ?? subdomain) });
     setCart(prev => {
       const existing = prev.find(c => c.key === line.key);
       if (existing) return prev.map(c => c.key === line.key ? { ...c, qty: c.qty + line.qty } : c);
@@ -204,6 +210,8 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
   const handleCheckout = async () => {
     if (blocker) return;
     setChecking(true);
+    const shop = String(biz?.id ?? subdomain);
+    track("ordering", "checkout_started", { shop, items: cartCount, total: Math.round(grandTotal * 100) / 100, fulfilment: isDelivery ? "delivery" : "pickup", has_code: Boolean(codeOffer) });
     try {
       const res = await fetch("/api/store/checkout", {
         method: "POST",
@@ -212,11 +220,16 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
           subdomain, items: cart.map(c => ({ id: c.id, qty: c.qty, options: c.options })), customer, pickup: pickupChoice,
           fulfilment: isDelivery ? "delivery" : "pickup", address: isDelivery ? address : undefined, note: note.trim() || undefined,
           code: codeOffer?.code, src: src ?? undefined,
+          // The random id this visit is counted under, so the paid order joins it. Only when counting is on.
+          ph: analyticsId("ordering") ?? undefined,
         }),
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
-      else setNotice(data.error ?? "Couldn't start checkout. Please try again.");
+      else {
+        track("ordering", "checkout_refused", { shop, status: res.status });
+        setNotice(data.error ?? "Couldn't start checkout. Please try again.");
+      }
     } catch { setNotice("Network error. Check your connection and try again."); }
     finally { setChecking(false); }
   };

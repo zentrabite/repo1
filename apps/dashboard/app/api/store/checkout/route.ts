@@ -44,9 +44,9 @@ import { cameFrom, checkCode, cleanCode, codeDiscount, type CodeCheck } from "@/
 
 const MAX_LINES = 50;
 const MAX_QTY   = 50;
-// Stripe allows 50 metadata keys. Up to 16 are used for the order details,
-// so the items get up to 34 chunks.
-const MAX_ITEM_CHUNKS = 34;
+// Stripe allows 50 metadata keys. Up to 17 are used for the order details,
+// so the items get up to 33 chunks.
+const MAX_ITEM_CHUNKS = 33;
 
 type RequestItem = { id: string; qty: number; options?: unknown };
 
@@ -62,7 +62,7 @@ const clip = (v: unknown, n = 200) => (typeof v === "string" ? v.slice(0, n) : "
 
 export async function POST(req: Request) {
   try {
-    const { subdomain, items, customer, pickup, fulfilment, address, note, code: rawCode, src } = await req.json() as {
+    const { subdomain, items, customer, pickup, fulfilment, address, note, code: rawCode, src, ph } = await req.json() as {
       subdomain: string;
       items: RequestItem[];
       customer: { name?: string; phone?: string; email?: string; marketingOptIn?: boolean };
@@ -72,6 +72,7 @@ export async function POST(req: Request) {
       note?: unknown;       // for the kitchen or the driver
       code?: unknown;       // a win-back offer code from the link
       src?: unknown;        // where the link came from, e.g. "counter"
+      ph?: unknown;         // the visit's random analytics id (lib/analytics.ts), when counting is on
     };
 
     if (!subdomain || !Array.isArray(items) || items.length === 0) {
@@ -281,6 +282,8 @@ export async function POST(req: Request) {
         ...(coupon && !usingCode ? { first_order_discount: (discount.cents / 100).toFixed(2) } : {}),
         ...(coupon && usingCode && codeCheck ? { offer_code: codeCheck.row.code, offer_discount: (discount.cents / 100).toFixed(2) } : {}),
         came_from:        cameFrom(src, Boolean(codeCheck)),
+        // Lets the paid order join the visit in PostHog. Random, never personal.
+        ...(typeof ph === "string" && /^anon-[0-9a-f-]{36}$/.test(ph) ? { ph } : {}),
         ...itemChunks,
       },
     }, { stripeAccount: connectedAccount });

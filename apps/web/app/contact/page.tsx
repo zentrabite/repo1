@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Nav } from "../components/nav";
 import { Footer } from "../components/footer";
 import { ENQUIRIES_URL } from "../../lib/config";
+import { track } from "../../lib/analytics";
 
 type FormState = {
   name: string;
@@ -228,6 +229,8 @@ export default function ContactPage() {
       const data = (await res.json().catch(() => null)) as { ok?: boolean; fields?: Record<string, string> } | null;
       if (res.ok && data?.ok === true) {
         ok = true;
+        // The kind of business only, never what they typed about themselves.
+        track("enquiry_sent", { business_type: snapshot.category || "not given" });
       } else if (res.status === 400 && data?.fields && typeof data.fields === "object") {
         const mapped: FieldErrors = {};
         for (const [k, msg] of Object.entries(data.fields)) {

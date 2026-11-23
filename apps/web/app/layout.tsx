@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import Analytics from "./components/analytics";
 
 // Plus Jakarta Sans is the marketing site's font (picked 11 Nov). Outfit stays
 // for the logo and the demos, which show the app in its own font.
@@ -73,6 +74,7 @@ export default function RootLayout({
       <body>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }} />
         {children}
+        <Analytics />
       </body>
     </html>
   );

@@ -25,6 +25,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import { assertSuperAdmin } from "@/lib/admin-auth";
 import { readGoLive } from "@/lib/go-live";
+import { captureServer } from "@/lib/analytics-server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -69,6 +70,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   // keys (same pattern used in /api/stripe/webhook).
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const update: any = {};
+  let publishing = false;
   if (typeof body.name      === "string") update.name      = body.name.trim();
   if (typeof body.type      === "string") update.type      = body.type.trim();
   if (typeof body.subdomain === "string") update.subdomain = body.subdomain.trim();
@@ -83,7 +85,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
     // Nothing goes live with a gap.
     const wasLive = (existing.site as { published?: unknown } | undefined)?.published === true;
-    if (!wasLive && body.settings.site?.published === true) {
+    publishing = !wasLive && body.settings.site?.published === true;
+    if (publishing) {
       const live = await readGoLive(db as never, id);
       if (!live) return NextResponse.json({ error: "Not found" }, { status: 404 });
       if (!live.ready) {
@@ -102,5 +105,6 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     .update(update).eq("id", id).select().single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (publishing) await captureServer("setup", "shop_published", `shop-${id}`, { shop: id });
   return NextResponse.json({ business: data });
 }
