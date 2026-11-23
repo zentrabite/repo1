@@ -1,0 +1,24 @@
+# Dependabot (the plan's "Automatic dependency updates", 23 Nov 2026).
+#
+# Security fixes come from Dependabot security updates, switched on in the
+# repo's settings (Settings, Code security), not from this file.
+#
+# This file is the routine updates. Once a month, one pull request with every
+# minor and patch update to the npm packages, so it's one build to check, not
+# twenty. Major versions are left out on purpose. They need reading first,
+# for example stripe is pinned to an API version both Stripe webhooks use
+# (apps/dashboard/lib/stripe.ts) and Vite 8 breaks npm's install (the vite
+# override in package.json).
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
