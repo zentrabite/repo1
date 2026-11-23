@@ -82,6 +82,22 @@ http.createServer((req, res) => {
         .sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)))[0];
       if (rpc[1] === "get_my_business_id") return send(200, row?.business_id ?? member?.business_id ?? null);
       if (rpc[1] === "get_my_role") return send(200, row?.business_id ? "Owner" : member?.role ?? null);
+      // Swapping points (031). Worked out from the fixtures, saved nowhere.
+      if (rpc[1] === "redeem_reward" || rpc[1] === "undo_redemption") {
+        const a = body ? JSON.parse(body) : {};
+        log(`POST rpc/${rpc[1]} ${body}`);
+        if (rpc[1] === "undo_redemption") {
+          const r = (data.tables.reward_redemptions ?? []).find(x => x.id === a.p_redemption && x.status === "redeemed");
+          return send(200, r ? { ok: true, points: r.points_spent, balance: 0 } : { ok: false, error: "redemption" });
+        }
+        const reward = (data.tables.rewards_catalogue ?? []).find(x => x.id === a.p_reward && x.business_id === a.p_business && x.is_active);
+        const cust = (data.tables.customers ?? []).find(x => x.id === a.p_customer && x.business_id === a.p_business);
+        if (!reward) return send(200, { ok: false, error: "reward" });
+        if (!cust) return send(200, { ok: false, error: "customer" });
+        const have = Number(cust.points_balance ?? 0);
+        if (have < reward.points_cost) return send(200, { ok: false, error: "points", balance: have, cost: reward.points_cost });
+        return send(200, { ok: true, id: "fake-redemption", title: reward.title, cost: reward.points_cost, balance: have - reward.points_cost });
+      }
       return send(404, { message: "rpc not mocked" });
     }
     const m = /^\/rest\/v1\/([a-z_]+)$/.exec(url.pathname);
