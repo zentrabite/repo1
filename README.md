@@ -10,7 +10,6 @@ Live at [zentrabite.com](https://zentrabite.com). The merchant CRM is at [dashbo
 |---|---|
 | `apps/web` | The marketing site at zentrabite.com, plus the clickable demos under `/demo` |
 | `apps/dashboard` | The merchant CRM, restaurant websites and ordering pages, and the admin tools |
-| `apps/storefront` | A standalone storefront build. Not deployed, the live ordering pages are in `apps/dashboard` |
 | `packages/eslint-config`, `packages/typescript-config` | Shared lint and TypeScript settings |
 | `supabase/migrations` | The database schema |
 | `supabase/functions` | Scheduled jobs (nightly analytics, win-back, birthday rewards) |

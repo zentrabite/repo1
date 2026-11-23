@@ -27,7 +27,7 @@ The marketing site was redone in November 2026. The app still has its April 2026
 - **[apps/dashboard/components/](../../apps/dashboard/components/)** is the app's component library. `dashboard-shell.tsx`, `dashboard-sidebar.tsx`, `dashboard-topbar.tsx`, `page-header.tsx`, `stat-card.tsx`, `empty-state.tsx`, `badge.tsx`, `modal.tsx`, `toast.tsx`, `impersonation-banner.tsx`. Extend these, don't rebuild them.
 - **[apps/web/app/components/](../../apps/web/app/components/)** has the marketing site's parts. The homepage sections are in `home/`.
 - **[apps/web/app/demo/live/](../../apps/web/app/demo/live/)** is the demo CRM. It shows how each part of the app should feel when finished.
-- **[apps/zentrabite-dashboard-files/](../../apps/zentrabite-dashboard-files/dashboard-build/)** is the original April 2026 CRM prototype the app was built from. It's kept as a record of where the app's look came from.
+- **[archive/april-crm-prototype/](archive/april-crm-prototype/)** is the original April 2026 CRM prototype the app was built from. It's kept as a record of where the app's look came from.
 
 ## Archive
 
