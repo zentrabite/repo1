@@ -66,6 +66,10 @@ Nobody needs to know the value. If a job is ever made again, its
 `net.http_post` headers must add
 `jsonb_build_object('x-zb-cron', (select decrypted_secret from vault.decrypted_secrets where name = 'zb_cron_secret'))`,
 or the function answers 401. Running 034 again adds it to a job that lacks it.
+Since 035 the jobs send only that header, no Supabase key, and both functions
+are deployed with the JWT check off (`supabase functions deploy <name>
+--no-verify-jwt`), because that check only knows Supabase's older keys and
+`x-zb-cron` does the job.
 
 ---
 
@@ -77,7 +81,7 @@ line into **Vercel → Project → Settings → Environment Variables** for the
 
 | Source | Variables |
 |---|---|
-| Supabase → Settings → API | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` |
+| Supabase → Settings → API Keys | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (the publishable key) and `SUPABASE_SECRET_KEY` (a secret key). The CRM still takes the older `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` when the newer ones aren't set (lib/supabase-keys.ts). The newer keys can be made and deleted one at a time, so a leaked one is replaced without touching the rest. Unsubscribe links are signed with a Vault secret (035), not a key, so replacing a key doesn't break them |
 | Stripe → Developers → API keys (live) | `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_PRICE_MERCHANT_MONTHLY` |
 | (after Step 4) | `STRIPE_WEBHOOK_SECRET` |
 | Twilio | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`. Nothing to set for delivery reports: every text asks Twilio to report to `/api/sms/status` (from `NEXT_PUBLIC_APP_URL`), signed with the auth token |

@@ -2,11 +2,11 @@
 //
 // Two separate clients for two separate use cases:
 //
-//   createSessionClient()  — anon key + cookies, reads the user's own session.
+//   createSessionClient()  — publishable key + cookies, reads the user's own session.
 //                            Use in Server Components and Server Actions that
 //                            need to know WHO is logged in.
 //
-//   createAdminClient()    — service-role key, bypasses RLS.
+//   createAdminClient()    — secret key, bypasses RLS.
 //                            Use only for privileged server-side operations
 //                            (e.g. sending transactional data, admin tasks).
 //                            NEVER import in client components.
@@ -15,6 +15,13 @@ import "server-only";
 import { createServerClient as createSSRClient, type CookieOptions } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { publicKey } from "@/lib/supabase-keys";
+
+/** The server's key. The newer secret key when it's set, else the older
+ *  service_role key (lib/supabase-keys.ts). */
+export function serverKey(): string {
+  return process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+}
 
 // ── Session-aware client (anon key + request cookies) ─────────────────────────
 export async function createSessionClient() {
@@ -22,7 +29,7 @@ export async function createSessionClient() {
 
   return createSSRClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    publicKey(),
     {
       cookies: {
         get(name: string) {
@@ -42,12 +49,12 @@ export async function createSessionClient() {
 // ── Admin client (service-role key, no cookie context needed) ─────────────────
 export function createAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+  const key = serverKey();
 
   if (!url || !key) {
     throw new Error(
       "Missing Supabase server env vars.\n" +
-      "Add NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to .env.local"
+      "Add NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SECRET_KEY (or the older SUPABASE_SERVICE_ROLE_KEY) to .env.local"
     );
   }
 

@@ -11,15 +11,13 @@
 // for a customer they didn't get an email for. The link never expires.
 //
 // Key
-//   Derived from SUPABASE_SERVICE_ROLE_KEY with a fixed label, so the raw key
-//   is never used directly and this signature can't be reused anywhere else.
-//   Why that key: it's server-only, always set wherever an opt-out can be
-//   saved (saving needs it), and Supabase edge functions have the same value,
-//   so a future edge-function email can sign links that this app accepts.
-//   Trade-off: if that key is ever rotated, links in emails sent before the
-//   rotation stop working and show "this link doesn't work". Those customers
-//   can still reply to the email, or reply STOP to a text. A dedicated
-//   secret would avoid that, but would mean a new env var.
+//   Derived with a fixed label from zb_link_secret, a secret made inside
+//   Supabase Vault (migration 035) that nobody has seen. The server reads it
+//   with link_signing_secret(), which only the server role can call. Until
+//   23 Nov it was derived from the service_role key, so replacing a leaked
+//   key would have broken every unsubscribe link already sent. No marketing
+//   email had been sent, so no link changed. If the secret can't be read, no
+//   link is made and the marketing email isn't sent.
 //
 // Opting out reuses the columns STOP replies use (migrations 001 and 015):
 //   opted_out = true, opted_out_at = now, marketing_opt_in = false
@@ -34,32 +32,43 @@ type Db = any;
 const PURPOSE = "zentrabite:email-unsubscribe:v1";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-function signingKey(): Buffer | null {
-  const secret = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!secret) return null;
-  return crypto.createHmac("sha256", secret).update(PURPOSE).digest();
+// Read once per server, then kept. A failed read is tried again next time.
+let cachedKey: Buffer | null = null;
+
+async function signingKey(db: Db): Promise<Buffer | null> {
+  if (cachedKey) return cachedKey;
+  try {
+    const { data, error } = await db.rpc("link_signing_secret");
+    if (error || typeof data !== "string" || data.length < 32) return null;
+    cachedKey = crypto.createHmac("sha256", data).update(PURPOSE).digest();
+    return cachedKey;
+  } catch {
+    return null;
+  }
 }
 
 function sign(customerId: string, key: Buffer): string {
   return crypto.createHmac("sha256", key).update(customerId.toLowerCase()).digest("base64url");
 }
 
-/** The token for one customer, or null if the server key isn't set. */
-export function unsubscribeToken(customerId: string): string | null {
-  const key = signingKey();
+/** The token for one customer, or null if the signing secret can't be read. */
+export async function unsubscribeToken(db: Db, customerId: string): Promise<string | null> {
+  const key = await signingKey(db);
   if (!key || !UUID.test(customerId)) return null;
   return `${customerId.toLowerCase()}.${sign(customerId, key)}`;
 }
 
-/** The customer id inside a valid token, or null. */
-export function readUnsubscribeToken(token: string | null | undefined): string | null {
+/** The customer id inside a valid token, or null. Throws when the signing
+ *  secret can't be read, so the caller says try again, not "bad link". */
+export async function readUnsubscribeToken(db: Db, token: string | null | undefined): Promise<string | null> {
   if (!token || token.length > 200) return null;
   const dot = token.indexOf(".");
   if (dot < 0) return null;
   const customerId = token.slice(0, dot);
   const given = token.slice(dot + 1);
-  const key = signingKey();
-  if (!key || !UUID.test(customerId)) return null;
+  if (!UUID.test(customerId)) return null;
+  const key = await signingKey(db);
+  if (!key) throw new Error("unsubscribe link secret unavailable");
 
   const a = Buffer.from(given);
   const b = Buffer.from(sign(customerId, key));
@@ -78,8 +87,8 @@ export type UnsubscribeLinks = {
   oneClick: string;
 };
 
-export function unsubscribeLinks(customerId: string): UnsubscribeLinks | null {
-  const token = unsubscribeToken(customerId);
+export async function unsubscribeLinks(db: Db, customerId: string): Promise<UnsubscribeLinks | null> {
+  const token = await unsubscribeToken(db, customerId);
   if (!token) return null;
   const t = encodeURIComponent(token);
   return {

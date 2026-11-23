@@ -104,6 +104,8 @@ http.createServer((req, res) => {
         if (have < reward.points_cost) return send(200, { ok: false, error: "points", balance: have, cost: reward.points_cost });
         return send(200, { ok: true, id: "fake-redemption", title: reward.title, cost: reward.points_cost, balance: have - reward.points_cost });
       }
+      // The unsubscribe link secret (035). A fixed one, so /unsubscribe works here.
+      if (rpc[1] === "link_signing_secret") return send(200, "fake-link-secret-".padEnd(64, "x"));
       return send(404, { message: "rpc not mocked" });
     }
     const m = /^\/rest\/v1\/([a-z_]+)$/.exec(url.pathname);

@@ -24,11 +24,11 @@ type View =
   | { kind: "invalid" };
 
 async function loadView(token: string, status: string | undefined): Promise<View> {
-  const customerId = readUnsubscribeToken(token);
-  if (!customerId || status === "invalid") return { kind: "invalid" };
-
+  if (status === "invalid") return { kind: "invalid" };
   try {
     const db = createAdminClient();
+    const customerId = await readUnsubscribeToken(db, token);
+    if (!customerId) return { kind: "invalid" };
     // supabase-js returns errors rather than throwing, so check both.
     const { data: customer, error } = await db
       .from("customers")

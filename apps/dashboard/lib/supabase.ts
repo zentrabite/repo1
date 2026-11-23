@@ -12,6 +12,7 @@
 // only surface at real call-time in the browser.
 
 import { createBrowserClient } from "@supabase/ssr";
+import { publicKey } from "@/lib/supabase-keys";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let _client: any = null;
@@ -20,10 +21,10 @@ let _client: any = null;
 function getClient(): any {
   if (_client) return _client;
   const url  = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const anon = publicKey();
   if (!url || !anon) {
     throw new Error(
-      "Missing Supabase env vars. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to .env.local",
+      "Missing Supabase env vars. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (or the older NEXT_PUBLIC_SUPABASE_ANON_KEY) to .env.local",
     );
   }
   _client = createBrowserClient(url, anon);

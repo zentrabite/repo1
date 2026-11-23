@@ -18,6 +18,28 @@ const secret = async () => String((await one(`select decrypted_secret s from vau
 beforeAll(async () => { m = await migratedDb(); }, 60_000);
 afterAll(async () => { await m?.db.close(); });
 
+describe("the unsubscribe link secret (035)", () => {
+  const linkSecret = async () => String((await one(`select decrypted_secret s from vault.decrypted_secrets where name = 'zb_link_secret'`)).s);
+
+  it("is made in the database, long, random, once, and not the cron secret", async () => {
+    const s = await linkSecret();
+    expect(s).toMatch(/^[0-9a-f]{64}$/);
+    expect(s).not.toBe(await secret());
+    await m.db.exec(readFileSync(new URL("../../../supabase/migrations/035_ready_for_new_api_keys.sql", import.meta.url), "utf8"));
+    expect(await linkSecret()).toBe(s);
+  });
+
+  it("only the server can read it", async () => {
+    expect((await asServer(`select link_signing_secret() s`)).s).toBe(await linkSecret());
+    await m.asUser("aaaaaaaa-1111-4000-8000-00000000000a", async () => {
+      await expect(m.db.query(`select link_signing_secret()`)).rejects.toThrow(/permission denied/);
+    });
+    await m.asAnon(async () => {
+      await expect(m.db.query(`select link_signing_secret()`)).rejects.toThrow(/permission denied/);
+    });
+  });
+});
+
 describe("the secret (034)", () => {
   it("is made in the database, long and random, once", async () => {
     const s = await secret();
@@ -46,12 +68,22 @@ describe("the secret (034)", () => {
     });
   });
 
-  it("the nightly job sends it once, next to its key, and still runs", async () => {
-    const job = await one(`select command from cron.job where jobname = 'nightly-analytics'`);
-    const command = String(job.command);
-    expect(command.match(/x-zb-cron/g)).toHaveLength(1);
-    expect(command).toMatch(/'\{"Authorization":"Bearer [^"]+"\}'::jsonb \|\| jsonb_build_object\('x-zb-cron', \(select decrypted_secret from vault\.decrypted_secrets where name = 'zb_cron_secret'\)\)/);
-    await m.db.exec(command); // the stand-in net.http_post takes it
+  it("the nightly jobs send only the secret, no key (035), and still run", async () => {
+    // Only nightly-analytics is scheduled by a migration. Live has birthday-loyalty too.
+    const jobs = (await m.db.query<{ jobname: string; command: string }>(`select jobname, command from cron.job where jobname in ('nightly-analytics', 'birthday-loyalty')`)).rows;
+    expect(jobs.length).toBeGreaterThan(0);
+    for (const { jobname: name, command } of jobs) {
+      expect(command.match(/x-zb-cron/g), name).toHaveLength(1);
+      expect(command, name).not.toMatch(/authorization|bearer|eyJ/i);
+      expect(command, name).toMatch(/headers\s*:=\s*jsonb_build_object\('x-zb-cron', \(select decrypted_secret from vault\.decrypted_secrets where name = 'zb_cron_secret'\)\)/);
+      await m.db.exec(command); // the stand-in net.http_post takes it
+    }
+  });
+
+  it("035 leaves the jobs alone the second time", async () => {
+    const before = await m.db.query(`select jobname, command from cron.job order by jobname`);
+    await m.db.exec(readFileSync(new URL("../../../supabase/migrations/035_ready_for_new_api_keys.sql", import.meta.url), "utf8"));
+    expect((await m.db.query(`select jobname, command from cron.job order by jobname`)).rows).toEqual(before.rows);
   });
 
   it("stops instead of half-changing a job it doesn't recognise", async () => {
@@ -59,5 +91,7 @@ describe("the secret (034)", () => {
     const sql = readFileSync(new URL("../../../supabase/migrations/034_nightly_jobs_secret.sql", import.meta.url), "utf8");
     await expect(m.db.exec(sql)).rejects.toThrow(/isn't the expected shape/);
     expect(String((await one(`select command from cron.job where jobname = 'birthday-loyalty'`)).command)).not.toMatch(/x-zb-cron/);
+    const sql035 = readFileSync(new URL("../../../supabase/migrations/035_ready_for_new_api_keys.sql", import.meta.url), "utf8");
+    await expect(m.db.exec(sql035)).rejects.toThrow(/isn't the shape 034 left it in/);
   });
 });

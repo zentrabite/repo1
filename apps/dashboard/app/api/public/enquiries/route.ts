@@ -15,7 +15,7 @@
 // Saved rows are only readable by super admins (/admin/enquiries).
 
 import { NextResponse, after } from "next/server";
-import { createAdminClient } from "@/lib/supabase-server";
+import { createAdminClient, serverKey } from "@/lib/supabase-server";
 import { sendEmail } from "@/lib/email";
 import {
   ENQUIRY_RATE_LIMITS,
@@ -98,7 +98,7 @@ export async function POST(req: Request) {
   try {
     const db = createAdminClient();
     // Keyed with the server key so the hash can't be reversed without it.
-    const ipHash = await hashIp(clientIp(req.headers), process.env.SUPABASE_SERVICE_ROLE_KEY ?? "");
+    const ipHash = await hashIp(clientIp(req.headers), serverKey());
 
     // Per-address limit, counted from saved rows.
     const now = Date.now();

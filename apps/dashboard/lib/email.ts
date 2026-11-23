@@ -165,9 +165,9 @@ export async function sendMarketingEmail(input: MarketingEmailInput): Promise<Em
     return { ok: false, error: "Customer has opted out or hasn't agreed to marketing", skipped: true };
   }
 
-  const links = unsubscribeLinks(customerId);
+  const links = await unsubscribeLinks(db, customerId);
   if (!links) {
-    console.error("[email] marketing email not sent: no unsubscribe link (SUPABASE_SERVICE_ROLE_KEY missing?)");
+    console.error("[email] marketing email not sent: no unsubscribe link (link_signing_secret, migration 035, couldn't be read)");
     return { ok: false, error: "Unsubscribe link unavailable" };
   }
 

@@ -50,7 +50,16 @@ export async function POST(req: Request) {
     fromPage = form?.get("from") === "page";
   }
 
-  const customerId = readUnsubscribeToken(token);
+  const db = createAdminClient();
+  let customerId: string | null;
+  try {
+    customerId = await readUnsubscribeToken(db, token);
+  } catch (err) {
+    console.error("[unsubscribe]", err instanceof Error ? err.message : err);
+    return fromPage
+      ? NextResponse.redirect(pageUrl(req, token, "error"), 303)
+      : text("We couldn't save that. Try again in a minute.", 500);
+  }
   if (!customerId) {
     return fromPage
       ? NextResponse.redirect(pageUrl(req, token, "invalid"), 303)
@@ -60,7 +69,7 @@ export async function POST(req: Request) {
   try {
     // A customer who no longer exists gets no more emails either, so that
     // still counts as done.
-    await recordUnsubscribe(createAdminClient(), customerId);
+    await recordUnsubscribe(db, customerId);
   } catch (err) {
     console.error("[unsubscribe]", err instanceof Error ? err.message : err);
     return fromPage

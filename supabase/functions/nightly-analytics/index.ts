@@ -9,22 +9,33 @@
 // comes off that day. The sums are in totals.ts, which the CRM's tests check.
 // Only our own pg_cron job can start it (since v5): the job sends x-zb-cron,
 // a secret kept in Supabase Vault (migration 034), and anything without it
-// gets a 401. One run a day (edge_function_runs, migration 017) as well. A
+// gets a 401. Deployed with Supabase's JWT check off (verify_jwt false) since
+// v6, because that check only knows the older keys and x-zb-cron does the job.
+// One run a day (edge_function_runs, migration 017) as well. A
 // run that finishes also writes "nightly-analytics-done", which Super
 // Admin's Daily jobs light reads, so a night that fails shows there. Before v3 every save failed (the live table
 // had no unique key until migration 032) and nothing said so.
 //
-// Deploy with totals.ts beside it.
+// Deploy with totals.ts beside it, with the JWT check off
+// (supabase functions deploy nightly-analytics --no-verify-jwt).
 // ═══════════════════════════════════════════════════════════════════════════
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { DEFAULT_TIMEZONE, WINDOW_DAYS, dailyTotals, shopDate, windowDays } from "./totals.ts";
 
-const db = createClient(
-  Deno.env.get("SUPABASE_URL")!,
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-);
+/** The server's key. The newer secret key once one is made (Supabase gives
+ *  functions SUPABASE_SECRET_KEYS, a JSON list by name), else the older
+ *  service_role key. */
+function serverKey(): string {
+  try {
+    const keys = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}");
+    if (typeof keys?.default === "string" && keys.default) return keys.default;
+  } catch { /* none made yet */ }
+  return Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+}
+
+const db = createClient(Deno.env.get("SUPABASE_URL")!, serverKey());
 
 const PAGE = 1000;
 
