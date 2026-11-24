@@ -42,7 +42,7 @@ export default function CopilotPage() {
     {
       role: "b",
       html:
-        "Hi! I'm your AI copilot. I can see your live business data — orders, customers, win-back stats, stock, reviews — and answer questions about it.<br><br>What would you like to know?",
+        "Hi! I'm your AI Copilot. I can see a summary of your live numbers, like orders, customers, win-back, stock and reviews, and answer questions about them.<br><br>What would you like to know?",
     },
   ]);
   const [input, setInput] = useState("");
@@ -150,7 +150,7 @@ export default function CopilotPage() {
             AI Copilot
           </h1>
           <p style={{ fontSize: 13, color: C.st, margin: "4px 0 0 32px" }}>
-            Ask anything about your business — I have access to your live data.
+            Ask anything about your business. I see a summary of your live numbers.
           </p>
         </div>
         <button

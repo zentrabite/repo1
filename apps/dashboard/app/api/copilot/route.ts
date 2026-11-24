@@ -216,7 +216,7 @@ export async function POST(req: Request) {
         console.error(message);
         controller.enqueue(
           encoder.encode(
-            "\n\n_Sorry — I hit an error. Try again, or refresh the page._",
+            "\n\n_Sorry, I hit an error. Try again, or refresh the page._",
           ),
         );
       } finally {
