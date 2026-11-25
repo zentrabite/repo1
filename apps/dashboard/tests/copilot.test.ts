@@ -129,3 +129,14 @@ describe("POST /api/copilot", () => {
     expect((await ask()).status).toBe(401);
   });
 });
+
+describe("the assistants put people first", () => {
+  it("both point someone in crisis to Lifeline and 000", async () => {
+    const { COPILOT_SYSTEM_PROMPT } = await import("@/lib/copilot-context");
+    const { ZENTRABITE_SYSTEM_PROMPT } = await import("../../web/lib/zentrabite-context");
+    for (const prompt of [COPILOT_SYSTEM_PROMPT, ZENTRABITE_SYSTEM_PROMPT]) {
+      expect(prompt).toContain("Lifeline is there any time on 13 11 14");
+      expect(prompt).toContain("call 000");
+    }
+  });
+});
