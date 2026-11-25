@@ -14,6 +14,7 @@ import { Icon, type IconName } from "@/components/zb-icon";
 import type { ImportedMenuCategory, MenuRead, StoredImport } from "@/lib/import/types";
 import { sizesFromVariants, type OptionGroup } from "@/lib/menu-options";
 import { breakProblem, type DayHours } from "@/lib/pickup-times";
+import type { CourierField } from "@/lib/courier-fields";
 
 // ─── Theme ────────────────────────────────────────────────────────────────
 const C = {
@@ -143,6 +144,18 @@ export default function OnboardingWizard() {
     reload().finally(() => setLoading(false));
   }, [authLoading, isSuperAdmin, reload, router]);
 
+  // Moves to the next step and saves where we are, so a paused setup resumes
+  // there. Save & continue, Skip and the menu step's Continue all use it.
+  const goNext = useCallback(async () => {
+    const next = Math.min(LAST_STEP, step + 1) as StepId;
+    setStep(next);
+    await fetch(`/api/admin/onboarding/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ settings: { onboarding: { step: next } } }),
+    }).catch(() => {});
+  }, [id, step]);
+
   // Save helper — merges a settings patch and/or top-level fields
   const save = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -165,22 +178,13 @@ export default function OnboardingWizard() {
         const notCopied = Number(data.photos_not_copied) || 0;
         if (notCopied) show(`Saved, but ${notCopied === 1 ? "1 photo" : `${notCopied} photos`} couldn't be copied and will break if their old website closes. Untick it or try again.`);
         else if (!opts?.silent) show("Saved ✓");
-        if (opts?.advance) {
-          const next = Math.min(LAST_STEP, step + 1) as StepId;
-          setStep(next);
-          // persist the cursor so resume works
-          await fetch(`/api/admin/onboarding/${id}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ settings: { onboarding: { step: next } } }),
-          });
-        }
+        if (opts?.advance) await goNext();
         return true;
       } finally {
         setSaving(false);
       }
     },
-    [id, step, show],
+    [id, show, goNext],
   );
 
   if (authLoading || loading) return <div style={{ padding: 80, color: C.st, textAlign: "center" }}>Loading onboarding…</div>;
@@ -256,9 +260,9 @@ export default function OnboardingWizard() {
         {step === 1 && <StepBasics      biz={biz} save={save} />}
         {step === 2 && <StepHours       biz={biz} save={save} show={show} />}
         {step === 3 && <StepBranding    biz={biz} save={save} show={show} />}
-        {step === 4 && <StepMenu        biz={biz} show={show} />}
+        {step === 4 && <StepMenu        biz={biz} show={show} next={goNext} />}
         {step === 5 && <StepPayments    biz={biz} save={save} show={show} />}
-        {step === 6 && <StepDelivery    biz={biz} save={save} />}
+        {step === 6 && <StepDelivery    biz={biz} show={show} next={goNext} />}
         {step === 7 && <StepNotifications biz={biz} save={save} show={show} />}
         {step === 8 && <StepWebsite     biz={biz} save={save} show={show} goTo={s => setStep(s as StepId)} />}
         {step === 9 && <StepTeam        biz={biz} router={router} show={show} />}
@@ -275,7 +279,7 @@ export default function OnboardingWizard() {
         </button>
         <button
           onClick={() => {
-            if (step < LAST_STEP) setStep((step + 1) as StepId);
+            if (step < LAST_STEP) void goNext();
             else router.push(`/admin`);
           }}
           disabled={saving}
@@ -589,7 +593,7 @@ function draftFromImport(menu: ImportedMenuCategory[]): MenuDraft[] {
   }));
 }
 
-function StepMenu({ biz, show }: { biz: Biz; show: (m: string) => void }) {
+function StepMenu({ biz, show, next }: { biz: Biz; show: (m: string) => void; next: () => Promise<void> }) {
   const imp = importOf(biz);
   const importedMenu = imp?.menu?.length ? imp.menu : null;
   const [cats, setCats] = useState<MenuDraft[]>(() => importedMenu ? draftFromImport(importedMenu) : DEFAULT_MENU);
@@ -636,7 +640,7 @@ function StepMenu({ biz, show }: { biz: Biz; show: (m: string) => void }) {
 
   return (
     <Section
-      title={fromUpload ? "Menu from the owner's photos" : importedMenu ? "Menu from their website" : "Starter menu"}
+      title={fromUpload ? "The owner's menu" : importedMenu ? "Menu from their website" : "Starter menu"}
       subtitle={importedMenu || readHere ? "Check names and prices with the owner, then seed. They can edit everything later in Menu." : "Seeds categories + items the owner can rename in Menu. Or read their menu from a photo, PDF or text below."}>
       <div style={{ background: C.bg, border: `1px solid ${C.mist}`, borderRadius: 10, padding: 14, marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
@@ -672,7 +676,7 @@ function StepMenu({ biz, show }: { biz: Biz; show: (m: string) => void }) {
       {!importedMenu && !imp?.menu_seeded_at && imp?.checks.menu && <div style={importBox}><ImportCheck note={imp.checks.menu} /></div>}
       {seeded && (
         <div style={{ padding: 10, background: "rgba(0,173,130,.08)", border: "1px solid rgba(0,173,130,.25)", borderRadius: 8, color: C.g, fontSize: 13, marginBottom: 16 }}>
-          ✓ Menu seeded. Advance to the next step when ready.
+          ✓ Menu seeded. Continue when you&apos;re ready.
         </div>
       )}
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -712,9 +716,13 @@ function StepMenu({ biz, show }: { biz: Biz; show: (m: string) => void }) {
       <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
         <button onClick={addCategory} style={ghostBtn}>+ Category</button>
         <div style={{ flex: 1 }} />
-        <button disabled={busy} onClick={seed} className="bp" style={{ padding: "10px 18px" }}>
-          {busy ? "Seeding…" : seeded ? "Seed again" : "Seed menu →"}
-        </button>
+        {seeded ? (
+          <button onClick={() => void next()} className="bp" style={{ padding: "10px 18px" }}>Continue →</button>
+        ) : (
+          <button disabled={busy} onClick={seed} className="bp" style={{ padding: "10px 18px" }}>
+            {busy ? "Seeding…" : "Seed menu →"}
+          </button>
+        )}
       </div>
     </Section>
   );
@@ -843,56 +851,79 @@ function StepPayments({ biz, save, show }: { biz: Biz; save: SaveFn; show: (m: s
 }
 
 // ─── Step 6: Delivery providers ───────────────────────────────────────────
-function StepDelivery({ biz, save }: { biz: Biz; save: SaveFn }) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const d = biz.settings?.delivery ?? {};
-  const [uberId,      setUberId]      = useState<string>(d.uber_direct?.customer_id    ?? "");
-  const [uberClient,  setUberClient]  = useState<string>(d.uber_direct?.client_id      ?? "");
-  const [uberSecret,  setUberSecret]  = useState<string>(d.uber_direct?.client_secret  ?? "");
-  const [ddDev,       setDdDev]       = useState<string>(d.doordash?.developer_id     ?? "");
-  const [ddKey,       setDdKey]       = useState<string>(d.doordash?.key_id           ?? "");
-  const [ddSecret,    setDdSecret]    = useState<string>(d.doordash?.signing_secret   ?? "");
-  const [shippo,      setShippo]      = useState<string>(d.shippo?.api_key            ?? "");
-  const [auspost,     setAuspost]     = useState<string>(d.auspost?.api_key           ?? "");
+// Courier keys go to /api/delivery/keys, the same place Settings, Delivery
+// saves them: business_secrets, server only (038, lib/courier-keys.ts). This
+// step used to save them in businesses.settings.delivery, where every login
+// at the shop could read them and nothing used them. The page only learns
+// which keys are saved, never the keys.
+const WIZARD_COURIER_FIELDS: { field: CourierField; label: string; secret: boolean }[][] = [
+  [
+    { field: "uber_direct_api_key",     label: "API key",     secret: true },
+    { field: "uber_direct_customer_id", label: "Customer ID", secret: false },
+  ],
+  [
+    { field: "doordash_developer_id",   label: "Developer ID",   secret: true },
+    { field: "doordash_key_id",         label: "Key ID",         secret: false },
+    { field: "doordash_signing_secret", label: "Signing secret", secret: true },
+  ],
+];
+
+function StepDelivery({ biz, show, next }: { biz: Biz; show: (m: string) => void; next: () => Promise<void> }) {
+  const [typed, setTyped] = useState<Partial<Record<CourierField, string>>>({});
+  const [saved, setSaved] = useState<Partial<Record<CourierField, boolean>>>({});
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/delivery/keys?businessId=${encodeURIComponent(biz.id)}`)
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (!cancelled && d?.saved) setSaved(d.saved); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [biz.id]);
+
+  async function saveAndContinue() {
+    const set = Object.fromEntries(Object.entries(typed).filter(([, v]) => v?.trim()));
+    if (Object.keys(set).length) {
+      const res = await fetch("/api/delivery/keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ businessId: biz.id, set }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { show(data.error ?? "Couldn't save the courier keys"); return; }
+      setSaved(data.saved ?? {});
+      setTyped({});
+      show("Courier keys saved ✓");
+    }
+    await next();
+  }
+
+  const input = ({ field, label, secret }: { field: CourierField; label: string; secret: boolean }) => {
+    const props = {
+      value: typed[field] ?? "",
+      onChange: (e: { target: { value: string } }) => setTyped(t => ({ ...t, [field]: e.target.value })),
+      placeholder: saved[field] ? "Saved. Type a new one to replace it" : "",
+      autoComplete: "off",
+    };
+    return <Field key={field} label={label}>{secret ? <PasswordInput label={label.toLowerCase()} {...props} /> : <input {...props} />}</Field>;
+  };
 
   return (
-    <Section title="Delivery providers" subtitle="Paste credentials from each provider portal. Blank ones stay disabled.">
-      <ProviderCard title="Uber Direct" help="uber.com/business/deliveries/api">
-        <Field label="Customer ID"><input value={uberId}      onChange={e => setUberId(e.target.value)} /></Field>
-        <Field label="Client ID">  <input value={uberClient}  onChange={e => setUberClient(e.target.value)} /></Field>
-        <Field label="Client secret"><PasswordInput label="secret" value={uberSecret} onChange={e => setUberSecret(e.target.value)} /></Field>
-      </ProviderCard>
-      <ProviderCard title="DoorDash Drive" help="developer.doordash.com">
-        <Field label="Developer ID"> <input value={ddDev}   onChange={e => setDdDev(e.target.value)} /></Field>
-        <Field label="Key ID">       <input value={ddKey}   onChange={e => setDdKey(e.target.value)} /></Field>
-        <Field label="Signing secret"><PasswordInput label="secret" value={ddSecret} onChange={e => setDdSecret(e.target.value)} /></Field>
-      </ProviderCard>
-      <ProviderCard title="E-commerce shipping" help="Optional — for post-able goods">
-        <Field label="Shippo API key"><PasswordInput label="key" value={shippo} onChange={e => setShippo(e.target.value)} /></Field>
-        <Field label="Australia Post API key"><PasswordInput label="key" value={auspost} onChange={e => setAuspost(e.target.value)} /></Field>
-      </ProviderCard>
-
-      <SaveBar
-        onSave={() => save({
-          settings: {
-            delivery: {
-              uber_direct: { customer_id: uberId, client_id: uberClient, client_secret: uberSecret, enabled: Boolean(uberId) },
-              doordash:    { developer_id: ddDev, key_id: ddKey, signing_secret: ddSecret, enabled: Boolean(ddDev) },
-              shippo:      { api_key: shippo, enabled: Boolean(shippo) },
-              auspost:     { api_key: auspost, enabled: Boolean(auspost) },
-            },
-          },
-        }, { advance: true })}
-      />
+    <Section title="Couriers" subtitle="Only if the owner already has an Uber Direct or DoorDash Drive account. Most shops start with pickup or their own drivers, so leave these blank and carry on.">
+      <ProviderCard title="Uber Direct" help="From developer.uber.com">{WIZARD_COURIER_FIELDS[0]!.map(input)}</ProviderCard>
+      <ProviderCard title="DoorDash Drive" help="From developer.doordash.com">{WIZARD_COURIER_FIELDS[1]!.map(input)}</ProviderCard>
+      <div style={{ fontSize: 12, color: C.st }}>
+        Keys are kept on the server and never shown again. Sherpa, Zoom2u, GoPeople, delivery fees and areas are in Settings, Delivery.
+      </div>
+      <SaveBar onSave={saveAndContinue} />
     </Section>
   );
 }
 
 // ─── Step 7: Notifications + Zentra Rewards defaults ────────────────────────────
 function StepNotifications({ biz, save, show }: { biz: Biz; save: SaveFn; show: (m: string) => void }) {
-  const [notifyEmail, setNotifyEmail] = useState<string>(biz.settings?.notify_email ?? "");
+  // The owner's email from the first page, until staff type another.
+  const [notifyEmail, setNotifyEmail] = useState<string>(biz.settings?.notify_email ?? biz.settings?.onboarding?.owner_email ?? "");
   const [notifyPhone, setNotifyPhone] = useState<string>(biz.settings?.notify_phone ?? "");
-  const [fromEmail,   setFromEmail]   = useState<string>(biz.settings?.receipt_from_email ?? "");
   const [seeding, setSeeding] = useState(false);
   const [seeded,  setSeeded]  = useState(false);
 
@@ -916,7 +947,6 @@ function StepNotifications({ biz, save, show }: { biz: Biz; save: SaveFn; show: 
       <Grid>
         <Field label="Order alert email"><input value={notifyEmail} onChange={e => setNotifyEmail(e.target.value)} placeholder="orders@business.com" /></Field>
         <Field label="Order alert phone"><input value={notifyPhone} onChange={e => setNotifyPhone(e.target.value)} placeholder="+61..." /></Field>
-        <Field label="Receipt 'from' email"><input value={fromEmail} onChange={e => setFromEmail(e.target.value)} placeholder="hello@business.com" /></Field>
       </Grid>
 
       <div style={{ background: C.bg, border: `1px solid ${C.mist}`, borderRadius: 10, padding: 14, marginTop: 16 }}>
@@ -935,7 +965,7 @@ function StepNotifications({ biz, save, show }: { biz: Biz; save: SaveFn; show: 
 
       <SaveBar
         onSave={() => save({
-          settings: { notify_email: notifyEmail, notify_phone: notifyPhone, receipt_from_email: fromEmail },
+          settings: { notify_email: notifyEmail.trim(), notify_phone: notifyPhone.trim() },
         }, { advance: true })}
       />
     </Section>
@@ -1211,10 +1241,11 @@ function StepTeam({ biz, router, show }: { biz: Biz; router: any; show: (m: stri
       )}
 
       <div style={{ marginTop: 24, padding: 16, background: "rgba(0,173,130,.06)", border: "1px solid rgba(0,173,130,.25)", borderRadius: 10 }}>
-        <div style={{ fontWeight: 600, color: C.g, fontSize: 14, marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}><Icon name="done" size={16} />Onboarding complete</div>
+        <div style={{ fontWeight: 600, color: C.g, fontSize: 14, marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}><Icon name="done" size={16} />That&apos;s every step</div>
         <div style={{ fontSize: 13, color: C.cl, lineHeight: 1.55 }}>
-          The owner has a magic link in their inbox. You can impersonate them from the admin panel to verify
-          everything looks right, or hand it over and move on to your next sale.
+          Before you hand over, clear the go-live check on the Website step: Stripe, the owner&apos;s login and a
+          paid test order. Emails don&apos;t send yet, so the owner only has a login once you send it from there.
+          Impersonate to see the shop the way the owner will.
         </div>
         <div className="zb-wrap" style={{ display: "flex", gap: 8, marginTop: 12 }}>
           <button onClick={() => router.push("/admin")} className="bp" style={{ padding: "9px 14px" }}>Back to Super Admin</button>
@@ -1328,11 +1359,13 @@ const importBox: React.CSSProperties = {
 
 // Where the import came from and anything to raise with the owner.
 function ImportBanner({ imp }: { imp: StoredImport }) {
-  const host = imp.final_url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+  const host = (imp.final_url || imp.source_url || "").replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+  const day = new Date(imp.fetched_at).toLocaleDateString("en-AU");
   return (
     <div style={importBox}>
       <div style={{ fontSize: 13, color: C.cl, fontWeight: 600 }}>
-        Imported from {host} on {new Date(imp.fetched_at).toLocaleDateString("en-AU")}
+        {/* A menu read from photos, a PDF or text has no website (lib/import/store.ts). */}
+        {host ? `Imported from ${host} on ${day}` : `Menu read from the owner's photos, PDF or text on ${day}`}
         {imp.ai_used ? "" : " (pattern scan only)"}
       </div>
       <div style={{ fontSize: 12, color: C.st, marginTop: 4 }}>

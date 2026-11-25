@@ -3,6 +3,11 @@
 // options are sizes, extras and choices (see lib/menu-options.ts). They're
 // cleaned with readOptions, so anything malformed is dropped.
 // Creates the categories + items for the business in one shot.
+//
+// Only for a shop with no menu yet. Every call adds rows, so seeding twice
+// (Seed again, a second menu read, or the starter menu on a resumed setup)
+// used to put every item on the menu twice. A shop that has a menu gets 409
+// and changes it in Menu instead.
 
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
@@ -29,6 +34,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (cats.length === 0) return NextResponse.json({ error: "No categories" }, { status: 400 });
 
   const db = createAdminClient();
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { count, error: countErr } = await (db.from("menu_categories") as any)
+    .select("id", { count: "exact", head: true })
+    .eq("business_id", businessId);
+  if (countErr) return NextResponse.json({ error: "Couldn't check the shop's menu. Try again." }, { status: 500 });
+  if ((count ?? 0) > 0) {
+    return NextResponse.json({ error: "This shop already has a menu. Change it in Menu, so nothing is added twice." }, { status: 409 });
+  }
+
   let createdCats = 0;
   let createdItems = 0;
 
