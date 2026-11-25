@@ -131,6 +131,19 @@ describe("customer checkout", () => {
     expect(Object.keys(params.metadata).length).toBeLessThanOrEqual(50);
   });
 
+  it("stops a flood of checkouts before any call to Stripe (lib/checkout-limit.ts)", async () => {
+    h.db = fakeDb({
+      "businesses.select": () => ({ data: shop, error: null }),
+      "menu_items.select": () => ({ data: MENU, error: null }),
+      "checkout_starts.select": () => ({ data: null, error: null, count: 200 }),
+    });
+    const res = await checkout(order());
+    expect(res.status).toBe(429);
+    expect(res.headers.get("retry-after")).toBe("600");
+    expect(h.stripe.checkout.sessions.create).not.toHaveBeenCalled();
+    expect(h.stripe.v2.core.accounts.retrieve).not.toHaveBeenCalled();
+  });
+
   it("refuses a shop that can't take payments yet", async () => {
     h.db = fakeDb({
       "businesses.select": () => ({ data: { ...shop, stripe_charges_enabled: false }, error: null }),
