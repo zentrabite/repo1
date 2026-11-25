@@ -239,7 +239,7 @@ Buttons are disabled when no phone number is on file.
 
 ## 15. Settings — `/settings`
 
-**What it does.** Business profile (name, type, suburb, subdomain, logo), operating hours (Mon–Sun with open/close, an optional break, and a closed checkbox), Stripe Connect status, subscription status, pointer card to `/zentra-rewards` for winback config.
+**What it does.** Business profile (name, type, suburb, subdomain, logo, which owners and managers upload through `/api/logo`), operating hours (Mon–Sun with open/close, an optional break, and a closed checkbox), Stripe Connect status, subscription status, pointer card to `/zentra-rewards` for winback config.
 
 **How it works.** Persists to `businesses.settings` (JSONB) and first-class columns. `stripeConnected` from `business.stripe_account_id`. Subscription status from `business.settings.subscription_status`. Hours saved to `business.settings.hours` keyed by weekday. Settings saves go through `saveSettings()` in `lib/queries.ts`, which reads the saved settings first, so one section can't wipe another.
 
