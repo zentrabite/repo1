@@ -256,6 +256,23 @@ describe("connection lights", () => {
     expect(h.sendEmail).toHaveBeenCalledWith(expect.objectContaining({ subject: "ZentraBite: AI (Anthropic) is down", text: expect.stringContaining("Anthropic rejected the key.") }));
   });
 
+  it("the daily run skips a suspended shop (041)", async () => {
+    vi.stubEnv("CRON_SECRET", "cron-test");
+    const PAUSED = "eeeeeeee-0000-4000-8000-00000000000e";
+    h.db = fakeDb({
+      "businesses.select": q => q.filters.some(([c]) => c === "suspended_at not is")
+        ? { data: [{ id: PAUSED }], error: null }
+        : { data: null, error: null, count: 1 },
+      "edge_function_runs.select": () => ({ data: [], error: null }),
+      "send_pauses.select": () => ({ data: [], error: null }),
+      "winback_rules.select": () => ({ data: [{ business_id: PAUSED }], error: null }),
+      "campaigns.select": () => ({ data: [], error: null }),
+    });
+    const res = await runAutomations(new Request("https://dashboard.zentrabite.com/api/automations/run", { headers: { authorization: "Bearer cron-test" } }));
+    expect(await res.json()).toMatchObject({ message: "No businesses with active rules", sent: 0 });
+    expect(calls("customers", "select")).toHaveLength(0);
+  });
+
   it("the Sending page gets the lights, the switches and who's told", async () => {
     vi.stubEnv("ALERT_EMAIL", "team@example.com");
     h.db = fakeDb({

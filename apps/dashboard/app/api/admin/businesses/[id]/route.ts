@@ -17,11 +17,16 @@
 //     owner?: { name?: string; phone?: string; email?: string },
 //   }
 // Empty strings are normalised to NULL so "clear the field" works.
+//
+// DELETE { name } deletes an empty test shop: suspended, no orders or
+//        customers, no live subscription, and its name typed to confirm
+//        (migration 041, lib/shop-status.ts).
 
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import { assertSuperAdmin } from "@/lib/admin-auth";
 import { recentAccess } from "@/lib/access-log";
+import { deleteEmptyShop } from "@/lib/shop-status";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -127,4 +132,22 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     business: bizRes.data ?? null,
     owner:    ownerRes.data ?? null,
   });
+}
+
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const user = await assertSuperAdmin();
+  if (!user) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+
+  const { id } = await params;
+  const body = (await req.json().catch(() => ({}))) as { name?: unknown };
+  const out = await deleteEmptyShop(createAdminClient(), id, body.name);
+  if (!out.ok) return NextResponse.json({ error: out.error }, { status: out.status });
+  console.info(`[admin] ${user.email ?? user.id} deleted ${id} (${out.name})`);
+
+  // Stop viewing the CRM as a shop that's gone.
+  const res = NextResponse.json({ ok: true });
+  if (req.cookies.get("zb_impersonate")?.value === id) {
+    res.cookies.set({ name: "zb_impersonate", value: "", path: "/", httpOnly: false, sameSite: "lax", maxAge: 0 });
+  }
+  return res;
 }

@@ -260,13 +260,14 @@ Buttons are disabled when no phone number is on file.
 
 ## Bonus: Super-admin — `/admin`
 
-**What it does.** Platform control. Every tenant, module toggles, usage & billing, Impersonate button, danger zone (UI only).
+**What it does.** Platform control. Every tenant, module toggles, usage & billing, Impersonate button, and Suspend and Delete in the danger zone (Ops tab).
 
 **How it works.** Visible only when `users.is_super_admin = true`. Reads from `/api/admin/stats` (service-role, bypasses RLS). Module toggles PATCH `/api/admin/modules`. Impersonate POSTs `/api/admin/impersonate`, sets the `zb_impersonate` cookie for 4 hours, reloads into the target tenant. The orange banner (`components/impersonation-banner.tsx`) marks every page when you're impersonating.
 
 **To finalise.**
 - Mark one user super-admin (see top of doc).
-- Implement suspend/delete endpoints if you want the danger zone buttons to actually do something (currently they toast "coming soon").
+
+**Suspend and Delete (migration 041, 25 Nov 2026).** Suspend asks for a reason (the team sees it, the shop never does) and POSTs `/api/admin/businesses/[id]/suspend`, which sets `businesses.suspended_at`, `suspended_by` and `suspended_reason`. Undo is a DELETE to the same address. While suspended, `get_my_business_id()` gives the shop's logins nothing, so every row rule refuses them, `requireBusiness` answers 403, and `DashboardShell` shows "This account is paused" (it asks `my_shop_suspended()`). The ordering page, checkout and website treat the shop as not found, `checkSmsAllowance` refuses its texts, and the daily run and monthly report skip it. The order confirmation page and the Stripe webhook still work, so a payment already made is saved. Delete (DELETE `/api/admin/businesses/[id]` with the shop's name typed) calls `delete_empty_shop()`, which refuses unless the shop is suspended, has no orders or customers and no live subscription, then removes its pictures from storage. Logic in `lib/shop-status.ts`, tests in `tests/suspend-and-delete.test.ts` (database) and `tests/shop-status.test.ts`.
 
 ### Sending — `/admin/sending`
 

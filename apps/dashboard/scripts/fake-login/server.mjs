@@ -86,8 +86,13 @@ http.createServer((req, res) => {
       const member = row?.business_id ? null : (data.tables.business_members ?? [])
         .filter(m => m.email === String(me.email).toLowerCase() && me.invited_at && me.email_confirmed_at && !["removed", "revoked"].includes(m.status))
         .sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)))[0];
-      if (rpc[1] === "get_my_business_id") return send(200, row?.business_id ?? member?.business_id ?? null);
-      if (rpc[1] === "get_my_role") return send(200, row?.business_id ? "Owner" : member?.role ?? null);
+      // FAKE_SUSPENDED=1 acts as if ZentraBite suspended the login's shop
+      // (041): no shop, and my_shop_suspended() says so. FAKE_STAFF_ROLE=POS
+      // makes the team member a POS till.
+      const suspended = process.env.FAKE_SUSPENDED === "1";
+      if (rpc[1] === "get_my_business_id") return send(200, suspended ? null : row?.business_id ?? member?.business_id ?? null);
+      if (rpc[1] === "get_my_role") return send(200, row?.business_id ? "Owner" : process.env.FAKE_STAFF_ROLE || member?.role || null);
+      if (rpc[1] === "my_shop_suspended") return send(200, suspended);
       // Swapping points (031). Worked out from the fixtures, saved nowhere.
       if (rpc[1] === "redeem_reward" || rpc[1] === "undo_redemption") {
         const a = body ? JSON.parse(body) : {};

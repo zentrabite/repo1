@@ -243,6 +243,7 @@ export async function loadSite(subdomain: string): Promise<SiteData | null> {
   const { data: biz } = await (db.from("businesses") as any)
     .select("id, name, type, suburb, subdomain, logo_url, description, contact_phone, address, settings, stripe_account_id, stripe_charges_enabled")
     .eq("subdomain", subdomain)
+    .is("suspended_at", null) // a suspended shop's website is off (041)
     .maybeSingle();
   if (!biz) return null;
 

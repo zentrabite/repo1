@@ -24,6 +24,9 @@
 //                                             email is confirmed. See below.
 //   • Requested id not in the allowed set  → 403
 //   • Role not in options.roles            → 403
+//   • Shop suspended by ZentraBite (041)   → 403, except for super admins.
+//                                             The database refuses the
+//                                             shop's logins the same way.
 //
 // users.is_super_admin and users.business_id are protected from browser
 // writes by migration 015. Don't loosen those grants without revisiting this.
@@ -35,6 +38,9 @@ import { createAdminClient, createSessionClient } from "@/lib/supabase-server";
 import { noteStaffUse } from "@/lib/access-log";
 
 const IMPERSONATE_COOKIE = "zb_impersonate";
+
+/** What a suspended shop's logins are told (migration 041). Never the reason. */
+export const SUSPENDED_MESSAGE = "ZentraBite has paused this shop's account. Email hello@zentrabite.com to sort it out.";
 
 /** Roles allowed to spend money or change billing and team settings. */
 export const MANAGER_ROLES = ["Owner", "Manager"] as const;
@@ -50,7 +56,7 @@ export type BusinessAuth =
     }
   | { ok: false; response: NextResponse };
 
-function deny(status: 401 | 403 | 404, error: string): BusinessAuth {
+function deny(status: 401 | 403 | 404 | 503, error: string): BusinessAuth {
   return { ok: false, response: NextResponse.json({ error }, { status }) };
 }
 
@@ -135,6 +141,12 @@ export async function requireBusiness(
   if (options.roles && !options.roles.includes(role)) {
     return deny(403, "Your role can't do this. Ask the owner or a manager.");
   }
+
+  // A suspended shop can't use the CRM. If this can't be checked, the request
+  // is refused rather than let through.
+  const { data: shop, error: shopErr } = await admin.from("businesses").select("suspended_at").eq("id", businessId).maybeSingle();
+  if (shopErr) return deny(503, "Couldn't check this account. Try again in a moment.");
+  if ((shop as { suspended_at?: string | null } | null)?.suspended_at) return deny(403, SUSPENDED_MESSAGE);
 
   return { ok: true, userId: user.id, email, businessId, role, isSuperAdmin: false };
 }

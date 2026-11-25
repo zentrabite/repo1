@@ -29,6 +29,7 @@ export default function ImpersonationBanner() {
     >
       <div className="zb-imp-text">
         <Icon name="view" size={16} accent="currentColor" style={{ marginRight: 6 }} />Viewing CRM as <b>{business?.name ?? "business"}</b>
+        {business?.suspended_at && <b style={{ marginLeft: 8 }}>(suspended)</b>}
         <span className="zb-imp-note" style={{ opacity: 0.85, marginLeft: 8, fontWeight: 500 }}>
           — all actions write to this tenant's data
         </span>

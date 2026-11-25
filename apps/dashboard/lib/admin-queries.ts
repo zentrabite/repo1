@@ -26,6 +26,9 @@ export type AdminBusinessRow = {
   address:            string | null;
   settings:           Record<string, unknown>;
   created_at:         string;
+  // Suspended by ZentraBite (041), and why. The reason is for the team only.
+  suspended_at:       string | null;
+  suspended_reason:   string | null;
   customerCount:      number;
   orderCount:         number;
   totalRevenue:       number;
@@ -45,7 +48,7 @@ export async function getAllBusinessesStats(): Promise<AdminBusinessRow[]> {
   const db = createAdminClient();
 
   const [bizsRes, custsRes, ordersRes, smsRes, usersRes] = await Promise.all([
-    db.from("businesses").select("id, name, type, suburb, subdomain, logo_url, stripe_account_id, stripe_customer_id, description, contact_phone, contact_email, website, abn, address, settings, created_at"),
+    db.from("businesses").select("id, name, type, suburb, subdomain, logo_url, stripe_account_id, stripe_customer_id, description, contact_phone, contact_email, website, abn, address, settings, created_at, suspended_at, suspended_reason"),
     db.from("customers").select("id, business_id"),
     db.from("orders").select("id, business_id, total, refunded_amount, created_at"),
     db.from("sms_logs").select("id, business_id, status"),
@@ -84,6 +87,8 @@ export async function getAllBusinessesStats(): Promise<AdminBusinessRow[]> {
       address:            b.address ?? null,
       settings,
       created_at:         b.created_at,
+      suspended_at:       b.suspended_at ?? null,
+      suspended_reason:   b.suspended_reason ?? null,
       customerCount: custs.filter(c => c.business_id === b.id).length,
       orderCount:    orders.filter(o => o.business_id === b.id).length,
       totalRevenue:  orders.filter(o => o.business_id === b.id).reduce((s, o) => s + netTotal(o), 0),

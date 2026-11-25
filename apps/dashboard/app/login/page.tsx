@@ -19,6 +19,8 @@ function LoginForm() {
   const router       = useRouter();
   const searchParams = useSearchParams();
   const redirect     = searchParams.get("redirect") ?? "/dashboard";
+  // The POS till signed itself out (components/idle-sign-out.tsx).
+  const idle         = searchParams.get("idle") === "1";
 
   const [email,    setEmail]    = useState("");
   const [password, setPassword] = useState("");
@@ -109,6 +111,16 @@ function LoginForm() {
               required
             />
           </div>
+
+          {idle && !error && (
+            <div role="status" style={{
+              padding: "10px 14px", borderRadius: 8, marginBottom: 16,
+              background: "rgba(0,173,130,.1)", border: "1px solid rgba(0,173,130,.25)",
+              fontFamily: "var(--font-inter)", fontSize: 13, color: C.cl,
+            }}>
+              Signed out after 15 minutes with no taps, to keep the till safe.
+            </div>
+          )}
 
           {error && (
             <div style={{

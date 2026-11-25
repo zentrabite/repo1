@@ -25,8 +25,11 @@ export function sessionCookie(as = "owner") {
   return { name: "sb-localhost-auth-token", value: "base64-" + Buffer.from(JSON.stringify(session)).toString("base64url"), domain: "localhost", path: "/" };
 }
 
-/** A logged-in page at path, e.g. open("/settings", { width: 390, height: 844 }) or open("/sell", undefined, "seller"). */
-export async function open(path, viewport = { width: 1280, height: 900 }, as = "owner") {
+/**
+ * A logged-in page at path, e.g. open("/settings", { width: 390, height: 844 }) or open("/sell", undefined, "seller").
+ * before(page) runs before the page loads, for example to install page.clock.
+ */
+export async function open(path, viewport = { width: 1280, height: 900 }, as = "owner", before) {
   const browser = await chromium.launch();
   const context = await browser.newContext({ viewport, deviceScaleFactor: 1 });
   await context.addCookies([sessionCookie(as)]);
@@ -34,6 +37,7 @@ export async function open(path, viewport = { width: 1280, height: 900 }, as = "
   const errors = [];
   page.on("pageerror", e => errors.push(String(e)));
   page.on("console", m => { if (m.type() === "error") errors.push(m.text()); });
+  if (before) await before(page);
   await page.goto("http://localhost:3000" + path, { waitUntil: "load" });
   return { browser, page, errors };
 }

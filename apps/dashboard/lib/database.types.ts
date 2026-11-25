@@ -31,6 +31,10 @@ export interface Database {
           address:            string | null;
           settings:           Json;
           created_at:         string;
+          // Set when ZentraBite suspends the shop (041). Server and super admins only.
+          suspended_at?:      string | null;
+          suspended_by?:      string | null;
+          suspended_reason?:  string | null;
         };
         Insert: Omit<Database["public"]["Tables"]["businesses"]["Row"], "id" | "created_at">;
         Update: Partial<Database["public"]["Tables"]["businesses"]["Insert"]>;

@@ -14,6 +14,10 @@
 //   4. Redirect to /login.
 //
 // GET is supported too so <a href="/auth/logout"> works as a fallback.
+//
+// ?idle=1 is the POS till signing itself out after 15 minutes with no taps
+// (components/idle-sign-out.tsx). That signs out this device only, so another
+// till on the same login stays signed in, and the login page says why.
 
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
@@ -23,9 +27,10 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 async function handle(req: NextRequest) {
+  const idle = req.nextUrl.searchParams.get("idle") === "1";
   const url = req.nextUrl.clone();
   url.pathname = "/login";
-  url.search   = "";
+  url.search   = idle ? "?idle=1" : "";
   const response = NextResponse.redirect(url, { status: 303 });
 
   const supabase = createServerClient(
@@ -47,7 +52,7 @@ async function handle(req: NextRequest) {
   );
 
   try {
-    await supabase.auth.signOut({ scope: "global" });
+    await supabase.auth.signOut({ scope: idle ? "local" : "global" });
   } catch (err) {
     // Even if the Supabase call fails, make sure we clear cookies locally.
     console.warn("[auth/logout] signOut failed:", err);

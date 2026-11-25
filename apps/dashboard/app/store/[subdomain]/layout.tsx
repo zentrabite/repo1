@@ -17,6 +17,7 @@ const loadBusiness = cache(async (subdomain: string): Promise<{ name: string; lo
       .from("businesses")
       .select("name, logo_url")
       .eq("subdomain", subdomain)
+      .is("suspended_at", null)
       .maybeSingle();
     return (data as { name: string; logo_url: string | null } | null) ?? null;
   } catch {
