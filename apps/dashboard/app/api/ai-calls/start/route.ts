@@ -19,6 +19,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import { MANAGER_ROLES, requireBusiness } from "@/lib/request-business";
+import { AI_CALLS_OFF, AI_CALLS_READY } from "@/lib/ai-calls-gate";
 
 // Outbound calls cost real money and fall under telemarketing rules, so they
 // are tightly limited per business.
@@ -38,6 +39,9 @@ export async function POST(req: Request) {
     const auth = await requireBusiness(requestedBusinessId, { roles: MANAGER_ROLES });
     if (!auth.ok) return auth.response;
     const { businessId } = auth;
+
+    // Off until the calling rules are built (lib/ai-calls-gate.ts).
+    if (!AI_CALLS_READY) return NextResponse.json({ error: AI_CALLS_OFF }, { status: 503 });
 
     // Only call customers of this business, on their saved number.
     if (!customerId) {

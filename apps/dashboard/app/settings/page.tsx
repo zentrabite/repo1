@@ -20,6 +20,7 @@ const TIMEZONES = ["Australia/Adelaide", "Australia/Darwin", "Australia/Brisbane
 const PREP_CHOICES = [10, 15, 20, 25, 30, 40, 45, 60, 90];
 import BrandMark from "@/components/brand-mark";
 import PasswordInput from "@/components/password-input";
+import { withoutCourierKeys, type CourierField } from "@/lib/courier-fields";
 import { Icon } from "@/components/zb-icon";
 import { subscriptionView } from "@/lib/subscription";
 
@@ -104,15 +105,6 @@ function SettingsContent() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logoUploading, setLogoUploading] = useState(false);
   const [deliverySettings, setDeliverySettings] = useState({
-    // Primary providers
-    uber_direct_api_key:        "",
-    uber_direct_customer_id:    "",
-    doordash_developer_id:      "",
-    doordash_key_id:            "",
-    doordash_signing_secret:    "",
-    sherpa_api_key:             "",
-    zoom2u_api_key:             "",
-    gopeople_api_key:           "",
     // Routing settings
     business_address:           "",
     max_eta_minutes:            60  as string | number,
@@ -143,7 +135,9 @@ function SettingsContent() {
       setLogoUrl((business as any).logo_url ?? null);
       // The delivery_settings column (older saves put a copy in settings).
       const ds = ((business as { delivery_settings?: Record<string, unknown> | null }).delivery_settings ?? (settings as any).delivery_settings ?? {}) as Record<string, any>;
-      if (Object.keys(ds).length) setDeliverySettings(prev => ({ ...prev, ...ds }));
+      // Courier keys never come from here (038). An older save may still hold some.
+      const rest = withoutCourierKeys(ds);
+      if (Object.keys(rest).length) setDeliverySettings(prev => ({ ...prev, ...rest }));
     }
   }, [business]);
 
@@ -177,6 +171,50 @@ function SettingsContent() {
     } catch { setTeamError("Couldn't load the team. Check your connection."); }
   }, [businessId]);
   useEffect(() => { void loadTeam(); }, [loadTeam]);
+
+  // Courier keys are saved on the server (/api/delivery/keys, 038). The page
+  // only learns which are saved, never the keys. Owners and managers only.
+  const [courierInput, setCourierInput] = useState<Partial<Record<CourierField, string>>>({});
+  const [courierSaved, setCourierSaved] = useState<Partial<Record<CourierField, boolean>>>({});
+  useEffect(() => {
+    if (!businessId || !canManageTeam) return;
+    fetch(`/api/delivery/keys?businessId=${encodeURIComponent(businessId)}`)
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (d?.saved) setCourierSaved(d.saved); })
+      .catch(() => {});
+  }, [businessId, canManageTeam]);
+  const courierProps = (field: CourierField, placeholder: string) => ({
+    value: courierInput[field] ?? "",
+    onChange: (e: { target: { value: string } }) => setCourierInput(c => ({ ...c, [field]: e.target.value })),
+    placeholder: courierSaved[field] ? "Saved. Type a new one to replace it" : placeholder,
+    autoComplete: "off",
+  });
+  const saveCourierKeys = async (body: { set?: Partial<Record<CourierField, string>>; clear?: CourierField[] }) => {
+    const res = await fetch("/api/delivery/keys", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ businessId, ...body }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error ?? "Could not save the courier keys");
+    setCourierSaved(data.saved ?? {});
+    return data;
+  };
+  const removeKeys = (fields: CourierField[], name: string) =>
+    fields.some(f => courierSaved[f]) && canManageTeam ? (<>
+      {" "}
+      <button type="button" className="zb-tap"
+        onClick={async () => {
+          try {
+            await saveCourierKeys({ clear: fields });
+            setCourierInput(c => { const n = { ...c }; for (const f of fields) delete n[f]; return n; });
+            show(`${name} keys removed`);
+          } catch (e) { show(e instanceof Error ? e.message : "Could not remove the keys"); }
+        }}
+        style={{ background:"none", border:"none", padding:0, color:"#FF8A8A", fontSize:11, cursor:"pointer", textDecoration:"underline", textUnderlineOffset:3, fontFamily:"var(--font-inter)" }}>
+        {`Remove ${name} keys`}
+      </button>
+    </>) : null;
 
   // When ZentraBite staff opened this CRM as the owner (/api/access-log,
   // migration 036). Owners and managers see it.
@@ -950,6 +988,7 @@ function SettingsContent() {
             <p style={{ fontFamily:"var(--font-inter)", fontSize:12, color:C.st, marginTop:-10, marginBottom:18, lineHeight:1.6 }}>
               Configure credentials for each delivery provider. The routing engine queries all configured
               providers simultaneously and selects the optimal one per order. Providers with no credentials are skipped.
+              {" Keys are kept on our server, only owners and managers can change them, and the CRM never shows one again after it's saved."}
             </p>
 
             {/* Business address + routing params */}
@@ -1018,17 +1057,13 @@ function SettingsContent() {
               <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:10, display:"flex", alignItems:"center", gap:6 }}><Icon name="car" size={14} />Uber Direct</div>
               <div className="zb-stack" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
                 <Field label="API Key">
-                  <PasswordInput label="key" placeholder="From developer.uber.com"
-                    value={deliverySettings.uber_direct_api_key}
-                    onChange={e => setDeliverySettings(d => ({ ...d, uber_direct_api_key: e.target.value }))} />
+                  <PasswordInput label="key" {...courierProps("uber_direct_api_key", "From developer.uber.com")} />
                 </Field>
                 <Field label="Customer ID">
-                  <input placeholder="Uber Direct Customer ID"
-                    value={deliverySettings.uber_direct_customer_id}
-                    onChange={e => setDeliverySettings(d => ({ ...d, uber_direct_customer_id: e.target.value }))} />
+                  <input {...courierProps("uber_direct_customer_id", "Uber Direct Customer ID")} />
                 </Field>
               </div>
-              <div style={{ fontSize:11, color:C.st }}>Live quotes fetched per order when credentials are set. Docs: developer.uber.com/docs/deliveries</div>
+              <div style={{ fontSize:11, color:C.st }}>Live quotes fetched per order when credentials are set. Docs: developer.uber.com/docs/deliveries{removeKeys(["uber_direct_api_key", "uber_direct_customer_id"], "Uber Direct")}</div>
             </div>
 
             {/* DoorDash Drive */}
@@ -1036,55 +1071,43 @@ function SettingsContent() {
               <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:10, display:"flex", alignItems:"center", gap:6 }}><Icon name="dot" size={14} accent="#FF4757" />DoorDash Drive</div>
               <div className="zb-stack" style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:10 }}>
                 <Field label="Developer ID">
-                  <PasswordInput label="ID" placeholder="From developer.doordash.com"
-                    value={deliverySettings.doordash_developer_id}
-                    onChange={e => setDeliverySettings(d => ({ ...d, doordash_developer_id: e.target.value }))} />
+                  <PasswordInput label="ID" {...courierProps("doordash_developer_id", "From developer.doordash.com")} />
                 </Field>
                 <Field label="Key ID">
-                  <input placeholder="DoorDash Key ID"
-                    value={deliverySettings.doordash_key_id}
-                    onChange={e => setDeliverySettings(d => ({ ...d, doordash_key_id: e.target.value }))} />
+                  <input {...courierProps("doordash_key_id", "DoorDash Key ID")} />
                 </Field>
                 <Field label="Signing Secret">
-                  <PasswordInput label="secret" placeholder="JWT signing secret"
-                    value={deliverySettings.doordash_signing_secret}
-                    onChange={e => setDeliverySettings(d => ({ ...d, doordash_signing_secret: e.target.value }))} />
+                  <PasswordInput label="secret" {...courierProps("doordash_signing_secret", "JWT signing secret")} />
                 </Field>
               </div>
-              <div style={{ fontSize:11, color:C.st }}>Docs: developer.doordash.com/en-US/docs/drive</div>
+              <div style={{ fontSize:11, color:C.st }}>Docs: developer.doordash.com/en-US/docs/drive{removeKeys(["doordash_developer_id", "doordash_key_id", "doordash_signing_secret"], "DoorDash")}</div>
             </div>
 
             {/* Sherpa */}
             <div style={{ marginBottom:18, paddingBottom:18, borderBottom:`1px solid ${C.mist}` }}>
               <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:10, display:"flex", alignItems:"center", gap:6 }}><Icon name="package" size={14} />Sherpa</div>
               <Field label="API Key">
-                <PasswordInput label="key" placeholder="From Sherpa developer portal"
-                  value={deliverySettings.sherpa_api_key}
-                  onChange={e => setDeliverySettings(d => ({ ...d, sherpa_api_key: e.target.value }))} />
+                <PasswordInput label="key" {...courierProps("sherpa_api_key", "From Sherpa developer portal")} />
               </Field>
-              <div style={{ fontSize:11, color:C.st }}>Australian same-day courier. Docs: developer.sherpa.delivery</div>
+              <div style={{ fontSize:11, color:C.st }}>Australian same-day courier. Docs: developer.sherpa.delivery{removeKeys(["sherpa_api_key"], "Sherpa")}</div>
             </div>
 
             {/* Zoom2u */}
             <div style={{ marginBottom:18, paddingBottom:18, borderBottom:`1px solid ${C.mist}` }}>
               <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:10, display:"flex", alignItems:"center", gap:6 }}><Icon name="fast" size={14} />Zoom2u</div>
               <Field label="API Key">
-                <PasswordInput label="key" placeholder="From Zoom2u developer portal"
-                  value={deliverySettings.zoom2u_api_key}
-                  onChange={e => setDeliverySettings(d => ({ ...d, zoom2u_api_key: e.target.value }))} />
+                <PasswordInput label="key" {...courierProps("zoom2u_api_key", "From Zoom2u developer portal")} />
               </Field>
-              <div style={{ fontSize:11, color:C.st }}>Australian courier aggregator. Docs: developer.zoom2u.com</div>
+              <div style={{ fontSize:11, color:C.st }}>Australian courier aggregator. Docs: developer.zoom2u.com{removeKeys(["zoom2u_api_key"], "Zoom2u")}</div>
             </div>
 
             {/* GoPeople */}
             <div style={{ marginBottom:18, paddingBottom:18, borderBottom:`1px solid ${C.mist}` }}>
               <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:12, color:"#fff", marginBottom:10, display:"flex", alignItems:"center", gap:6 }}><Icon name="delivery" size={14} />GoPeople</div>
               <Field label="API Key">
-                <PasswordInput label="key" placeholder="From GoPeople developer portal"
-                  value={deliverySettings.gopeople_api_key}
-                  onChange={e => setDeliverySettings(d => ({ ...d, gopeople_api_key: e.target.value }))} />
+                <PasswordInput label="key" {...courierProps("gopeople_api_key", "From GoPeople developer portal")} />
               </Field>
-              <div style={{ fontSize:11, color:C.st }}>Australian last-mile courier. Docs: developer.gopeople.com.au</div>
+              <div style={{ fontSize:11, color:C.st }}>Australian last-mile courier. Docs: developer.gopeople.com.au{removeKeys(["gopeople_api_key"], "GoPeople")}</div>
             </div>
 
             {/* Legacy Tasker fields */}
@@ -1113,9 +1136,15 @@ function SettingsContent() {
                 // Only the delivery column. Writing settings from the page's
                 // copy here could wipe a section saved since it loaded.
                 const { error } = await supabase.from("businesses").update({
-                  delivery_settings: deliverySettings,
+                  delivery_settings: withoutCourierKeys(deliverySettings),
                 }).eq("id", businessId);
                 if (error) { show("Could not save delivery settings"); return; }
+                // Typed courier keys go to the server only (038).
+                const typed = Object.fromEntries(Object.entries(courierInput).filter(([, v]) => v?.trim()));
+                if (Object.keys(typed).length) {
+                  try { await saveCourierKeys({ set: typed }); setCourierInput({}); }
+                  catch (e) { show(e instanceof Error ? e.message : "Could not save the courier keys"); return; }
+                }
                 show("Delivery settings saved ✓");
               }}
             >

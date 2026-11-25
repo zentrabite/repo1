@@ -9,7 +9,7 @@ export interface NavItem {
 
 export const navigation: NavItem[] = [
   { label: "Dashboard",   href: "/dashboard",   icon: iconComponent("dashboard"),   description: "Today's snapshot and key metrics" },
-  { label: "AI Copilot",  href: "/copilot",     icon: iconComponent("copilot"),     description: "Ask your business anything — live data + AI" },
+  { label: "AI Copilot",  href: "/copilot",     icon: iconComponent("copilot"),     description: "Ask anything about your business, from a summary of your live numbers" },
   { label: "Orders",      href: "/orders",      icon: iconComponent("orders"),      description: "Live order board & order history" },
   { label: "Fulfillment", href: "/fulfillment", icon: iconComponent("fulfillment"), description: "Pick, pack, ship & track e-commerce orders" },
   { label: "POS",         href: "/pos",         icon: iconComponent("pos"),         description: "Point of sale · take orders at the counter" },

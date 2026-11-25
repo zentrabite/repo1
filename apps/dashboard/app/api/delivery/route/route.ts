@@ -12,6 +12,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import { requireBusiness } from "@/lib/request-business";
 import { fetchAllQuotes, type ProviderCredentials } from "@/lib/delivery-providers";
+import { readCourierKeys } from "@/lib/courier-keys";
 import type { RoutingRequest, RoutingDecision, ProviderQuote, ProviderId } from "@/lib/delivery-types";
 
 // ─── Constants (overrideable per-business via delivery_settings) ──────────────
@@ -138,16 +139,8 @@ export async function POST(req: Request) {
     const { data: biz } = await db.from("businesses").select("delivery_settings").eq("id", businessId).single();
     const ds = (biz?.delivery_settings ?? {}) as Record<string, any>;
 
-    const creds: ProviderCredentials = {
-      uber_direct_api_key:     ds.uber_direct_api_key,
-      uber_direct_customer_id: ds.uber_direct_customer_id,
-      doordash_developer_id:   ds.doordash_developer_id,
-      doordash_key_id:         ds.doordash_key_id,
-      doordash_signing_secret: ds.doordash_signing_secret,
-      sherpa_api_key:          ds.sherpa_api_key,
-      zoom2u_api_key:          ds.zoom2u_api_key,
-      gopeople_api_key:        ds.gopeople_api_key,
-    };
+    // Courier keys are server only (038, lib/courier-keys.ts).
+    const creds: ProviderCredentials = await readCourierKeys(db, businessId);
 
     // Parse addresses into structured form
     // Addresses are passed as free-text strings — parse suburb/state/postcode from trailing portion.
