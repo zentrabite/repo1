@@ -1,0 +1,16 @@
+# gitleaks settings for the secret check (.github/workflows/secret-check.yml).
+# The default rules, minus the files that hold made-up keys on purpose:
+# the tests and the fake login's sample data, and the env template's
+# placeholders. Keep this list short, and never add a real file to it.
+title = "ZentraBite"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Made-up keys in tests, sample data and the env template"
+paths = [
+  '''^apps/dashboard/tests/''',
+  '''^apps/dashboard/scripts/fake-login/''',
+  '''^\.env\.production\.example$''',
+]
