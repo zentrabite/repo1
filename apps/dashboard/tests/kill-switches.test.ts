@@ -103,6 +103,29 @@ describe("kill switches", () => {
     expect((await res.json()).error).toContain("Every text is stopped");
   });
 
+  it("only texts Australian mobiles, and stops at the daily cap across every shop", async () => {
+    vi.stubEnv("TWILIO_ACCOUNT_SID", "AC1");
+    vi.stubEnv("TWILIO_AUTH_TOKEN", "tok");
+    vi.stubEnv("TWILIO_PHONE_NUMBER", "+61400000000");
+    pauses([]);
+    for (const to of ["+447700900123", "0882001234", "+618 8200 1234", "12345"]) {
+      expect(await sendTwilioSms(to, "Your order is ready"), to).toMatchObject({ status: "skipped", error: expect.stringMatching(/Australian mobile/) });
+    }
+    expect(fetch).not.toHaveBeenCalled();
+
+    h.db = fakeDb({
+      "send_pauses.select": () => ({ data: [], error: null }),
+      "sms_logs.select": () => ({ data: null, error: null, count: 2000 }),
+    });
+    expect(await sendTwilioSms("0412345678", "Your order is ready")).toMatchObject({ status: "skipped", error: expect.stringMatching(/daily text limit/) });
+    expect(fetch).not.toHaveBeenCalled();
+
+    vi.stubEnv("ZB_DAILY_TEXT_CAP", "5000");
+    vi.mocked(fetch).mockResolvedValueOnce(new Response(JSON.stringify({ sid: "SM1" }), { status: 201 }));
+    expect(await sendTwilioSms("0412 345 678", "Your order is ready")).toMatchObject({ status: "sent", sid: "SM1" });
+    expect(String(vi.mocked(fetch).mock.calls[0]![1]!.body)).toContain("To=%2B61412345678");
+  });
+
   it("a super admin turns one on and off, and the team is told both times", async () => {
     vi.stubEnv("ALERT_EMAIL", "team@example.com");
     pauses([]);

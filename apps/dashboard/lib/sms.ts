@@ -48,6 +48,28 @@ export function normaliseAuPhone(raw: string): string {
   return digits;
 }
 
+/** True for an Australian mobile in +614 form, the only numbers we text. */
+export function isAuMobile(e164: string): boolean {
+  return /^\+614\d{8}$/.test(e164);
+}
+
+/**
+ * Texts a day across every shop, a brake if something goes wrong (a loop, a
+ * shop sending more than any pilot should). The texts of the last 24 hours
+ * in sms_logs count. ZB_DAILY_TEXT_CAP changes it, 0 turns it off.
+ */
+export const DEFAULT_DAILY_TEXT_CAP = 2000;
+
+export async function overDailyTextCap(db: Db, now = new Date()): Promise<boolean> {
+  const raw = process.env.ZB_DAILY_TEXT_CAP;
+  const cap = raw !== undefined && raw !== "" && Number.isFinite(Number(raw)) ? Number(raw) : DEFAULT_DAILY_TEXT_CAP;
+  if (cap <= 0) return false;
+  const { count, error } = await db.from("sms_logs").select("id", { count: "exact", head: true })
+    .eq("status", "sent").gte("sent_at", new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString());
+  if (error) return false;
+  return (count ?? 0) >= cap;
+}
+
 /**
  * The different ways one Australian number may have been saved:
  * +61412345678, 0412345678, 61412345678, 0412 345 678, 0412-345-678.
@@ -150,14 +172,22 @@ export async function sendTwilioSms(to: string, body: string): Promise<{ status:
     return { status: "skipped", sid: null, error: "Twilio not configured" };
   }
 
-  // A kill switch can stop every text for every shop (lib/send-guard.ts). If
-  // the check itself fails the text goes, because order texts must reach.
+  // Australian mobiles only. Every shop is Australian, and a text to another
+  // country costs many times more, so a typed overseas number never goes.
+  const toNumber = normaliseAuPhone(to);
+  if (!isAuMobile(toNumber)) return { status: "skipped", sid: null, error: "Only Australian mobile numbers can be texted" };
+
+  // A kill switch can stop every text for every shop (lib/send-guard.ts), and
+  // there's a cap on texts a day across every shop. If a check itself fails
+  // the text goes, because order texts must reach.
   try {
     const [{ createAdminClient }, { everyTextStopped }] = await Promise.all([import("@/lib/supabase-server"), import("@/lib/send-guard")]);
-    if (await everyTextStopped(createAdminClient())) return { status: "skipped", sid: null, error: "Every text is stopped by a kill switch" };
+    const db = createAdminClient();
+    if (await everyTextStopped(db)) return { status: "skipped", sid: null, error: "Every text is stopped by a kill switch" };
+    if (await overDailyTextCap(db)) return { status: "skipped", sid: null, error: "ZentraBite's daily text limit is reached. Texts start again tomorrow." };
   } catch { /* send */ }
 
-  const params: Record<string, string> = { To: normaliseAuPhone(to), Body: body, StatusCallback: statusCallbackUrl() };
+  const params: Record<string, string> = { To: toNumber, Body: body, StatusCallback: statusCallbackUrl() };
   if (messagingServiceSid) params.MessagingServiceSid = messagingServiceSid;
   else if (from) params.From = from;
 

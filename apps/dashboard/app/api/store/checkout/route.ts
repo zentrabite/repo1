@@ -42,6 +42,7 @@ import { checkDeliveryAddress, cleanNote, readDeliveryRules } from "@/lib/own-de
 import { firstOrderDiscount, readFirstOrderOffer } from "@/lib/first-order";
 import { cameFrom, checkCode, cleanCode, codeDiscount, type CodeCheck } from "@/lib/offer-codes";
 import { signCheckout } from "@/lib/checkout-signature";
+import { checkoutAllowed } from "@/lib/checkout-limit";
 
 const MAX_LINES = 50;
 const MAX_QTY   = 50;
@@ -101,6 +102,15 @@ export async function POST(req: Request) {
       .single();
 
     if (!business) return NextResponse.json({ error: "Business not found" }, { status: 404 });
+
+    // A limit on checkouts started, before any call to Stripe (lib/checkout-limit.ts).
+    const limit = await checkoutAllowed(db, business.id as string, req.headers);
+    if (!limit.ok) {
+      return NextResponse.json(
+        { error: "Too many checkouts started. Wait a few minutes and try again, or order by phone." },
+        { status: 429, headers: { "Retry-After": String(limit.retryAfter) } },
+      );
+    }
 
     const connectedAccount = business.stripe_account_id as string | null;
     let chargesEnabled = Boolean(business.stripe_charges_enabled);
