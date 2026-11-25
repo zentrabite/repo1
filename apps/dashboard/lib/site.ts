@@ -16,6 +16,7 @@ import { DAY_KEYS, type DayKey, type ImportedHours } from "@/lib/import/types";
 import { cheapestPrice, pricesVary, readOptions } from "@/lib/menu-options";
 import { offerText, readFirstOrderOffer } from "@/lib/first-order";
 import { readableOn, textOn } from "@/lib/contrast";
+import { onlineOk } from "@/lib/alcohol";
 
 // Each look's page colour (site.css), for text in the shop's colour.
 const LOOK_BG: Record<SiteLook, string> = { bold: "#FFFFFF", warm: "#16130F", clean: "#FAFBFC" };
@@ -249,11 +250,13 @@ export async function loadSite(subdomain: string): Promise<SiteData | null> {
 
   const [catsRes, itemsRes, rewardsRes] = await Promise.all([
     db.from("menu_categories").select("id, name, sort_order").eq("business_id", biz.id).order("sort_order"),
-    db.from("menu_items").select("id, name, price, description, category_id, sort_order, options").eq("business_id", biz.id).eq("available", true).order("sort_order").limit(400),
+    db.from("menu_items").select("id, name, price, description, category_id, sort_order, options, contains_alcohol").eq("business_id", biz.id).eq("available", true).order("sort_order").limit(400),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (db.from("rewards_catalogue") as any).select("id", { count: "exact", head: true }).eq("business_id", biz.id).eq("is_active", true),
   ]);
-  return buildSite(biz as SiteRow, (catsRes.data ?? []) as SiteCategory[], (itemsRes.data ?? []) as SiteItem[], rewardsRes.count ?? 0);
+  // Items with alcohol are left off until alcohol is on for the shop (lib/alcohol.ts).
+  const items = ((itemsRes.data ?? []) as (SiteItem & { contains_alcohol?: boolean | null })[]).filter(i => onlineOk(i, biz.settings));
+  return buildSite(biz as SiteRow, (catsRes.data ?? []) as SiteCategory[], items, rewardsRes.count ?? 0);
 }
 
 /** Pure: turns the business row and menu into what the template shows. */

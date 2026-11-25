@@ -43,6 +43,7 @@ import { firstOrderDiscount, readFirstOrderOffer } from "@/lib/first-order";
 import { cameFrom, checkCode, cleanCode, codeDiscount, type CodeCheck } from "@/lib/offer-codes";
 import { signCheckout } from "@/lib/checkout-signature";
 import { checkoutAllowed } from "@/lib/checkout-limit";
+import { onlineOk } from "@/lib/alcohol";
 
 const MAX_LINES = 50;
 const MAX_QTY   = 50;
@@ -65,7 +66,7 @@ const clip = (v: unknown, n = 200) => (typeof v === "string" ? v.slice(0, n) : "
 
 export async function POST(req: Request) {
   try {
-    const { subdomain, items, customer, pickup, fulfilment, address, note, code: rawCode, src, ph } = await req.json() as {
+    const { subdomain, items, customer, pickup, fulfilment, address, note, code: rawCode, src, ph, over18 } = await req.json() as {
       subdomain: string;
       items: RequestItem[];
       customer: { name?: string; phone?: string; email?: string; marketingOptIn?: boolean };
@@ -76,6 +77,7 @@ export async function POST(req: Request) {
       code?: unknown;       // a win-back offer code from the link
       src?: unknown;        // where the link came from, e.g. "counter"
       ph?: unknown;         // the visit's random analytics id (lib/analytics.ts), when counting is on
+      over18?: unknown;     // ticked by the customer when the order has alcohol in it
     };
 
     if (!subdomain || !Array.isArray(items) || items.length === 0) {
@@ -165,7 +167,7 @@ export async function POST(req: Request) {
     const ids = [...new Set(items.map(it => it.id))];
     const { data: menuItems } = await db
       .from("menu_items")
-      .select("id, name, price, available, options")
+      .select("id, name, price, available, options, contains_alcohol")
       .eq("business_id", business.id)
       .in("id", ids);
 
@@ -176,6 +178,16 @@ export async function POST(req: Request) {
       const m = byId.get(it.id);
       if (!m || m.available === false) {
         return NextResponse.json({ error: "Some items are no longer available. Please refresh the menu." }, { status: 409 });
+      }
+      // Alcohol only once ZentraBite has turned it on for the shop, and only
+      // for someone who says they're 18 or over (lib/alcohol.ts).
+      if (m.contains_alcohol) {
+        if (!onlineOk(m, business.settings)) {
+          return NextResponse.json({ error: `${m.name as string} can't be ordered online. Ask the shop.` }, { status: 409 });
+        }
+        if (over18 !== true) {
+          return NextResponse.json({ error: "Your order has alcohol in it. Tick that you're 18 or over to order it." }, { status: 400 });
+        }
       }
       const priced = priceSelection(Number(m.price), readOptions(m.options), it.options);
       if (!priced.ok) return NextResponse.json({ error: `${m.name as string}: ${priced.error}` }, { status: 409 });

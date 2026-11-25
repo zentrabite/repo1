@@ -14,6 +14,7 @@ import { analyticsId, track } from "@/lib/analytics";
 import { textOn } from "@/lib/contrast";
 import { allergenNote } from "@/lib/allergens";
 import { useDialog } from "@/components/use-dialog";
+import { OVER_18_LABEL } from "@/lib/alcohol";
 
 // A win-back offer code from the link, as /api/store/[subdomain]?code= sends it.
 type CodeOffer = { code: string; type: OfferType; value: number; label: string; ends: string };
@@ -31,7 +32,7 @@ const BASE = { g:"#00AD82", st:"#8B9DB5", cl:"#F8FAFB", navy:"#0F1F2D", card:"#1
 
 // One line per item and set of options. price is the unit price with options.
 // A menu item as /api/store/[subdomain] sends it.
-type MenuEntry = { id: string; name: string; price: number; description?: string | null; image_url?: string; options?: unknown };
+type MenuEntry = { id: string; name: string; price: number; description?: string | null; image_url?: string; options?: unknown; contains_alcohol?: boolean };
 
 const plainLine = (item: MenuEntry): CartItem =>
   ({ key: item.id, id: item.id, name: item.name, price: Number(item.price), qty: 1, image_url: item.image_url, options: [], label: "" });
@@ -48,6 +49,8 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
   const [cart,      setCart]      = useState<CartItem[]>([]);
   const [activeTab, setActiveTab] = useState<string>("");
   const [customer,  setCustomer]  = useState({ name:"", phone:"", email:"", marketingOptIn:false });
+  // Ticked by the customer when the order has alcohol in it (lib/alcohol.ts).
+  const [over18,    setOver18]    = useState(false);
   const [loading,   setLoading]   = useState(true);
   const [error,     setError]     = useState("");
   const [checking,  setChecking]  = useState(false);
@@ -194,6 +197,9 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
   const addressCheck = isDelivery && deliveryInfo && address.suburb.trim() && address.postcode.trim()
     ? checkDeliveryAddress({ enabled: true, fee: deliveryInfo.fee, minOrder: deliveryInfo.min_order, extraMinutes: deliveryInfo.extra_minutes, areas: deliveryInfo.areas }, address)
     : null;
+  // Alcohol only reaches the menu once ZentraBite has turned it on for the shop.
+  const alcoholIds = new Set((menu as { items?: MenuEntry[] }[]).flatMap(s => s.items ?? []).filter(i => i.contains_alcohol).map(i => i.id));
+  const hasAlcohol = cart.some(c => alcoholIds.has(c.id));
   // What still stops the order, in the words the Pay button shows.
   const blocker =
     !customer.name.trim() ? "Enter your name to continue"
@@ -202,6 +208,7 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
     : isDelivery && (!address.line1.trim() || !addressCheck) ? "Add your delivery address"
     : isDelivery && addressCheck && !addressCheck.ok ? "We don't deliver there yet"
     : isDelivery && !customer.phone.trim() ? "Add your phone number"
+    : hasAlcohol && !over18 ? "Tick that you're 18 or over"
     : null;
   const cartCount = cart.reduce((s, c) => s + c.qty, 0);
 
@@ -220,6 +227,7 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
           code: codeOffer?.code, src: src ?? undefined,
           // The random id this visit is counted under, so the paid order joins it. Only when counting is on.
           ph: analyticsId("ordering") ?? undefined,
+          over18: hasAlcohol ? over18 : undefined,
         }),
       });
       const data = await res.json();
@@ -354,7 +362,10 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
                 )}
                 <div style={{ flex:1, padding:"14px 16px", display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
                   <div>
-                    <div style={{ fontWeight:600, fontSize:14, color:C.cl, marginBottom:4 }}>{item.name}</div>
+                    <div style={{ fontWeight:600, fontSize:14, color:C.cl, marginBottom:4 }}>
+                      {item.name}
+                      {item.contains_alcohol && <span style={{ marginLeft:8, fontSize:11, fontWeight:700, color:C.st }}>18+</span>}
+                    </div>
                     {item.description && <div style={{ fontSize:12, color:C.st, lineHeight:1.4 }}>{item.description}</div>}
                   </div>
                   <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:10 }}>
@@ -487,6 +498,17 @@ export default function StorefrontPage({ params }: { params: Promise<{ subdomain
                 />
                 <span>Send me offers and rewards from {biz?.name ?? "this restaurant"} by text and email. Unsubscribe any time by replying STOP.</span>
               </label>
+              {hasAlcohol && (
+                <label style={{ display:"flex", gap:10, alignItems:"flex-start", marginTop:10, fontSize:12, lineHeight:1.5, color:C.cl, cursor:"pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={over18}
+                    onChange={e=>setOver18(e.target.checked)}
+                    style={{ marginTop:2, width:16, height:16, flexShrink:0 }}
+                  />
+                  <span>{OVER_18_LABEL}</span>
+                </label>
+              )}
               <textarea value={note} onChange={e=>setNote(e.target.value.slice(0, 300))} rows={2} maxLength={300}
                 aria-label="Note for the order"
                 placeholder={isDelivery ? "Note for the kitchen or driver (optional)" : "Note for the kitchen (optional)"}

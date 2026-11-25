@@ -274,6 +274,7 @@ export async function createMenuItem(businessId: string, data: {
   description: string;
   image_url?: string | null;
   options?: unknown;
+  contains_alcohol?: boolean;
 }) {
   const { data: item, error } = await supabase
     .from("menu_items")

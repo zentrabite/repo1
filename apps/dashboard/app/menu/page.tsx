@@ -8,11 +8,12 @@ import { Icon, iconComponent } from "@/components/zb-icon";
 import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
 import { getMenu, toggleMenuItemAvailability, updateMenuItem, createMenuItem, createMenuCategory, deleteMenuItem } from "@/lib/queries";
+import { ALCOHOL_HIDDEN_NOTE, alcoholAllowed, looksLikeAlcohol } from "@/lib/alcohol";
 import type { MenuCategory, MenuItem } from "@/lib/database.types";
 import { OptionsEditor, fromDraft, toDraft, type DraftGroup } from "@/components/menu-options-editor";
 import { readOptions } from "@/lib/menu-options";
 
-const C = { g:"#00AD82", st:"#8B9DB5", r:"#FF4757", mist:"rgba(255,255,255,.07)" };
+const C = { g:"#00AD82", st:"#8B9DB5", r:"#FF4757", o:"#FF6B35", mist:"rgba(255,255,255,.07)" };
 const MenuIcon = iconComponent("menu");
 
 type MenuSection = MenuCategory & { items: MenuItem[] };
@@ -93,13 +94,16 @@ function ImageUploadField({ imageUrl, onUrl, businessId }: { imageUrl: string; o
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function MenuPage() {
   const { toast, show } = useToast();
-  const { businessId } = useBusiness();
+  const { businessId, business } = useBusiness();
+  const alcoholOn = alcoholAllowed(business?.settings);
 
   const [menu,        setMenu]        = useState<MenuSection[]>([]);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [addingItem,  setAddingItem]  = useState(false);
   const [addingCat,   setAddingCat]   = useState(false);
-  const [form,        setForm]        = useState({ name:"", price:"", description:"", category_id:"", image_url:"" });
+  // alcohol is ticked for the owner while they type a name that reads like a
+  // drink with alcohol, until they tick or untick it themselves.
+  const [form,        setForm]        = useState({ name:"", price:"", description:"", category_id:"", image_url:"", alcohol:false, alcoholSet:false });
   const [optionDraft, setOptionDraft] = useState<DraftGroup[]>([]);
   const [newCatName,  setNewCatName]  = useState("");
   const [saving,      setSaving]      = useState(false);
@@ -115,7 +119,7 @@ export default function MenuPage() {
 
   const openAddItem = () => {
     const realCats = menu.filter(s => s.id !== "__uncategorised__");
-    setForm({ name:"", price:"", description:"", category_id: realCats[0]?.id ?? "", image_url:"" });
+    setForm({ name:"", price:"", description:"", category_id: realCats[0]?.id ?? "", image_url:"", alcohol:false, alcoholSet:false });
     setOptionDraft([]);
     setAddingItem(true);
   };
@@ -133,6 +137,7 @@ export default function MenuPage() {
         description:  form.description,
         image_url:    form.image_url || null,
         options:      opts.options,
+        contains_alcohol: form.alcohol,
       });
       setAddingItem(false);
       show("Item added ✓");
@@ -170,7 +175,7 @@ export default function MenuPage() {
 
   const openEdit = (item: MenuItem) => {
     setEditingItem(item);
-    setForm({ name:item.name, price:String(item.price), description:item.description ?? "", category_id:"", image_url:(item as any).image_url ?? "" });
+    setForm({ name:item.name, price:String(item.price), description:item.description ?? "", category_id:"", image_url:(item as any).image_url ?? "", alcohol:Boolean(item.contains_alcohol), alcoholSet:true });
     setOptionDraft(toDraft(item.options));
   };
 
@@ -184,6 +189,7 @@ export default function MenuPage() {
       description: form.description,
       image_url:   (form.image_url || null) as any,
       options:     opts.options,
+      contains_alcohol: form.alcohol,
     };
     setSaving(true);
     try {
@@ -236,6 +242,9 @@ export default function MenuPage() {
                   {readOptions(item.options).length > 0 && (
                     <div style={{ fontSize:11, color:C.st, marginTop:2 }}>Options: {readOptions(item.options).map(g => g.name).join(", ")}</div>
                   )}
+                  {item.contains_alcohol && (
+                    <div style={{ fontSize:11, color:alcoholOn ? C.st : C.o, marginTop:2 }}>{alcoholOn ? "Alcohol. Customers say they're 18 or over online." : "Alcohol. Hidden online, still on the POS."}</div>
+                  )}
                 </div>
                 <div className="zb-menu-price" style={{ fontWeight:700, fontSize:14, fontFamily:"var(--font-outfit)", color:item.available?"#fff":"#8B9DB5", minWidth:55, textAlign:"right" }}>
                   ${item.price.toFixed(2)}
@@ -257,7 +266,8 @@ export default function MenuPage() {
         )}
         <div style={{ marginBottom:12 }}><label>Name</label><input value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} /></div>
         <div style={{ marginBottom:12 }}><label>Price ($)</label><input type="number" step="0.5" value={form.price} onChange={e=>setForm(f=>({...f,price:e.target.value}))} /></div>
-        <div style={{ marginBottom:18 }}><label>Description</label><input value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))} placeholder="Optional" /></div>
+        <div style={{ marginBottom:12 }}><label>Description</label><input value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))} placeholder="Optional" /></div>
+        <AlcoholField checked={form.alcohol} allowed={alcoholOn} onChange={v => setForm(f => ({ ...f, alcohol:v, alcoholSet:true }))} />
         <OptionsEditor value={optionDraft} onChange={setOptionDraft} />
         <div className="zb-wrap" style={{ display:"flex", gap:6, justifyContent:"space-between" }}>
           <button className="bg-btn" style={{ color:C.r }} onClick={() => editingItem && handleDelete(editingItem)}>Delete</button>
@@ -280,9 +290,10 @@ export default function MenuPage() {
             {menu.filter(s => s.id !== "__uncategorised__").map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         </div>
-        <div style={{ marginBottom:12 }}><label>Item Name</label><input value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="e.g. Margherita Pizza" /></div>
+        <div style={{ marginBottom:12 }}><label>Item Name</label><input value={form.name} onChange={e=>{ const name = e.target.value; setForm(f=>({...f, name, alcohol: f.alcoholSet ? f.alcohol : looksLikeAlcohol(name, f.description)})); }} placeholder="e.g. Margherita Pizza" /></div>
         <div style={{ marginBottom:12 }}><label>Price ($)</label><input type="number" step="0.5" min="0" value={form.price} onChange={e=>setForm(f=>({...f,price:e.target.value}))} placeholder="0.00" /></div>
-        <div style={{ marginBottom:18 }}><label>Description</label><input value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))} placeholder="Optional short description" /></div>
+        <div style={{ marginBottom:12 }}><label>Description</label><input value={form.description} onChange={e=>{ const description = e.target.value; setForm(f=>({...f, description, alcohol: f.alcoholSet ? f.alcohol : looksLikeAlcohol(f.name, description)})); }} placeholder="Optional short description" /></div>
+        <AlcoholField checked={form.alcohol} allowed={alcoholOn} onChange={v => setForm(f => ({ ...f, alcohol:v, alcoholSet:true }))} />
         <OptionsEditor value={optionDraft} onChange={setOptionDraft} />
         <div style={{ display:"flex", gap:6, justifyContent:"flex-end" }}>
           <button className="bg-btn" onClick={() => setAddingItem(false)}>Cancel</button>
@@ -300,6 +311,23 @@ export default function MenuPage() {
       </Modal>
 
       <Toast message={toast.message} visible={toast.visible} />
+    </div>
+  );
+}
+
+/** "Contains alcohol", with what it means for the ordering page (lib/alcohol.ts). */
+function AlcoholField({ checked, allowed, onChange }: { checked: boolean; allowed: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div style={{ marginBottom:18 }}>
+      <label style={{ display:"flex", alignItems:"center", gap:10, margin:0, color:"#F8FAFB", fontSize:13, cursor:"pointer" }}>
+        <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} style={{ width:18, height:18 }} />
+        Contains alcohol
+      </label>
+      {checked && (
+        <div style={{ fontSize:11.5, color:"#8B9DB5", marginTop:6, lineHeight:1.5 }}>
+          {allowed ? "Customers tick that they're 18 or over to order it online. Check ID at pick-up or delivery." : ALCOHOL_HIDDEN_NOTE}
+        </div>
+      )}
     </div>
   );
 }

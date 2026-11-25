@@ -182,6 +182,32 @@ describe("a suspended shop's ordering page and website", () => {
   });
 });
 
+describe("alcohol on the ordering page and website (042)", () => {
+  function menuDb(settings: unknown) {
+    return fakeDb({
+      "businesses.select": () => ({ data: { id: SHOP, name: "Test Pizza", subdomain: "test-pizza", settings }, error: null }),
+      "menu_items.select": () => ({ data: [
+        { id: "m1", name: "Margherita", price: 18, available: true, category_id: null, sort_order: 0 },
+        { id: "m2", name: "Peroni Lager", price: 9, available: true, category_id: null, sort_order: 1, contains_alcohol: true },
+      ], error: null }),
+    });
+  }
+  const names = async () => {
+    const res = await storeGet(new Request("http://x/api/store/test-pizza"), { params: Promise.resolve({ subdomain: "test-pizza" }) });
+    const body = await res.json() as { menu: { items: { name: string }[] }[] };
+    return body.menu.flatMap(s => s.items.map(i => i.name));
+  };
+
+  it("leaves items with alcohol off until ZentraBite turns it on", async () => {
+    h.db = menuDb({});
+    expect(await names()).toEqual(["Margherita"]);
+    expect((await loadSite("test-pizza"))!.menu.map(i => i.name)).toEqual(["Margherita"]);
+
+    h.db = menuDb({ alcohol: { allowed: true, licence: "57512345", by: "x", at: "2026-11-25T05:00:00Z" } });
+    expect(await names()).toEqual(["Margherita", "Peroni Lager"]);
+  });
+});
+
 describe("Delete on the admin page", () => {
   const base: DangerShop = { id: SHOP, name: "Test Pizza", suspended_at: "2026-11-25T05:00:00Z", suspended_reason: "test", orderCount: 0, customerCount: 0, settings: {} };
 

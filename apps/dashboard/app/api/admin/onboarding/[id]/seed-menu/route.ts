@@ -9,6 +9,7 @@ import { createAdminClient } from "@/lib/supabase-server";
 import { assertSuperAdmin } from "@/lib/admin-auth";
 import { DIETARY_TAGS } from "@/lib/import/types";
 import { readOptions } from "@/lib/menu-options";
+import { looksLikeAlcohol } from "@/lib/alcohol";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -53,6 +54,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         available:    true,
         dietary_tags: Array.isArray(it.dietary_tags) ? it.dietary_tags.filter(t => TAGS.has(t)) : [],
         options:      readOptions(it.options),
+        // Ticked when the name reads like alcohol, so it stays off the ordering
+        // page until alcohol is on for the shop. Staff can untick it on the Menu page.
+        contains_alcohol: looksLikeAlcohol(it.name, it.description),
         sort_order:   j,
       }));
 

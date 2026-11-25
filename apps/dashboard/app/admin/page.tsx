@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useBusiness } from "@/hooks/use-business";
 import { Icon } from "@/components/zb-icon";
 import DangerZone from "./danger-zone";
+import AlcoholCard from "./alcohol-card";
 
 // ── Module catalogue (shared across all tenants; no plan tiers) ──────────────
 type ModuleId =
@@ -522,6 +523,13 @@ export default function AdminPage() {
                       </button>
                     </div>
                   </div>
+
+                  <AlcoholCard
+                    key={`alcohol-${active.id}`}
+                    shop={active}
+                    toast={toast}
+                    onChange={settings => setBusinesses(list => list.map(b => (b.id === active.id ? { ...b, settings } : b)))}
+                  />
 
                   <DangerZone
                     key={active.id}

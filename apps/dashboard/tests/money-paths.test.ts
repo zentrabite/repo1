@@ -163,6 +163,42 @@ describe("customer checkout", () => {
     expect(h.stripe.checkout.sessions.create).not.toHaveBeenCalled();
   });
 
+  describe("alcohol (lib/alcohol.ts, migration 042)", () => {
+    const LAGER = { id: "m2", name: "Peroni Lager", price: 9, available: true, contains_alcohol: true };
+    const allowed = { alcohol: { allowed: true, licence: "57512345", by: "staff@zentrabite.com", at: "2026-11-25T05:00:00Z" } };
+    function drinks(over18?: boolean) {
+      return new Request("https://dashboard.zentrabite.com/api/store/checkout", {
+        method: "POST",
+        headers: { "content-type": "application/json", origin: "https://dashboard.zentrabite.com" },
+        body: JSON.stringify({ subdomain: "nonna", items: [{ id: "m1", qty: 1 }, { id: "m2", qty: 2 }], customer: { name: "Sofia" }, over18 }),
+      });
+    }
+    const world = (settings: unknown) => {
+      h.db = fakeDb({
+        "businesses.select": () => ({ data: { ...shop, settings }, error: null }),
+        "menu_items.select": () => ({ data: [...MENU, LAGER], error: null }),
+      });
+    };
+
+    it("refuses it until ZentraBite turns alcohol on for the shop, even with the 18+ tick", async () => {
+      world({});
+      const res = await checkout(drinks(true));
+      expect(res.status).toBe(409);
+      expect((await res.json()).error).toBe("Peroni Lager can't be ordered online. Ask the shop.");
+      expect(h.stripe.checkout.sessions.create).not.toHaveBeenCalled();
+    });
+
+    it("needs the customer to say they're 18 or over once it's on", async () => {
+      world(allowed);
+      const res = await checkout(drinks());
+      expect(res.status).toBe(400);
+      expect(h.stripe.checkout.sessions.create).not.toHaveBeenCalled();
+      expect((await checkout(drinks(true))).status).toBe(200);
+      const [params] = h.stripe.checkout.sessions.create.mock.calls[0];
+      expect(params.line_items.map((l: { price_data: { product_data: { name: string } } }) => l.price_data.product_data.name)).toEqual(["Margherita", "Peroni Lager"]);
+    });
+  });
+
   it("refuses items that aren't on the shop's menu", async () => {
     const res = await checkout(order([{ id: "not-on-menu", qty: 1 }]));
     expect(res.status).toBe(409);
