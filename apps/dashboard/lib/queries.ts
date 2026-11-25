@@ -93,12 +93,20 @@ export async function getOrders(businessId: string, source?: string) {
   return data as Order[];
 }
 
+/** Thrown when the database let nothing change, so the page doesn't say it did. */
+export class NotChangedError extends Error {}
+
 export async function updateOrderStatus(orderId: string, status: string) {
-  const { error } = await supabase
+  // A row rule that refuses an update returns no error, just no rows. ZentraBite
+  // staff viewing a shop through Super Admin can read its orders but not change
+  // them, and Accept used to say "Accepted" anyway (test shop run, 26 Nov 2026).
+  const { data, error } = await supabase
     .from("orders")
     .update({ status })
-    .eq("id", orderId);
+    .eq("id", orderId)
+    .select("id");
   if (error) throw error;
+  if (!data?.length) throw new NotChangedError("The order wasn't changed");
 }
 
 // ─── Customers ───────────────────────────────────────────────────────────────
