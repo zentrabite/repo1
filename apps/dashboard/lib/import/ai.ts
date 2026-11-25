@@ -38,7 +38,7 @@ export type AiOutput = {
   } | null;
   menu: {
     category: string;
-    items: { name: string; price: number | null; description: string | null; dietary: string[]; variants: { name: string; price: number }[]; note: string | null }[];
+    items: { name: string; price: number | null; description: string | null; dietary: string[]; variants: { name: string; price: number }[]; extras: { name: string; price: number }[]; note: string | null }[];
   }[];
   menu_truncated:          boolean;
   surcharges:              string[];
@@ -136,9 +136,14 @@ const TOOL = {
                     description: "Sizes or options with their own price",
                     items: { type: "object", properties: { name: { type: "string" }, price: { type: "number" } }, required: ["name", "price"] },
                   },
+                  extras:      {
+                    type: "array",
+                    description: "Add-ons the customer can choose on top, e.g. extra cheese for $3. Price is what each adds, 0 if free",
+                    items: { type: "object", properties: { name: { type: "string" }, price: { type: "number" } }, required: ["name", "price"] },
+                  },
                   note:        { type: ["string", "null"], description: "Anything staff should check about this item, e.g. 'price says from'" },
                 },
-                required: ["name", "price", "description", "dietary", "variants", "note"],
+                required: ["name", "price", "description", "dietary", "variants", "extras", "note"],
               },
             },
           },
@@ -161,6 +166,7 @@ Rules:
 - Use only what the pages, PDFs and images say. If something isn't there, leave it null or empty. Never guess or make up a value.
 - For name, phone and email, copy the exact line you used into "quote".
 - Prices are in AUD as plain numbers. If an item says "from" or "starts at", use that price and say so in its note. If sizes have their own prices, put them in variants and use the lowest as the price.
+- Add-ons the customer can choose on an item, like "extra toppings $3 each: olives, anchovies" or "add bacon $4", go in that item's extras, one per add-on. When add-ons are listed for a whole section, put them on every item in that section. They aren't surcharges.
 - Keep surcharges, BYO fees, cakeage, corkage, delivery fees and container charges out of the menu. List them in surcharges.
 - Dietary tags: only use a tag when the site marks the item with it (directly or through a key like "V = vegetarian"). Never infer from ingredients.
 - Hours use 24 hour HH:MM. Split lunch and dinner are separate sessions. If two parts of the site disagree, use the most specific one and add the conflict to staff_should_check.
@@ -306,6 +312,10 @@ function normaliseAi(x: any): AiOutput {
               const vo = (v ?? {}) as Record<string, unknown>;
               return { name: str(vo.name, 60) ?? "", price: num(vo.price) ?? 0 };
             }).filter(v => v.name && v.price > 0),
+            extras:      arr(it.extras).slice(0, 20).map(v => {
+              const vo = (v ?? {}) as Record<string, unknown>;
+              return { name: str(vo.name, 60) ?? "", price: num(vo.price) ?? 0 };
+            }).filter(v => v.name && v.price >= 0),
             note:        str(it.note, 200),
           };
         }).filter(i => i.name),

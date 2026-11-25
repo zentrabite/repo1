@@ -44,7 +44,7 @@ const AI_MENU = {
   menu: [
     { category: "Pizzas", items: [
       { name: "Margherita", price: 18, description: null, dietary: ["Vegetarian"], variants: [], note: null },
-      { name: "Pepperoni", price: null, description: null, dietary: [], variants: [{ name: "Small", price: 16 }, { name: "Large", price: 24 }], note: null },
+      { name: "Pepperoni", price: null, description: null, dietary: [], variants: [{ name: "Small", price: 16 }, { name: "Large", price: 24 }], extras: [{ name: "Olives", price: 3 }], note: null },
     ] },
     { category: "Sides", items: [{ name: "Garlic bread", price: 8, description: null, dietary: [], variants: [], note: null }] },
   ],
@@ -99,6 +99,7 @@ describe("reading the menu", () => {
     expect(r.items).toBe(3);
     expect(r.menu[0]!.items[1]!.price).toBe(16);            // cheapest size when there's no price
     expect(r.menu[0]!.items[1]!.check).toMatch(/cheapest size/);
+    expect(r.menu[0]!.items[1]!.extras).toEqual([{ name: "Olives", price: 3 }]); // add-ons are kept, not made surcharges
     expect(r.check).toMatch(/3 items read from 1 photo, 1 PDF, the pasted text/);
     expect(r.surcharges).toEqual(["10% Sunday surcharge"]);
     expect(r.warnings).toEqual(["Two prices for Garlic bread"]);
@@ -218,6 +219,8 @@ describe("keeping the menu with the shop", () => {
     expect(withUploadedMenu(null, { menu: "nope" }, "x")).toBeNull();
     const s = withUploadedMenu(null, { menu: [{ name: "A", items: [{ name: "Pie", price: "free" }, { price: 3 }] }] }, "x")!;
     expect(s.menu![0]!.items).toEqual([expect.objectContaining({ name: "Pie", price: null })]);
+    const e = withUploadedMenu(null, { menu: [{ name: "A", items: [{ name: "Pizza", price: 18, extras: [{ name: "Olives", price: 3 }, { name: "Chilli", price: 0 }, { name: "Bad", price: "x" }, { price: 2 }] }] }] }, "x")!;
+    expect(e.menu![0]!.items[0]!.extras).toEqual([{ name: "Olives", price: 3 }, { name: "Chilli", price: 0 }]);
   });
 
   it("is saved on the new shop from the handover form", async () => {

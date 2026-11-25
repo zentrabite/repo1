@@ -133,6 +133,7 @@ export function menuFromAi(ai: Pick<AiOutput, "menu">, from: "site" | "menu" = "
         description:  i.description,
         dietary_tags: i.dietary,
         variants:     i.variants,
+        extras:       i.extras,
         check:        notes.length ? notes.join(" ") : null,
       };
     }),

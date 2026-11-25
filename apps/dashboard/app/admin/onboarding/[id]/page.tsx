@@ -12,7 +12,7 @@ import MenuUpload from "@/components/menu-upload";
 import PasswordInput from "@/components/password-input";
 import { Icon, type IconName } from "@/components/zb-icon";
 import type { ImportedMenuCategory, MenuRead, StoredImport } from "@/lib/import/types";
-import { sizesFromVariants, type OptionGroup } from "@/lib/menu-options";
+import { extrasFromImport, sizesFromVariants, type OptionGroup } from "@/lib/menu-options";
 import { breakProblem, type DayHours } from "@/lib/pickup-times";
 import type { CourierField } from "@/lib/courier-fields";
 
@@ -572,8 +572,8 @@ type MenuDraft = { name: string; items: { name: string; price: number; descripti
 
 // Imported menu → editable draft. Two or more sizes with their own prices
 // become a required Size option: the item's price is the smallest size and
-// each size adds the difference. Anything without a price starts at 0 and is
-// flagged.
+// each size adds the difference. Add-ons become an optional Extras option.
+// Anything without a price starts at 0 and is flagged.
 function draftFromImport(menu: ImportedMenuCategory[]): MenuDraft[] {
   return menu.map(c => ({
     name: c.name,
@@ -581,12 +581,14 @@ function draftFromImport(menu: ImportedMenuCategory[]): MenuDraft[] {
       const sizes = sizesFromVariants(i.variants);
       // A single size isn't a choice, so it stays in the description.
       const oneSize = !sizes && i.variants?.length ? `Size: ${i.variants.map(v => v.name).join(", ")}` : "";
+      const extras = extrasFromImport(i.extras);
+      const options = [sizes?.group, extras].filter((g): g is OptionGroup => Boolean(g));
       return {
         name:         i.name,
         price:        sizes ? sizes.basePrice : i.price ?? 0,
         description:  [i.description, oneSize].filter(Boolean).join(" ") || undefined,
         dietary_tags: i.dietary_tags ?? [],
-        options:      sizes ? [sizes.group] : undefined,
+        options:      options.length ? options : undefined,
         check:        i.check ?? null,
       };
     }),
