@@ -58,12 +58,26 @@ export async function createShopAccount(input: ShopAccountInput): Promise<string
  * for the old v1 Express accounts and for anything unexpected.
  */
 export async function isShopAccount(accountId: string): Promise<boolean> {
+  return (await shopAccountKind(accountId)) === "shop";
+}
+
+/**
+ * "shop" for an account set up the way ZentraBite expects, "other" when
+ * Stripe says it isn't (an old v1 Express account, say), and "unknown" when
+ * Stripe couldn't be asked. Only "other" is a reason to replace an account:
+ * replacing a working one because Stripe had a bad minute would strand the
+ * shop's orders on the old account.
+ */
+export async function shopAccountKind(accountId: string): Promise<"shop" | "other" | "unknown"> {
   try {
     const account = await stripe.v2.core.accounts.retrieve(accountId, { include: ["defaults"] });
     const r = account.defaults?.responsibilities;
-    return r?.fees_collector === "stripe" && r?.losses_collector === "stripe";
-  } catch {
-    return false;
+    return r?.fees_collector === "stripe" && r?.losses_collector === "stripe" ? "shop" : "other";
+  } catch (err) {
+    // A clear "this isn't a v2 account" answer from Stripe counts as other.
+    const e = err as { type?: string; statusCode?: number; code?: string };
+    if (e?.type === "StripeInvalidRequestError" && (e.statusCode === 404 || e.statusCode === 400)) return "other";
+    return "unknown";
   }
 }
 
@@ -108,9 +122,13 @@ export async function ensureShopAccount(db: Db, businessId: string): Promise<str
     .single();
 
   let accountId: string | null = biz?.stripe_account_id ?? null;
-  if (accountId && !(await isShopAccount(accountId))) {
-    console.log(`[stripe-connect] ${businessId} has an old-style account, making a new one`);
-    accountId = null;
+  if (accountId) {
+    const kind = await shopAccountKind(accountId);
+    if (kind === "unknown") throw new Error("Couldn't reach Stripe to check the shop's account. Try again in a minute.");
+    if (kind === "other") {
+      console.log(`[stripe-connect] ${businessId} has an old-style account, making a new one`);
+      accountId = null;
+    }
   }
   if (accountId) return accountId;
 

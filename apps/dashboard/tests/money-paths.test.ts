@@ -22,6 +22,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeDb, filterValue, type Query } from "./fake-db";
+import { signed } from "./signed-checkout";
 
 const h = vi.hoisted(() => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -123,6 +124,11 @@ describe("customer checkout", () => {
     expect(params.metadata.business_id).toBe("biz-1");
     expect(params.metadata.marketing_opt_in).toBe("1");
     expect(params.success_url).toContain("/store/nonna/success?session_id={CHECKOUT_SESSION_ID}");
+    // Signed, so the webhook knows this server made it, and good until 10
+    // minutes after the checkout ends.
+    expect(params.metadata.zb_sig).toMatch(/^[A-Za-z0-9_-]{43}$/);
+    expect(Number(params.metadata.zb_until)).toBe(params.expires_at + 600);
+    expect(Object.keys(params.metadata).length).toBeLessThanOrEqual(50);
   });
 
   it("refuses a shop that can't take payments yet", async () => {
@@ -362,7 +368,7 @@ describe("Stripe webhook", () => {
     },
   };
   const completed = (account: string | undefined, session: object = paidSession) =>
-    ({ type: "checkout.session.completed", account, data: { object: session } });
+    ({ type: "checkout.session.completed", account, data: { object: signed(session as { metadata?: Record<string, string> }) } });
 
   let orderInsert: (q: Query) => { data: unknown; error: { code?: string; message: string } | null };
 
@@ -390,6 +396,38 @@ describe("Stripe webhook", () => {
     });
     const [cust] = writes("insert", "customers");
     expect(cust.payload).toMatchObject({ business_id: "biz-1", marketing_opt_in: true, marketing_opt_in_source: "checkout" });
+  });
+
+  it("only takes checkouts our own server made (lib/checkout-signature.ts)", async () => {
+    // A shop made its own checkout on its own account: no signature.
+    const raw = { type: "checkout.session.completed", account: "acct_shop", data: { object: { ...paidSession, created: Math.floor(Date.now() / 1000) } } };
+    expect((await send(raw)).status).toBe(200);
+    // Ours, but someone changed the metadata (marketing consent, here).
+    const good = completed("acct_shop") as { data: { object: { metadata: Record<string, string> } } };
+    const tampered = { ...good, data: { object: { ...good.data.object, metadata: { ...good.data.object.metadata, customer_phone: "+61499999999" } } } };
+    expect((await send(tampered)).status).toBe(200);
+    // Ours, reused on a new checkout after it ran out.
+    const late = { ...good, data: { object: { ...good.data.object, created: Number(good.data.object.metadata.zb_until) + 1 } } };
+    expect((await send(late)).status).toBe(200);
+    expect(writes("insert", "orders")).toHaveLength(0);
+    expect(writes("insert", "customers")).toHaveLength(0);
+  });
+
+  it("can't check a checkout without the signing key, so the webhook asks Stripe to retry", async () => {
+    vi.resetModules();
+    const fresh = await import("@/lib/checkout-signature");
+    const down = { rpc: async () => ({ data: null, error: { message: "down" } }) };
+    expect(await fresh.checkCheckout(down, { zb_sig: "x", zb_until: "9999999999" }, 1)).toEqual({ ok: false, why: "key" });
+    expect(await fresh.signCheckout(down, { business_id: "biz-1" }, 9999999999)).toBeNull();
+  });
+
+  it("ignores events from the other Stripe mode, and shops' own subscriptions", async () => {
+    expect((await send({ ...completed("acct_shop"), livemode: true })).status).toBe(200);
+    expect(writes("insert", "orders")).toHaveLength(0);
+    const sub = { type: "customer.subscription.updated", account: "acct_shop",
+      data: { object: { metadata: { zentrabite_business_id: "biz-1" }, customer: "cus_1", status: "active", items: { data: [] } } } };
+    expect((await send(sub)).status).toBe(200);
+    expect(writes("update", "businesses")).toHaveLength(0);
   });
 
   it("keeps the options and the price charged, even if the menu changed since", async () => {
@@ -573,6 +611,22 @@ describe("Stripe setup for a shop", () => {
     expect(h.stripe.v2.core.accounts.create).not.toHaveBeenCalled();
     expect(writes("update", "businesses")).toHaveLength(0);
     expect((await res.json()).account_id).toBe("acct_shop");
+  });
+
+  it("keeps the shop's account when Stripe can't be reached, instead of making a new one", async () => {
+    shopWith("acct_shop");
+    h.stripe.v2.core.accounts.retrieve.mockRejectedValueOnce(Object.assign(new Error("connection reset"), { type: "StripeConnectionError" }));
+    const res = await start();
+    expect(res.status).toBe(500);
+    expect((await res.json()).error).toMatch(/Couldn't reach Stripe/);
+    expect(h.stripe.v2.core.accounts.create).not.toHaveBeenCalled();
+    expect(writes("update", "businesses")).toHaveLength(0);
+  });
+
+  it("is for the shop's owner only, because it picks the bank account", async () => {
+    shopWith("acct_shop");
+    await start();
+    expect(vi.mocked(requireBusiness).mock.calls.at(-1)![1]).toEqual({ roles: ["Owner"] });
   });
 });
 

@@ -4,6 +4,7 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeDb, type Query } from "./fake-db";
+import { signed } from "./signed-checkout";
 
 const h = vi.hoisted(() => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -152,11 +153,11 @@ describe("the order", () => {
     });
     h.stripe.webhooks.constructEvent.mockReturnValue({
       type: "checkout.session.completed", account: "acct_shop",
-      data: { object: {
+      data: { object: signed({
         id: "cs_1", payment_status: "paid", amount_total: 2600, payment_intent: "pi_1",
         metadata: { business_id: "biz-1", source: "storefront", customer_name: "Sofia", customer_phone: "+61412345678", customer_email: "s@example.com",
           items_0: JSON.stringify([{ id: "m1", qty: 2, p: 1800 }]), first_order_discount: "10.00" },
-      } },
+      }) },
     });
     const res = await webhook(new Request("https://dashboard.zentrabite.com/api/stripe/webhook", { method: "POST", headers: { "stripe-signature": "t=1,v1=x" }, body: "{}" }));
     expect(res.status).toBe(200);

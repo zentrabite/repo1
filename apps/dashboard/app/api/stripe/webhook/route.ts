@@ -14,6 +14,13 @@ import { pickupLabel, readOrderingRules } from "@/lib/pickup-times";
 import { saveRefunded } from "@/lib/refunds";
 import { cameFrom, cleanCode, redeemCode } from "@/lib/offer-codes";
 import { captureServer } from "@/lib/analytics-server";
+import { checkCheckout } from "@/lib/checkout-signature";
+
+/** True when our own Stripe key is a live one, so only live events count. */
+function liveKey(): boolean {
+  const key = process.env.STRIPE_SECRET_KEY ?? "";
+  return key.startsWith("sk_live_") || key.startsWith("rk_live_");
+}
 
 export const dynamic = "force-dynamic";
 
@@ -54,6 +61,13 @@ export async function POST(req: Request) {
 
   console.log(`[webhook] ${event.type}`);
 
+  // A live endpoint can also get connected accounts' test-mode events. Only
+  // events in the same mode as our own key count.
+  if (Boolean(event.livemode) !== liveKey()) {
+    console.warn(`[webhook] ${event.type} ignored, ${event.livemode ? "live" : "test"} mode doesn't match our key`);
+    return NextResponse.json({ received: true });
+  }
+
   try {
     switch (event.type) {
       case "checkout.session.completed":
@@ -66,12 +80,14 @@ export async function POST(req: Request) {
       case "refund.failed":
         await handleRefundChange(event.data.object as Stripe.Charge | Stripe.Refund, event.account ?? null);
         break;
+      // A shop's subscription to ZentraBite lives on our own account. The same
+      // events from a shop's account are its own business, not ours.
       case "customer.subscription.created":
       case "customer.subscription.updated":
-        await handleSubscriptionChange(event.data.object as Stripe.Subscription);
+        if (!event.account) await handleSubscriptionChange(event.data.object as Stripe.Subscription);
         break;
       case "customer.subscription.deleted":
-        await handleSubscriptionCancelled(event.data.object as Stripe.Subscription);
+        if (!event.account) await handleSubscriptionCancelled(event.data.object as Stripe.Subscription);
         break;
     }
   } catch (err) {
@@ -107,6 +123,15 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, eventAc
     .eq("id", business_id).maybeSingle();
   if (!eventAccount || !owner?.stripe_account_id || owner.stripe_account_id !== eventAccount) {
     console.warn(`[webhook] order for ${business_id} refused, it came from ${eventAccount ?? "the platform account"}`);
+    return;
+  }
+
+  // Only checkouts our own server made (lib/checkout-signature.ts). A shop
+  // can make a checkout on its own account with any metadata it likes.
+  const signed = await checkCheckout(db, meta as Record<string, string>, session.created);
+  if (!signed.ok) {
+    console.warn(`[webhook] order for ${business_id} refused, checkout ${signed.why}`);
+    if (signed.why === "key") throw new Error("checkout signing key unavailable");
     return;
   }
 

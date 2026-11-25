@@ -13,6 +13,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import { assertSuperAdmin } from "@/lib/admin-auth";
 import { sendEmail } from "@/lib/email";
+import { sellerLoginProblem } from "@/lib/existing-login";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -62,7 +63,10 @@ export async function POST(req: Request) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = createAdminClient() as any;
 
-  // Someone who already has a login (an owner, say) just becomes a seller too.
+  // An existing login only becomes a seller when we know who holds it
+  // (lib/existing-login.ts). An owner our own invite made can, say.
+  const problem = await sellerLoginProblem(db, email);
+  if (problem) return NextResponse.json({ error: problem }, { status: 409 });
   const { data: existing } = await db.from("users").select("id, name, phone").eq("email", email).maybeSingle();
   if (existing) {
     const { error } = await db.from("users").update({

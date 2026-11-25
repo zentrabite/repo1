@@ -8,7 +8,9 @@
 //
 // Known gap: fetch() resolves DNS again after our check, so a host that
 // changes its DNS answer between the two lookups could still slip through.
-// The route is super-admin only, which keeps that risk small.
+// Super admins and sellers can run an import (sellers since 022, limited to
+// 20 a day), and Vercel's functions sit on no private network of ours, which
+// keeps that risk small. Closing it means connecting to the checked address.
 
 import { lookup } from "node:dns/promises";
 import net from "node:net";

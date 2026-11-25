@@ -16,7 +16,7 @@
 
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
-import { MANAGER_ROLES, requireBusiness } from "@/lib/request-business";
+import { requireBusiness } from "@/lib/request-business";
 import { trustedOrigin } from "@/lib/tenant";
 import { ensureShopAccount, onboardingLink } from "@/lib/stripe-connect";
 
@@ -27,7 +27,9 @@ export async function POST(req: Request) {
 
     // Business comes from the login. Super admins can act for the business
     // they're onboarding; merchants only for their own.
-    const auth = await requireBusiness(requestedBusinessId, { roles: MANAGER_ROLES });
+    // Owners only. Finishing Stripe's setup picks the bank account the
+    // shop's takings go to.
+    const auth = await requireBusiness(requestedBusinessId, { roles: ["Owner"] });
     if (!auth.ok) return auth.response;
     const business_id = auth.businessId;
 
@@ -41,7 +43,7 @@ export async function POST(req: Request) {
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error("[stripe/connect]", message);
-    // Only managers reach this route, and Stripe's message says what's missing
+    // Only owners reach this route, and Stripe's message says what's missing
     // (for example a platform setting), so it's passed on as before.
     return NextResponse.json({ error: message }, { status: 500 });
   }

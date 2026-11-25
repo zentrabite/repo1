@@ -3,13 +3,14 @@
 // login check and email are fakes.
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fakeDb, type Query } from "./fake-db";
+import { fakeDb, filterValue, type Query } from "./fake-db";
 
 const h = vi.hoisted(() => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   db: null as any,
   superAdmin: null as null | { id: string },
   generateLink: vi.fn(),
+  getUserById: vi.fn(),
   sendEmail: vi.fn(async () => ({ ok: false, skipped: true })),
 }));
 
@@ -35,7 +36,11 @@ const facts = (over: Partial<GoLiveFacts> = {}, biz: Partial<GoLiveFacts["biz"]>
   ({ biz: { ...READY_BIZ, ...biz }, pricedItems: 12, paidOrders: 1, ownerLogin: true, ...over });
 const byKey = (f: GoLiveFacts) => Object.fromEntries(goLiveChecks(f).map(c => [c.key, c]));
 
-const withAuth = <T extends object>(db: T) => Object.assign(db, { auth: { admin: { generateLink: h.generateLink } } });
+const withAuth = <T extends object>(db: T) => Object.assign(db, { auth: { admin: { generateLink: h.generateLink, getUserById: h.getUserById } } });
+/** The users table: looked up by email it has `byEmail`, by id it has `byId`. */
+const usersTable = (byEmail: object | null, byId: object | null) => (q: Query) =>
+  ({ data: filterValue(q, "email") !== undefined ? byEmail : byId, error: null });
+const USED = { data: { user: { invited_at: "2026-11-20T00:00:00Z", last_sign_in_at: "2026-11-21T00:00:00Z" } }, error: null };
 const readyDb = (over: Record<string, (q: Query) => unknown> = {}) => withAuth(fakeDb({
   "businesses.select": () => ({ data: { id: ID, ...READY_BIZ }, error: null }),
   "menu_items.select": () => ({ data: [{ price: 18, available: true }, { price: 0, available: true }, { price: 9, available: false }], error: null }),
@@ -132,7 +137,7 @@ describe("sending the owner their login", () => {
   });
 
   it("makes the link, links the login to the shop and gives the link back to send by hand", async () => {
-    h.db = readyDb({ "users.select": () => ({ data: { business_id: null }, error: null }) });
+    h.db = readyDb({ "users.select": usersTable(null, { business_id: null }) });
     h.generateLink.mockResolvedValue({ data: { properties: { action_link: "https://login-link" }, user: { id: "owner-1" } }, error: null });
     const res = await send();
     expect(await res.json()).toEqual({ link: "https://login-link", emailed: false, to: "joe@example.com" });
@@ -142,7 +147,8 @@ describe("sending the owner their login", () => {
   });
 
   it("sends a new link to an owner who already has a login", async () => {
-    h.db = readyDb({ "users.select": () => ({ data: { business_id: ID }, error: null }) });
+    h.db = readyDb({ "users.select": usersTable({ id: "owner-1", business_id: ID }, { business_id: ID }) });
+    h.getUserById.mockResolvedValue(USED);
     h.generateLink
       .mockResolvedValueOnce({ data: null, error: { message: "A user with this email address has already been registered" } })
       .mockResolvedValueOnce({ data: { properties: { action_link: "https://magic" }, user: { id: "owner-1" } }, error: null });
@@ -157,5 +163,34 @@ describe("sending the owner their login", () => {
     expect(res.status).toBe(409);
     expect((await res.json()).error).toMatch(/different shop/);
     expect(calls("users", "update")).toHaveLength(0);
+  });
+
+  it("won't give the shop to a login it can't be sure about", async () => {
+    const cases: [object, object, RegExp][] = [
+      // Someone signed up with the owner's email themselves.
+      [{ id: "u-1", business_id: null }, { data: { user: { invited_at: null, last_sign_in_at: "2026-11-21T00:00:00Z" } }, error: null }, /can't be sure who holds it/],
+      // Another shop invited it to its team and someone used the link.
+      [{ id: "u-2", business_id: null }, USED, /can't be sure who holds it/],
+      // A seller's login.
+      [{ id: "u-3", business_id: null, is_seller: true }, USED, /staff login/],
+    ];
+    for (const [row, user, why] of cases) {
+      h.db = readyDb({ "users.select": usersTable(row, row) });
+      h.getUserById.mockResolvedValue(user);
+      h.generateLink.mockClear();
+      const res = await send();
+      expect(res.status).toBe(409);
+      expect((await res.json()).error).toMatch(why);
+      expect(h.generateLink).not.toHaveBeenCalled();
+      expect(calls("users", "update")).toHaveLength(0);
+    }
+  });
+
+  it("does send a link to a login our own invite made that nobody has used", async () => {
+    h.db = readyDb({ "users.select": usersTable({ id: "owner-1", business_id: null }, { business_id: null }) });
+    h.getUserById.mockResolvedValue({ data: { user: { invited_at: "2026-11-20T00:00:00Z", last_sign_in_at: null } }, error: null });
+    h.generateLink.mockResolvedValue({ data: { properties: { action_link: "https://fresh-invite" }, user: { id: "owner-1" } }, error: null });
+    expect((await (await send()).json()).link).toBe("https://fresh-invite");
+    expect(calls("users", "update")[0]!.payload).toMatchObject({ business_id: ID });
   });
 });
