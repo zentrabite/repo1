@@ -191,6 +191,31 @@ export function newOptionId(): string {
 }
 
 /**
+ * Add-ons found by the menu read ("extra toppings $3 each: olives, chilli")
+ * become an optional Extras group. The customer can pick any number of them,
+ * and each adds its own price.
+ */
+export function extrasFromImport(extras: readonly { name: string; price: number }[] | undefined | null): OptionGroup | null {
+  const seen = new Set<string>();
+  const clean = (extras ?? [])
+    .map(v => ({ name: cleanName(v?.name), price: cleanPrice(v?.price) }))
+    .filter((v): v is { name: string; price: number } => {
+      if (!v.name || v.price === null || seen.has(v.name.toLowerCase())) return false;
+      seen.add(v.name.toLowerCase());
+      return true;
+    })
+    .slice(0, MAX_CHOICES);
+  if (!clean.length) return null;
+  return {
+    id: newOptionId(),
+    name: "Extras",
+    min: 0,
+    max: clean.length,
+    choices: clean.map(v => ({ id: newOptionId(), name: v.name, price: v.price, available: true })),
+  };
+}
+
+/**
  * Sizes found by the website import ("Small $12, Large $16") become a
  * required Size group. The item's price is the smallest size, and each size
  * adds the difference.

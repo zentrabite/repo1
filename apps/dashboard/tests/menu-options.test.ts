@@ -4,7 +4,7 @@
 import { describe, expect, it } from "vitest";
 import {
   cheapestPrice, groupRule, lineKey, optionsLabel, priceSelection, pricesVary,
-  readOptions, sizesFromVariants, toggleChoice, type OptionGroup,
+  extrasFromImport, readOptions, sizesFromVariants, toggleChoice, type OptionGroup,
 } from "@/lib/menu-options";
 
 const SIZE: OptionGroup = {
@@ -162,5 +162,24 @@ describe("sizes from the website import", () => {
   it("leaves a single size alone", () => {
     expect(sizesFromVariants([{ name: "Large", price: 16 }])).toBeNull();
     expect(sizesFromVariants(undefined)).toBeNull();
+  });
+});
+
+describe("extras from the menu read", () => {
+  it("makes an optional Extras group, any number, each at its own price", () => {
+    const g = extrasFromImport([{ name: "Olives", price: 3 }, { name: "Extra cheese", price: 3.5 }, { name: "Chilli", price: 0 }]);
+    expect(g).toMatchObject({ name: "Extras", min: 0, max: 3 });
+    expect(g?.choices.map(c => [c.name, c.price])).toEqual([["Olives", 3], ["Extra cheese", 3.5], ["Chilli", 0]]);
+    // Picking two adds both prices.
+    const picked = g!.choices.slice(0, 2).map(c => c.id);
+    expect(priceSelection(10, [g!], picked)).toMatchObject({ ok: true, unitPrice: 16.5 });
+    expect(readOptions([g])).toEqual([g]);
+  });
+
+  it("drops repeats and bad prices, and makes nothing from nothing", () => {
+    const g = extrasFromImport([{ name: "Olives", price: 3 }, { name: "olives", price: 3 }, { name: "Gold leaf", price: -1 }, { name: "", price: 2 }]);
+    expect(g?.choices.map(c => c.name)).toEqual(["Olives"]);
+    expect(extrasFromImport([])).toBeNull();
+    expect(extrasFromImport(undefined)).toBeNull();
   });
 });

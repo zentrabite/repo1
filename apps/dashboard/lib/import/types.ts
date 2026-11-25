@@ -39,6 +39,8 @@ export type ImportedMenuItem = {
   description?:  string | null;
   dietary_tags?: string[];
   variants?:     { name: string; price: number }[];
+  /** Add-ons the customer can choose, e.g. extra cheese $3 (an optional Extras group). */
+  extras?:       { name: string; price: number }[];
   check?:        string | null;
 };
 

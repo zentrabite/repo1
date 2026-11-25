@@ -201,6 +201,7 @@ export function MenuReadSummary({ r, replaces, onRemove }: { r: MenuRead; replac
                   <span style={{ flex: 1, minWidth: 0 }}>
                     {it.name}
                     {it.variants?.length ? <span>{` (${it.variants.map(v => `${v.name} $${v.price.toFixed(2)}`).join(", ")})`}</span> : null}
+                    {it.extras?.length ? <span style={{ display: "block", fontSize: 12 }}>{`Extras: ${it.extras.map(v => v.price ? `${v.name} +$${v.price.toFixed(2)}` : v.name).join(", ")}`}</span> : null}
                   </span>
                   <span style={{ color: it.price === null ? C.y : C.cl, whiteSpace: "nowrap" }}>{it.price === null ? "No price" : `$${it.price.toFixed(2)}`}</span>
                 </div>

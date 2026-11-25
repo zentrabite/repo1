@@ -56,6 +56,7 @@ function cleanMenu(v: unknown): ImportedMenuCategory[] | null {
         description:  str(io.description, 500),
         dietary_tags: arr(io.dietary_tags).map(String).filter(t => tags.has(t)),
         variants:     arr(io.variants).slice(0, 8).map(x => ({ name: str(obj(x).name, 60) ?? "", price: price(obj(x).price) ?? 0 })).filter(x => x.name && x.price > 0),
+        extras:       arr(io.extras).slice(0, 20).map(x => ({ name: str(obj(x).name, 60) ?? "", price: price(obj(x).price) ?? -1 })).filter(x => x.name && x.price >= 0),
         check:        str(io.check, 300),
       };
     }).filter((i): i is NonNullable<typeof i> => Boolean(i));
