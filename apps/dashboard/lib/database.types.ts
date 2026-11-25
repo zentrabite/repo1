@@ -166,6 +166,8 @@ export interface Database {
           // Sizes, extras and choices (migration 018). Read it with
           // readOptions() from lib/menu-options, which drops anything malformed.
           options:       unknown;
+          // Contains alcohol (042). Hidden online until the shop is allowed (lib/alcohol.ts).
+          contains_alcohol?: boolean;
         };
         Insert: Omit<Database["public"]["Tables"]["menu_items"]["Row"], "id">;
         Update: Partial<Database["public"]["Tables"]["menu_items"]["Insert"]>;

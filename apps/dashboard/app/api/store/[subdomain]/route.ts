@@ -8,6 +8,7 @@ import { readOrderingRules, shopDate } from "@/lib/pickup-times";
 import { checkCode, cleanCode, offerLabel } from "@/lib/offer-codes";
 import { readFirstOrderOffer } from "@/lib/first-order";
 import { readDeliveryRules } from "@/lib/own-delivery";
+import { onlineOk } from "@/lib/alcohol";
 
 export async function GET(req: Request, { params }: { params: Promise<{ subdomain: string }> }) {
   const { subdomain } = await params;
@@ -30,7 +31,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ subdomai
   ]);
 
   const cats  = catsRes.data  ?? [];
-  const items = itemsRes.data ?? [];
+  // Items with alcohol stay off the ordering page until ZentraBite turns
+  // alcohol on for the shop (lib/alcohol.ts).
+  const items = (itemsRes.data ?? []).filter(i => onlineOk(i, business.settings));
 
   const menu = cats.map(cat => ({
     ...cat,
