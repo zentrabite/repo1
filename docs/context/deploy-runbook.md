@@ -81,16 +81,16 @@ line into **Vercel → Project → Settings → Environment Variables** for the
 
 | Source | Variables |
 |---|---|
-| Supabase → Settings → API Keys | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (the publishable key) and `SUPABASE_SECRET_KEY` (a secret key). The CRM still takes the older `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` when the newer ones aren't set (lib/supabase-keys.ts). The newer keys can be made and deleted one at a time, so a leaked one is replaced without touching the rest. Unsubscribe links are signed with a Vault secret (035), not a key, so replacing a key doesn't break them |
+| Supabase → Settings → API Keys | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (the publishable key) and `SUPABASE_SECRET_KEY` (a secret key). The CRM still takes the older `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` when the newer ones aren't set (lib/supabase-keys.ts). The newer keys can be made and deleted one at a time, so a leaked one is replaced without touching the rest. Unsubscribe links are signed with a Vault secret (035), not a key, so replacing a key doesn't break them. The older keys are switched off in Supabase (23 Nov 2026) and were removed from Vercel on 25 Nov |
 | Stripe → Developers → API keys (live) | `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_PRICE_MERCHANT_MONTHLY` |
 | (after Step 4) | `STRIPE_WEBHOOK_SECRET` |
 | Twilio | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`. Nothing to set for delivery reports: every text asks Twilio to report to `/api/sms/status` (from `NEXT_PUBLIC_APP_URL`), signed with the auth token |
 | Alerts | `ALERT_EMAIL`, the address the team's alerts go to (a stop rule pauses a shop, a kill switch changes, the daily run finds a connection down). Optional. Without it, check Super Admin, Sending |
 | Resend | `RESEND_API_KEY`, `RESEND_FROM_EMAIL` (must reach and account mail, on its own sending subdomain), `RESEND_MARKETING_FROM_EMAIL` (marketing mail, on a second subdomain so a spam complaint about an offer can't hurt receipts. Falls back to `RESEND_FROM_EMAIL` until it's set), `RESEND_WEBHOOK_SECRET` (the signing secret of the Resend webhook to `https://dashboard.zentrabite.com/api/email/events` with email.delivered, email.bounced and email.complained, for the stop rules. Until it's set, bounces and spam reports aren't counted) |
-| Set yourself | `NEXT_PUBLIC_APP_URL=https://dashboard.zentrabite.com.au`, `NEXT_PUBLIC_MARKETING_URL=https://zentrabite.com.au` |
+| Set yourself | `NEXT_PUBLIC_APP_URL=https://dashboard.zentrabite.com`, `NEXT_PUBLIC_MARKETING_URL=https://zentrabite.com` (never .com.au, which we don't own) |
 | PostHog → ZentraBite's own project → Settings (optional, both apps) | `NEXT_PUBLIC_POSTHOG_KEY` (the project's public key), `NEXT_PUBLIC_POSTHOG_HOST` (only if the project isn't on US cloud, e.g. `https://eu.i.posthog.com`), `NEXT_PUBLIC_POSTHOG_ON` (which parts count: `web` on repo1-web, `setup` and later `ordering` on repo1-dashboard) |
 
-After saving, redeploy: **Deployments → … → Redeploy**.
+Add every value that isn't `NEXT_PUBLIC_` as **Sensitive**, so it can't be read back. After saving, redeploy: **Deployments → … → Redeploy**.
 
 **Counting with PostHog (since 23 Nov 2026).** Off until `NEXT_PUBLIC_POSTHOG_KEY` is set and `NEXT_PUBLIC_POSTHOG_ON` lists a part. `setup` (the staff onboarding wizard and shops created and published) can go on as soon as the key is in. `web` (the marketing site) and `ordering` (each shop's ordering page, and orders paid) wait until the published privacy policy names PostHog. In PostHog's project settings, turn on discarding IP addresses. There's no PostHog script, no cookies and no session replay. See `apps/web/lib/analytics.ts` and `apps/dashboard/lib/analytics.ts`. Use ZentraBite's own PostHog project, never another business's.
 
@@ -100,7 +100,7 @@ After saving, redeploy: **Deployments → … → Redeploy**.
 
 In **Stripe → Developers → Webhooks → Add endpoint**:
 
-- **Endpoint URL:** `https://dashboard.zentrabite.com.au/api/stripe/webhook`
+- **Endpoint URL:** `https://dashboard.zentrabite.com/api/stripe/webhook`
   (or your current Vercel URL until the custom domain is live)
 - Make **two endpoints** to that same URL. The handler accepts either signing secret.
   1. **Your account** (ZentraBite's own subscriptions). Events:
@@ -136,8 +136,8 @@ your bank details on the connected Stripe account are correct first.
 ## Step 6 · Point the custom domain at Vercel (5 min, then DNS time)
 
 In **Vercel → Project → Settings → Domains → Add**:
-- `dashboard.zentrabite.com.au`
-- (and `zentrabite.com.au` for the marketing project once split — see below)
+- `dashboard.zentrabite.com`
+- (and `zentrabite.com` for the marketing project once split — see below)
 
 Vercel will give you a CNAME target like `cname.vercel-dns.com.`. Add that
 in your domain registrar's DNS panel (Route53, Cloudflare, etc.). DNS can
@@ -156,7 +156,7 @@ project. Split them so the marketing site lives at
 3. **Build Command:** `cd ../.. && npx turbo run build --filter=web`
 4. **Install Command:** `npm install` (run at repo root)
 5. **Output Directory:** `.next`
-6. Add domain `zentrabite.com.au` (or `zentrabite.com`) to this new project
+6. Add domain `zentrabite.com` to this new project
 7. Add the marketing-site env vars: `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_MARKETING_URL`
 
 ---
@@ -165,7 +165,7 @@ project. Split them so the marketing site lives at
 
 Once Steps 1–6 are done:
 
-1. Open your real storefront URL (`https://dashboard.zentrabite.com.au/store/<your-subdomain>`)
+1. Open your real storefront URL (`https://dashboard.zentrabite.com/store/<your-subdomain>`)
 2. Add an item, check out with a real card (Apple Pay or saved card)
 3. Watch your dashboard's **Orders** page — the new order should appear
    within 2 seconds with a toast/chime (proves realtime works)
