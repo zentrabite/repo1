@@ -7,7 +7,7 @@ import Modal from "@/components/modal";
 import Toast from "@/components/toast";
 import { useToast } from "@/hooks/use-toast";
 import { useBusiness } from "@/hooks/use-business";
-import { getOrders, updateOrderStatus } from "@/lib/queries";
+import { getOrders, NotChangedError, updateOrderStatus } from "@/lib/queries";
 import { supabase } from "@/lib/supabase";
 import type { Order } from "@/lib/database.types";
 import { cameFromLabel } from "@/lib/offer-codes";
@@ -136,12 +136,19 @@ export default function OrdersPage() {
     show(next ? "Order sound on" : "Order sound off");
   };
 
+  // Staff viewing a shop through Super Admin can't change its orders (the row
+  // rules only let the shop's own logins), so say that instead of "try again".
+  const changeFailed = (e: unknown, what: string) =>
+    show(e instanceof NotChangedError && isSuperAdmin
+      ? `Couldn't ${what}. Staff viewing a shop can't change its orders. The shop's own login can.`
+      : `Couldn't ${what}. Try again.`);
+
   const accept = async (order: Order) => {
     try {
       await updateOrderStatus(order.id, "Preparing");
       setOrders(prev => prev.map(o => o.id === order.id ? { ...o, status: "Preparing" } : o));
       show("Accepted ✓");
-    } catch { show("Couldn't accept the order. Try again."); }
+    } catch (e) { changeFailed(e, "accept the order"); }
   };
 
   const printDocket = async (order: Order) => {
@@ -210,7 +217,9 @@ export default function OrdersPage() {
   const advance = async (order: Order) => {
     const next = NEXT_STATUS[order.status];
     if (!next) return;
-    await updateOrderStatus(order.id, next);
+    try {
+      await updateOrderStatus(order.id, next);
+    } catch (e) { changeFailed(e, "move the order on"); return; }
     setOrders(prev => prev.map(o => o.id === order.id ? { ...o, status: next } : o));
     show(`→ ${next}`);
     setSelected(null);
