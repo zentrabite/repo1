@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { AI_CALLS_READY } from "@/lib/ai-calls-gate";
 import Badge from "@/components/badge";
 import Toast from "@/components/toast";
 import Modal from "@/components/modal";
@@ -233,7 +234,7 @@ export default function CustomersPage() {
           </div>
           <div style={{ display:"flex", gap:6, marginTop:14 }}>
             <button className="bp" style={{ flex:1, justifyContent:"center", fontSize:12, padding:"8px 0" }} onClick={() => { setSmsText(`Hi {name}, `); setSmsKind("must_reach"); setSmsOpen(true); }} disabled={!selected.phone}>SMS</button>
-            <button className="bg-btn" style={{ flex:1, justifyContent:"center" }} onClick={startAiCall} disabled={!selected.phone || aiCalling}>{aiCalling ? "Calling…" : <><Icon name="ai-calls" size={14} />Call</>}</button>
+            {AI_CALLS_READY && <button className="bg-btn" style={{ flex:1, justifyContent:"center" }} onClick={startAiCall} disabled={!selected.phone || aiCalling}>{aiCalling ? "Calling…" : <><Icon name="ai-calls" size={14} />Call</>}</button>}
           </div>
           {canDelete && (
             <button type="button" className="zb-tap" onClick={() => { setDelTick(false); setDelOpen(true); }}

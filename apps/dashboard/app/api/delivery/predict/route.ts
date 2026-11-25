@@ -15,6 +15,7 @@
 
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
+import { readCourierKeys } from "@/lib/courier-keys";
 import { requireBusiness } from "@/lib/request-business";
 import type { DeliveryPrediction, DeliveryRecommendation } from "@/lib/delivery-types";
 
@@ -127,8 +128,10 @@ export async function GET(req: Request) {
     const ds = (biz?.delivery_settings ?? {}) as Record<string, any>;
 
     // Resolve cost constants — use configured values, fall back to unconfigured placeholders
-    const uberApiKey      = (ds.uber_direct_api_key       as string | undefined) ?? "";
-    const uberCustomerId  = (ds.uber_direct_customer_id   as string | undefined) ?? "";
+    // Courier keys are server only (038, lib/courier-keys.ts).
+    const keys            = await readCourierKeys(db, businessId);
+    const uberApiKey      = keys.uber_direct_api_key ?? "";
+    const uberCustomerId  = keys.uber_direct_customer_id ?? "";
     const taskerDayRate   = (ds.tasker_rate_per_hour      as number | undefined) ?? 0;
     const taskerCapacity  = (ds.tasker_capacity_per_day   as number | undefined) ?? 0;
     const otherLabel      = (ds.other_provider_name       as string | undefined) ?? "Tasker";
