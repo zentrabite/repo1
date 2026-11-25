@@ -40,12 +40,6 @@ const CRM_CSS = `
   await p.screenshot({ path: `${OUT}/pv-ordering.png`, clip: { x: 0, y: 36, width: 1280, height: 800 } });
   await p.close();
 
-  // site-home-phone: the ordering site on a phone
-  p = await page(390, 880, '/demo/merchant', STORE_CSS);
-  await settle(p);
-  await p.screenshot({ path: `${OUT}/site-home-phone.png`, clip: { x: 0, y: 36, width: 390, height: 844 } });
-  await p.close();
-
   // pv-pos: the POS with an order rung up for Sofia
   p = await page(1440, 940, '/demo/live/pos', CRM_CSS);
   const item = (name) => p.locator('button', { hasText: name }).first();

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { business } from "../data";
+import { sampleBusiness } from "../../sample-business";
 
 function toast(text: string) {
   if (typeof document === "undefined") return;
@@ -136,9 +137,9 @@ export default function SettingsPage() {
           {/* Team */}
           <Card title="Team">
             {[
-              { name: "Liam Potter", role: "Owner",  email: "liam@nonnas-kitchen.com.au" },
-              { name: "Marco Rossi", role: "Manager",email: "marco@nonnas-kitchen.com.au" },
-              { name: "Sara Lin",    role: "Staff",  email: "sara@nonnas-kitchen.com.au" },
+              { name: sampleBusiness.owner.name, role: "Owner", email: sampleBusiness.owner.email },
+              { name: "Marco Rossi", role: "Manager", email: "marco.rossi@example.com" },
+              { name: "Sara Lin",    role: "Staff",   email: "sara.lin@example.com" },
             ].map((m) => (
               <div
                 key={m.email}

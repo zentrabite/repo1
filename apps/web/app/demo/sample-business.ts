@@ -7,9 +7,10 @@
 // who is signed in on the ordering site and the app. Each demo keeps its own
 // look and its own screen-only data.
 //
-// It's all sample data. The address is on a lane that doesn't exist, and the
+// It's all sample data. The address is on a lane that doesn't exist, the
 // phone numbers come from the ranges the ACMA keeps for fiction ((08) 5550 and
-// 0491 57x), so none of them can reach a real business or person.
+// 0491 57x), and every email address is at example.com, which can't be
+// registered, so none of them can reach a real business or person.
 
 // ---- The business --------------------------------------------------------
 
@@ -25,7 +26,7 @@ export const sampleBusiness = {
   opened: 2019,
   subdomain: "nonnas-kitchen",
   /** Owner on the CRM's Settings > Team list. */
-  owner: { name: "Liam Potter", email: "liam@nonnas-kitchen.com.au" },
+  owner: { name: "Giulia Romano", email: "giulia.romano@example.com" },
 } as const;
 
 // ---- Menu ----------------------------------------------------------------

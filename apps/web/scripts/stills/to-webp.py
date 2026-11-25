@@ -7,7 +7,7 @@ from PIL import Image
 src = sys.argv[1] if len(sys.argv) > 1 else 'stills-out'
 media = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'public', 'media')
 TARGETS = {
-    'pv-website': 'hero', 'pv-ordering': 'hero', 'pv-pos': 'hero', 'site-home-phone': 'hero',
+    'pv-website': 'hero', 'pv-ordering': 'hero', 'pv-pos': 'hero',
     'pv-delivery': 'hero', 'pv-reviews': 'hero', 'pv-rewards': 'hero', 'pv-stock': 'hero',
     'pv-winback': 'hero', 'pv-customer-profile': 'hero', 'crm-customer-profile-panel': 'hero',
     'fp-ai-calls': 'features', 'fp-automations': 'features', 'fp-custom-mobile-app': 'features',

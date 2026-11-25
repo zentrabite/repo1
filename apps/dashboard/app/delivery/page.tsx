@@ -233,7 +233,7 @@ export default function DeliveryPage() {
             </div>
             <div style={{ marginBottom:10 }}>
               <label>Drop-off Address</label>
-              <input value={dropoffAddr} onChange={e=>setDropoffAddr(e.target.value)} placeholder="456 Crown St, Surry Hills NSW 2010" />
+              <input value={dropoffAddr} onChange={e=>setDropoffAddr(e.target.value)} placeholder="12 Example St, Adelaide SA 5000" />
             </div>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:10 }}>
               <div>

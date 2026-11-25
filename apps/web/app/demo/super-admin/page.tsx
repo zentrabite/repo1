@@ -58,28 +58,28 @@ const TENANTS: Tenant[] = [
     modules:{ loyalty:true, ai_calls:true, driver_dispatch:true, stock:true, campaigns:true, sms:true, email:true, reviews:true, custom_website:true, ordering_app:false, advanced_analytics:false, premium_support:false },
   },
   {
-    id:"t02", name:"Bondi Bloom Florist", type:"Retail", plan:"Starter", mrr:89, orders30d:214, aiCredits:20, health:"Healthy", lastActive:"1 hr ago",
-    owner:"Priya Sharma", email:"priya@bondibloom.com.au", subdomain:"bondibloom",
+    id:"t02", name:"Fern & Field Florist", type:"Retail", plan:"Starter", mrr:89, orders30d:214, aiCredits:20, health:"Healthy", lastActive:"1 hr ago",
+    owner:"Priya Sharma", email:"priya.sharma@example.com", subdomain:"fernandfield",
     modules:{ loyalty:true, ai_calls:false, driver_dispatch:false, stock:true, campaigns:false, sms:true, email:false, reviews:false, custom_website:true, ordering_app:false, advanced_analytics:false, premium_support:false },
   },
   {
-    id:"t03", name:"Surry Hills Espresso Bar", type:"Café", plan:"Growth", mrr:189, orders30d:4102, aiCredits:510, health:"Warning", lastActive:"6 hr ago",
-    owner:"Aiden Clarke", email:"aiden@surcafe.com.au", subdomain:"surcafe",
+    id:"t03", name:"Little Ember Espresso", type:"Café", plan:"Growth", mrr:189, orders30d:4102, aiCredits:510, health:"Warning", lastActive:"6 hr ago",
+    owner:"Aiden Clarke", email:"aiden.clarke@example.com", subdomain:"littleember",
     modules:{ loyalty:true, ai_calls:true, driver_dispatch:false, stock:true, campaigns:true, sms:true, email:true, reviews:true, custom_website:false, ordering_app:false, advanced_analytics:true, premium_support:false },
   },
   {
-    id:"t04", name:"Newtown Noodle House", type:"Restaurant", plan:"Scale", mrr:449, orders30d:3280, aiCredits:920, health:"Healthy", lastActive:"Just now",
-    owner:"Lin Wei", email:"lin@newtownnoodle.com.au", subdomain:"newtownnoodle",
+    id:"t04", name:"Lucky Lantern Noodles", type:"Restaurant", plan:"Scale", mrr:449, orders30d:3280, aiCredits:920, health:"Healthy", lastActive:"Just now",
+    owner:"Lin Wei", email:"lin.wei@example.com", subdomain:"luckylantern",
     modules:{ loyalty:true, ai_calls:true, driver_dispatch:true, stock:true, campaigns:true, sms:true, email:true, reviews:true, custom_website:true, ordering_app:true, advanced_analytics:true, premium_support:true },
   },
   {
-    id:"t05", name:"Glebe Health & Juice Co", type:"Health / Wellness", plan:"Starter", mrr:89, orders30d:388, aiCredits:0, health:"Critical", lastActive:"3 days ago",
-    owner:"Sophie Grant", email:"sophie@glebejuice.com.au", subdomain:"glebejuice",
+    id:"t05", name:"Daybreak Juice Co", type:"Health / Wellness", plan:"Starter", mrr:89, orders30d:388, aiCredits:0, health:"Critical", lastActive:"3 days ago",
+    owner:"Sophie Grant", email:"sophie.grant@example.com", subdomain:"daybreakjuice",
     modules:{ loyalty:false, ai_calls:false, driver_dispatch:false, stock:false, campaigns:false, sms:true, email:false, reviews:false, custom_website:false, ordering_app:false, advanced_analytics:false, premium_support:false },
   },
   {
-    id:"t06", name:"Manly Surf Burger", type:"Fast Food", plan:"Growth", mrr:219, orders30d:2650, aiCredits:180, health:"Healthy", lastActive:"30 min ago",
-    owner:"Jake Donovan", email:"jake@manlyburger.com.au", subdomain:"manlyburger",
+    id:"t06", name:"Tidewater Burger Co", type:"Fast Food", plan:"Growth", mrr:219, orders30d:2650, aiCredits:180, health:"Healthy", lastActive:"30 min ago",
+    owner:"Jake Donovan", email:"jake.donovan@example.com", subdomain:"tidewaterburger",
     modules:{ loyalty:true, ai_calls:false, driver_dispatch:true, stock:true, campaigns:true, sms:true, email:true, reviews:true, custom_website:true, ordering_app:false, advanced_analytics:false, premium_support:false },
   },
 ];
