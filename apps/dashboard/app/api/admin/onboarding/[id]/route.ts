@@ -86,6 +86,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (typeof body.address   === "string") update.address   = body.address.trim().slice(0, 300) || null;
 
   if (body.settings && typeof body.settings === "object") {
+    // Courier keys never go in businesses, where every login at the shop can
+    // read them. The Delivery step saves them through /api/delivery/keys
+    // (business_secrets, 038). It used to send them here as settings.delivery.
+    delete body.settings.delivery;
     const { data: current } = await db.from("businesses").select("settings").eq("id", id).single();
     const existing = (current?.settings ?? {}) as Record<string, unknown>;
     update.settings = deepMerge(existing, body.settings);
