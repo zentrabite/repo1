@@ -17,6 +17,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ subdomai
     .from("businesses")
     .select("id, name, type, suburb, logo_url, subdomain, contact_phone, settings, stripe_account_id, stripe_charges_enabled")
     .eq("subdomain", subdomain)
+    .is("suspended_at", null) // a suspended shop's ordering page is off (041)
     .single();
 
   if (bizErr || !business) {

@@ -26,6 +26,10 @@ interface BusinessState {
   // Role of the current user for the current business: Owner, Manager, Staff
   // or POS. Drives which pages they see (sidebar and DashboardShell).
   role:         string | null;
+  // ZentraBite has suspended this login's shop (041). The database gives it
+  // nothing, and DashboardShell shows the "paused" screen. Never for a super
+  // admin, who can still open a suspended shop.
+  suspended:    boolean;
 }
 
 function readCookie(name: string): string | null {
@@ -45,6 +49,7 @@ export function useBusiness(): BusinessState {
     isSeller:     false,
     impersonatingBusinessId: null,
     role:         null,
+    suspended:    false,
   });
 
   useEffect(() => {
@@ -109,6 +114,15 @@ export function useBusiness(): BusinessState {
         business = biz;
       }
 
+      // 6. A shop that can't be read may be suspended (041). Only asked then,
+      // so a working shop makes no extra call.
+      let suspended = false;
+      if (!isSuperAdmin && !business) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: paused } = await (supabase as any).rpc("my_shop_suspended");
+        suspended = paused === true;
+      }
+
       setState({
         loading: false,
         businessId,
@@ -119,6 +133,7 @@ export function useBusiness(): BusinessState {
         isSeller,
         impersonatingBusinessId,
         role,
+        suspended,
       });
     }
 

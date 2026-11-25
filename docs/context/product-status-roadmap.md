@@ -19,7 +19,7 @@ Sign-ups aren't open yet, and no price has been set.
 - **Staff onboarding wizard.** It can read a business's existing website and pre-fill the name, hours, menu, logo, colours and photos.
 - **Login, signup and password reset.**
 - **Payments in Stripe test mode.** Customer payments go to the business's own Stripe Connect account. Stripe's webhook saves the order, the customer and their points.
-- **Database.** Supabase, 32 tables, row level security on every table, migrations 001 to 040. Since 23 Nov the live row rules and grants match the migrations exactly (026 removed April rules no migration made), and tests prove one shop can't read, change, delete or add another shop's rows, and a logged-out browser can't read or add anything.
+- **Database.** Supabase, 32 tables, row level security on every table, migrations 001 to 041. Since 23 Nov the live row rules and grants match the migrations exactly (026 removed April rules no migration made), and tests prove one shop can't read, change, delete or add another shop's rows, and a logged-out browser can't read or add anything.
 - **Scheduled jobs.** Nightly analytics and birthday points run in Supabase. Win-back, automations and trial reminders run on Vercel cron (`/api/automations/run`, daily).
 - **Win-back offers that work.** Each win-back text or email carries its own one-use code in its link. Checkout takes it off on the shop's Stripe account, and the order counts towards the rule's redemptions and revenue recovered.
 - **Counting with PostHog, ready but off.** Page views and the two actions on the marketing site, each step of the onboarding wizard with shops created and published, and the ordering page's views, adds, checkouts and paid orders (counted on the server). No PostHog script, no cookies, no replays, no names or contact details, and nothing from the address but utm tags. Switched on part by part with environment settings once ZentraBite's PostHog key is in Vercel, and for customer pages once the privacy policy names PostHog. See the deploy runbook.
@@ -36,6 +36,8 @@ Sign-ups aren't open yet, and no price has been set.
 - **The subscription card tells the truth.** Settings showed "Subscription active" for a cancelled or unpaid subscription. It now says Free trial, Active, Payment due, Paused or Cancelled. Checkout won't start a second subscription, and the free trial is only for a shop's first one.
 - **What win-back earned.** About 1 in 10 customers due a win-back message is held back, so a monthly report on the Win-Back page compares the two groups, with codes used and where online orders came from. It's emailed to each owner on the 15th once email works.
 - **Where each order came from.** Counter QR code, win-back, Google, the shop's website, social media or straight to the ordering page, on every online order (`orders.came_from`).
+- **Suspending and deleting a shop.** Super Admin, Ops suspends a shop with a reason only the team sees. Its logins get a paused screen and the database gives them nothing, its ordering page and website go offline, and it sends no texts and gets no daily run or monthly report. Payments already made still come through, super admins can still open it, and it can be undone. Delete is for empty test shops: suspended first, no orders or customers, no live subscription, and the shop's name typed to confirm. The owner's login stays with no shop, and the shop's pictures go. Migration 041.
+- **POS tills sign out.** A POS login signs out after 15 minutes with no taps, on that device only, with a note a minute before. Any tap keeps it signed in, and a tablet that slept past 15 minutes signs out as it wakes.
 
 ## Built, but not finished
 
@@ -45,7 +47,6 @@ Sign-ups aren't open yet, and no price has been set.
 - **AI calls.** The page is there. It needs a voice provider.
 - **Xero.** A sales export file, not a live sync.
 - **Pay with points.** Shown at checkout, not yet deducted on the server.
-- **Super admin suspend and delete.** Placeholders.
 
 ## Not built yet
 

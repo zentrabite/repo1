@@ -99,6 +99,7 @@ export async function POST(req: Request) {
       .from("businesses")
       .select("id, name, subdomain, stripe_account_id, stripe_charges_enabled, settings")
       .eq("subdomain", subdomain)
+      .is("suspended_at", null) // a suspended shop takes no orders (041)
       .single();
 
     if (!business) return NextResponse.json({ error: "Business not found" }, { status: 404 });

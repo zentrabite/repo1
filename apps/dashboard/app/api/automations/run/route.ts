@@ -112,6 +112,15 @@ export async function POST(req: Request) {
       businessIds = [...set];
     }
 
+    // A suspended shop sends nothing (041). If that can't be checked, nothing
+    // is sent today rather than risk it.
+    if (businessIds.length > 0) {
+      const { data: paused, error: pausedErr } = await db.from("businesses").select("id").in("id", businessIds).not("suspended_at", "is", null);
+      if (pausedErr) throw new Error(`suspended shops lookup failed: ${pausedErr.message}`);
+      const off = new Set((Array.isArray(paused) ? paused : []).map((b: { id: string }) => b.id));
+      businessIds = businessIds.filter(id => !off.has(id));
+    }
+
     // The owners' monthly reports, on the 15th, from the daily run only.
     const reportsEmailed = isCron ? await sendMonthlyReports(db, m => sendEmail({ kind: "account", ...m }), now) : 0;
 

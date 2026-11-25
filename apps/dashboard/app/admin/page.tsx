@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useBusiness } from "@/hooks/use-business";
 import { Icon } from "@/components/zb-icon";
+import DangerZone from "./danger-zone";
 
 // ── Module catalogue (shared across all tenants; no plan tiers) ──────────────
 type ModuleId =
@@ -41,6 +42,10 @@ type AdminBiz = {
   contact_email:      string | null;
   description:        string | null;
   created_at:         string;
+  settings?:          Record<string, unknown> | null;
+  // Suspended by ZentraBite (041), and why.
+  suspended_at:       string | null;
+  suspended_reason:   string | null;
   customerCount:      number;
   orderCount:         number;
   totalRevenue:       number;
@@ -288,7 +293,10 @@ export default function AdminPage() {
                     }}
                   >
                     <div style={{ minWidth: 0 }}>
-                      <div className="zb-break" style={{ fontSize: 13.5, fontWeight: 600, color: C.cl }}>{b.name}</div>
+                      <div className="zb-break" style={{ fontSize: 13.5, fontWeight: 600, color: C.cl }}>
+                        {b.name}
+                        {b.suspended_at && <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 700, color: C.o }}>Suspended</span>}
+                      </div>
                       <div style={{ fontSize: 11.5, color: C.st, marginTop: 2 }}>
                         {b.type}{b.suburb ? ` · ${b.suburb}` : ""} · {enabledCount} modules on
                       </div>
@@ -333,6 +341,11 @@ export default function AdminPage() {
                   </div>
                   <div className="zb-break" style={{ fontFamily: "var(--font-outfit)", fontWeight: 800, fontSize: 24, color: C.cl }}>
                     {active.name}
+                    {active.suspended_at && (
+                      <span style={{ marginLeft: 10, verticalAlign: "middle", padding: "3px 10px", borderRadius: 999, background: "rgba(255,107,53,.12)", border: "1px solid rgba(255,107,53,.3)", fontSize: 11, fontWeight: 700, color: C.o, fontFamily: "var(--font-inter)" }}>
+                        Suspended
+                      </span>
+                    )}
                   </div>
                   <div style={{ fontSize: 13, color: C.st, marginTop: 4 }}>
                     {active.type}{active.suburb ? ` · ${active.suburb}` : ""}{active.owner?.name ? ` · ${active.owner.name}` : ""}
@@ -510,35 +523,20 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  <div
-                    className="gc"
-                    style={{
-                      padding: 22,
-                      border: "1px solid rgba(255,107,53,0.3)",
-                      background: "linear-gradient(135deg, rgba(255,107,53,0.08), rgba(28,45,72,0.55))",
+                  <DangerZone
+                    key={active.id}
+                    shop={active}
+                    toast={toast}
+                    onChange={next => {
+                      if (next === "deleted") {
+                        const rest = businesses.filter(b => b.id !== active.id);
+                        setBusinesses(rest);
+                        setActiveId(rest[0]?.id ?? null);
+                      } else {
+                        setBusinesses(list => list.map(b => (b.id === active.id ? { ...b, ...next } : b)));
+                      }
                     }}
-                  >
-                    <div style={{ fontFamily: "var(--font-outfit)", fontWeight: 700, fontSize: 15, color: C.o, marginBottom: 6 }}>
-                      Danger zone
-                    </div>
-                    <div style={{ color: C.st, fontSize: 13, marginBottom: 14, fontFamily: "var(--font-inter)" }}>
-                      Suspend halts CRM login and queues a data export. Deletion is 30-day delayed.
-                    </div>
-                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                      <button
-                        onClick={() => toast("Suspension not implemented yet — coming soon", "warn")}
-                        style={{ padding: "8px 14px", borderRadius: 8, background: "transparent", color: C.o, border: `1px solid ${C.o}`, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "var(--font-inter)" }}
-                      >
-                        Suspend tenant
-                      </button>
-                      <button
-                        onClick={() => toast("Deletion not implemented yet — coming soon", "warn")}
-                        style={{ padding: "8px 14px", borderRadius: 8, background: "transparent", color: "#FF6B6B", border: "1px solid #FF6B6B", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "var(--font-inter)" }}
-                      >
-                        Queue deletion
-                      </button>
-                    </div>
-                  </div>
+                  />
                 </div>
               )}
             </div>

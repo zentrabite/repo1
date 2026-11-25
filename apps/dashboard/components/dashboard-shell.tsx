@@ -8,6 +8,7 @@ import DashboardSidebar from "./dashboard-sidebar";
 import DashboardTopbar from "./dashboard-topbar";
 import ImpersonationBanner from "./impersonation-banner";
 import EmptyState from "./empty-state";
+import IdleSignOut from "./idle-sign-out";
 import { iconComponent } from "./zb-icon";
 import { blockedPage, firstAllowedPage } from "@/lib/permissions";
 import { navigation } from "@/lib/navigation";
@@ -32,7 +33,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
   // A seller with no shop of their own only has the sales pages (/sell).
   // Anywhere else in the CRM, send them there.
-  const { loading, isSeller, isSuperAdmin, businessId, role, business } = useBusiness();
+  const { loading, isSeller, isSuperAdmin, businessId, role, business, suspended } = useBusiness();
   const sellerOnly = !loading && isSeller && !isSuperAdmin && !businessId;
   const isPublic   = isAuthPage || Boolean(segment && PUBLIC_SEGMENTS.has(segment));
   const sendToSell = sellerOnly && !isPublic && segment !== "sell";
@@ -45,6 +46,10 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const blocked = !loading && Boolean(businessId) && blockedPage(pathname, role, overrides, isSuperAdmin) !== null;
   const homeHref = blocked ? firstAllowedPage(role, overrides, isSuperAdmin) : null;
   const homePage = homeHref ? navigation.find(n => n.href === homeHref) ?? null : null;
+  // Logging in lands on /dashboard. A role that can't open it (POS, say) goes
+  // straight to its first page instead of the notice.
+  const landOnHome = blocked && pathname === "/dashboard" && Boolean(homeHref);
+  useEffect(() => { if (landOnHome && homeHref) router.replace(homeHref); }, [landOnHome, homeHref, router]);
 
   // Phone menu (under 820px wide the sidebar slides in from the left). It is
   // open for the page it was opened on, so going to another page closes it.
@@ -89,6 +94,21 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
   // Auth pages and customer pages — no sidebar/topbar
   if (isPublic) return <>{children}</>;
+
+  // ZentraBite has suspended this shop (041). Nothing else opens.
+  if (!loading && suspended && !isSuperAdmin) {
+    return (
+      <main id="zb-content" style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", padding:"32px max(16px, env(safe-area-inset-right)) 32px max(16px, env(safe-area-inset-left))" }}>
+        <div style={{ maxWidth:480, width:"100%" }}>
+          <div style={{ display:"flex", justifyContent:"center", marginBottom:20 }}><BrandMark size={40} /></div>
+          <EmptyState icon={iconComponent("pause")} title="This account is paused" description="ZentraBite has paused this shop's account, so the CRM, the ordering page, the website and texts are off for now. Nothing has been deleted. Email hello@zentrabite.com to sort it out." />
+          <div style={{ textAlign:"center", marginTop:16 }}>
+            <a href="/auth/logout" className="bg-btn" style={{ textDecoration:"none", display:"inline-flex", minHeight:44, alignItems:"center" }}>Log out</a>
+          </div>
+        </div>
+      </main>
+    );
+  }
   if (sendToSell) return null;
   if (segment && BARE_SEGMENTS.has(segment)) return <>{children}</>;
 
@@ -119,6 +139,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       <div className={`zb-backdrop${menuOpen ? " open" : ""}`} onClick={closeMenu} aria-hidden />
       <div className="zb-main" inert={menuOpen} style={{ marginLeft:240, minHeight:"100vh", display:"flex", flexDirection:"column" }}>
         <ImpersonationBanner />
+        {role === "POS" && !isSuperAdmin && <IdleSignOut />}
         <DashboardTopbar
           menuOpen={menuOpen}
           onMenu={() => setOpenOn(menuOpen ? null : pathname)}
@@ -126,7 +147,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         />
         <main id="zb-content" tabIndex={-1} className="zb-content" style={{ flex:1, padding:"32px 40px" }}>
           <div style={{ maxWidth:1480, width:"100%" }} className="fd">
-            {blocked ? (
+            {blocked ? (landOnHome ? null :
               <div style={{ maxWidth:520, margin:"48px auto 0" }}>
                 <EmptyState icon={iconComponent("settings")} title="Your role can't open this page" description={`You're on the team as ${role ?? "Staff"}. Ask the shop's owner if you need it.`} />
                 {homePage && (

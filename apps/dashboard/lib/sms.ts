@@ -107,11 +107,11 @@ export async function canTextMarketing(db: Db, businessId: string, customerId: s
   return (others ?? []).length === 0;
 }
 
-export type AllowanceResult = { ok: true } | { ok: false; reason: string; status: 429 };
+export type AllowanceResult = { ok: true } | { ok: false; reason: string; status: 403 | 429 };
 
 /**
- * Checks the per-minute rate limit and the monthly cap for a business,
- * counting rows already in sms_logs. Call before every send.
+ * Checks the shop isn't suspended (041), then the per-minute rate limit and
+ * the monthly cap, counting rows already in sms_logs. Call before every send.
  */
 export async function checkSmsAllowance(
   db: Db,
@@ -126,12 +126,18 @@ export async function checkSmsAllowance(
   const minuteAgo = new Date(now.getTime() - 60_000).toISOString();
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
 
-  const [minuteRes, monthRes] = await Promise.all([
+  const [shopRes, minuteRes, monthRes] = await Promise.all([
+    db.from("businesses").select("suspended_at").eq("id", businessId).maybeSingle(),
     db.from("sms_logs").select("id", { count: "exact", head: true })
       .eq("business_id", businessId).eq("channel", "sms").gte("sent_at", minuteAgo),
     db.from("sms_logs").select("id", { count: "exact", head: true })
       .eq("business_id", businessId).eq("channel", "sms").eq("status", "sent").gte("sent_at", monthStart),
   ]);
+
+  if (shopRes.error) return { ok: false, status: 429, reason: "Couldn't check this shop. Try again shortly." };
+  if ((shopRes.data as { suspended_at?: string | null } | null)?.suspended_at) {
+    return { ok: false, status: 403, reason: "This shop's account is paused, so it can't send texts." };
+  }
 
   // The nightly batch sends many texts inside a minute on purpose, so it
   // skips the per-minute limit and only respects the monthly cap.

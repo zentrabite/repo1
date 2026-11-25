@@ -233,8 +233,8 @@ export async function sendMonthlyReports(db: Db, send: (m: { to: string; subject
   let emailed = 0;
   for (const id of ids) {
     try {
-      const { data: biz } = await db.from("businesses").select("id, name, settings").eq("id", id).maybeSingle();
-      if (!biz) continue;
+      const { data: biz } = await db.from("businesses").select("id, name, settings, suspended_at").eq("id", id).maybeSingle();
+      if (!biz || biz.suspended_at) continue; // a suspended shop gets no report (041)
       const settings = (biz.settings ?? {}) as Record<string, unknown>;
       const tz = readOrderingRules(settings).timezone;
       const last = previousMonth(now.getUTCFullYear(), now.getUTCMonth() + 1);
