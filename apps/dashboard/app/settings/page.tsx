@@ -494,22 +494,21 @@ function SettingsContent() {
                       if (!file || !businessId) return;
                       setLogoUploading(true);
                       try {
-                        const ext  = file.name.split(".").pop();
-                        const path = `${businessId}/logo.${ext}`;
-                        const { error: upErr } = await supabase.storage
-                          .from("business-logos")
-                          .upload(path, file, { upsert:true, contentType:file.type });
-                        if (upErr) throw upErr;
-                        const { data: { publicUrl } } = supabase.storage
-                          .from("business-logos")
-                          .getPublicUrl(path);
-                        await supabase.from("businesses").update({ logo_url: publicUrl }).eq("id", businessId);
-                        setLogoUrl(publicUrl);
+                        // Saved by the server (lib/logo.ts), which checks the file
+                        // is a real image. Browsers can't write to storage.
+                        const form = new FormData();
+                        form.append("file", file);
+                        form.append("business_id", businessId);
+                        const res = await fetch("/api/logo", { method:"POST", body:form });
+                        const data = await res.json().catch(() => ({}));
+                        if (!res.ok || !data.logo_url) throw new Error(data.error ?? "Upload failed");
+                        setLogoUrl(data.logo_url);
                         show("Logo updated ✓");
                       } catch (err: any) {
                         show(err.message ?? "Upload failed");
                       } finally {
                         setLogoUploading(false);
+                        e.target.value = "";
                       }
                     }}
                   />

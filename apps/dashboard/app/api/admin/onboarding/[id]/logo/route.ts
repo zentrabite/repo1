@@ -3,21 +3,17 @@
 //   • multipart form upload with a `file` field (rep uploads an image), or
 //   • JSON { url } to use a logo found by the website import. Only URLs the
 //     import found for this business are accepted.
-// Stores the file in Supabase Storage and writes businesses.logo_url.
-// Piggy-backs on the existing "menu-images" bucket with a `logos/` prefix so
-// we don't need another bucket.
+// Checks the file, stores it and writes businesses.logo_url with saveLogo
+// (lib/logo.ts), the same as Settings' Upload logo.
 
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase-server";
 import { assertSuperAdmin } from "@/lib/admin-auth";
-import { checkImage } from "@/lib/image-check";
 import { ImportFetchError, safeFetch } from "@/lib/import/safe-fetch";
+import { LOGO_MAX_BYTES as MAX_BYTES, saveLogo } from "@/lib/logo";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const BUCKET = "menu-images";
-const MAX_BYTES = 5 * 1024 * 1024;
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await assertSuperAdmin();
@@ -52,21 +48,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   }
 
   // Real file type from the bytes. SVG is refused because it can carry scripts.
-  const image = checkImage(buffer, ["png", "jpg", "webp"]);
-  if (!image.ok) return NextResponse.json({ error: image.error }, { status: 400 });
-
-  const path = `logos/${businessId}/${Date.now()}.${image.kind}`;
-
-  const { error: uploadErr } = await db.storage.from(BUCKET).upload(path, buffer, {
-    contentType: image.contentType,
-    upsert: false,
-  });
-  if (uploadErr) return NextResponse.json({ error: uploadErr.message }, { status: 500 });
-
-  const { data: { publicUrl } } = db.storage.from(BUCKET).getPublicUrl(path);
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  await (db.from("businesses") as any).update({ logo_url: publicUrl }).eq("id", businessId);
-
-  return NextResponse.json({ success: true, logo_url: publicUrl });
+  const out = await saveLogo(db, businessId, buffer);
+  if (!out.ok) return NextResponse.json({ error: out.error }, { status: out.status });
+  return NextResponse.json({ success: true, logo_url: out.url });
 }
