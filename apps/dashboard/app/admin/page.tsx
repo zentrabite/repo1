@@ -429,7 +429,7 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 10 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(260px, 100%), 1fr))", gap: 10 }}>
                     {MODULE_CATALOGUE.map(m => {
                       const on = !!active.modules[m.id];
                       return (

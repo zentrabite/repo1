@@ -190,6 +190,9 @@ input, select, textarea {
   transition: border-color .18s, background .18s;
   box-sizing: border-box;
 }
+/* Tick boxes and radio buttons keep their own size. The rule above made them
+   fill the row, which pushed their label aside (Settings, Permissions). */
+input[type="checkbox"], input[type="radio"] { width: auto; padding: 0; flex: none; }
 input:focus, select:focus, textarea:focus {
   border-color: rgba(0, 173, 130, .5);
   background: rgba(28, 45, 72, .8);

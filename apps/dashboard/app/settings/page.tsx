@@ -1285,7 +1285,8 @@ function SettingsContent() {
                       Reset to default
                     </button>
                   </div>
-                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:6 }}>
+                  {/* Two columns, or one when a column would be under 150px (a 320px phone). */}
+                  <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(max(150px, calc((100% - 6px) / 2)), 1fr))", gap:6 }}>
                     {navigation.map(nav => {
                       const on = allowed.includes(nav.href);
                       return (

@@ -99,12 +99,13 @@ export default function AnalyticsPage() {
       <div className="gc" style={{ padding:20, marginBottom:14 }}>
         <div style={{ fontFamily:"var(--font-outfit)", fontWeight:600, fontSize:14, color:"#fff", marginBottom:12 }}>Revenue trend — last {days} days</div>
         {trend ? (
-          <div className="zb-bars" style={{ display:"flex", alignItems:"flex-end", gap:3, height:100 }}>
+          // The day labels hang under the bars, so a two-digit day never widens a thin bar on a phone.
+          <div className="zb-bars" style={{ display:"flex", alignItems:"flex-end", gap:3, height:100, marginBottom:14 }}>
             {trend.map((d, i) => (
-              <div key={i} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center" }}>
+              <div key={i} style={{ flex:1, minWidth:0, position:"relative", display:"flex", flexDirection:"column", alignItems:"center" }}>
                 <div style={{ width:"100%", height:d.height, background:`linear-gradient(180deg,${C.g},${C.g}55)`, borderRadius:"3px 3px 0 0" }} />
                 {i % Math.max(1, Math.floor(trend.length / 14)) === 0 && (
-                  <div style={{ fontSize:8, color:C.st, marginTop:3 }}>{d.label}</div>
+                  <div style={{ position:"absolute", top:"100%", left:"50%", transform:"translateX(-50%)", whiteSpace:"nowrap", fontSize:8, color:C.st, marginTop:3 }}>{d.label}</div>
                 )}
               </div>
             ))}
