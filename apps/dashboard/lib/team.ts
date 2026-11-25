@@ -17,6 +17,7 @@
 
 import "server-only";
 import { ALL_ROLES } from "@/lib/permissions";
+import { teamLoginProblem } from "@/lib/existing-login";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Db = any;
@@ -115,12 +116,8 @@ export async function inviteProblem(db: Db, businessId: string, email: string, i
   if (other) return "That email is already on another shop's team. Use a different email.";
 
   // A login that no invite made (someone who signed up themselves) never
-  // reaches a team, so inviting it would look like it worked and do nothing.
-  if (l) {
-    try {
-      const { data } = await db.auth.admin.getUserById(l.id);
-      if (!data?.user?.invited_at) return "That email already has its own ZentraBite login, so it can't join a team. Use a different email.";
-    } catch { /* can't tell, let the invite go */ }
-  }
+  // reaches a team, and one that was used on another team may have a password
+  // someone else holds (lib/existing-login.ts).
+  if (l) return teamLoginProblem(db, e, businessId);
   return null;
 }

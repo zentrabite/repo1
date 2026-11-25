@@ -141,8 +141,14 @@ export async function POST(req: Request) {
   }
 }
 
-// Let GET also trigger (Vercel cron uses GET by default on free tier)
+// Vercel cron calls this with GET and the cron secret. A GET without the
+// secret is refused, so a link a logged-in owner clicks on another site can't
+// start their shop's run (the login cookie goes with a top-level GET).
 export async function GET(req: Request) {
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret || (req.headers.get("authorization") ?? "") !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: "Use the Run now button." }, { status: 405 });
+  }
   return POST(req);
 }
 

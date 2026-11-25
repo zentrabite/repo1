@@ -49,7 +49,10 @@ export function trustedOrigin(origin: string | null | undefined, fallback: strin
       host === appHost ||
       host === ROOT_DOMAIN ||
       host.endsWith(`.${ROOT_DOMAIN}`) ||
-      /^repo1-dashboard[a-z0-9-]*\.vercel\.app$/.test(host)
+      // This deployment's own preview addresses, exactly. A pattern like
+      // repo1-dashboard*.vercel.app would also match someone else's project.
+      host === (process.env.VERCEL_URL ?? "").toLowerCase() ||
+      host === (process.env.VERCEL_BRANCH_URL ?? "").toLowerCase()
     );
     if (ok) return `${u.protocol}//${u.host}`;
     if (process.env.NODE_ENV !== "production" && u.protocol === "http:" && (host === "localhost" || host === "127.0.0.1")) {

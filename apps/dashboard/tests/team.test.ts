@@ -39,7 +39,7 @@ import { POST as invite } from "@/app/api/team/invite/route";
 import { POST as pause } from "@/app/api/orders/pause/route";
 import { blockedPage, firstAllowedPage } from "@/lib/permissions";
 
-type Login = { id: string; email: string; business_id: string | null; is_seller?: boolean; is_super_admin?: boolean; invited_at?: string | null; email_confirmed_at?: string | null };
+type Login = { id: string; email: string; business_id: string | null; is_seller?: boolean; is_super_admin?: boolean; invited_at?: string | null; email_confirmed_at?: string | null; last_sign_in_at?: string | null };
 type Member = { business_id: string; email: string; role: string; status: string; created_at: string };
 
 /** A fake database holding these logins and memberships, with Supabase's admin auth calls. */
@@ -214,6 +214,22 @@ describe("inviting", () => {
     expect(written("business_members", "upsert")).toHaveLength(0);
     // Removed from another shop is fine.
     expect(await inviteProblem(world([elsewhere], [member("eli@x.com", "Staff", "removed", "shop-b")]), "shop-a", "eli@x.com", "owner@a.com")).toBeNull();
+  });
+
+  it("won't take a login someone used on another team", async () => {
+    // Another shop invited this email, opened the link itself, then removed it.
+    const used: Login = { id: "u-u", email: "una@x.com", business_id: null, invited_at: NOW, email_confirmed_at: NOW, last_sign_in_at: NOW };
+    h.db = world([OWNER, used], [member("una@x.com", "Staff", "removed", "shop-b")]);
+    const res = await post({ email: "una@x.com", role: "Staff" });
+    expect(res.status).toBe(409);
+    expect((await res.json()).error).toMatch(/used on another ZentraBite team/);
+    expect(written("business_members", "upsert")).toHaveLength(0);
+    // Someone who worked here before can come back.
+    expect(await inviteProblem(world([used], [member("una@x.com", "Staff", "removed", "shop-a")]), "shop-a", "una@x.com", "owner@a.com")).toBeNull();
+    // And a login that can't be checked isn't let through.
+    const down = world([used], []);
+    down.auth.admin.getUserById = async () => { throw new Error("down"); };
+    expect(await inviteProblem(down, "shop-a", "una@x.com", "owner@a.com")).toMatch(/Couldn't check/);
   });
 
   it("a second invite can't do what a role change couldn't", async () => {

@@ -907,14 +907,18 @@ function SettingsContent() {
                           </div>
                         ))}
                       </div>
-                      <button
-                        className="bp"
-                        style={{ width:"100%", justifyContent:"center" }}
-                        onClick={handleStripeConnect}
-                        disabled={connectLoading}
-                      >
-                        {connectLoading ? "Opening Stripe…" : "Connect Stripe →"}
-                      </button>
+                      {isOwner ? (
+                        <button
+                          className="bp"
+                          style={{ width:"100%", justifyContent:"center" }}
+                          onClick={handleStripeConnect}
+                          disabled={connectLoading}
+                        >
+                          {connectLoading ? "Opening Stripe…" : "Connect Stripe →"}
+                        </button>
+                      ) : (
+                        <div style={{ fontSize:12, color:C.st }}>{"Only the shop's owner can connect Stripe, because it picks the bank account your takings go to."}</div>
+                      )}
                     </div>
                   )}
                 </>

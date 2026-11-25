@@ -11,6 +11,7 @@ const h = vi.hoisted(() => ({
   who: null as null | { userId: string; email: string | null; isSuperAdmin: boolean; isSeller: boolean },
   superAdmin: null as null | { id: string },
   generateLink: vi.fn(),
+  getUserById: vi.fn(),
 }));
 
 vi.mock("server-only", () => ({}));
@@ -44,7 +45,7 @@ const post = (url: string, body: object) => new Request(`https://dashboard.zentr
   method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body),
 });
 const calls = (table: string, op?: Query["op"]) => (h.db.calls as Query[]).filter(q => q.table === table && (!op || q.op === op));
-const withAuth = <T extends object>(db: T) => Object.assign(db, { auth: { admin: { generateLink: h.generateLink } } });
+const withAuth = <T extends object>(db: T) => Object.assign(db, { auth: { admin: { generateLink: h.generateLink, getUserById: h.getUserById } } });
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -198,15 +199,37 @@ describe("super admin's sellers", () => {
     expect(calls("users", "upsert")[0]!.payload).toMatchObject({ id: "new-1", is_seller: true, role: "seller", business_id: null, name: "Sam Lee" });
   });
 
-  it("makes someone who already has a login a seller, with no new login", async () => {
+  it("makes a shop owner our invite made a seller, with no new login", async () => {
     h.superAdmin = { id: "staff-1" };
-    h.db = withAuth(fakeDb({ "users.select": () => ({ data: { id: "owner-1", name: "Joe", phone: null }, error: null }) }));
+    h.getUserById.mockResolvedValue({ data: { user: { invited_at: "2026-11-20T00:00:00Z", last_sign_in_at: "2026-11-21T00:00:00Z" } }, error: null });
+    h.db = withAuth(fakeDb({ "users.select": () => ({ data: { id: "owner-1", name: "Joe", phone: null, business_id: "shop-1", is_seller: false, is_super_admin: false }, error: null }) }));
     const res = await addSeller(post("/api/admin/sellers", { name: "Joe", email: "joe@example.com" }));
     expect(await res.json()).toMatchObject({ existing: true });
     expect(h.generateLink).not.toHaveBeenCalled();
     const [upd] = calls("users", "update");
     expect(upd!.payload).toEqual({ is_seller: true });
     expect(filterValue(upd!, "id")).toBe("owner-1");
+  });
+
+  it("won't make a login it can't be sure about a seller", async () => {
+    h.superAdmin = { id: "staff-1" };
+    const signedUp = { data: { id: "x-1", name: "X", phone: null, business_id: null, is_seller: false, is_super_admin: false }, error: null };
+    // Someone signed up with the email themselves.
+    h.getUserById.mockResolvedValue({ data: { user: { invited_at: null, last_sign_in_at: "2026-11-21T00:00:00Z" } }, error: null });
+    h.db = withAuth(fakeDb({ "users.select": () => signedUp }));
+    let res = await addSeller(post("/api/admin/sellers", { name: "Joe", email: "joe@example.com" }));
+    expect(res.status).toBe(409);
+    // Another shop invited the email to its team and someone used the link.
+    h.getUserById.mockResolvedValue({ data: { user: { invited_at: "2026-11-20T00:00:00Z", last_sign_in_at: "2026-11-21T00:00:00Z" } }, error: null });
+    h.db = withAuth(fakeDb({ "users.select": () => signedUp }));
+    res = await addSeller(post("/api/admin/sellers", { name: "Joe", email: "joe@example.com" }));
+    expect(res.status).toBe(409);
+    // The login can't be checked.
+    h.getUserById.mockRejectedValue(new Error("down"));
+    h.db = withAuth(fakeDb({ "users.select": () => signedUp }));
+    res = await addSeller(post("/api/admin/sellers", { name: "Joe", email: "joe@example.com" }));
+    expect(res.status).toBe(409);
+    expect(calls("users", "update")).toHaveLength(0);
   });
 
   it("takes access away without deleting the login", async () => {

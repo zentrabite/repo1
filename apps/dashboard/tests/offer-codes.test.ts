@@ -14,6 +14,7 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeDb, filterValue, type Query } from "./fake-db";
+import { signed } from "./signed-checkout";
 
 const h = vi.hoisted(() => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -423,11 +424,11 @@ describe("the order", () => {
     });
     h.stripe.webhooks.constructEvent.mockReturnValue({
       type: "checkout.session.completed", account: "acct_shop",
-      data: { object: {
+      data: { object: signed({
         id: "cs_1", payment_status: "paid", amount_total: 2880, payment_intent: "pi_1",
         metadata: { business_id: "biz-1", source: "storefront", customer_name: "Sofia", customer_phone: "+61412345678", customer_email: "s@example.com",
           items_0: JSON.stringify([{ id: "m1", qty: 2, p: 1800 }]), offer_code: "K7MP4QXA", offer_discount: "7.20", came_from: "winback" },
-      } },
+      }) },
     });
     const res = await webhook(new Request("https://dashboard.zentrabite.com/api/stripe/webhook", { method: "POST", headers: { "stripe-signature": "t=1,v1=x" }, body: "{}" }));
     expect(res.status).toBe(200);
@@ -454,8 +455,8 @@ describe("the order", () => {
     });
     h.stripe.webhooks.constructEvent.mockReturnValue({
       type: "checkout.session.completed", account: "acct_shop",
-      data: { object: { id: "cs_2", payment_status: "paid", amount_total: 1000, payment_intent: "pi_2",
-        metadata: { business_id: "biz-1", source: "storefront", customer_name: "Sofia", items_0: "[]", offer_code: "K7MP4QXA", offer_discount: "5.00", came_from: "winback" } } },
+      data: { object: signed({ id: "cs_2", payment_status: "paid", amount_total: 1000, payment_intent: "pi_2",
+        metadata: { business_id: "biz-1", source: "storefront", customer_name: "Sofia", items_0: "[]", offer_code: "K7MP4QXA", offer_discount: "5.00", came_from: "winback" } }) },
     });
     await webhook(new Request("https://dashboard.zentrabite.com/api/stripe/webhook", { method: "POST", headers: { "stripe-signature": "t=1,v1=x" }, body: "{}" }));
     expect(calls("winback_rules", "update")).toHaveLength(0);

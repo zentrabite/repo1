@@ -135,10 +135,10 @@ function LoginForm() {
         textAlign: "center", marginTop: 20,
         fontFamily: "var(--font-inter)", fontSize: 13, color: C.st,
       }}>
-        Don&apos;t have an account?{" "}
-        <Link href="/signup" style={{ color: C.g, textDecoration: "none", fontWeight: 500 }}>
-          Sign up
-        </Link>
+        {"New to ZentraBite? "}
+        <a href="https://zentrabite.com/contact" style={{ color: C.g, textDecoration: "none", fontWeight: 500 }}>
+          Book a call
+        </a>
       </p>
     </>
   );

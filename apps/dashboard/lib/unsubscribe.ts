@@ -25,6 +25,7 @@
 
 import "server-only";
 import crypto from "node:crypto";
+import { signingKey as sharedSigningKey } from "@/lib/signing-key";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Db = any;
@@ -32,20 +33,8 @@ type Db = any;
 const PURPOSE = "zentrabite:email-unsubscribe:v1";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// Read once per server, then kept. A failed read is tried again next time.
-let cachedKey: Buffer | null = null;
-
-async function signingKey(db: Db): Promise<Buffer | null> {
-  if (cachedKey) return cachedKey;
-  try {
-    const { data, error } = await db.rpc("link_signing_secret");
-    if (error || typeof data !== "string" || data.length < 32) return null;
-    cachedKey = crypto.createHmac("sha256", data).update(PURPOSE).digest();
-    return cachedKey;
-  } catch {
-    return null;
-  }
-}
+// Read once per server, then kept (lib/signing-key.ts).
+const signingKey = (db: Db) => sharedSigningKey(db, PURPOSE);
 
 function sign(customerId: string, key: Buffer): string {
   return crypto.createHmac("sha256", key).update(customerId.toLowerCase()).digest("base64url");

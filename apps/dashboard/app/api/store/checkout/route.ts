@@ -41,12 +41,14 @@ import { checkPickup, readOrderingRules } from "@/lib/pickup-times";
 import { checkDeliveryAddress, cleanNote, readDeliveryRules } from "@/lib/own-delivery";
 import { firstOrderDiscount, readFirstOrderOffer } from "@/lib/first-order";
 import { cameFrom, checkCode, cleanCode, codeDiscount, type CodeCheck } from "@/lib/offer-codes";
+import { signCheckout } from "@/lib/checkout-signature";
 
 const MAX_LINES = 50;
 const MAX_QTY   = 50;
-// Stripe allows 50 metadata keys. Up to 17 are used for the order details,
-// so the items get up to 33 chunks.
-const MAX_ITEM_CHUNKS = 33;
+// Stripe allows 50 metadata keys. Up to 17 are used for the order details
+// and 2 for our signature (lib/checkout-signature.ts), so the items get up to
+// 31 chunks.
+const MAX_ITEM_CHUNKS = 31;
 
 type RequestItem = { id: string; qty: number; options?: unknown };
 
@@ -237,6 +239,34 @@ export async function POST(req: Request) {
         }, { stripeAccount: connectedAccount })
       : null;
 
+    const metadata: Record<string, string> = {
+      business_id:      business.id as string,
+      subdomain:        business.subdomain as string,
+      customer_name:    clip(customer?.name),
+      customer_phone:   clip(customer?.phone, 40),
+      customer_email:   clip(customer?.email),
+      marketing_opt_in: customer?.marketingOptIn === true ? "1" : "0",
+      source:           "storefront",
+      pickup_at:        when.pickupAt.toISOString(),
+      pickup_asap:      when.asap ? "1" : "0",
+      fulfillment_type: isDelivery ? "delivery" : "pickup",
+      ...(deliveryAddress ? { delivery_address: deliveryAddress, delivery_fee: delivery.fee.toFixed(2) } : {}),
+      ...(orderNote ? { note: orderNote } : {}),
+      ...(coupon && !usingCode ? { first_order_discount: (discount.cents / 100).toFixed(2) } : {}),
+      ...(coupon && usingCode && codeCheck ? { offer_code: codeCheck.row.code, offer_discount: (discount.cents / 100).toFixed(2) } : {}),
+      came_from:        cameFrom(src, Boolean(codeCheck)),
+      // Lets the paid order join the visit in PostHog. Random, never personal.
+      ...(typeof ph === "string" && /^anon-[0-9a-f-]{36}$/.test(ph) ? { ph } : {}),
+      ...itemChunks,
+    };
+    // Signed so the webhook only takes checkouts this server made. Good until
+    // 10 minutes after the checkout ends.
+    const signed = await signCheckout(db, metadata, expiresAt + 10 * 60);
+    if (!signed) {
+      console.error("[checkout] couldn't sign the checkout (link_signing_secret, migration 035)");
+      return NextResponse.json({ error: "Online ordering isn't working right now. Please try again in a minute." }, { status: 503 });
+    }
+
     // Created on the shop's own account (the stripeAccount option), so the
     // customer sees the shop's name and branding at checkout.
     const session = await stripe.checkout.sessions.create({
@@ -266,26 +296,7 @@ export async function POST(req: Request) {
       success_url: `${origin}/store/${business.subdomain}/success?session_id={CHECKOUT_SESSION_ID}`,
       // Going back keeps the offer code and where they came from.
       cancel_url:  `${origin}/store/${business.subdomain}${backQuery(codeCheck?.row.code ?? null, cameFrom(src, false))}`,
-      metadata: {
-        business_id:      business.id as string,
-        subdomain:        business.subdomain as string,
-        customer_name:    clip(customer?.name),
-        customer_phone:   clip(customer?.phone, 40),
-        customer_email:   clip(customer?.email),
-        marketing_opt_in: customer?.marketingOptIn === true ? "1" : "0",
-        source:           "storefront",
-        pickup_at:        when.pickupAt.toISOString(),
-        pickup_asap:      when.asap ? "1" : "0",
-        fulfillment_type: isDelivery ? "delivery" : "pickup",
-        ...(deliveryAddress ? { delivery_address: deliveryAddress, delivery_fee: delivery.fee.toFixed(2) } : {}),
-        ...(orderNote ? { note: orderNote } : {}),
-        ...(coupon && !usingCode ? { first_order_discount: (discount.cents / 100).toFixed(2) } : {}),
-        ...(coupon && usingCode && codeCheck ? { offer_code: codeCheck.row.code, offer_discount: (discount.cents / 100).toFixed(2) } : {}),
-        came_from:        cameFrom(src, Boolean(codeCheck)),
-        // Lets the paid order join the visit in PostHog. Random, never personal.
-        ...(typeof ph === "string" && /^anon-[0-9a-f-]{36}$/.test(ph) ? { ph } : {}),
-        ...itemChunks,
-      },
+      metadata: signed,
     }, { stripeAccount: connectedAccount });
 
     // Hold the code for this checkout. If another checkout took it in the

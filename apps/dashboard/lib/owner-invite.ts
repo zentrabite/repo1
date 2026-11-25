@@ -9,11 +9,13 @@
 // link on themselves.
 //
 // A first link is a Supabase "invite". If the owner already has a login (a
-// second link, or an email used before), it's a "magiclink" instead. A login
-// that already belongs to a different shop is never moved to this one.
+// second link), it's a "magiclink" instead. An existing login is only linked
+// to this shop when we know who holds it (lib/existing-login.ts). A login that
+// belongs to a different shop is never moved to this one.
 
 import "server-only";
 import { sendEmail } from "@/lib/email";
+import { ownerLoginProblem } from "@/lib/existing-login";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Db = { from: (table: string) => any; auth: any };
@@ -30,6 +32,9 @@ export async function inviteOwner(db: Db, input: {
 }): Promise<OwnerInvite> {
   const email = input.email.trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { ok: false, error: "The owner's email isn't valid. Fix it in the Basics step." };
+  // An existing login only becomes this owner when we know who holds it.
+  const problem = await ownerLoginProblem(db, email, input.businessId);
+  if (problem) return { ok: false, error: problem };
   const redirectTo = `${appUrl()}/login`;
 
   let link: string | null = null;

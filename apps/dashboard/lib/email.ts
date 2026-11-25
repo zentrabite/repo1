@@ -278,7 +278,7 @@ function receiptHtml(input: CustomerReceiptInput): string {
   const rows = items.map(it => `
     <tr>
       <td style="padding:10px 0;border-bottom:1px solid #eceff4;font-size:14px;color:#0F1F2D">
-        ${it.qty ? `<span style="color:#5B6B80">${it.qty}× </span>` : ""}${escapeHtml(it.name)}
+        ${it.qty ? `<span style="color:#5B6B80">${escapeHtml(String(it.qty))}× </span>` : ""}${escapeHtml(it.name)}
       </td>
       <td style="padding:10px 0;border-bottom:1px solid #eceff4;font-size:14px;color:#0F1F2D;text-align:right">
         ${it.price ? `$${it.price.toFixed(2)}` : ""}

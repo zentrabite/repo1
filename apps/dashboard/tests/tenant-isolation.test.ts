@@ -66,7 +66,7 @@ async function attempt(sql: string, params: unknown[] = []): Promise<number | st
     return err instanceof Error ? err.message : String(err);
   }
 }
-const REFUSED = /row-level security|permission denied/;
+const REFUSED = /row-level security|permission denied|must belong to the same shop/;
 
 beforeAll(async () => {
   m = await migratedDb();
